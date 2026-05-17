@@ -1,0 +1,3719 @@
+<!DOCTYPE html>
+<!-- saved from url=(0040)https://rhythm-roadmap.netlify.app/#team -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><style>body {transition: opacity ease-in 0.2s; } 
+body[unresolved] {opacity: 0; display: block; overflow: hidden; position: relative; } 
+</style>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rhythm Outdoors · The Vision Document</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="./Rhythm Outdoors · The Vision Document_files/css2" rel="stylesheet">
+<style>
+  :root {
+    --olive: #3F4A21;
+    --olive-deep: #2A3216;
+    --tan: #B89C73;
+    --tan-deep: #9A8159;
+    --cream: #E8E4D5;
+    --paper: #FBFAF3;
+    --gray: #6B6557;
+    --gray-light: #D4CEBE;
+    --border: rgba(63, 74, 33, 0.15);
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --shadow-sm: 0 1px 2px rgba(42,50,22,0.06);
+    --shadow-md: 0 4px 12px rgba(42,50,22,0.08);
+    --shadow-lg: 0 12px 32px rgba(42,50,22,0.12);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--sans);
+    color: var(--olive);
+    background: var(--paper);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    font-weight: 300;
+  }
+
+  /* ========== TOC NAV ========== */
+  .toc {
+    position: sticky;
+    top: 0;
+    background: rgba(251,250,243,0.92);
+    backdrop-filter: saturate(140%) blur(8px);
+    border-bottom: 1px solid var(--border);
+    z-index: 50;
+    padding: 0.875rem 2rem;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--gray);
+  }
+  .toc-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .toc-brand { font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--olive); letter-spacing: 0.5px; text-transform: none; font-weight: 500;}
+  .toc-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .toc-links a { color: var(--gray); text-decoration: none; transition: color 0.15s; }
+  .toc-links a:hover { color: var(--tan-deep); }
+
+  section { padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; }
+  section.full { max-width: none; padding-left: 2rem; padding-right: 2rem; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--tan-deep);
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+  }
+
+  h1 { font-family: var(--serif); font-size: 72px; font-weight: 600; line-height: 1.05; color: var(--olive); margin: 0 0 1rem; letter-spacing: -1px; }
+  h2 { font-family: var(--serif); font-size: 44px; font-weight: 600; color: var(--olive); margin: 0 0 1rem; letter-spacing: -0.5px; line-height: 1.1; }
+  h2::after { content: ""; display: block; width: 48px; height: 2px; background: var(--tan-deep); margin-top: 1rem; }
+  h3 { font-family: var(--serif); font-size: 28px; font-weight: 600; color: var(--olive); margin: 0 0 0.75rem; letter-spacing: -0.3px; }
+  h4 { font-family: var(--serif); font-size: 20px; font-weight: 600; color: var(--olive); margin: 0 0 0.5rem; }
+
+  p { font-size: 16px; line-height: 1.7; color: var(--olive); }
+  p.lead { font-family: var(--serif); font-size: 24px; font-style: italic; color: var(--gray); line-height: 1.5; max-width: 760px; }
+
+  /* ========== HERO ========== */
+  .hero {
+    min-height: 78vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: linear-gradient(180deg, var(--paper) 0%, var(--cream) 100%);
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+  }
+  .hero-mark {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--tan-deep);
+    font-size: 18px;
+    letter-spacing: 0.5px;
+    margin-bottom: 2rem;
+  }
+  .hero h1 { max-width: 920px; }
+  .hero p.lead { margin: 1.5rem 0 0; max-width: 720px; }
+  .hero-meta {
+    margin-top: 4rem;
+    display: flex;
+    gap: 2.5rem;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gray);
+    flex-wrap: wrap;
+  }
+  .hero-meta strong { color: var(--olive); font-weight: 600; }
+
+  /* ========== PULL QUOTE ========== */
+  .pullquote {
+    background: var(--olive);
+    color: var(--cream);
+    padding: 5rem 2rem;
+    text-align: center;
+  }
+  .pullquote-inner {
+    max-width: 920px;
+    margin: 0 auto;
+  }
+  .pullquote-text {
+    font-family: var(--serif);
+    font-size: 38px;
+    line-height: 1.25;
+    color: var(--cream);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.3px;
+  }
+  .pullquote-text strong { font-style: normal; font-weight: 600; color: var(--tan); }
+  .pullquote-attr {
+    margin-top: 2rem;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(232,228,213,0.7);
+  }
+
+  /* ========== PROBLEM ========== */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    margin-top: 3rem;
+  }
+  .problem-side h3 { color: var(--tan-deep); margin-bottom: 1rem; }
+  .friction-list { list-style: none; padding: 0; margin: 0; }
+  .friction-list li {
+    padding: 0.75rem 0 0.75rem 2rem;
+    position: relative;
+    color: var(--olive);
+    font-size: 15.5px;
+    line-height: 1.55;
+    border-bottom: 1px dashed var(--border);
+  }
+  .friction-list li:last-child { border-bottom: none; }
+  .friction-list li::before {
+    content: "✕";
+    position: absolute;
+    left: 0;
+    top: 0.85rem;
+    color: var(--tan-deep);
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .answer-list li::before { content: "—"; color: var(--olive); }
+
+  /* ========== FIVE CLICKS ========== */
+  .five-clicks {
+    margin: 3rem 0 0;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2.5rem;
+  }
+  .five-clicks-title {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-style: italic;
+    color: var(--olive);
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  .clicks-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+  }
+  .click-step {
+    text-align: center;
+    padding: 0.5rem;
+  }
+  .click-num {
+    font-family: var(--serif);
+    font-size: 36px;
+    font-weight: 600;
+    color: var(--tan-deep);
+    line-height: 1;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .click-label {
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--olive);
+    font-weight: 500;
+  }
+  .click-desc {
+    font-size: 13px;
+    color: var(--gray);
+    margin-top: 6px;
+    line-height: 1.4;
+  }
+
+  /* ========== AUDIENCE TABS ========== */
+  .audience-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin: 3rem 0 0;
+  }
+  .audience-tab {
+    flex: 1;
+    text-align: center;
+    padding: 1rem 1.5rem;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gray);
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .audience-tab.active { color: var(--olive); border-bottom-color: var(--tan-deep); font-weight: 600; }
+  .audience-tab:hover { color: var(--olive); }
+
+  .audience-panel {
+    display: none;
+    padding: 3rem 1rem 1rem;
+    animation: fadeIn 0.4s ease-out;
+  }
+  .audience-panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .audience-headline { font-family: var(--serif); font-size: 32px; font-weight: 600; color: var(--olive); margin: 0 0 0.5rem; }
+  .audience-tag { font-family: var(--serif); font-style: italic; color: var(--tan-deep); font-size: 18px; margin-bottom: 1.75rem; }
+  .audience-body { font-size: 16px; color: var(--olive); line-height: 1.7; max-width: 720px; }
+
+  .audience-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+  .audience-feature {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--tan-deep);
+    border-radius: 4px;
+    padding: 1.25rem 1.25rem 1.25rem 1.5rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .audience-feature:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .audience-feature h4 { color: var(--olive); margin-bottom: 0.4rem; font-size: 17px; }
+  .audience-feature p { font-size: 14px; color: var(--gray); margin: 0; line-height: 1.55; }
+
+  .audience-url {
+    margin-top: 1.5rem;
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--tan-deep);
+    font-size: 17px;
+    letter-spacing: 0.3px;
+  }
+
+  /* ========== PROPERTIES ========== */
+  .props-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+  .prop-card {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2rem 1.75rem;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .prop-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--tan); }
+  .prop-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--tan-deep);
+  }
+  .prop-name { font-family: var(--serif); font-size: 26px; font-weight: 600; color: var(--olive); line-height: 1.15; margin: 1rem 0 0.5rem;}
+  .prop-tag { font-family: var(--serif); font-style: italic; color: var(--tan-deep); font-size: 15px; margin-bottom: 1rem; }
+  .prop-body { font-size: 14.5px; color: var(--gray); line-height: 1.6; margin: 0; }
+  .prop-meta {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--tan-deep);
+  }
+
+  /* ========== JOURNEY ========== */
+  .journey {
+    background: var(--cream);
+    margin: 0 -2rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+  .journey-inner { max-width: 1200px; margin: 0 auto; }
+  .journey-flow {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+  .journey-step {
+    background: var(--paper);
+    padding: 1.75rem 1.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    position: relative;
+  }
+  .journey-num {
+    position: absolute;
+    top: -16px;
+    left: 1.5rem;
+    background: var(--olive);
+    color: var(--cream);
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 600;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .journey-step h4 { margin-top: 0.75rem; color: var(--olive); }
+  .journey-step p { font-size: 14px; color: var(--gray); margin: 0; line-height: 1.55; }
+
+  /* ========== BID ANATOMY ========== */
+  .bid-anatomy {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 4rem;
+    align-items: center;
+    margin-top: 3rem;
+  }
+  .bid-mock {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem 1.25rem;
+    box-shadow: var(--shadow-lg);
+    aspect-ratio: 0.55;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    position: relative;
+  }
+  .mock-bar { height: 4px; background: var(--gray-light); border-radius: 2px; width: 100%; }
+  .mock-bar.short { width: 60%; }
+  .mock-bar.tan { background: var(--tan); }
+  .mock-bar.olive { background: var(--olive); height: 8px; }
+  .mock-block {
+    background: var(--cream);
+    border-radius: 4px;
+    padding: 0.75rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+  }
+  .mock-row { height: 3px; background: var(--gray-light); border-radius: 1.5px; }
+  .mock-row.s { width: 70%; }
+  .mock-row.xs { width: 40%; }
+  .mock-cta {
+    background: var(--olive);
+    color: var(--cream);
+    text-align: center;
+    padding: 0.75rem;
+    border-radius: 4px;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .bid-features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+  .bid-feature {
+    padding: 1rem 1rem 1rem 0;
+    border-left: 2px solid var(--tan);
+    padding-left: 1rem;
+  }
+  .bid-feature-icon {
+    font-size: 22px;
+    margin-bottom: 0.25rem;
+    display: block;
+  }
+  .bid-feature h4 { font-size: 16px; margin-bottom: 0.25rem; color: var(--olive); }
+  .bid-feature p { font-size: 13.5px; color: var(--gray); margin: 0; line-height: 1.5; }
+
+  /* ========== ARCHITECTURE DIAGRAM ========== */
+  .arch-diagram {
+    margin: 3rem auto 0;
+    max-width: 980px;
+  }
+
+  /* ========== TECH STACK ========== */
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.25rem;
+    margin-top: 3rem;
+  }
+  .stack-card {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.5rem 1.5rem 1.25rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stack-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .stack-card.center { border: 2px solid var(--tan-deep); background: var(--cream); }
+  .stack-tier {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  .tier-core { color: var(--tan-deep); }
+  .tier-supporting { color: var(--olive); }
+  .tier-watch { color: #B8723A; }
+
+  .stack-name { font-family: var(--serif); font-size: 22px; font-weight: 600; color: var(--olive); margin: 0 0 0.4rem; }
+  .stack-role { font-family: var(--serif); font-style: italic; color: var(--gray); font-size: 14px; margin-bottom: 0.75rem; }
+  .stack-body { font-size: 14px; color: var(--olive); line-height: 1.55; margin: 0 0 1rem; }
+  .stack-flag {
+    font-size: 12px;
+    color: var(--tan-deep);
+    border-top: 1px dashed var(--border);
+    padding-top: 0.75rem;
+    line-height: 1.5;
+    font-style: italic;
+  }
+  .stack-flag.warn { color: #B8723A; }
+
+  /* ========== LIVE POCs ========== */
+  .poc-intro {
+    margin-bottom: 2rem;
+  }
+  .poc-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin: 2.5rem 0 0;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  .poc-tab {
+    flex: 1 0 auto;
+    min-width: 140px;
+    padding: 0.875rem 1rem;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gray);
+    font-weight: 500;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .poc-tab.active { color: var(--olive); border-bottom-color: var(--tan-deep); font-weight: 600; }
+  .poc-tab:hover { color: var(--olive); }
+  .poc-tab .tab-tag {
+    display: block;
+    font-size: 9.5px;
+    letter-spacing: 1.5px;
+    color: var(--tan-deep);
+    margin-top: 2px;
+    font-weight: 600;
+  }
+
+  .poc-panel {
+    display: none;
+    padding: 2rem 0 0;
+    animation: fadeIn 0.4s ease-out;
+  }
+  .poc-panel.active { display: block; }
+
+  .poc-meta {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1.5rem;
+    align-items: end;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0;
+  }
+  .poc-headline-block h3 { margin: 0 0 0.4rem; }
+  .poc-tag {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--tan-deep);
+    font-size: 16px;
+    margin: 0 0 0.25rem;
+  }
+  .poc-desc { font-size: 14px; color: var(--gray); margin: 0; max-width: 640px; line-height: 1.55; }
+
+  .poc-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-end;
+  }
+  .poc-credentials {
+    background: var(--cream);
+    border: 1px solid var(--tan);
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: 11.5px;
+    color: var(--olive-deep);
+    letter-spacing: 0.3px;
+    line-height: 1.45;
+  }
+  .poc-credentials .cred-label {
+    display: block;
+    font-family: var(--sans);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--tan-deep);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .poc-credentials .cred-pass {
+    color: var(--olive);
+    font-weight: 600;
+  }
+  .poc-public-tag {
+    background: rgba(63, 74, 33, 0.06);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    font-family: var(--sans);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gray);
+  }
+  .poc-fullscreen {
+    display: inline-block;
+    background: var(--olive);
+    color: var(--cream);
+    text-decoration: none;
+    padding: 0.55rem 0.9rem;
+    border-radius: 4px;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 500;
+    transition: background 0.15s;
+  }
+  .poc-fullscreen:hover { background: var(--tan-deep); }
+
+  .poc-frame-wrap {
+    margin-top: 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--paper);
+    box-shadow: var(--shadow-md);
+    position: relative;
+  }
+  .poc-frame {
+    width: 100%;
+    height: 720px;
+    border: none;
+    display: block;
+    background: var(--paper);
+  }
+  .poc-frame-bar {
+    background: var(--olive-deep);
+    color: var(--cream);
+    font-size: 10.5px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 0.5rem 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .poc-frame-bar .dot {
+    width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+  }
+  .poc-frame-bar .dot.r { background: #E26B6B; }
+  .poc-frame-bar .dot.y { background: #D9B36A; }
+  .poc-frame-bar .dot.g { background: #88A56E; }
+  .poc-frame-bar .url {
+    color: var(--tan);
+    font-family: 'SF Mono', Menlo, monospace;
+    letter-spacing: 0.3px;
+    text-transform: none;
+    margin-left: 0.5rem;
+  }
+
+  @media (max-width: 880px) {
+    .poc-frame { height: 560px; }
+    .poc-meta { grid-template-columns: 1fr; }
+    .poc-actions { align-items: flex-start; flex-direction: row; flex-wrap: wrap; }
+  }
+
+  /* ========== ROADMAP ========== */
+  .roadmap-track {
+    margin-top: 3rem;
+    position: relative;
+  }
+  .roadmap-line {
+    position: absolute;
+    top: 24px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--gray-light);
+    z-index: 0;
+  }
+  .roadmap-phases {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+    position: relative;
+    z-index: 1;
+  }
+  .phase {
+    text-align: center;
+  }
+  .phase-dot {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 2px solid var(--gray-light);
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--gray);
+    transition: all 0.2s;
+    position: relative;
+    z-index: 2;
+  }
+  .phase.current .phase-dot { background: var(--olive); color: var(--cream); border-color: var(--olive); box-shadow: 0 0 0 6px rgba(63,74,33,0.12); }
+  .phase.done .phase-dot { background: var(--tan-deep); color: var(--cream); border-color: var(--tan-deep); }
+  .phase.upcoming .phase-dot { background: var(--paper); color: var(--gray); }
+
+  .phase-name { font-family: var(--serif); font-size: 18px; font-weight: 600; color: var(--olive); margin-bottom: 4px; }
+  .phase-when { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--tan-deep); margin-bottom: 0.5rem; }
+  .phase-desc { font-size: 13px; color: var(--gray); line-height: 1.5; padding: 0 0.25rem; }
+
+  /* ========== IMPACT ========== */
+  .impact {
+    background: var(--olive);
+    color: var(--cream);
+    margin: 0 -2rem;
+    padding: 5rem 2rem;
+  }
+  .impact-inner { max-width: 1200px; margin: 0 auto; }
+  .impact h2 { color: var(--cream); }
+  .impact h2::after { background: var(--tan); }
+  .impact p.lead { color: rgba(232,228,213,0.85); }
+
+  .impact-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 3rem;
+  }
+  .impact-stat {
+    background: rgba(232,228,213,0.04);
+    border: 1px solid rgba(184,156,115,0.3);
+    border-radius: 6px;
+    padding: 2rem 1.75rem;
+  }
+  .impact-num {
+    font-family: var(--serif);
+    font-size: 56px;
+    font-weight: 600;
+    color: var(--tan);
+    line-height: 1;
+    letter-spacing: -1px;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  .impact-label {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--cream);
+    font-size: 17px;
+    margin-bottom: 1rem;
+  }
+  .impact-body { font-size: 14px; color: rgba(232,228,213,0.7); line-height: 1.55; margin: 0; }
+
+  /* ========== OPEN QUESTIONS ========== */
+  .questions-list {
+    list-style: none;
+    counter-reset: q;
+    padding: 0;
+    margin: 3rem 0 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem 2rem;
+  }
+  .questions-list li {
+    counter-increment: q;
+    padding: 1rem 1rem 1rem 3rem;
+    position: relative;
+    border-left: 2px solid var(--tan);
+    font-size: 15px;
+    color: var(--olive);
+    line-height: 1.55;
+  }
+  .questions-list li::before {
+    content: counter(q, decimal-leading-zero);
+    position: absolute;
+    left: 0.75rem;
+    top: 1rem;
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--tan-deep);
+  }
+
+  /* ========== FOOTER ========== */
+  footer {
+    text-align: center;
+    padding: 3rem 2rem 4rem;
+    border-top: 1px solid var(--border);
+    margin-top: 4rem;
+  }
+  .colophon {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--gray);
+    font-size: 15px;
+    margin-bottom: 0.75rem;
+  }
+  .colophon strong { color: var(--olive); font-style: normal; font-weight: 600; }
+  .footer-meta {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gray);
+  }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 880px) {
+    h1 { font-size: 44px; }
+    h2 { font-size: 32px; }
+    .pullquote-text { font-size: 26px; }
+    .clicks-row { grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .props-grid, .journey-flow, .impact-grid { grid-template-columns: 1fr; }
+    .questions-list { grid-template-columns: 1fr; }
+    .bid-anatomy { grid-template-columns: 1fr; gap: 2.5rem; }
+    .bid-features { grid-template-columns: 1fr; }
+    .roadmap-phases { grid-template-columns: 1fr; gap: 2rem; }
+    .roadmap-line { display: none; }
+    .problem-grid { grid-template-columns: 1fr; gap: 2rem; }
+    section { padding: 3.5rem 1.25rem; }
+    .toc { padding: 0.75rem 1.25rem; }
+    .audience-tabs { flex-direction: column; }
+    .audience-tab { border-bottom: 1px solid var(--border); border-left: 3px solid transparent; text-align: left; }
+    .audience-tab.active { border-bottom-color: var(--border); border-left-color: var(--tan-deep); }
+  }
+
+  @media print {
+    .toc { display: none; }
+    .audience-panel { display: block !important; page-break-inside: avoid; }
+    section { padding: 2rem; }
+    .impact, .pullquote { background: var(--paper); color: var(--olive); }
+    .impact h2, .pullquote-text { color: var(--olive); }
+  }
+</style>
+</head>
+<body>
+
+<nav class="toc">
+  <div class="toc-inner">
+    <span class="toc-brand">Rhythm Outdoors · Vision Document</span>
+    <div class="toc-links">
+      <a href="https://rhythm-roadmap.netlify.app/#problem">The Problem</a>
+      <a href="https://rhythm-roadmap.netlify.app/#promise">The Promise</a>
+      <a href="https://rhythm-roadmap.netlify.app/#audiences">Audiences</a>
+      <a href="https://rhythm-roadmap.netlify.app/#properties">Properties</a>
+      <a href="https://rhythm-roadmap.netlify.app/#journey">Journey</a>
+      <a href="https://rhythm-roadmap.netlify.app/#bid">Bid Page</a>
+      <a href="https://rhythm-roadmap.netlify.app/#poc">Live Proofs</a>
+      <a href="https://rhythm-roadmap.netlify.app/#stack">Stack</a>
+      <a href="https://rhythm-roadmap.netlify.app/#roadmap">Roadmap</a>
+      <a href="https://rhythm-roadmap.netlify.app/#impact">Impact</a>
+      <a href="https://rhythm-roadmap.netlify.app/#team">Time-Back Agenda</a>
+      <a href="https://rhythm-roadmap.netlify.app/#membership">Membership</a>
+      <a href="https://rhythm-roadmap.netlify.app/#inheritance">For HubSpot</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-mark">A vision document for the team — what we are building, how, and why it changes the industry.</div>
+  <div class="eyebrow">Rhythm Outdoors · 2026</div>
+  <h1>We connect people to themselves,<br>to each other, and to the natural world.</h1>
+  <p class="lead">By removing the friction the outdoor industry has decided to live with — at every touch point a guest, a member, or a partner has with us. Three properties. Three audiences. One architecture. From interest to confirmed booking, lesson, or membership in <strong style="color: var(--olive); font-weight: 600;">fifteen clicks or fewer</strong> — and our team gets their day back.</p>
+  <div class="hero-meta">
+    <div><strong>Author</strong><br>Nicholas Vedros, Founder</div>
+    <div><strong>Status</strong><br>Vision · Living Document</div>
+    <div><strong>Audience</strong><br>The whole team. The whole company.</div>
+    <div><strong>Version</strong><br>1.0 · May 2026</div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section id="problem" style="opacity: 1; transform: translateY(0px); transition: opacity 0.6s ease-out, transform 0.6s ease-out;">
+  <div class="eyebrow">The Industry</div>
+  <h2>Outdoor experiences are not hard. Booking them is.</h2>
+  <p class="lead">Walk into any sporting club, lodge, or guide service in this country and you'll find the same pattern — a beautiful product surrounded by brittle, manual operations. The customer wants to give you money. The system makes them work for it.</p>
+
+  <div class="problem-grid">
+    <div class="problem-side">
+      <h3>The friction the industry accepts</h3>
+      <ul class="friction-list">
+        <li>You can rarely book online. You call a number, leave a message, wait for a callback.</li>
+        <li>Pricing isn't published. Every quote is a back-and-forth thread.</li>
+        <li>Waivers feel like a bolt-on — janky third-party forms that break the brand.</li>
+        <li>No one knows availability in real time. Double-bookings are common.</li>
+        <li>Members get the same sluggish experience as walk-ins. Their status doesn't follow them.</li>
+        <li>Hotel and resort partners renegotiate group rates over email, every single time.</li>
+      </ul>
+    </div>
+    <div class="problem-side">
+      <h3>Our answer</h3>
+      <ul class="friction-list answer-list">
+        <li>Reactive forms that price the experience in real time as the guest configures it.</li>
+        <li>Member portals that authenticate against status and surface preferred pricing automatically.</li>
+        <li>Partner portals that protect group rates behind a password.</li>
+        <li>Real-time inventory — instructors, ranges, hours — no double-bookings, ever.</li>
+        <li>Bid pages so beautifully crafted guests bookmark them and share them.</li>
+        <li>A waiver flow integrated into the bid itself. No third-party form. No broken brand moment.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- PULL QUOTE -->
+<section class="pullquote full" style="opacity: 1; transform: translateY(0px); transition: opacity 0.6s ease-out, transform 0.6s ease-out;">
+  <div class="pullquote-inner">
+    <div class="pullquote-text">
+      "Fifteen clicks to transact, or fewer. The customer feels in control.<br>
+      The team gets <strong>their day back</strong>."
+    </div>
+    <div class="pullquote-attr">The Rhythm Outdoors operating principle</div>
+  </div>
+</section>
+
+<!-- THE PROMISE -->
+<section id="promise" style="opacity: 1; transform: translateY(0px); transition: opacity 0.6s ease-out, transform 0.6s ease-out;">
+  <div class="eyebrow">The Promise</div>
+  <h2>Fifteen clicks to transact. Or fewer.</h2>
+  <p class="lead">From the moment a guest lands on a Rhythm portal to the moment a confirmed event is on the calendar — five stages, fifteen clicks or fewer. Everything else is the system absorbing complexity on their behalf.</p>
+
+  <div class="five-clicks">
+    <div class="five-clicks-title">Five stages · fifteen clicks or fewer · from interest to confirmed booking</div>
+    <div class="clicks-row">
+      <div class="click-step">
+        <span class="click-num">01</span>
+        <div class="click-label">Land</div>
+        <div class="click-desc">Public portal, member portal, or partner link</div>
+      </div>
+      <div class="click-step">
+        <span class="click-num">02</span>
+        <div class="click-label">Choose</div>
+        <div class="click-desc">Service, property, audience tier</div>
+      </div>
+      <div class="click-step">
+        <span class="click-num">03</span>
+        <div class="click-label">Configure</div>
+        <div class="click-desc">Guests, date, time — priced live</div>
+      </div>
+      <div class="click-step">
+        <span class="click-num">04</span>
+        <div class="click-label">Sign</div>
+        <div class="click-desc">Digital signature on a branded bid</div>
+      </div>
+      <div class="click-step">
+        <span class="click-num">05</span>
+        <div class="click-label">Pay</div>
+        <div class="click-desc">Square deposit · waiver embedded</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AUDIENCES -->
+<section id="audiences" style="opacity: 1; transform: translateY(0px); transition: opacity 0.6s ease-out, transform 0.6s ease-out;">
+  <div class="eyebrow">Three Audiences</div>
+  <h2>Same backend. Three carefully different experiences.</h2>
+  <p class="lead">Every guest who interacts with Rhythm Outdoors fits into one of three audiences. Each gets a portal designed for them — different pricing, different access, different feel — all powered by the same architecture underneath. Click between them.</p>
+
+  <div class="audience-tabs" role="tablist">
+    <button class="audience-tab" data-target="aud-public" role="tab">Public</button>
+    <button class="audience-tab" data-target="aud-member" role="tab">Member</button>
+    <button class="audience-tab active" data-target="aud-partner" role="tab">Partner</button>
+  </div>
+
+  <div id="aud-public" class="audience-panel">
+    <div class="audience-headline">The Curious Guest</div>
+    <div class="audience-tag">"Who are these people, and how soon can I be there?"</div>
+    <p class="audience-body">A polished, public-facing portal showing what's possible at each Rhythm property. Pricing is shown — full, public-rate pricing — so the guest knows what they're walking into. Member-only programming and group rates are not visible. Instead, a tasteful glimpse of what membership unlocks creates the FOMO that converts visitors into prospects — and a clear, friction-free path for those ready to apply.</p>
+    <div class="audience-features">
+      <div class="audience-feature">
+        <h4>Public Pricing</h4>
+        <p>Every service priced openly. No "call for quote" theatre.</p>
+      </div>
+      <div class="audience-feature">
+        <h4>Same Bid Engine</h4>
+        <p>Reactive form, branded bid page, signature, deposit. Same flow as members.</p>
+      </div>
+      <div class="audience-feature">
+        <h4>Apply for Membership</h4>
+        <p>A first-class flow — not a buried contact form. Same architecture as a bid: configure, sign, pay initiation dues. Application becomes a HubSpot deal in the membership pipeline.</p>
+      </div>
+      <div class="audience-feature">
+        <h4>Lead Capture</h4>
+        <p>Every interaction creates a HubSpot contact. No prospect goes to waste.</p>
+      </div>
+    </div>
+    <div class="audience-url">portal: rhythm.co · public.rhythm.co · {property}.com</div>
+  </div>
+
+  <div id="aud-member" class="audience-panel">
+    <div class="audience-headline">The Member</div>
+    <div class="audience-tag">"This place knows me."</div>
+    <p class="audience-body">A private portal that authenticates against the member roster. The moment they log in, preferred pricing replaces public rates, exclusive programming becomes visible, member-only adventures appear on the calendar, and their household shows up alongside them. Their history follows them: past bookings, instructor preferences, gear notes. The experience says, in a thousand quiet ways: <em>you belong here.</em></p>
+    <div class="audience-features">
+      <div class="audience-feature">
+        <h4>Authenticated Access</h4>
+        <p>Roster-checked at sign-in. Members see what guests cannot.</p>
+      </div>
+      <div class="audience-feature">
+        <h4>Preferred Pricing</h4>
+        <p>Member rates surface automatically, with the member discount visible — never hidden.</p>
+      </div>
+      <div class="audience-feature">
+        <h4>Member Adventures</h4>
+        <p>Multi-day trips, exclusive events, household RSVP — accessible only here.</p>
+      </div>
+      <div class="audience-feature">
+        <h4>Personal History</h4>
+        <p>Past bookings, signed waivers, gear preferences, instructor relationships.</p>
+      </div>
+    </div>
+    <div class="audience-url">portal: members.horseshoebaysportingclub.com</div>
+  </div>
+
+  <div id="aud-partner" class="audience-panel active">
+    <div class="audience-headline">The Hotel &amp; Resort Partner</div>
+    <div class="audience-tag">"Group rates, settled in minutes — not weeks."</div>
+    <p class="audience-body">A password-protected portal for our hotel and resort partners — Horseshoe Bay Resort, Camp Lucy, Barton Creek, Driftwood, and the partners that follow. Inside, partner-specific group pricing is published, configurable, and immediately quoteable. Concierges no longer email Rhythm to ask "what does an evening of sporting clays for 40 cost?" — they configure it themselves, send the bid to their guest, and we get the deal record without a single phone call.</p>
+    <div class="audience-features">
+      <div class="audience-feature">
+        <h4>Password-Protected</h4>
+        <p>One password per partner. Group rates never leak to public or members.</p>
+      </div>
+      <div class="audience-feature">
+        <h4>Partner Group Pricing</h4>
+        <p>Pre-negotiated rates per partner, surfaced automatically once authenticated.</p>
+      </div>
+      <div class="audience-feature">
+        <h4>Concierge-First UX</h4>
+        <p>Designed for the hotel concierge configuring on behalf of a guest.</p>
+      </div>
+      <div class="audience-feature">
+        <h4>Co-Branded Bids</h4>
+        <p>The bid page reflects the partnership. Hotel guest feels they never left the resort.</p>
+      </div>
+    </div>
+    <div class="audience-url">portal: partner.rhythm.co</div>
+  </div>
+</section>
+
+<!-- PROPERTIES -->
+<section id="properties" style="opacity: 1; transform: translateY(0px); transition: opacity 0.6s ease-out, transform 0.6s ease-out;">
+  <div class="eyebrow">Three Properties</div>
+  <h2>One company. Distinct identities.</h2>
+  <p class="lead">Rhythm Outdoors operates across three sporting properties, each with its own brand, its own programming, its own audience. The architecture serves all three without diluting any of them. Every property gets all three audience tiers — public, member, partner — drawn from the same backend.</p>
+
+  <div class="props-grid">
+    <div class="prop-card">
+      <div class="eyebrow">Hill Country</div>
+      <h3 class="prop-name">Horseshoe Bay Sporting Club</h3>
+      <div class="prop-tag">A clubhouse worth lingering in.</div>
+      <p class="prop-body">The flagship. Members, showcase events, partner programming with Horseshoe Bay Resort. Sporting clays, 5-stand, and instruction at a 1:5 ratio under a strict cold-range policy. The club where Rhythm's hospitality voice is loudest.</p>
+      <div class="prop-meta">
+        <span>Sporting Clays</span>
+        <span>Members</span>
+        <span>Resort Partner</span>
+      </div>
+    </div>
+    <div class="prop-card">
+      <div class="eyebrow">Texas Hill Country</div>
+      <h3 class="prop-name">Hog Heaven Sporting Club</h3>
+      <div class="prop-tag">Sport with a wilder edge.</div>
+      <p class="prop-body">The hunt-and-shoot property. Partner programming with Camp Lucy. Distinct brand voice from HSB — earthier, sportsman-direct. Same underlying architecture, different surface, different feel.</p>
+      <div class="prop-meta">
+        <span>Hunt</span>
+        <span>Sport</span>
+        <span>Camp Lucy</span>
+      </div>
+    </div>
+    <div class="prop-card">
+      <div class="eyebrow">Precision Discipline</div>
+      <h3 class="prop-name">Packsaddle Precision</h3>
+      <div class="prop-tag">The discipline of distance.</div>
+      <p class="prop-body">Long-range and precision rifle programming. A specialist surface for shooters whose interest is technical. Less hospitality-driven, more instruction-driven. The portfolio's serious-shooter destination.</p>
+      <div class="prop-meta">
+        <span>Precision Rifle</span>
+        <span>Long Range</span>
+        <span>Instruction</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CUSTOMER JOURNEY -->
+<section id="journey" class="full journey" style="opacity: 1; transform: translateY(0px); transition: opacity 0.6s ease-out, transform 0.6s ease-out;">
+  <div class="journey-inner">
+    <div class="eyebrow">The Customer Journey</div>
+    <h2>What a guest experiences, end to end.</h2>
+    <p class="lead">Six steps from "I'm curious" to "I'm walking onto the deck." Behind every step, the system has done a dozen things the guest never sees.</p>
+
+    <div class="journey-flow">
+      <div class="journey-step">
+        <div class="journey-num">1</div>
+        <h4>Inquiry or Application</h4>
+        <p>Guest visits a Rhythm portal — public, member, or partner — and configures what they want: an event, a private lesson, an adventure RSVP, or a membership application. Pricing updates live. Real-time inventory checks instructor and range availability before the form even submits.</p>
+      </div>
+      <div class="journey-step">
+        <div class="journey-num">2</div>
+        <h4>Acknowledgement</h4>
+        <p>Within seconds, a personalized email from concierge@send.rhythm.co lands in their inbox. The team has the inquiry in HubSpot before the guest has put their phone down.</p>
+      </div>
+      <div class="journey-step">
+        <div class="journey-num">3</div>
+        <h4>Bid Page</h4>
+        <p>Either auto-generated from the form or quickly assembled by the team, the guest receives a unique, beautifully crafted bid URL — gear list, schedule, map, FAQ, calendar add, share-with-friend, the whole anatomy.</p>
+      </div>
+      <div class="journey-step">
+        <div class="journey-num">4</div>
+        <h4>Sign + Pay</h4>
+        <p>Digital signature and Square deposit on the same page. Waiver is embedded — no third-party redirect, no broken brand moment. Both events post back to HubSpot. Deal advances to confirmed.</p>
+      </div>
+      <div class="journey-step">
+        <div class="journey-num">5</div>
+        <h4>The Wait</h4>
+        <p>Automated reminders as the event approaches. If a bid sits unsigned for 24 hours, an automated nudge. Forty-eight hours, a human follows up. The customer is never forgotten and the team never has to remember.</p>
+      </div>
+      <div class="journey-step">
+        <div class="journey-num">6</div>
+        <h4>The Day</h4>
+        <p>The team arrives knowing exactly who's coming, what they ordered, what they've signed, what they've paid, and what their preferences are. Execution becomes about hospitality, not logistics.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BID ANATOMY -->
+<section id="bid" style="opacity: 1; transform: translateY(0px); transition: opacity 0.6s ease-out, transform 0.6s ease-out;">
+  <div class="eyebrow">Inside Every Bid Page</div>
+  <h2>The bid is a brand moment, not a PDF.</h2>
+  <p class="lead">Every bid page is a permanent URL the guest can bookmark, return to, share with a friend. It is not an email attachment that disappears. It is a living artifact of their experience with Rhythm Outdoors, designed to be the reason they come back.</p>
+
+  <div class="bid-anatomy">
+    <div class="bid-mock" aria-hidden="true">
+      <div class="mock-bar olive"></div>
+      <div class="mock-bar"></div>
+      <div class="mock-bar short"></div>
+      <div class="mock-block">
+        <div class="mock-row"></div>
+        <div class="mock-row s"></div>
+        <div class="mock-row"></div>
+        <div class="mock-row xs"></div>
+      </div>
+      <div class="mock-bar tan"></div>
+      <div class="mock-bar"></div>
+      <div class="mock-bar short"></div>
+      <div class="mock-cta">Pay $500 Deposit</div>
+      <div class="mock-cta" style="background: var(--tan-deep);">Sign &amp; Confirm</div>
+    </div>
+    <div class="bid-features">
+      <div class="bid-feature">
+        <span class="bid-feature-icon">📋</span>
+        <h4>Gear List</h4>
+        <p>What to bring, what's provided. No guessing.</p>
+      </div>
+      <div class="bid-feature">
+        <span class="bid-feature-icon">🗺️</span>
+        <h4>Map &amp; Directions</h4>
+        <p>Property map, parking, where to meet. Embedded.</p>
+      </div>
+      <div class="bid-feature">
+        <span class="bid-feature-icon">📅</span>
+        <h4>Add to Calendar</h4>
+        <p>One tap. Apple, Google, Outlook. Done.</p>
+      </div>
+      <div class="bid-feature">
+        <span class="bid-feature-icon">❓</span>
+        <h4>FAQ</h4>
+        <p>The questions guests always ask, answered in advance.</p>
+      </div>
+      <div class="bid-feature">
+        <span class="bid-feature-icon">🤝</span>
+        <h4>Share with a Friend</h4>
+        <p>Forward the bid to a co-host or guest. Same URL.</p>
+      </div>
+      <div class="bid-feature">
+        <span class="bid-feature-icon">✍️</span>
+        <h4>Embedded Waiver</h4>
+        <p>Native to the bid page. No third-party form. No janky add-on.</p>
+      </div>
+      <div class="bid-feature">
+        <span class="bid-feature-icon">💳</span>
+        <h4>Deposit on Page</h4>
+        <p>Square checkout, in-context. Confirmation in seconds.</p>
+      </div>
+      <div class="bid-feature">
+        <span class="bid-feature-icon">🖋️</span>
+        <h4>Digital Signature</h4>
+        <p>Mouse, finger, or stylus. Stored, timestamped, archived.</p>
+      </div>
+      <div class="bid-feature">
+        <span class="bid-feature-icon">⏱️</span>
+        <h4>Auto Reminders</h4>
+        <p>Nudges if unsigned. Reminders as the event approaches.</p>
+      </div>
+      <div class="bid-feature">
+        <span class="bid-feature-icon">📱</span>
+        <h4>Bookmark-Worthy</h4>
+        <p>Designed for the home screen of a guest's phone.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section style="opacity: 1; transform: translateY(0px); transition: opacity 0.6s ease-out, transform 0.6s ease-out;">
+  <div class="eyebrow">The Architecture, Simplified</div>
+  <h2>Three tools. One nervous system.</h2>
+  <p class="lead">A simple way to picture what's underneath: HubSpot is the front desk where customer relationships live. Notion is the architect's drafting room where rules and policies live. Drive is the file room where signed contracts and source documents live. The portals you see are the polished surface; these three tools do the work.</p>
+
+  <div class="arch-diagram">
+    <svg viewBox="0 0 980 480" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto;">
+      <!-- Surfaces (top) -->
+      <g>
+        <rect x="60" y="20" width="240" height="80" rx="6" fill="#FBFAF3" stroke="#3F4A21" stroke-width="1.5"></rect>
+        <text x="180" y="50" font-family="Cormorant Garamond, serif" font-size="20" font-weight="600" fill="#3F4A21" text-anchor="middle">Public Portals</text>
+        <text x="180" y="75" font-family="Inter, sans-serif" font-size="11" fill="#6B6557" text-anchor="middle">rhythm.co · property sites</text>
+
+        <rect x="370" y="20" width="240" height="80" rx="6" fill="#FBFAF3" stroke="#3F4A21" stroke-width="1.5"></rect>
+        <text x="490" y="50" font-family="Cormorant Garamond, serif" font-size="20" font-weight="600" fill="#3F4A21" text-anchor="middle">Member Portal</text>
+        <text x="490" y="75" font-family="Inter, sans-serif" font-size="11" fill="#6B6557" text-anchor="middle">members.horseshoebaysportingclub.com</text>
+
+        <rect x="680" y="20" width="240" height="80" rx="6" fill="#FBFAF3" stroke="#3F4A21" stroke-width="1.5"></rect>
+        <text x="800" y="50" font-family="Cormorant Garamond, serif" font-size="20" font-weight="600" fill="#3F4A21" text-anchor="middle">Partner Portal</text>
+        <text x="800" y="75" font-family="Inter, sans-serif" font-size="11" fill="#6B6557" text-anchor="middle">partner.rhythm.co</text>
+      </g>
+
+      <!-- Lines surfaces -> netlify -->
+      <line x1="180" y1="100" x2="490" y2="160" stroke="#9A8159" stroke-width="1.2"></line>
+      <line x1="490" y1="100" x2="490" y2="160" stroke="#9A8159" stroke-width="1.2"></line>
+      <line x1="800" y1="100" x2="490" y2="160" stroke="#9A8159" stroke-width="1.2"></line>
+
+      <!-- Netlify (middle) -->
+      <rect x="350" y="160" width="280" height="70" rx="6" fill="#E8E4D5" stroke="#9A8159" stroke-width="1.5"></rect>
+      <text x="490" y="190" font-family="Cormorant Garamond, serif" font-size="22" font-weight="600" fill="#3F4A21" text-anchor="middle">Netlify Functions</text>
+      <text x="490" y="212" font-family="Inter, sans-serif" font-size="11" fill="#6B6557" text-anchor="middle">the connective tissue</text>
+
+      <!-- Lines netlify -> tools -->
+      <line x1="490" y1="230" x2="180" y2="300" stroke="#9A8159" stroke-width="1.2"></line>
+      <line x1="490" y1="230" x2="490" y2="300" stroke="#9A8159" stroke-width="1.5"></line>
+      <line x1="490" y1="230" x2="800" y2="300" stroke="#9A8159" stroke-width="1.2"></line>
+
+      <!-- Three tools (bottom) -->
+      <g>
+        <rect x="60" y="300" width="240" height="120" rx="6" fill="#FBFAF3" stroke="#3F4A21" stroke-width="1.5"></rect>
+        <text x="180" y="335" font-family="Cormorant Garamond, serif" font-size="22" font-weight="600" fill="#3F4A21" text-anchor="middle">Notion</text>
+        <text x="180" y="358" font-family="Inter, sans-serif" font-style="italic" font-size="13" fill="#9A8159" text-anchor="middle">Drafting Room</text>
+        <text x="180" y="385" font-family="Inter, sans-serif" font-size="11" fill="#6B6557" text-anchor="middle">Charter · Policies · Pricing Rules</text>
+        <text x="180" y="402" font-family="Inter, sans-serif" font-size="11" fill="#6B6557" text-anchor="middle">Source Documents · Schema</text>
+      </g>
+
+      <g>
+        <rect x="370" y="300" width="240" height="120" rx="6" fill="#3F4A21" stroke="#3F4A21" stroke-width="1.5"></rect>
+        <text x="490" y="335" font-family="Cormorant Garamond, serif" font-size="22" font-weight="600" fill="#E8E4D5" text-anchor="middle">HubSpot</text>
+        <text x="490" y="358" font-family="Inter, sans-serif" font-style="italic" font-size="13" fill="#B89C73" text-anchor="middle">Front Desk · Central Nervous System</text>
+        <text x="490" y="385" font-family="Inter, sans-serif" font-size="11" fill="#D4CEBE" text-anchor="middle">Contacts · Companies · Deals</text>
+        <text x="490" y="402" font-family="Inter, sans-serif" font-size="11" fill="#D4CEBE" text-anchor="middle">Products · Pipelines · Tickets</text>
+      </g>
+
+      <g>
+        <rect x="680" y="300" width="240" height="120" rx="6" fill="#FBFAF3" stroke="#3F4A21" stroke-width="1.5"></rect>
+        <text x="800" y="335" font-family="Cormorant Garamond, serif" font-size="22" font-weight="600" fill="#3F4A21" text-anchor="middle">Google Drive</text>
+        <text x="800" y="358" font-family="Inter, sans-serif" font-style="italic" font-size="13" fill="#9A8159" text-anchor="middle">File Room</text>
+        <text x="800" y="385" font-family="Inter, sans-serif" font-size="11" fill="#6B6557" text-anchor="middle">Signed Contracts · Source PDFs</text>
+        <text x="800" y="402" font-family="Inter, sans-serif" font-size="11" fill="#6B6557" text-anchor="middle">Rosters · Brand Assets</text>
+      </g>
+
+      <text x="490" y="460" font-family="Cormorant Garamond, serif" font-style="italic" font-size="14" fill="#9A8159" text-anchor="middle">One source of truth per kind of thing. No overlap. No drift.</text>
+    </svg>
+  </div>
+</section>
+
+<!-- LIVE PROOFS OF CONCEPT -->
+<section id="poc" style="opacity: 1; transform: translateY(0px); transition: opacity 0.6s ease-out, transform 0.6s ease-out;">
+  <div class="eyebrow">Live Proofs of Concept</div>
+  <h2>Six surfaces. Already built. Touch them.</h2>
+  <p class="lead poc-intro">Everything below is real, working, and rendered live inside this document. The three intake portals — public, member, partner — and three sample bid pages from real engagements. Use the tabs to move between them; click any "Open in new tab" to break a surface out into its own window.</p>
+
+  <div class="poc-tabs" role="tablist">
+    <button class="poc-tab" data-target="poc-public" role="tab">Public Intake<span class="tab-tag">PUBLIC</span></button>
+    <button class="poc-tab" data-target="poc-member" role="tab">Member Portal<span class="tab-tag">GATED</span></button>
+    <button class="poc-tab" data-target="poc-partner" role="tab">Partner Intake<span class="tab-tag">GATED</span></button>
+    <button class="poc-tab active" data-target="poc-bid-showcase" role="tab">HSB Showcase Bid<span class="tab-tag">9 HOLERS</span></button>
+    <button class="poc-tab" data-target="poc-bid-dana" role="tab">HSB Private Bid<span class="tab-tag">DANA FLEET</span></button>
+    <button class="poc-tab" data-target="poc-bid-hh" role="tab">HH Wedding Bid<span class="tab-tag">HARTWELL-MITCHELL</span></button>
+  </div>
+
+  <!-- Public Intake -->
+  <div id="poc-public" class="poc-panel">
+    <div class="poc-meta">
+      <div class="poc-headline-block">
+        <h3>Begin Your Inquiry · Public Intake</h3>
+        <p class="poc-tag">"The portal a curious guest lands on."</p>
+        <p class="poc-desc">Open access. Public-rate pricing. Same backend that serves members and partners — different audience, different presentation. Every submission creates a HubSpot contact and triggers the concierge email.</p>
+      </div>
+      <div class="poc-actions">
+        <div class="poc-public-tag">No password · Open access</div>
+        <a class="poc-fullscreen" href="https://rhythm-roadmap.netlify.app/poc/public-intake.html" target="_blank" rel="noopener">Open in new tab →</a>
+      </div>
+    </div>
+    <div class="poc-frame-wrap">
+      <div class="poc-frame-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">intake.rhythm.co</span></div>
+      <iframe class="poc-frame" title="Public Intake" src="./Rhythm Outdoors · The Vision Document_files/saved_resource.html"></iframe>
+    </div>
+  </div>
+
+  <!-- Member Portal -->
+  <div id="poc-member" class="poc-panel">
+    <div class="poc-meta">
+      <div class="poc-headline-block">
+        <h3>Members' Entrance · Horseshoe Bay Sporting Club</h3>
+        <p class="poc-tag">"This place knows me."</p>
+        <p class="poc-desc">Private member portal. Authenticates against the HSB roster. Once inside, members see preferred pricing, member-only programming, exclusive adventures, and their household record. Public pricing is never shown here.</p>
+      </div>
+      <div class="poc-actions">
+        <div class="poc-credentials">
+          <span class="cred-label">Member Login</span>
+          Last name: <span class="cred-pass">vedros</span><br>
+          Member #: <span class="cred-pass">17690</span>
+        </div>
+        <a class="poc-fullscreen" href="https://rhythm-roadmap.netlify.app/poc/member-portal.html" target="_blank" rel="noopener">Open in new tab →</a>
+      </div>
+    </div>
+    <div class="poc-frame-wrap">
+      <div class="poc-frame-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">members.horseshoebaysportingclub.com</span></div>
+      <iframe class="poc-frame" title="Member Portal" src="./Rhythm Outdoors · The Vision Document_files/saved_resource(1).html"></iframe>
+    </div>
+  </div>
+
+  <!-- Partner Intake -->
+  <div id="poc-partner" class="poc-panel">
+    <div class="poc-meta">
+      <div class="poc-headline-block">
+        <h3>Rhythm Partner Portal · Intake</h3>
+        <p class="poc-tag">"Group rates, settled in minutes — not weeks."</p>
+        <p class="poc-desc">Password-protected portal for hotel and resort partners. Each partner gets a dedicated password that surfaces their pre-negotiated group rates. Concierges configure on behalf of their guests; bids generate without a single email exchange.</p>
+      </div>
+      <div class="poc-actions">
+        <div class="poc-credentials">
+          <span class="cred-label">Partner Passwords</span>
+          HSB Resort: <span class="cred-pass">hsbresort</span><br>
+          Camp Lucy: <span class="cred-pass">camplucy</span>
+        </div>
+        <a class="poc-fullscreen" href="https://rhythm-roadmap.netlify.app/poc/partner-intake.html" target="_blank" rel="noopener">Open in new tab →</a>
+      </div>
+    </div>
+    <div class="poc-frame-wrap">
+      <div class="poc-frame-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">partner.rhythm.co</span></div>
+      <iframe class="poc-frame" title="Partner Intake" src="./Rhythm Outdoors · The Vision Document_files/saved_resource(2).html"></iframe>
+    </div>
+  </div>
+
+  <!-- 9 Holers Showcase Bid -->
+  <div id="poc-bid-showcase" class="poc-panel active">
+    <div class="poc-meta">
+      <div class="poc-headline-block">
+        <h3>9 Holers Group Membership Showcase · HSB</h3>
+        <p class="poc-tag">"A group bid for an evening showcase event."</p>
+        <p class="poc-desc">A group-event bid page with reactive guest-count pricing, embedded Square deposit, and digital signature pad. The 9 Holers Group sees this URL as their proposal; they sign and pay on the same page.</p>
+      </div>
+      <div class="poc-actions">
+        <div class="poc-public-tag">Bid URL · Customer-shareable</div>
+        <a class="poc-fullscreen" href="https://rhythm-roadmap.netlify.app/poc/bid-9-holers-showcase.html" target="_blank" rel="noopener">Open in new tab →</a>
+      </div>
+    </div>
+    <div class="poc-frame-wrap">
+      <div class="poc-frame-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">members.horseshoebaysportingclub.com/bids/9-holers-showcase</span></div>
+      <iframe class="poc-frame" title="9 Holers Showcase Bid" src="./Rhythm Outdoors · The Vision Document_files/saved_resource(3).html"></iframe>
+    </div>
+  </div>
+
+  <!-- Dana Fleet Bid -->
+  <div id="poc-bid-dana" class="poc-panel">
+    <div class="poc-meta">
+      <div class="poc-headline-block">
+        <h3>Sporting Club Shooting Experience for Dana Fleet · HSB</h3>
+        <p class="poc-tag">"A private-experience bid, individually tailored."</p>
+        <p class="poc-desc">A bid page tailored to a private guest party. Same architecture as the Showcase, different content, different scale. Demonstrates that the bid template adapts to the engagement without losing brand integrity.</p>
+      </div>
+      <div class="poc-actions">
+        <div class="poc-public-tag">Bid URL · Customer-shareable</div>
+        <a class="poc-fullscreen" href="https://rhythm-roadmap.netlify.app/poc/bid-dana-fleet.html" target="_blank" rel="noopener">Open in new tab →</a>
+      </div>
+    </div>
+    <div class="poc-frame-wrap">
+      <div class="poc-frame-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">members.horseshoebaysportingclub.com/bids/dana-fleet</span></div>
+      <iframe class="poc-frame" title="Dana Fleet Bid" src="./Rhythm Outdoors · The Vision Document_files/saved_resource(4).html"></iframe>
+    </div>
+  </div>
+
+  <!-- Hog Heaven Wedding Bid -->
+  <div id="poc-bid-hh" class="poc-panel">
+    <div class="poc-meta">
+      <div class="poc-headline-block">
+        <h3>The Hartwell-Mitchell Wedding Weekend · Hog Heaven Sporting Club</h3>
+        <p class="poc-tag">"A multi-day, partner-property bid — proof the system handles complexity."</p>
+        <p class="poc-desc">A wedding-weekend engagement at Hog Heaven, in partnership with Camp Lucy. Multi-day itinerary, bridal party programming, a more elaborate scope. Same brand language, same backend, different property surface.</p>
+      </div>
+      <div class="poc-actions">
+        <div class="poc-public-tag">Bid URL · Customer-shareable</div>
+        <a class="poc-fullscreen" href="https://rhythm-roadmap.netlify.app/poc/bid-hog-heaven-hartwell.html" target="_blank" rel="noopener">Open in new tab →</a>
+      </div>
+    </div>
+    <div class="poc-frame-wrap">
+      <div class="poc-frame-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">hogheavensc.com/bids/hartwell-mitchell-wedding</span></div>
+      <iframe class="poc-frame" data-srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+&lt;title&gt;Hog Heaven × The Hartwell-Mitchell Wedding Weekend&lt;/title&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@300;400;500;600;700;800&amp;family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,700&amp;family=DM+Mono:wght@400;500&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;style&gt;
+:root {
+  --hh-forest: #232b26;
+  --hh-orange: #c95d2d;
+  --hh-tan: #c2b695;
+  --hh-cream: #ecd9ca;
+  --hh-cream-soft: #f5ebe0;
+  --hh-ink: #1a1f1c;
+  --hh-paper: #fbf6ee;
+  --hh-shadow: rgba(35, 43, 38, 0.12);
+  --serif: &#39;Playfair Display&#39;, Georgia, serif;
+  --sans: &#39;Libre Franklin&#39;, -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: &#39;DM Mono&#39;, &#39;SF Mono&#39;, Menlo, monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--hh-paper);
+  color: var(--hh-ink);
+  line-height: 1.65;
+  font-weight: 400;
+  overflow-x: hidden;
+}
+
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+/* ============= NAV ============= */
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(to bottom, rgba(35,43,38,0.85), transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background 0.3s;
+}
+
+.nav.solid {
+  background: var(--hh-forest);
+  border-bottom: 1px solid rgba(194, 182, 149, 0.2);
+}
+
+.nav-brand {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--hh-cream);
+  letter-spacing: -0.01em;
+}
+
+.nav-brand span { font-style: normal; color: var(--hh-orange); margin: 0 6px; }
+
+.nav-status {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--hh-tan);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-status::before {
+  content: &#39;&#39;;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--hh-orange);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
+
+/* ============= HERO ============= */
+.hero {
+  background:
+    radial-gradient(ellipse at 70% 30%, rgba(201, 93, 45, 0.18), transparent 55%),
+    radial-gradient(ellipse at 20% 80%, rgba(194, 182, 149, 0.08), transparent 50%),
+    var(--hh-forest);
+  color: var(--hh-cream);
+  padding: 140px 64px 96px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::after {
+  content: &#39;&#39;;
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(194, 182, 149, 0.15) 1px, transparent 0);
+  background-size: 40px 40px;
+  opacity: 0.4;
+  pointer-events: none;
+  mask: linear-gradient(to bottom, transparent, black 30%, black 70%, transparent);
+  -webkit-mask: linear-gradient(to bottom, transparent, black 30%, black 70%, transparent);
+}
+
+.hero-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--hh-orange);
+  margin-bottom: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 18px;
+  border: 1px solid var(--hh-orange);
+  border-radius: 100px;
+}
+
+.hero-tag span { color: var(--hh-cream); opacity: 0.7; }
+
+.hero h1 {
+  font-family: var(--serif);
+  font-size: clamp(56px, 8vw, 120px);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.025em;
+  margin-bottom: 32px;
+  max-width: 1100px;
+}
+
+.hero h1 em {
+  font-style: italic;
+  color: var(--hh-orange);
+  font-weight: 400;
+}
+
+.hero h1 .small {
+  font-size: 0.4em;
+  display: block;
+  font-weight: 400;
+  font-family: var(--sans);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--hh-tan);
+  margin-bottom: 16px;
+  font-style: normal;
+}
+
+.hero-subtitle {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-style: italic;
+  color: var(--hh-tan);
+  max-width: 700px;
+  line-height: 1.5;
+  margin-bottom: 56px;
+}
+
+.hero-meta {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+  border-top: 1px solid rgba(194, 182, 149, 0.25);
+  padding-top: 40px;
+  max-width: 1100px;
+}
+
+.hero-meta dt {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--hh-orange);
+  margin-bottom: 12px;
+}
+
+.hero-meta dd {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--hh-cream);
+  line-height: 1.2;
+}
+
+.hero-meta dd small {
+  display: block;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--hh-tan);
+  margin-top: 4px;
+}
+
+/* ============= INTRO LETTER ============= */
+.intro-letter {
+  background: var(--hh-paper);
+  padding: 96px 64px;
+}
+
+.letter-inner {
+  max-width: 880px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.letter-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--hh-orange);
+  margin-bottom: 24px;
+}
+
+.letter-inner p.dropcap {
+  font-family: var(--serif);
+  font-size: 26px;
+  line-height: 1.55;
+  color: var(--hh-forest);
+  margin-bottom: 32px;
+}
+
+.letter-inner p.dropcap::first-letter {
+  font-size: 4em;
+  line-height: 0.9;
+  float: left;
+  margin: 8px 12px 0 0;
+  color: var(--hh-orange);
+  font-weight: 700;
+}
+
+.letter-signature {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--hh-forest);
+  margin-top: 48px;
+  text-align: right;
+}
+
+/* ============= PRESETS ============= */
+.section-pad { padding: 96px 64px; }
+
+.section-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--hh-orange);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  justify-content: center;
+}
+
+.section-eyebrow::before, .section-eyebrow::after {
+  content: &#39;&#39;;
+  flex: 1;
+  height: 1px;
+  background: var(--hh-tan);
+  max-width: 80px;
+}
+
+h2.section-title {
+  font-family: var(--serif);
+  font-size: clamp(40px, 5vw, 64px);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--hh-forest);
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+h2.section-title em {
+  font-style: italic;
+  color: var(--hh-orange);
+  font-weight: 500;
+}
+
+.section-lede {
+  text-align: center;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 22px;
+  color: rgba(35, 43, 38, 0.75);
+  max-width: 720px;
+  margin: 0 auto 64px;
+  line-height: 1.5;
+}
+
+.presets-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.preset-card {
+  background: white;
+  border: 2px solid var(--hh-tan);
+  padding: 40px 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.preset-card::before {
+  content: &#39;&#39;;
+  position: absolute;
+  inset: 0;
+  background: var(--hh-forest);
+  transform: translateY(101%);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
+}
+
+.preset-card:hover { border-color: var(--hh-forest); transform: translateY(-4px); box-shadow: 0 12px 32px var(--hh-shadow); }
+.preset-card:hover::before { transform: translateY(0); }
+.preset-card:hover * { color: var(--hh-cream) !important; position: relative; z-index: 1; }
+.preset-card:hover .preset-num { color: var(--hh-orange) !important; }
+.preset-card:hover .preset-cta { color: var(--hh-orange) !important; }
+
+.preset-num {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 56px;
+  font-weight: 400;
+  color: var(--hh-orange);
+  line-height: 1;
+  margin-bottom: 16px;
+}
+
+.preset-card h3 {
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--hh-forest);
+  margin-bottom: 12px;
+  letter-spacing: -0.01em;
+}
+
+.preset-card .preset-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--hh-orange);
+  margin-bottom: 16px;
+}
+
+.preset-card p {
+  font-size: 14px;
+  color: rgba(35, 43, 38, 0.75);
+  line-height: 1.6;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.preset-card .preset-price {
+  font-family: var(--serif);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--hh-forest);
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+  position: relative;
+  z-index: 1;
+}
+
+.preset-card .preset-price small {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(35, 43, 38, 0.6);
+}
+
+.preset-card .preset-cta {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--hh-orange);
+  margin-top: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============= BUILDER ============= */
+.builder {
+  background: var(--hh-cream-soft);
+  padding: 96px 64px;
+}
+
+.builder-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 48px;
+  align-items: flex-start;
+}
+
+.config-stack { display: flex; flex-direction: column; gap: 32px; }
+
+.config-card {
+  background: white;
+  border: 1px solid rgba(35, 43, 38, 0.1);
+  padding: 40px;
+  position: relative;
+}
+
+.config-card::before {
+  content: &#39;&#39;;
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--hh-tan);
+  transition: background 0.3s;
+}
+
+.config-card.active::before { background: var(--hh-orange); }
+
+.config-step {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--hh-orange);
+  margin-bottom: 12px;
+}
+
+.config-card h3 {
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--hh-forest);
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+
+.config-card .config-help {
+  font-size: 14px;
+  color: rgba(35, 43, 38, 0.7);
+  margin-bottom: 24px;
+}
+
+/* ----- Radio Cards ----- */
+.radio-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.radio-card {
+  border: 2px solid var(--hh-tan);
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--hh-paper);
+  position: relative;
+}
+
+.radio-card:hover { border-color: var(--hh-forest); }
+
+.radio-card.selected {
+  border-color: var(--hh-orange);
+  background: var(--hh-cream);
+  box-shadow: 0 4px 16px rgba(201, 93, 45, 0.15);
+}
+
+.radio-card.selected::after {
+  content: &#39;✓&#39;;
+  position: absolute;
+  top: 12px; right: 16px;
+  width: 24px; height: 24px;
+  background: var(--hh-orange);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.radio-card .rc-name {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--hh-forest);
+  margin-bottom: 8px;
+}
+
+.radio-card .rc-desc {
+  font-size: 13px;
+  color: rgba(35, 43, 38, 0.7);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.radio-card .rc-price {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--hh-orange);
+}
+
+/* ----- Stepper ----- */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stepper-btn {
+  width: 48px; height: 48px;
+  border: 2px solid var(--hh-forest);
+  background: white;
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--hh-forest);
+  transition: all 0.2s;
+}
+
+.stepper-btn:hover { background: var(--hh-forest); color: var(--hh-cream); }
+.stepper-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.stepper-value {
+  font-family: var(--serif);
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--hh-forest);
+  letter-spacing: -0.04em;
+  min-width: 100px;
+  text-align: center;
+  line-height: 1;
+}
+
+.stepper-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(35, 43, 38, 0.6);
+}
+
+.guest-split {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px dashed rgba(35, 43, 38, 0.2);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.guest-split .field-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(35, 43, 38, 0.6);
+  margin-bottom: 6px;
+}
+
+.guest-split input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid var(--hh-tan);
+  background: white;
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--hh-forest);
+  transition: border-color 0.2s;
+}
+
+.guest-split input:focus { outline: none; border-color: var(--hh-orange); }
+
+/* ----- Toggle Cards ----- */
+.toggle-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.toggle-card {
+  border: 2px solid var(--hh-tan);
+  padding: 20px 24px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s;
+  background: var(--hh-paper);
+}
+
+.toggle-card:hover { border-color: var(--hh-forest); }
+.toggle-card.selected { border-color: var(--hh-orange); background: var(--hh-cream); }
+
+.toggle-card .toggle-name {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--hh-forest);
+}
+
+.toggle-card .toggle-meta {
+  font-size: 12px;
+  color: rgba(35, 43, 38, 0.7);
+  margin-top: 4px;
+}
+
+.toggle-card .toggle-price {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--hh-orange);
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.toggle-icon {
+  width: 28px; height: 28px;
+  border: 2px solid var(--hh-tan);
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  margin-left: 16px;
+  transition: all 0.2s;
+}
+
+.toggle-card.selected .toggle-icon {
+  background: var(--hh-orange);
+  border-color: var(--hh-orange);
+}
+
+.toggle-card.selected .toggle-icon::after {
+  content: &#39;✓&#39;;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ----- Instructor Override ----- */
+.instructor-summary {
+  background: var(--hh-cream);
+  padding: 24px;
+  border-left: 4px solid var(--hh-orange);
+  margin-top: 16px;
+}
+
+.instructor-summary .calc {
+  font-family: var(--serif);
+  font-size: 17px;
+  color: var(--hh-forest);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.instructor-summary .calc-detail {
+  font-size: 13px;
+  color: rgba(35, 43, 38, 0.7);
+  margin-bottom: 16px;
+}
+
+.instructor-override {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.instructor-override label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(35, 43, 38, 0.65);
+}
+
+.instructor-override input {
+  width: 64px;
+  padding: 8px 12px;
+  border: 1.5px solid var(--hh-tan);
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--hh-forest);
+  text-align: center;
+}
+
+/* ============= SUMMARY PANEL ============= */
+.summary-panel {
+  position: sticky;
+  top: 90px;
+  background: var(--hh-forest);
+  color: var(--hh-cream);
+  padding: 32px;
+  border-top: 4px solid var(--hh-orange);
+}
+
+.summary-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--hh-orange);
+  margin-bottom: 16px;
+}
+
+.summary-panel h3 {
+  font-family: var(--serif);
+  font-size: 28px;
+  color: var(--hh-cream);
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+
+.summary-panel h3 em {
+  font-style: italic;
+  color: var(--hh-orange);
+}
+
+.summary-panel .for {
+  font-family: var(--serif);
+  font-size: 14px;
+  font-style: italic;
+  color: var(--hh-tan);
+  margin-bottom: 24px;
+}
+
+.line-items {
+  margin: 24px 0;
+  border-top: 1px solid rgba(194, 182, 149, 0.2);
+  padding-top: 16px;
+  min-height: 100px;
+}
+
+.line-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px dashed rgba(194, 182, 149, 0.15);
+  align-items: baseline;
+}
+
+.line-item:last-child { border-bottom: none; }
+
+.line-item .li-name {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--hh-cream);
+}
+
+.line-item .li-detail {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--hh-tan);
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+.line-item .li-amount {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--hh-cream);
+  white-space: nowrap;
+}
+
+.line-empty {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  color: rgba(194, 182, 149, 0.6);
+  text-align: center;
+  padding: 24px 0;
+}
+
+.totals {
+  border-top: 2px solid rgba(194, 182, 149, 0.4);
+  padding-top: 20px;
+  margin-top: 16px;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 0;
+}
+
+.total-row.retail {
+  border-top: 1px dashed rgba(194, 182, 149, 0.2);
+  padding-top: 16px;
+  margin-top: 8px;
+}
+
+.total-row .t-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--hh-tan);
+}
+
+.total-row .t-value {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--hh-cream);
+}
+
+.total-row.grand .t-label { color: var(--hh-orange); font-size: 12px; }
+
+.total-row.grand .t-value {
+  font-size: 40px;
+  color: var(--hh-orange);
+  letter-spacing: -0.025em;
+}
+
+.margin-callout {
+  background: rgba(201, 93, 45, 0.15);
+  border: 1px solid rgba(201, 93, 45, 0.4);
+  padding: 16px;
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--hh-cream);
+  text-align: center;
+}
+
+.margin-callout strong {
+  font-family: var(--serif);
+  font-size: 22px;
+  color: var(--hh-orange);
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+
+.cta-button {
+  display: block;
+  width: 100%;
+  background: var(--hh-orange);
+  color: white;
+  padding: 18px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  font-weight: 500;
+  margin-top: 24px;
+  transition: all 0.2s;
+}
+
+.cta-button:hover { background: var(--hh-cream); color: var(--hh-forest); }
+
+.cta-secondary {
+  display: block;
+  width: 100%;
+  background: transparent;
+  color: var(--hh-tan);
+  padding: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  margin-top: 8px;
+  border: 1px solid rgba(194, 182, 149, 0.3);
+  transition: all 0.2s;
+}
+
+.cta-secondary:hover { color: var(--hh-cream); border-color: var(--hh-cream); }
+
+/* ============= INFO BAND ============= */
+.info-band {
+  background: var(--hh-forest);
+  color: var(--hh-cream);
+  padding: 64px;
+}
+
+.info-band-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 48px;
+}
+
+.info-tile h5 {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--hh-orange);
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.info-tile p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--hh-cream);
+}
+
+.info-tile p strong {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+  color: var(--hh-cream);
+}
+
+/* ============= FOOTER ============= */
+footer {
+  background: var(--hh-forest);
+  color: var(--hh-tan);
+  padding: 48px 64px 32px;
+  border-top: 1px solid rgba(194, 182, 149, 0.15);
+}
+
+.footer-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-inner .footer-brand {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--hh-cream);
+}
+
+.footer-inner .footer-brand span { font-style: normal; color: var(--hh-orange); margin: 0 6px; }
+
+.footer-inner .footer-meta {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(194, 182, 149, 0.6);
+}
+
+/* ============= REVEAL ANIMATION ============= */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ============= RESPONSIVE ============= */
+@media (max-width: 1024px) {
+  .builder-inner { grid-template-columns: 1fr; }
+  .summary-panel { position: static; }
+  .info-band-inner { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 768px) {
+  .nav { padding: 16px 20px; }
+  .nav-status { display: none; }
+  .hero { padding: 110px 24px 64px; }
+  .hero-meta { grid-template-columns: 1fr 1fr; gap: 24px; }
+  .hero-meta dd { font-size: 17px; }
+  .section-pad, .builder, .info-band, .intro-letter { padding: 64px 24px; }
+  .presets-grid { grid-template-columns: 1fr; }
+  .config-card { padding: 24px; }
+  .radio-cards, .toggle-grid { grid-template-columns: 1fr; }
+  .info-band-inner { grid-template-columns: 1fr; gap: 32px; }
+  footer { padding: 32px 24px 24px; }
+  .footer-inner { flex-direction: column; gap: 16px; text-align: center; }
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;!-- ============= NAV ============= --&gt;
+&lt;nav class=&quot;nav&quot; id=&quot;nav&quot;&gt;
+  &lt;div class=&quot;nav-brand&quot;&gt;Hog Heaven&lt;span&gt;×&lt;/span&gt;Camp Lucy&lt;/div&gt;
+  &lt;div class=&quot;nav-status&quot;&gt;Live Proposal · Draft&lt;/div&gt;
+&lt;/nav&gt;
+
+&lt;!-- ============= HERO ============= --&gt;
+&lt;section class=&quot;hero&quot;&gt;
+  &lt;div class=&quot;hero-inner&quot;&gt;
+    &lt;div class=&quot;hero-tag&quot;&gt;
+      &lt;span&gt;Proposal for&lt;/span&gt; Camp Lucy &amp;nbsp;·&amp;nbsp; Prepared June 2026
+    &lt;/div&gt;
+    &lt;h1&gt;
+      &lt;span class=&quot;small&quot;&gt;A Texas Adventure for the&lt;/span&gt;
+      Hartwell &lt;em&gt;&amp;amp;&lt;/em&gt;&lt;br&gt;Mitchell Wedding Weekend
+    &lt;/h1&gt;
+    &lt;p class=&quot;hero-subtitle&quot;&gt;
+      Friday afternoon. Sixteen guests. The wedding party, the whiskey, and clay targets soaring
+      against the Hill Country sky. A pre-rehearsal escape your wedding party will remember
+      longer than the toasts.
+    &lt;/p&gt;
+    &lt;dl class=&quot;hero-meta&quot;&gt;
+      &lt;div&gt;
+        &lt;dt&gt;Date&lt;/dt&gt;
+        &lt;dd&gt;Friday, Jun 26&lt;small&gt;2026 · 3:00 PM start&lt;/small&gt;&lt;/dd&gt;
+      &lt;/div&gt;
+      &lt;div&gt;
+        &lt;dt&gt;Wedding Party&lt;/dt&gt;
+        &lt;dd&gt;16 guests&lt;small&gt;12 groomsmen + 4 family&lt;/small&gt;&lt;/dd&gt;
+      &lt;/div&gt;
+      &lt;div&gt;
+        &lt;dt&gt;Hosts&lt;/dt&gt;
+        &lt;dd&gt;Sarah &amp;amp; Will&lt;small&gt;Hartwell &amp;amp; Mitchell&lt;/small&gt;&lt;/dd&gt;
+      &lt;/div&gt;
+      &lt;div&gt;
+        &lt;dt&gt;Coordinated by&lt;/dt&gt;
+        &lt;dd&gt;Taylor Crawford&lt;small&gt;Camp Lucy · 512.829.5986&lt;/small&gt;&lt;/dd&gt;
+      &lt;/div&gt;
+    &lt;/dl&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- ============= INTRO LETTER ============= --&gt;
+&lt;section class=&quot;intro-letter&quot;&gt;
+  &lt;div class=&quot;letter-inner&quot;&gt;
+    &lt;div class=&quot;letter-eyebrow&quot;&gt;A Note from Hog Heaven&lt;/div&gt;
+    &lt;p class=&quot;dropcap&quot;&gt;
+      Taylor — thank you for thinking of us for Sarah and Will&#39;s weekend. We&#39;ve put together a
+      few starting points below for an afternoon at Hog Heaven, every one of them shaped around
+      the wedding party&#39;s pace and the Friday timeline you shared.
+    &lt;/p&gt;
+    &lt;p class=&quot;dropcap&quot; style=&quot;font-size: 18px; line-height: 1.7;&quot;&gt;
+      Use the configurator on this page to mix and match — change the package, add an instructor,
+      drop a fishing session for the in-laws, swap in the Bridge BBQ. The pricing recalculates
+      live, with both your wholesale cost and the suggested retail to your guests visible at all times.
+      When the proposal feels right, hit the share button and we&#39;ll lock it.
+    &lt;/p&gt;
+    &lt;p class=&quot;letter-signature&quot;&gt;— Jeff &amp;amp; the Hog Heaven team&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- ============= PRESETS ============= --&gt;
+&lt;section class=&quot;section-pad&quot; style=&quot;background: var(--hh-paper);&quot;&gt;
+  &lt;div class=&quot;section-eyebrow&quot;&gt;Three places to start&lt;/div&gt;
+  &lt;h2 class=&quot;section-title&quot;&gt;Pick a starting point. &lt;em&gt;Tweak from there.&lt;/em&gt;&lt;/h2&gt;
+  &lt;p class=&quot;section-lede&quot;&gt;
+    Every wedding party arrives differently. These three configurations cover the common shapes —
+    quick afternoon, half day with lunch, full split-day immersion. Click one to load it into the
+    configurator, then adjust to taste.
+  &lt;/p&gt;
+
+  &lt;div class=&quot;presets-grid&quot;&gt;
+    &lt;div class=&quot;preset-card&quot; onclick=&quot;loadPreset(&#39;quick&#39;)&quot;&gt;
+      &lt;div class=&quot;preset-num&quot;&gt;I&lt;/div&gt;
+      &lt;div class=&quot;preset-tag&quot;&gt;~2 Hours&lt;/div&gt;
+      &lt;h3&gt;The Afternoon Escape&lt;/h3&gt;
+      &lt;p&gt;The 5-Stand Shotgun Social with instructors. Pure shooting time. Back at Camp Lucy in time for the rehearsal toast.&lt;/p&gt;
+      &lt;div class=&quot;preset-price&quot;&gt;$3,660&lt;small&gt; &amp;nbsp;wholesale · 16 guests + 2 instructors&lt;/small&gt;&lt;/div&gt;
+      &lt;div class=&quot;preset-cta&quot;&gt;Load this preset →&lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class=&quot;preset-card&quot; onclick=&quot;loadPreset(&#39;halfday&#39;)&quot;&gt;
+      &lt;div class=&quot;preset-num&quot;&gt;II&lt;/div&gt;
+      &lt;div class=&quot;preset-tag&quot;&gt;~3.5 Hours&lt;/div&gt;
+      &lt;h3&gt;The Hill Country Half Day&lt;/h3&gt;
+      &lt;p&gt;Sporting Clays course followed by Ranch BBQ on the Covered Bridge. The full Hog Heaven hospitality, lunch and all.&lt;/p&gt;
+      &lt;div class=&quot;preset-price&quot;&gt;$5,040&lt;small&gt; &amp;nbsp;wholesale · clays, BBQ, instructors&lt;/small&gt;&lt;/div&gt;
+      &lt;div class=&quot;preset-cta&quot;&gt;Load this preset →&lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class=&quot;preset-card&quot; onclick=&quot;loadPreset(&#39;fullday&#39;)&quot;&gt;
+      &lt;div class=&quot;preset-num&quot;&gt;III&lt;/div&gt;
+      &lt;div class=&quot;preset-tag&quot;&gt;Full Day&lt;/div&gt;
+      &lt;h3&gt;The Full Texas Day&lt;/h3&gt;
+      &lt;p&gt;Scenario A — Pistol morning, Bridge lunch, 5-Stand afternoon. A complete day of the ranch experience.&lt;/p&gt;
+      &lt;div class=&quot;preset-price&quot;&gt;$7,250&lt;small&gt; &amp;nbsp;wholesale · pistol, BBQ, shotgun + instructors&lt;/small&gt;&lt;/div&gt;
+      &lt;div class=&quot;preset-cta&quot;&gt;Load this preset →&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- ============= BUILDER ============= --&gt;
+&lt;section class=&quot;builder&quot;&gt;
+  &lt;div class=&quot;section-eyebrow&quot;&gt;Build the proposal&lt;/div&gt;
+  &lt;h2 class=&quot;section-title&quot;&gt;The configurator, &lt;em&gt;live.&lt;/em&gt;&lt;/h2&gt;
+  &lt;p class=&quot;section-lede&quot;&gt;
+    Every choice updates the running total instantly. Wholesale (your cost) and suggested retail
+    (your guest charge) are both visible, with the projected Camp Lucy margin called out.
+  &lt;/p&gt;
+
+  &lt;div class=&quot;builder-inner&quot;&gt;
+
+    &lt;!-- LEFT: Configuration --&gt;
+    &lt;div class=&quot;config-stack&quot;&gt;
+
+      &lt;!-- Step 1: Package --&gt;
+      &lt;div class=&quot;config-card active&quot;&gt;
+        &lt;div class=&quot;config-step&quot;&gt;Step 01 · Choose your shotgun package&lt;/div&gt;
+        &lt;h3&gt;Pick the shooting experience.&lt;/h3&gt;
+        &lt;p class=&quot;config-help&quot;&gt;Both packages are 2 hours of activity time. Choose by format preference — social/competitive vs. station-based traditional.&lt;/p&gt;
+
+        &lt;div class=&quot;radio-cards&quot;&gt;
+          &lt;div class=&quot;radio-card selected&quot; data-pkg=&quot;5stand&quot; onclick=&quot;selectPackage(&#39;5stand&#39;)&quot;&gt;
+            &lt;div class=&quot;rc-name&quot;&gt;The 5-Stand&lt;/div&gt;
+            &lt;div class=&quot;rc-desc&quot;&gt;Classic Texas shotgun social. Friendly competition format. Best for groups who want to laugh and shoot.&lt;/div&gt;
+            &lt;div class=&quot;rc-price&quot;&gt;$145 wholesale · $185 retail&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;radio-card&quot; data-pkg=&quot;hillcountry&quot; onclick=&quot;selectPackage(&#39;hillcountry&#39;)&quot;&gt;
+            &lt;div class=&quot;rc-name&quot;&gt;Hill Country Sporting Challenge&lt;/div&gt;
+            &lt;div class=&quot;rc-desc&quot;&gt;Multi-station sporting clays course. Team-based competition. For groups with more shooting experience.&lt;/div&gt;
+            &lt;div class=&quot;rc-price&quot;&gt;$145 wholesale · $185 retail&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;!-- Step 2: Group Size --&gt;
+      &lt;div class=&quot;config-card&quot;&gt;
+        &lt;div class=&quot;config-step&quot;&gt;Step 02 · Group size&lt;/div&gt;
+        &lt;h3&gt;How many guests?&lt;/h3&gt;
+        &lt;p class=&quot;config-help&quot;&gt;Instructor staffing scales with this number at a 1:5 ratio for groups of 10+.&lt;/p&gt;
+
+        &lt;div class=&quot;stepper&quot;&gt;
+          &lt;button class=&quot;stepper-btn&quot; onclick=&quot;adjustHeadcount(-1)&quot;&gt;−&lt;/button&gt;
+          &lt;div&gt;
+            &lt;div class=&quot;stepper-value&quot; id=&quot;headcount-value&quot;&gt;16&lt;/div&gt;
+            &lt;div class=&quot;stepper-label&quot; style=&quot;text-align: center; margin-top: 4px;&quot;&gt;Total Guests&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;button class=&quot;stepper-btn&quot; onclick=&quot;adjustHeadcount(1)&quot;&gt;+&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;!-- Step 3: Pistol Range Add-on --&gt;
+      &lt;div class=&quot;config-card&quot;&gt;
+        &lt;div class=&quot;config-step&quot;&gt;Step 03 · Add the pistol range?&lt;/div&gt;
+        &lt;h3&gt;Optional pistol session.&lt;/h3&gt;
+        &lt;p class=&quot;config-help&quot;&gt;Adds a guided pistol range experience. Required certified instructor at a strict 1:5 ratio. Adds ~1 hour.&lt;/p&gt;
+
+        &lt;div class=&quot;toggle-grid&quot;&gt;
+          &lt;div class=&quot;toggle-card&quot; data-key=&quot;pistol&quot; onclick=&quot;toggleAddon(&#39;pistol&#39;)&quot;&gt;
+            &lt;div&gt;
+              &lt;div class=&quot;toggle-name&quot;&gt;Texas Pistol Range&lt;/div&gt;
+              &lt;div class=&quot;toggle-meta&quot;&gt;Instructor required · 1:5 ratio · firearms &amp;amp; ammo included&lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div style=&quot;display: flex; align-items: center;&quot;&gt;
+              &lt;div class=&quot;toggle-price&quot;&gt;$104 wholesale&lt;br&gt;$125 retail / guest&lt;/div&gt;
+              &lt;div class=&quot;toggle-icon&quot;&gt;&lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;toggle-card&quot; data-key=&quot;archery&quot; onclick=&quot;toggleAddon(&#39;archery&#39;)&quot;&gt;
+            &lt;div&gt;
+              &lt;div class=&quot;toggle-name&quot;&gt;Ranch Archery&lt;/div&gt;
+              &lt;div class=&quot;toggle-meta&quot;&gt;Compound bows, outdoor range · ~1 hour · instructor optional&lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div style=&quot;display: flex; align-items: center;&quot;&gt;
+              &lt;div class=&quot;toggle-price&quot;&gt;$62 wholesale&lt;br&gt;$75 retail / guest&lt;/div&gt;
+              &lt;div class=&quot;toggle-icon&quot;&gt;&lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;toggle-grid&quot; style=&quot;margin-top: 16px;&quot;&gt;
+          &lt;div class=&quot;toggle-card&quot; data-key=&quot;fishing&quot; onclick=&quot;toggleAddon(&#39;fishing&#39;)&quot;&gt;
+            &lt;div&gt;
+              &lt;div class=&quot;toggle-name&quot;&gt;Ranch Fishing / Fly Fishing&lt;/div&gt;
+              &lt;div class=&quot;toggle-meta&quot;&gt;15-acre lake · Florida-strain bass · 1–1.5 hours&lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div style=&quot;display: flex; align-items: center;&quot;&gt;
+              &lt;div class=&quot;toggle-price&quot;&gt;$42 wholesale&lt;br&gt;$50 retail / guest&lt;/div&gt;
+              &lt;div class=&quot;toggle-icon&quot;&gt;&lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;toggle-card&quot; data-key=&quot;archeryInstructor&quot; onclick=&quot;toggleAddon(&#39;archeryInstructor&#39;)&quot;&gt;
+            &lt;div&gt;
+              &lt;div class=&quot;toggle-name&quot;&gt;+ Add Archery Instructor&lt;/div&gt;
+              &lt;div class=&quot;toggle-meta&quot;&gt;Recommended for first-time archers&lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div style=&quot;display: flex; align-items: center;&quot;&gt;
+              &lt;div class=&quot;toggle-price&quot;&gt;$350 flat&lt;br&gt;per instructor&lt;/div&gt;
+              &lt;div class=&quot;toggle-icon&quot;&gt;&lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;!-- Step 4: F&amp;B --&gt;
+      &lt;div class=&quot;config-card&quot;&gt;
+        &lt;div class=&quot;config-step&quot;&gt;Step 04 · Food &amp;amp; Drink&lt;/div&gt;
+        &lt;h3&gt;The midday anchor.&lt;/h3&gt;
+        &lt;p class=&quot;config-help&quot;&gt;Optional Ranch BBQ lunch with beer, served on property or in private setting on the Covered Bridge.&lt;/p&gt;
+
+        &lt;div class=&quot;radio-cards&quot;&gt;
+          &lt;div class=&quot;radio-card selected&quot; data-fb=&quot;none&quot; onclick=&quot;selectFB(&#39;none&#39;)&quot;&gt;
+            &lt;div class=&quot;rc-name&quot;&gt;No Lunch&lt;/div&gt;
+            &lt;div class=&quot;rc-desc&quot;&gt;Activity-only experience. Guests return to Camp Lucy for meals.&lt;/div&gt;
+            &lt;div class=&quot;rc-price&quot;&gt;$0&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;radio-card&quot; data-fb=&quot;property&quot; onclick=&quot;selectFB(&#39;property&#39;)&quot;&gt;
+            &lt;div class=&quot;rc-name&quot;&gt;Ranch BBQ on Property&lt;/div&gt;
+            &lt;div class=&quot;rc-desc&quot;&gt;Local Texas BBQ &amp;amp; beer in our pavilion. No setup fee.&lt;/div&gt;
+            &lt;div class=&quot;rc-price&quot;&gt;$54 wholesale · $65 retail / guest&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;radio-cards&quot; style=&quot;margin-top: 16px;&quot;&gt;
+          &lt;div class=&quot;radio-card&quot; data-fb=&quot;bridge20&quot; onclick=&quot;selectFB(&#39;bridge20&#39;)&quot;&gt;
+            &lt;div class=&quot;rc-name&quot;&gt;Covered Bridge BBQ &lt;small style=&quot;font-size: 11px; color: rgba(35,43,38,0.5)&quot;&gt;(10–20)&lt;/small&gt;&lt;/div&gt;
+            &lt;div class=&quot;rc-desc&quot;&gt;Private Bridge setting. Magical photo backdrop. Bridge setup fee applies.&lt;/div&gt;
+            &lt;div class=&quot;rc-price&quot;&gt;$65 retail / guest + $500 setup&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;radio-card&quot; data-fb=&quot;bridge50&quot; onclick=&quot;selectFB(&#39;bridge50&#39;)&quot;&gt;
+            &lt;div class=&quot;rc-name&quot;&gt;Covered Bridge BBQ &lt;small style=&quot;font-size: 11px; color: rgba(35,43,38,0.5)&quot;&gt;(20–50)&lt;/small&gt;&lt;/div&gt;
+            &lt;div class=&quot;rc-desc&quot;&gt;Larger Bridge configuration for bigger groups. Bridge setup fee applies.&lt;/div&gt;
+            &lt;div class=&quot;rc-price&quot;&gt;$65 retail / guest + $2,500 setup&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;!-- Step 5: Instructor Override --&gt;
+      &lt;div class=&quot;config-card&quot;&gt;
+        &lt;div class=&quot;config-step&quot;&gt;Step 05 · Instructor staffing&lt;/div&gt;
+        &lt;h3&gt;Auto-calculated, with override.&lt;/h3&gt;
+        &lt;p class=&quot;config-help&quot;&gt;For groups of 10+ on shotgun activities, instructors are required at a 1:5 ratio. Pistol activities always require instructors regardless of group size.&lt;/p&gt;
+
+        &lt;div class=&quot;instructor-summary&quot;&gt;
+          &lt;div class=&quot;calc&quot; id=&quot;instructor-calc&quot;&gt;3 shotgun instructors · 0 pistol instructors&lt;/div&gt;
+          &lt;div class=&quot;calc-detail&quot; id=&quot;instructor-detail&quot;&gt;Auto-calculated for 16 guests at 1:5 ratio. $1,050 total.&lt;/div&gt;
+          &lt;div class=&quot;instructor-override&quot;&gt;
+            &lt;label&gt;Override:&lt;/label&gt;
+            &lt;input type=&quot;number&quot; min=&quot;0&quot; max=&quot;10&quot; value=&quot;3&quot; id=&quot;shotgunInstr-override&quot; oninput=&quot;overrideShotgunInstructor(this.value)&quot; /&gt;
+            &lt;span style=&quot;color: rgba(35,43,38,0.5);&quot;&gt;shotgun&lt;/span&gt;
+            &lt;input type=&quot;number&quot; min=&quot;0&quot; max=&quot;10&quot; value=&quot;0&quot; id=&quot;pistolInstr-override&quot; oninput=&quot;overridePistolInstructor(this.value)&quot; /&gt;
+            &lt;span style=&quot;color: rgba(35,43,38,0.5);&quot;&gt;pistol&lt;/span&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+    &lt;/div&gt;
+
+    &lt;!-- RIGHT: Sticky Summary Panel --&gt;
+    &lt;aside class=&quot;summary-panel&quot; id=&quot;summary-panel&quot;&gt;
+      &lt;div class=&quot;summary-tag&quot;&gt;Live Proposal Summary&lt;/div&gt;
+      &lt;h3&gt;Hartwell &lt;em&gt;&amp;amp;&lt;/em&gt; Mitchell&lt;/h3&gt;
+      &lt;div class=&quot;for&quot;&gt;Friday, June 26 · 16 guests&lt;/div&gt;
+
+      &lt;div class=&quot;line-items&quot; id=&quot;line-items&quot;&gt;
+        &lt;!-- populated by JS --&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;totals&quot;&gt;
+        &lt;div class=&quot;total-row&quot;&gt;
+          &lt;span class=&quot;t-label&quot;&gt;Wholesale (Your Cost)&lt;/span&gt;
+          &lt;span class=&quot;t-value&quot; id=&quot;wholesale-total&quot;&gt;$0&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;total-row retail&quot;&gt;
+          &lt;span class=&quot;t-label&quot;&gt;Suggested Retail (Guest Charge)&lt;/span&gt;
+          &lt;span class=&quot;t-value&quot; id=&quot;retail-total&quot;&gt;$0&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;total-row grand&quot;&gt;
+          &lt;span class=&quot;t-label&quot;&gt;Camp Lucy Margin&lt;/span&gt;
+          &lt;span class=&quot;t-value&quot; id=&quot;margin-total&quot;&gt;$0&lt;/span&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;margin-callout&quot; id=&quot;margin-callout&quot;&gt;
+        &lt;strong id=&quot;margin-pct&quot;&gt;0%&lt;/strong&gt;
+        Partner margin on this proposal
+      &lt;/div&gt;
+
+      &lt;button class=&quot;cta-button&quot; onclick=&quot;confirmProposal()&quot;&gt;Confirm Proposal &amp;amp; Send&lt;/button&gt;
+      &lt;button class=&quot;cta-secondary&quot; onclick=&quot;emailProposal()&quot;&gt;Email to Camp Lucy&lt;/button&gt;
+      &lt;button class=&quot;cta-secondary&quot; onclick=&quot;window.print()&quot;&gt;Print / Save as PDF&lt;/button&gt;
+    &lt;/aside&gt;
+
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- ============= INFO BAND ============= --&gt;
+&lt;section class=&quot;info-band&quot;&gt;
+  &lt;div class=&quot;info-band-inner&quot;&gt;
+    &lt;div class=&quot;info-tile&quot;&gt;
+      &lt;h5&gt;Distance&lt;/h5&gt;
+      &lt;p&gt;&lt;strong&gt;~30 min drive&lt;/strong&gt;From Camp Lucy chapel to Hog Heaven gate. Coordinated transport handled by Camp Lucy.&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;info-tile&quot;&gt;
+      &lt;h5&gt;What&#39;s Included&lt;/h5&gt;
+      &lt;p&gt;&lt;strong&gt;Everything but lunch&lt;/strong&gt;Shotguns, ammunition, targets, golf carts, range safety briefing. Lunch is à la carte.&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;info-tile&quot;&gt;
+      &lt;h5&gt;Safety&lt;/h5&gt;
+      &lt;p&gt;&lt;strong&gt;1:5 instructor ratio&lt;/strong&gt;Pistol always requires a certified instructor. Shotgun for groups of 3+ self-directed after a 15-minute briefing.&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;info-tile&quot;&gt;
+      &lt;h5&gt;Payment&lt;/h5&gt;
+      &lt;p&gt;&lt;strong&gt;Net invoiced&lt;/strong&gt;Hog Heaven invoices Camp Lucy after the event via Accounting@whimhospitality.com, attn. Angela Kilgore.&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- ============= FOOTER ============= --&gt;
+&lt;footer&gt;
+  &lt;div class=&quot;footer-inner&quot;&gt;
+    &lt;div class=&quot;footer-brand&quot;&gt;Hog Heaven&lt;span&gt;×&lt;/span&gt;Camp Lucy&lt;/div&gt;
+    &lt;div class=&quot;footer-meta&quot;&gt;Live Proposal · v2.0 · Confidential&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/footer&gt;
+
+&lt;script&gt;
+// ============= STATE =============
+const PRICING = {
+  packages: {
+    &#39;5stand&#39;: { name: &#39;The 5-Stand&#39;, wholesale: 145, retail: 185 },
+    &#39;hillcountry&#39;: { name: &#39;Hill Country Sporting Challenge&#39;, wholesale: 145, retail: 185 }
+  },
+  pistol: { name: &#39;Texas Pistol Range&#39;, wholesale: 104, retail: 125 },
+  archery: { name: &#39;Ranch Archery Session&#39;, wholesale: 62, retail: 75 },
+  fishing: { name: &#39;Ranch Fishing / Fly Fishing&#39;, wholesale: 42, retail: 50 },
+  bbq: { name: &#39;Ranch BBQ Lunch&#39;, wholesale: 54, retail: 65 },
+  shotgunInstructor: { name: &#39;Shotgun Instructor&#39;, cost: 350 },
+  pistolInstructor: { name: &#39;Pistol Instructor&#39;, cost: 395 },
+  archeryInstructor: { name: &#39;Archery Instructor&#39;, cost: 350 },
+  bridgeSetup20: { name: &#39;Covered Bridge Setup (10–20)&#39;, cost: 500 },
+  bridgeSetup50: { name: &#39;Covered Bridge Setup (20–50)&#39;, cost: 2500 }
+};
+
+const state = {
+  package: &#39;5stand&#39;,
+  headcount: 16,
+  pistol: false,
+  archery: false,
+  fishing: false,
+  archeryInstructor: false,
+  fb: &#39;none&#39;,           // &#39;none&#39;, &#39;property&#39;, &#39;bridge20&#39;, &#39;bridge50&#39;
+  shotgunInstrOverride: null,  // null = auto
+  pistolInstrOverride: null
+};
+
+// ============= COMPUTE =============
+function computeInstructors() {
+  const auto_shotgun = state.headcount &gt;= 10 ? Math.ceil(state.headcount / 5) : 0;
+  const auto_pistol = state.pistol ? Math.ceil(state.headcount / 5) : 0;
+  return {
+    shotgun: state.shotgunInstrOverride !== null ? state.shotgunInstrOverride : auto_shotgun,
+    pistol: state.pistolInstrOverride !== null ? state.pistolInstrOverride : auto_pistol
+  };
+}
+
+function computeLineItems() {
+  const lines = [];
+  const pkg = PRICING.packages[state.package];
+
+  // Package base
+  lines.push({
+    name: pkg.name,
+    detail: `${state.headcount} guests × $${pkg.retail}`,
+    wholesale: pkg.wholesale * state.headcount,
+    retail: pkg.retail * state.headcount
+  });
+
+  // Pistol
+  if (state.pistol) {
+    lines.push({
+      name: PRICING.pistol.name,
+      detail: `${state.headcount} guests × $${PRICING.pistol.retail}`,
+      wholesale: PRICING.pistol.wholesale * state.headcount,
+      retail: PRICING.pistol.retail * state.headcount
+    });
+  }
+
+  // Archery
+  if (state.archery) {
+    lines.push({
+      name: PRICING.archery.name,
+      detail: `${state.headcount} guests × $${PRICING.archery.retail}`,
+      wholesale: PRICING.archery.wholesale * state.headcount,
+      retail: PRICING.archery.retail * state.headcount
+    });
+  }
+
+  // Fishing
+  if (state.fishing) {
+    lines.push({
+      name: PRICING.fishing.name,
+      detail: `${state.headcount} guests × $${PRICING.fishing.retail}`,
+      wholesale: PRICING.fishing.wholesale * state.headcount,
+      retail: PRICING.fishing.retail * state.headcount
+    });
+  }
+
+  // F&amp;B
+  if (state.fb === &#39;property&#39;) {
+    lines.push({
+      name: &#39;Ranch BBQ Lunch (Property)&#39;,
+      detail: `${state.headcount} guests × $${PRICING.bbq.retail}`,
+      wholesale: PRICING.bbq.wholesale * state.headcount,
+      retail: PRICING.bbq.retail * state.headcount
+    });
+  } else if (state.fb === &#39;bridge20&#39;) {
+    lines.push({
+      name: &#39;Ranch BBQ Lunch (Bridge)&#39;,
+      detail: `${state.headcount} guests × $${PRICING.bbq.retail}`,
+      wholesale: PRICING.bbq.wholesale * state.headcount,
+      retail: PRICING.bbq.retail * state.headcount
+    });
+    lines.push({
+      name: &#39;Covered Bridge Setup (10–20)&#39;,
+      detail: &#39;Private Bridge configuration&#39;,
+      wholesale: PRICING.bridgeSetup20.cost,
+      retail: PRICING.bridgeSetup20.cost
+    });
+  } else if (state.fb === &#39;bridge50&#39;) {
+    lines.push({
+      name: &#39;Ranch BBQ Lunch (Bridge)&#39;,
+      detail: `${state.headcount} guests × $${PRICING.bbq.retail}`,
+      wholesale: PRICING.bbq.wholesale * state.headcount,
+      retail: PRICING.bbq.retail * state.headcount
+    });
+    lines.push({
+      name: &#39;Covered Bridge Setup (20–50)&#39;,
+      detail: &#39;Large-group Bridge configuration&#39;,
+      wholesale: PRICING.bridgeSetup50.cost,
+      retail: PRICING.bridgeSetup50.cost
+    });
+  }
+
+  // Instructors
+  const inst = computeInstructors();
+  if (inst.shotgun &gt; 0) {
+    lines.push({
+      name: `Shotgun Instructors`,
+      detail: `${inst.shotgun} × $${PRICING.shotgunInstructor.cost} (TX exempt)`,
+      wholesale: PRICING.shotgunInstructor.cost * inst.shotgun,
+      retail: PRICING.shotgunInstructor.cost * inst.shotgun
+    });
+  }
+  if (inst.pistol &gt; 0) {
+    lines.push({
+      name: `Pistol Instructors`,
+      detail: `${inst.pistol} × $${PRICING.pistolInstructor.cost} (TX exempt)`,
+      wholesale: PRICING.pistolInstructor.cost * inst.pistol,
+      retail: PRICING.pistolInstructor.cost * inst.pistol
+    });
+  }
+  if (state.archery &amp;&amp; state.archeryInstructor) {
+    lines.push({
+      name: `Archery Instructor`,
+      detail: `1 × $${PRICING.archeryInstructor.cost} flat`,
+      wholesale: PRICING.archeryInstructor.cost,
+      retail: PRICING.archeryInstructor.cost
+    });
+  }
+
+  return lines;
+}
+
+// ============= RENDER =============
+function fmt(n) { return &#39;$&#39; + Math.round(n).toLocaleString(); }
+
+function render() {
+  const lines = computeLineItems();
+  const lineEl = document.getElementById(&#39;line-items&#39;);
+
+  if (lines.length === 0) {
+    lineEl.innerHTML = &#39;&lt;div class=&quot;line-empty&quot;&gt;Make a selection to begin.&lt;/div&gt;&#39;;
+  } else {
+    lineEl.innerHTML = lines.map(l =&gt; `
+      &lt;div class=&quot;line-item&quot;&gt;
+        &lt;div&gt;
+          &lt;div class=&quot;li-name&quot;&gt;${l.name}&lt;/div&gt;
+          &lt;div class=&quot;li-detail&quot;&gt;${l.detail}&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;li-amount&quot;&gt;${fmt(l.retail)}&lt;/div&gt;
+      &lt;/div&gt;
+    `).join(&#39;&#39;);
+  }
+
+  const wholesale = lines.reduce((s, l) =&gt; s + l.wholesale, 0);
+  const retail = lines.reduce((s, l) =&gt; s + l.retail, 0);
+  const margin = retail - wholesale;
+  const marginPct = retail &gt; 0 ? Math.round((margin / retail) * 100) : 0;
+
+  document.getElementById(&#39;wholesale-total&#39;).textContent = fmt(wholesale);
+  document.getElementById(&#39;retail-total&#39;).textContent = fmt(retail);
+  document.getElementById(&#39;margin-total&#39;).textContent = fmt(margin);
+  document.getElementById(&#39;margin-pct&#39;).textContent = marginPct + &#39;%&#39;;
+
+  // Instructor summary
+  const inst = computeInstructors();
+  const instCost = inst.shotgun * 350 + inst.pistol * 395;
+  document.getElementById(&#39;instructor-calc&#39;).textContent =
+    `${inst.shotgun} shotgun instructor${inst.shotgun !== 1 ? &#39;s&#39; : &#39;&#39;} · ${inst.pistol} pistol instructor${inst.pistol !== 1 ? &#39;s&#39; : &#39;&#39;}`;
+  document.getElementById(&#39;instructor-detail&#39;).textContent =
+    `Auto-calculated for ${state.headcount} guests at 1:5 ratio. ${fmt(instCost)} total.`;
+  document.getElementById(&#39;shotgunInstr-override&#39;).value = inst.shotgun;
+  document.getElementById(&#39;pistolInstr-override&#39;).value = inst.pistol;
+  document.getElementById(&#39;headcount-value&#39;).textContent = state.headcount;
+
+  // Update toggle states
+  document.querySelectorAll(&#39;.toggle-card&#39;).forEach(card =&gt; {
+    const k = card.dataset.key;
+    if (state[k]) card.classList.add(&#39;selected&#39;);
+    else card.classList.remove(&#39;selected&#39;);
+  });
+  document.querySelectorAll(&#39;[data-pkg]&#39;).forEach(card =&gt; {
+    if (card.dataset.pkg === state.package) card.classList.add(&#39;selected&#39;);
+    else card.classList.remove(&#39;selected&#39;);
+  });
+  document.querySelectorAll(&#39;[data-fb]&#39;).forEach(card =&gt; {
+    if (card.dataset.fb === state.fb) card.classList.add(&#39;selected&#39;);
+    else card.classList.remove(&#39;selected&#39;);
+  });
+}
+
+// ============= ACTIONS =============
+function selectPackage(pkg) { state.package = pkg; render(); }
+function adjustHeadcount(delta) {
+  state.headcount = Math.max(3, Math.min(50, state.headcount + delta));
+  state.shotgunInstrOverride = null;
+  state.pistolInstrOverride = null;
+  render();
+}
+function toggleAddon(key) {
+  state[key] = !state[key];
+  if (key === &#39;pistol&#39; &amp;&amp; !state.pistol) state.pistolInstrOverride = null;
+  if (key === &#39;archery&#39; &amp;&amp; !state.archery) state.archeryInstructor = false;
+  render();
+}
+function selectFB(fb) { state.fb = fb; render(); }
+function overrideShotgunInstructor(v) { state.shotgunInstrOverride = parseInt(v) || 0; render(); }
+function overridePistolInstructor(v) { state.pistolInstrOverride = parseInt(v) || 0; render(); }
+
+function loadPreset(name) {
+  if (name === &#39;quick&#39;) {
+    Object.assign(state, { package: &#39;5stand&#39;, headcount: 16, pistol: false, archery: false, fishing: false, archeryInstructor: false, fb: &#39;none&#39;, shotgunInstrOverride: null, pistolInstrOverride: null });
+  } else if (name === &#39;halfday&#39;) {
+    Object.assign(state, { package: &#39;hillcountry&#39;, headcount: 16, pistol: false, archery: false, fishing: false, archeryInstructor: false, fb: &#39;bridge20&#39;, shotgunInstrOverride: null, pistolInstrOverride: null });
+  } else if (name === &#39;fullday&#39;) {
+    Object.assign(state, { package: &#39;5stand&#39;, headcount: 16, pistol: true, archery: false, fishing: false, archeryInstructor: false, fb: &#39;bridge20&#39;, shotgunInstrOverride: null, pistolInstrOverride: null });
+  }
+  document.querySelector(&#39;.builder&#39;).scrollIntoView({ behavior: &#39;smooth&#39;, block: &#39;start&#39; });
+  render();
+}
+
+function confirmProposal() {
+  alert(&quot;Proposal confirmed!\n\nIn the live version, this would:\n- Lock the configuration\n- Generate a PDF version\n- Email a copy to Camp Lucy and the Hog Heaven event coordinator\n- Create an Inquiry record in the Hog Heaven Notion pipeline (Status: Quoted)&quot;);
+}
+
+function emailProposal() {
+  const lines = computeLineItems();
+  const retail = lines.reduce((s, l) =&gt; s + l.retail, 0);
+  const wholesale = lines.reduce((s, l) =&gt; s + l.wholesale, 0);
+  const subject = encodeURIComponent(&quot;Hog Heaven Proposal — Hartwell-Mitchell Wedding Weekend&quot;);
+  const body = encodeURIComponent(
+    `Taylor,\n\nAttaching the live proposal for Sarah &amp; Will&#39;s wedding party adventure on Friday, June 26.\n\n` +
+    `Package: ${PRICING.packages[state.package].name}\n` +
+    `Headcount: ${state.headcount} guests\n` +
+    `Wholesale to Camp Lucy: ${fmt(wholesale)}\n` +
+    `Suggested retail to guests: ${fmt(retail)}\n` +
+    `Camp Lucy margin: ${fmt(retail - wholesale)} (${Math.round((retail-wholesale)/retail*100)}%)\n\n` +
+    `Let me know if anything needs to flex.\n\n— Jeff`
+  );
+  window.location.href = `mailto:tcrawford@camplucy.com?cc=jeff@hhsporting.com&amp;subject=${subject}&amp;body=${body}`;
+}
+
+// ============= INIT =============
+document.addEventListener(&#39;DOMContentLoaded&#39;, () =&gt; {
+  render();
+
+  // Nav scroll behavior
+  window.addEventListener(&#39;scroll&#39;, () =&gt; {
+    const nav = document.getElementById(&#39;nav&#39;);
+    if (window.scrollY &gt; 80) nav.classList.add(&#39;solid&#39;);
+    else nav.classList.remove(&#39;solid&#39;);
+  });
+
+  // Reveal on scroll
+  const observer = new IntersectionObserver((entries) =&gt; {
+    entries.forEach(e =&gt; { if (e.isIntersecting) e.target.classList.add(&#39;visible&#39;); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll(&#39;.reveal&#39;).forEach(el =&gt; observer.observe(el));
+});
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+" title="Hartwell-Mitchell Wedding Bid" src="./Rhythm Outdoors · The Vision Document_files/saved_resource(5).html"></iframe>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section id="stack" style="opacity: 1; transform: translateY(0px); transition: opacity 0.6s ease-out, transform 0.6s ease-out;">
+  <div class="eyebrow">Today's Tech Stack</div>
+  <h2>What we are using right now — and where each belongs.</h2>
+  <p class="lead">An honest accounting of every tool currently in the operation, what it does, and whether it earns its place in the long-term architecture.</p>
+
+  <div class="stack-grid">
+    <div class="stack-card center">
+      <div class="stack-tier tier-core">★ Central Nervous System</div>
+      <div class="stack-name">HubSpot</div>
+      <div class="stack-role">CRM · Pipelines · Workflows</div>
+      <p class="stack-body">The system of record for every customer relationship. Contacts, companies, deals, products, tickets, marketing automation. Currently being deepened by our HubSpot lead. The destination for all customer-facing data.</p>
+      <div class="stack-flag">Active build. Phase 5 makes HubSpot canonical for customer data.</div>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-tier tier-core">★ Foundation</div>
+      <div class="stack-name">Notion</div>
+      <div class="stack-role">Schema · Policy · Knowledge</div>
+      <p class="stack-body">The drafting room. The Charter, the Pricing Schema, every policy, every working history entry, every architectural decision. Notion holds the <em>how</em>; HubSpot holds the <em>who</em>.</p>
+      <div class="stack-flag">Stable. Permanent role. Boundary documented.</div>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-tier tier-core">★ Foundation</div>
+      <div class="stack-name">Google Drive</div>
+      <div class="stack-role">File Storage · Source Documents</div>
+      <p class="stack-body">Signed contracts, source PDFs, the master roster Excel, photography, brand assets. Drive holds the files. Notion's Source Documents database is the index that points at them.</p>
+      <div class="stack-flag">Stable. Permanent role.</div>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-tier tier-supporting">— Connective Tissue</div>
+      <div class="stack-name">Netlify</div>
+      <div class="stack-role">Hosting · Functions · DNS</div>
+      <p class="stack-body">Every Rhythm portal — public, member, partner — is hosted here. Netlify Functions are the connective tissue between the portals and HubSpot/Notion. The bid pages live here. The custom domains route here.</p>
+      <div class="stack-flag">Stable. Phase 4 wires custom domains.</div>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-tier tier-supporting">— Connective Tissue</div>
+      <div class="stack-name">Resend</div>
+      <div class="stack-role">Transactional Email</div>
+      <p class="stack-body">Concierge confirmations, automated reminders, follow-ups. Sends from concierge@send.rhythm.co. Domain verified, integration solid.</p>
+      <div class="stack-flag">Stable. Permanent role.</div>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-tier tier-watch">⚠ Watch List</div>
+      <div class="stack-name">Acuity</div>
+      <div class="stack-role">Scheduling · Calendar</div>
+      <p class="stack-body">Currently handling instructor scheduling and calendar bookings. Question for Phase 5/7 review: does Acuity remain alongside HubSpot Meetings, or does it graduate? The answer depends on what HubSpot's calendar primitives can do.</p>
+      <div class="stack-flag warn">Decision pending. Coordination with HubSpot lead required.</div>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-tier tier-watch">⚠ Watch List</div>
+      <div class="stack-name">Smart Waiver</div>
+      <div class="stack-role">Digital Waivers</div>
+      <p class="stack-body">A capable third-party waiver platform. The problem: it feels like a janky add-on. Brand coherence breaks the moment a guest is redirected to it. The vision: replace it with a waiver flow embedded directly into the bid page — same canvas signature, same archival, no redirect.</p>
+      <div class="stack-flag warn">Replacement candidate. Phase 6 evaluation.</div>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-tier tier-supporting">— Payment</div>
+      <div class="stack-name">Square</div>
+      <div class="stack-role">Deposits · Payments</div>
+      <p class="stack-body">Embedded checkout on the bid page. Webhook-driven confirmation back to HubSpot. Already proven on the 9 Holers Showcase deployment.</p>
+      <div class="stack-flag">Stable. Webhook integration in Phase 5.</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- MEMBERSHIP — IN SCOPE -->
+<section id="membership" style="padding: 5.5rem 2rem; background: var(--paper); opacity: 1; transform: translateY(0px); transition: opacity 0.6s ease-out, transform 0.6s ease-out;">
+  <div style="max-width: 1200px; margin: 0 auto;">
+    <div class="eyebrow">Membership, Automated</div>
+    <h2 style="max-width: 920px;">Thirty-one pages of paperwork. <em style="color: var(--tan-deep); font-style: italic;">Five minutes to belong.</em></h2>
+
+    <div style="display: grid; grid-template-columns: minmax(260px, 1fr) 1.3fr; gap: 4rem; align-items: center; margin-top: 3rem;">
+      <!-- Big visual: 31 → 5 -->
+      <div style="text-align: center;">
+        <div style="display: flex; align-items: flex-end; gap: 1.25rem; justify-content: center;">
+          <div>
+            <div style="font-family: var(--serif); font-size: 130px; font-weight: 600; color: var(--gray); line-height: 1; letter-spacing: -4px; text-decoration: line-through; text-decoration-color: rgba(184,114,58,0.6); text-decoration-thickness: 6px; opacity: 0.55;">31</div>
+            <div style="font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gray); margin-top: 0.6rem; font-weight: 500;">pages of bullsh*t · today</div>
+          </div>
+          <div style="font-family: var(--serif); font-size: 64px; color: var(--tan-deep); font-weight: 600; padding-bottom: 38px;">→</div>
+          <div>
+            <div style="font-family: var(--serif); font-size: 130px; font-weight: 600; color: var(--olive); line-height: 1; letter-spacing: -4px;">5</div>
+            <div style="font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--tan-deep); font-weight: 700; margin-top: 0.6rem;">minutes · tomorrow</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: prose -->
+      <div>
+        <p style="font-family: var(--serif); font-size: 22px; font-style: italic; color: var(--gray); line-height: 1.5; max-width: 660px; margin: 0 0 1.5rem;">Membership sign-ups are not a bonus to this work. They are squarely inside the 60-day scope.</p>
+        <p style="font-size: 16.5px; color: var(--olive); line-height: 1.7; margin: 0 0 1rem;">Today, applying for HSB membership means thirty-one pages of paperwork that <strong>Georgia and the membership team process by hand</strong>. Each application is a small project — print, route, sign, scan, file, follow up. The member's first impression of the club is a slog.</p>
+        <p style="font-size: 16.5px; color: var(--olive); line-height: 1.7; margin: 0 0 1.25rem;">Tomorrow, members apply through the same architecture as every other transaction. A reactive form. A branded application that looks and feels like the club. A digital signature. An initiation deposit on the same page. A HubSpot contact created in the membership pipeline. The welcome packet generates itself.</p>
+        <p style="font-size: 18px; font-weight: 600; color: var(--olive-deep); line-height: 1.5; margin: 0; letter-spacing: 0.3px;">
+          <span style="color: var(--tan-deep);">AUTOMATE.</span>
+          <span style="color: var(--olive);"> SIMPLIFY.</span>
+          <span style="color: var(--tan-deep);"> REFINE.</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Two-column today/tomorrow -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-top: 3rem;">
+      <div style="background: var(--cream); border-left: 4px solid var(--gray-light); border-radius: 4px; padding: 1.5rem 1.5rem 1.25rem;">
+        <div style="font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--gray); font-weight: 700; margin-bottom: 0.5rem;">Today</div>
+        <h4 style="margin: 0 0 0.5rem; font-size: 19px;">A 31-page slog before the welcome handshake</h4>
+        <p style="font-size: 14px; color: var(--gray); margin: 0; line-height: 1.55;">PDFs printed, signed in pen, scanned, emailed, filed. Georgia chases applicants for missing initials. The member's first experience of the club is friction. Days or weeks elapse before they're "in."</p>
+      </div>
+      <div style="background: var(--cream); border-left: 4px solid var(--tan-deep); border-radius: 4px; padding: 1.5rem 1.5rem 1.25rem;">
+        <div style="font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--tan-deep); font-weight: 700; margin-bottom: 0.5rem;">Tomorrow</div>
+        <h4 style="margin: 0 0 0.5rem; font-size: 19px;">A 5-minute application that feels like the club</h4>
+        <p style="font-size: 14px; color: var(--olive); margin: 0; line-height: 1.55;">One reactive form. One branded application bid. One signature. One deposit. Welcome packet auto-generates and lands in the new member's inbox before Georgia has time to think about it. <strong>Georgia's role becomes hospitality, not data entry.</strong></p>
+      </div>
+    </div>
+
+    <!-- Confirmation strip -->
+    <div style="margin-top: 2.5rem; padding: 1.5rem 2rem; background: var(--olive); border-radius: 4px; color: var(--cream);">
+      <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <div style="font-size: 28px; line-height: 1;">✓</div>
+        <div style="font-family: var(--serif); font-size: 18px; line-height: 1.45; flex: 1; min-width: 280px;">
+          <strong style="font-weight: 600; color: var(--cream);">In scope for the 60-day sprint.</strong> Ships as part of <strong style="color: var(--tan); font-weight: 600;">Phase 6 — Bid &amp; Application Templates.</strong> Not a bonus. Not a stretch goal. <em style="font-style: italic; color: var(--tan);">A commitment.</em>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section id="roadmap" class="full" style="background: var(--cream); padding-left: 2rem; padding-right: 2rem; opacity: 1; transform: translateY(0px); transition: opacity 0.6s ease-out, transform 0.6s ease-out;">
+  <div style="max-width: 1200px; margin: 0 auto;">
+    <div class="eyebrow">The Roadmap</div>
+    <h2>Sixty days. Two parallel tracks. One company transformed.</h2>
+    <p class="lead">We are at the end of Phase 4. The foundation is locked. From here, the next sixty days carry two parallel sprints — customer-facing automation and the marketing prompt-engine that ends the bottleneck. Bookkeeping follows the day they ship. Real-time inventory and customer self-serve are the destination beyond.</p>
+
+    <!-- VISUAL TIMELINE -->
+    <div style="margin-top: 3rem; background: var(--paper); border: 1px solid var(--border); border-radius: 8px; padding: 2.5rem 1.5rem 2rem; box-shadow: var(--shadow-md); overflow-x: auto;">
+      <svg viewBox="0 0 1200 500" xmlns="http://www.w3.org/2000/svg" style="width: 100%; min-width: 900px; height: auto; display: block;" role="img" aria-label="Roadmap timeline May 2026 through Q4 2026">
+
+        <!-- Sprint window background tint -->
+        <rect x="240" y="80" width="360" height="350" fill="rgba(184,156,115,0.13)" rx="4"></rect>
+        <rect x="240" y="80" width="360" height="350" fill="none" stroke="rgba(184,156,115,0.4)" stroke-width="1" stroke-dasharray="3,3" rx="4"></rect>
+
+        <!-- 60-DAY SPRINT label above the tint -->
+        <rect x="370" y="48" width="100" height="24" rx="12" fill="#9A8159"></rect>
+        <text x="420" y="64" font-family="Inter, sans-serif" font-size="10" font-weight="700" letter-spacing="2.5" fill="#FBFAF3" text-anchor="middle">60-DAY SPRINT</text>
+
+        <!-- Month headers -->
+        <g font-family="Inter, sans-serif" font-size="12" fill="#3F4A21" font-weight="700" letter-spacing="1.5">
+          <text x="300" y="100" text-anchor="middle">MAY '26</text>
+          <text x="420" y="100" text-anchor="middle">JUN</text>
+          <text x="540" y="100" text-anchor="middle">JUL</text>
+          <text x="660" y="100" text-anchor="middle">AUG</text>
+          <text x="780" y="100" text-anchor="middle">SEP</text>
+          <text x="900" y="100" text-anchor="middle">OCT</text>
+          <text x="1020" y="100" text-anchor="middle">NOV</text>
+          <text x="1140" y="100" text-anchor="middle">DEC</text>
+        </g>
+
+        <!-- Vertical month gridlines -->
+        <g stroke="rgba(63,74,33,0.08)" stroke-width="1">
+          <line x1="240" y1="115" x2="240" y2="430"></line>
+          <line x1="360" y1="115" x2="360" y2="430"></line>
+          <line x1="480" y1="115" x2="480" y2="430"></line>
+          <line x1="600" y1="115" x2="600" y2="430"></line>
+          <line x1="720" y1="115" x2="720" y2="430"></line>
+          <line x1="840" y1="115" x2="840" y2="430"></line>
+          <line x1="960" y1="115" x2="960" y2="430"></line>
+          <line x1="1080" y1="115" x2="1080" y2="430"></line>
+          <line x1="1200" y1="115" x2="1200" y2="430"></line>
+        </g>
+
+        <!-- TODAY marker -->
+        <line x1="240" y1="115" x2="240" y2="445" stroke="#9A8159" stroke-width="2.5" stroke-dasharray="5,4"></line>
+        <rect x="195" y="118" width="58" height="20" rx="10" fill="#9A8159"></rect>
+        <text x="224" y="132" font-family="Inter, sans-serif" font-size="10" font-weight="700" letter-spacing="2" fill="#FBFAF3" text-anchor="middle">TODAY</text>
+
+        <!-- ============== LANES ============== -->
+
+        <!-- LANE 1: Phase 4 (DONE) -->
+        <text x="225" y="160" font-family="Inter, sans-serif" font-size="11" font-weight="700" letter-spacing="1.5" fill="#3F4A21" text-anchor="end">PHASE 4</text>
+        <text x="225" y="176" font-family="Cormorant Garamond, serif" font-size="13" font-style="italic" fill="#9A8159" text-anchor="end">complete</text>
+        <circle cx="240" cy="167" r="13" fill="#9A8159"></circle>
+        <text x="240" y="172" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#FBFAF3" text-anchor="middle">✓</text>
+        <text x="262" y="172" font-family="Inter, sans-serif" font-size="13" font-weight="500" fill="#3F4A21">Foundation locked · Pipeline live</text>
+
+        <!-- LANE 2: Track A -->
+        <text x="225" y="208" font-family="Inter, sans-serif" font-size="11" font-weight="700" letter-spacing="1.5" fill="#3F4A21" text-anchor="end">TRACK A</text>
+        <text x="225" y="224" font-family="Cormorant Garamond, serif" font-size="13" font-style="italic" fill="#9A8159" text-anchor="end">Customer Pipeline</text>
+        <rect x="240" y="208" width="360" height="22" rx="11" fill="#3F4A21"></rect>
+        <text x="420" y="223" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#E8E4D5" text-anchor="middle">Phases 5 + 6 · Events · Lessons · Memberships</text>
+        <circle cx="240" cy="219" r="6" fill="#FBFAF3" stroke="#3F4A21" stroke-width="2"></circle>
+        <circle cx="600" cy="219" r="6" fill="#3F4A21"></circle>
+
+        <!-- LANE 3: Track B -->
+        <text x="225" y="256" font-family="Inter, sans-serif" font-size="11" font-weight="700" letter-spacing="1.5" fill="#3F4A21" text-anchor="end">TRACK B</text>
+        <text x="225" y="272" font-family="Cormorant Garamond, serif" font-size="13" font-style="italic" fill="#9A8159" text-anchor="end">Marketing Engine</text>
+        <rect x="240" y="256" width="360" height="22" rx="11" fill="#9A8159"></rect>
+        <text x="420" y="271" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#FBFAF3" text-anchor="middle">Pillars I + II · The bottleneck ends</text>
+        <circle cx="240" cy="267" r="6" fill="#FBFAF3" stroke="#9A8159" stroke-width="2"></circle>
+        <circle cx="600" cy="267" r="6" fill="#9A8159"></circle>
+
+        <!-- LANE 4: Pillar III -->
+        <text x="225" y="316" font-family="Inter, sans-serif" font-size="11" font-weight="700" letter-spacing="1.5" fill="#3F4A21" text-anchor="end">PILLAR III</text>
+        <text x="225" y="332" font-family="Cormorant Garamond, serif" font-size="13" font-style="italic" fill="#9A8159" text-anchor="end">Bookkeeping closes itself</text>
+        <rect x="600" y="316" width="120" height="22" rx="11" fill="#3F4A21" opacity="0.65"></rect>
+        <text x="660" y="331" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#E8E4D5" text-anchor="middle">Aug '26</text>
+
+        <!-- LANE 5: Phase 7 -->
+        <text x="225" y="364" font-family="Inter, sans-serif" font-size="11" font-weight="700" letter-spacing="1.5" fill="#3F4A21" text-anchor="end">PHASE 7</text>
+        <text x="225" y="380" font-family="Cormorant Garamond, serif" font-size="13" font-style="italic" fill="#9A8159" text-anchor="end">Real-time inventory</text>
+        <rect x="720" y="364" width="240" height="22" rx="11" fill="#3F4A21" opacity="0.5"></rect>
+        <text x="840" y="379" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#E8E4D5" text-anchor="middle">Sep – Oct '26</text>
+
+        <!-- LANE 6: Phase 8 -->
+        <text x="225" y="412" font-family="Inter, sans-serif" font-size="11" font-weight="700" letter-spacing="1.5" fill="#3F4A21" text-anchor="end">PHASE 8</text>
+        <text x="225" y="428" font-family="Cormorant Garamond, serif" font-size="13" font-style="italic" fill="#9A8159" text-anchor="end">Customer self-serve</text>
+        <rect x="960" y="412" width="240" height="22" rx="11" fill="#3F4A21" opacity="0.38"></rect>
+        <text x="1080" y="427" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#E8E4D5" text-anchor="middle">Q4 '26 · The Destination</text>
+
+        <!-- 60-day bracket below tracks A & B -->
+        <line x1="240" y1="450" x2="600" y2="450" stroke="#9A8159" stroke-width="2.5"></line>
+        <line x1="240" y1="446" x2="240" y2="458" stroke="#9A8159" stroke-width="2.5"></line>
+        <line x1="600" y1="446" x2="600" y2="458" stroke="#9A8159" stroke-width="2.5"></line>
+        <text x="420" y="478" font-family="Cormorant Garamond, serif" font-style="italic" font-size="17" fill="#3F4A21" font-weight="500" text-anchor="middle">60 days · Two parallel sprints · One company transformed</text>
+      </svg>
+
+      <!-- Legend -->
+      <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; margin-top: 1rem; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gray); font-weight: 500;">
+        <div style="display:flex;align-items:center;gap:6px;"><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:var(--olive);"></span>Customer Pipeline</div>
+        <div style="display:flex;align-items:center;gap:6px;"><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:var(--tan-deep);"></span>Marketing Engine</div>
+        <div style="display:flex;align-items:center;gap:6px;"><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:rgba(63,74,33,0.55);"></span>Next Phase</div>
+        <div style="display:flex;align-items:center;gap:6px;"><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:rgba(63,74,33,0.35);"></span>Future</div>
+        <div style="display:flex;align-items:center;gap:6px;"><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--tan-deep);color:var(--cream);font-size:9px;font-weight:700;text-align:center;line-height:14px;">✓</span>Complete</div>
+      </div>
+    </div>
+
+    <!-- 60-DAY SPRINT BLOCK -->
+    <div style="margin-top: 3rem; background: var(--paper); border: 2px solid var(--tan-deep); border-radius: 8px; padding: 2.5rem; box-shadow: var(--shadow-md);">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+        <div>
+          <div style="font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--tan-deep); font-weight: 700; margin-bottom: 0.25rem;">The 60-Day Sprint</div>
+          <h3 style="margin: 0; font-size: 30px;">May → July 2026 · Two tracks running in parallel</h3>
+        </div>
+        <div style="font-family: var(--serif); font-size: 64px; font-weight: 600; color: var(--tan-deep); line-height: 1;">60<span style="font-style:italic;font-size:24px;color:var(--gray);font-weight:400;"> days</span></div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-top: 1.5rem;">
+        <div style="background: var(--cream); border-left: 4px solid var(--olive); border-radius: 4px; padding: 1.5rem 1.5rem 1.25rem;">
+          <div style="font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--olive); font-weight: 700; margin-bottom: 0.5rem;">Track A · Customer Pipeline</div>
+          <h4 style="margin: 0 0 0.75rem; font-size: 22px;">Event &amp; intake automation, end to end</h4>
+          <p style="font-size: 14px; color: var(--gray); margin: 0; line-height: 1.55;">HubSpot becomes canonical for customer data (Phase 5). Bid &amp; application templates ship for all six surfaces (Phase 6). Smart Waiver retired in favor of native. The customer journey is fully automated within the sprint window.</p>
+        </div>
+        <div style="background: var(--cream); border-left: 4px solid var(--tan-deep); border-radius: 4px; padding: 1.5rem 1.5rem 1.25rem;">
+          <div style="font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--tan-deep); font-weight: 700; margin-bottom: 0.5rem;">Track B · Marketing Engine</div>
+          <h4 style="margin: 0 0 0.75rem; font-size: 22px;">The marketing bottleneck, ended</h4>
+          <p style="font-size: 14px; color: var(--gray); margin: 0; line-height: 1.55;">Pillar I and II of the Time-Back Agenda go live. Marketing's prompt-engine ships. Schema-and-brand-standard access rolls out to GMs, AGMs, Membership, COO, CEO. The queue dies inside the same window.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- AFTER THE SPRINT -->
+    <div style="margin-top: 3rem;">
+      <div style="font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--tan-deep); font-weight: 700; margin-bottom: 1rem;">After the Sprint</div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem;">
+        <div style="background: var(--paper); border: 1px solid var(--border); border-radius: 6px; padding: 1.5rem;">
+          <div style="font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--tan-deep); font-weight: 600; margin-bottom: 0.4rem;">August 2026 · ~4–6 weeks</div>
+          <h4 style="margin: 0 0 0.5rem;">Pillar III · Bookkeeping closes itself</h4>
+          <p style="font-size: 14px; color: var(--gray); margin: 0; line-height: 1.55;">Structured data from HubSpot drives end-of-month P&amp;L. Reconciliation labor eliminated.</p>
+        </div>
+        <div style="background: var(--paper); border: 1px solid var(--border); border-radius: 6px; padding: 1.5rem;">
+          <div style="font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--tan-deep); font-weight: 600; margin-bottom: 0.4rem;">Sep–Oct 2026 · ~6–8 weeks</div>
+          <h4 style="margin: 0 0 0.5rem;">Phase 7 · Real-time inventory</h4>
+          <p style="font-size: 14px; color: var(--gray); margin: 0; line-height: 1.55;">Instructor calendars, range capacity, business hours — live availability layer. No double-bookings, ever.</p>
+        </div>
+        <div style="background: var(--paper); border: 1px solid var(--border); border-radius: 6px; padding: 1.5rem;">
+          <div style="font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--tan-deep); font-weight: 600; margin-bottom: 0.4rem;">Q4 2026 · ~6–8 weeks</div>
+          <h4 style="margin: 0 0 0.5rem;">Phase 8 · Customer self-serve</h4>
+          <p style="font-size: 14px; color: var(--gray); margin: 0; line-height: 1.55;">Guest configures, gets a bid in their inbox in minutes. Internal review only on the unusual. The destination.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 2.5rem; text-align: center; font-family: var(--serif); font-style: italic; color: var(--olive); font-size: 18px;">
+      Sixty days from foundation to autonomy on the customer side. Sixty days to end the marketing nag. <strong style="font-style: normal; font-weight: 600; color: var(--olive-deep);">By Q4, our team is doing strategy — not survival.</strong>
+    </div>
+  </div>
+</section>
+
+<!-- IMPACT -->
+<section class="impact full" style="opacity: 1; transform: translateY(0px); transition: opacity 0.6s ease-out, transform 0.6s ease-out;">
+  <div class="impact-inner">
+    <div class="eyebrow" style="color: var(--tan);">The Impact</div>
+    <h2>What this saves the company — and gives back to the team.</h2>
+    <p class="lead">Zoom out from the customer journey. The same architecture that makes the guest experience effortless also reduces the labor and friction the team experiences every day. The math is plain.</p>
+
+    <div class="impact-grid">
+      <div class="impact-stat">
+        <span class="impact-num">2,160×</span>
+        <div class="impact-label">Faster time-to-bid</div>
+        <p class="impact-body">From days of email back-and-forth — measured in shifts of human attention — to a generated bid that lands in the customer's inbox in under a minute. Multiply that across every inquiry, every property, every audience.</p>
+      </div>
+      <div class="impact-stat">
+        <span class="impact-num">25% → 0%</span>
+        <div class="impact-label">Missed bids, eliminated</div>
+        <p class="impact-body">Today, roughly one inquiry in four slips through cracks — voicemails not returned, email threads abandoned, follow-ups that never happen. The architecture catches every one and follows up automatically. The most expensive cost we eliminate is the cost we never see.</p>
+      </div>
+      <div class="impact-stat">
+        <span class="impact-num">1</span>
+        <div class="impact-label">Source of truth</div>
+        <p class="impact-body">Every customer relationship lives in one place. Every rule lives in one place. Every file lives in one place. Zero double-bookings. New hires onboard in days, not weeks.</p>
+      </div>
+    </div>
+
+    <div style="margin-top: 4rem; max-width: 760px;">
+      <p style="color: var(--cream); font-family: var(--serif); font-style: italic; font-size: 22px; line-height: 1.45;">
+        "The companies that win in the outdoor industry will be the ones that respect their guests' time as much as their own. That is what we are building."
+      </p>
+      <p style="color: rgba(232,228,213,0.6); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; margin-top: 1rem;">— Nicholas Vedros, Founder</p>
+    </div>
+  </div>
+</section>
+
+<!-- THE TIME-BACK AGENDA -->
+<section id="team" class="full" style="background: var(--olive); color: var(--cream); padding: 6rem 2rem; margin: 0px; opacity: 1; transform: translateY(0px); transition: opacity 0.6s ease-out, transform 0.6s ease-out;">
+  <div style="max-width: 1200px; margin: 0 auto;">
+    <div class="eyebrow" style="color: var(--tan);">The Time-Back Agenda</div>
+    <h2 style="color: var(--cream); font-size: 56px; line-height: 1.05; margin-bottom: 1.5rem;">
+      We are a human company.<br>
+      <em style="font-style: italic; color: var(--tan); font-weight: 400;">We refuse to be a sweat shop.</em>
+    </h2>
+    <p style="font-family: var(--sans); font-size: 19px; color: rgba(232,228,213,0.88); margin-top: 1.5rem; max-width: 880px; line-height: 1.65; font-weight: 300;">
+      Software exists to give us our hours back. When it doesn't, we are using it wrong. The architecture you have read about so far makes the customer journey effortless. The same architecture has a deeper purpose — <strong style="color: var(--cream); font-weight: 600;">to give every person on this team time to be strategic, creative, and present</strong>, instead of buried in manual labor that should not exist in 2026.
+    </p>
+    <p style="font-family: var(--serif); font-style: italic; font-size: 24px; color: var(--cream); max-width: 760px; margin-top: 2rem; line-height: 1.45;">
+      Three pillars. Three overhauls. Each one gives the team back what is rightfully theirs — <strong style="font-style: normal; color: var(--tan); font-weight: 600;">their time, their attention, and their humanity.</strong>
+    </p>
+
+    <!-- PILLARS GRID -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 4rem;">
+
+      <!-- PILLAR 1 -->
+      <div style="background: rgba(232,228,213,0.06); border: 1px solid rgba(184,156,115,0.35); border-radius: 6px; padding: 2rem 1.75rem; display: flex; flex-direction: column;">
+        <div style="font-family: var(--serif); font-size: 64px; font-weight: 600; color: var(--tan); line-height: 1; margin-bottom: 0.75rem;">I</div>
+        <div style="font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--tan); font-weight: 600; margin-bottom: 0.5rem;">For Marketing</div>
+        <h3 style="font-family: var(--serif); font-size: 28px; font-weight: 600; color: var(--cream); margin: 0 0 0.5rem; line-height: 1.15;">Marketing at the speed of thought.</h3>
+        <p style="font-size: 14.5px; color: rgba(232,228,213,0.75); line-height: 1.6; margin: 0 0 1.5rem;">The marketing team prompts. The architecture renders. They review, refine, and curate the output. Their job becomes craft — not production.</p>
+
+        <div style="border-top: 1px solid rgba(184,156,115,0.3); padding-top: 1rem; margin-top: auto;">
+          <div style="font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--tan); font-weight: 600; margin-bottom: 4px;">Today</div>
+          <p style="font-size: 14px; color: rgba(232,228,213,0.7); margin: 0 0 0.85rem; line-height: 1.5;">Each brochure, deck, post, or packet is a small project that takes hours of manual production work.</p>
+          <div style="font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--tan); font-weight: 600; margin-bottom: 4px;">Tomorrow</div>
+          <p style="font-size: 14px; color: var(--cream); margin: 0; line-height: 1.5;">Five minutes from need to draft. Marketing's hours go back to strategy and craft.</p>
+        </div>
+      </div>
+
+      <!-- PILLAR 2 — THE BIG ONE -->
+      <div style="background: var(--tan); color: var(--olive-deep); border-radius: 6px; padding: 2rem 1.75rem; display: flex; flex-direction: column; box-shadow: 0 12px 36px rgba(0,0,0,0.18);">
+        <div style="font-family: var(--serif); font-size: 64px; font-weight: 600; color: var(--olive); line-height: 1; margin-bottom: 0.75rem;">II</div>
+        <div style="font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--olive-deep); font-weight: 600; margin-bottom: 0.5rem;">For Membership · GMs · AGMs · COO · CEO</div>
+        <h3 style="font-family: var(--serif); font-size: 28px; font-weight: 600; color: var(--olive-deep); margin: 0 0 0.5rem; line-height: 1.15;">Anyone can summon what they need.</h3>
+        <p style="font-size: 14.5px; color: var(--olive); line-height: 1.6; margin: 0 0 1.5rem; font-weight: 500;">Key roles with schema and brand-standard access prompt-generate the documents they need — directly. Marketing's queue ends. The bottleneck dies.</p>
+
+        <div style="border-top: 1px solid rgba(63,74,33,0.3); padding-top: 1rem; margin-top: auto;">
+          <div style="font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--olive-deep); font-weight: 700; margin-bottom: 4px;">Today</div>
+          <p style="font-size: 14px; color: var(--olive); margin: 0 0 0.85rem; line-height: 1.5; font-weight: 500;">Every GM, every membership lead, every executive nags marketing for the same artifacts. The queue is permanent. The wait is a tax on every initiative.</p>
+          <div style="font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--olive-deep); font-weight: 700; margin-bottom: 4px;">Tomorrow</div>
+          <p style="font-size: 14px; color: var(--olive-deep); margin: 0; line-height: 1.55; font-weight: 600;">Leadership prompts what they need. The schema and brand standards keep it on-voice. Marketing reviews after — not before. Ideas ship in minutes, not weeks.</p>
+        </div>
+      </div>
+
+      <!-- PILLAR 3 -->
+      <div style="background: rgba(232,228,213,0.06); border: 1px solid rgba(184,156,115,0.35); border-radius: 6px; padding: 2rem 1.75rem; display: flex; flex-direction: column;">
+        <div style="font-family: var(--serif); font-size: 64px; font-weight: 600; color: var(--tan); line-height: 1; margin-bottom: 0.75rem;">III</div>
+        <div style="font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--tan); font-weight: 600; margin-bottom: 0.5rem;">For Bookkeeping · Finance</div>
+        <h3 style="font-family: var(--serif); font-size: 28px; font-weight: 600; color: var(--cream); margin: 0 0 0.5rem; line-height: 1.15;">Bookkeeping closes itself.</h3>
+        <p style="font-size: 14.5px; color: rgba(232,228,213,0.75); line-height: 1.6; margin: 0 0 1.5rem;">HubSpot deals are already structured. Square deposits are already structured. The month closes from the data. A bookkeeper does interpretation — not reconciliation.</p>
+
+        <div style="border-top: 1px solid rgba(184,156,115,0.3); padding-top: 1rem; margin-top: auto;">
+          <div style="font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--tan); font-weight: 600; margin-bottom: 4px;">Today</div>
+          <p style="font-size: 14px; color: rgba(232,228,213,0.7); margin: 0 0 0.85rem; line-height: 1.5;">Manual reconciliation across Square, HubSpot, spreadsheets. The same labor every month, no leverage.</p>
+          <div style="font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--tan); font-weight: 600; margin-bottom: 4px;">Tomorrow</div>
+          <p style="font-size: 14px; color: var(--cream); margin: 0; line-height: 1.5;">P&amp;L generated from structured data. End of month is an analysis exercise, not a survival exercise.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 60-DAY SPRINT CALLOUT -->
+    <div style="margin-top: 4rem; padding: 3rem 2.5rem; background: rgba(232,228,213,0.04); border: 1px solid rgba(184,156,115,0.4); border-radius: 6px;">
+      <div style="display: grid; grid-template-columns: auto 1fr; gap: 2.5rem; align-items: center;">
+        <div style="text-align: center;">
+          <div style="font-family: var(--serif); font-size: 96px; font-weight: 600; color: var(--tan); line-height: 0.9; letter-spacing: -3px;">60</div>
+          <div style="font-family: var(--serif); font-style: italic; font-size: 22px; color: var(--cream); margin-top: 4px;">days</div>
+        </div>
+        <div>
+          <div style="font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--tan); font-weight: 600; margin-bottom: 0.75rem;">Sprint Commitment · May → July 2026</div>
+          <h3 style="font-family: var(--serif); font-size: 36px; font-weight: 600; color: var(--cream); margin: 0 0 1rem; line-height: 1.15;">Two pillars done. One sweeping overhaul.</h3>
+          <p style="font-size: 16px; color: rgba(232,228,213,0.85); line-height: 1.6; margin: 0;">In sixty days we close out the customer-facing pipeline (Pillar I and II of the Time-Back Agenda — Marketing prompt-engine and distributed prompt-creation) <em>in parallel with</em> the event automation work. Pillar III — bookkeeping — is the immediate next phase, beginning the day Pillars I and II ship. <strong style="color: var(--cream); font-weight: 600;">No team member should be doing in 2027 what should have been a script in 2026.</strong></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLOSING MANIFESTO -->
+    <div style="margin-top: 4rem; padding: 3rem 0; border-top: 1px solid rgba(184,156,115,0.3); text-align: center;">
+      <p style="font-family: var(--serif); font-size: 32px; font-style: italic; color: var(--cream); line-height: 1.35; max-width: 880px; margin: 0 auto 1rem;">
+        "This is what we mean when we say <em style="color: var(--tan); font-style: italic;">human company.</em> Not a slogan. Not a vibe. A standing commitment to build systems that serve our people — never the other way around."
+      </p>
+      <p style="font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: rgba(232,228,213,0.6); font-weight: 600; margin: 1.5rem 0 0;">— Rhythm Outdoors · The Time-Back Agenda</p>
+    </div>
+  </div>
+</section>
+
+<!-- HUBSPOT INHERITANCE -->
+<section id="inheritance" class="full" style="background: var(--cream); padding-left: 2rem; padding-right: 2rem; opacity: 1; transform: translateY(0px); transition: opacity 0.6s ease-out, transform 0.6s ease-out;">
+  <div style="max-width: 1200px; margin: 0 auto;">
+    <div class="eyebrow">Heads Up to the HubSpot Lead</div>
+    <h2>What your build inherits.</h2>
+    <p class="lead">Before the first coordination meeting, an honest accounting of the architectural work already completed in Notion and Google Drive. <strong style="color: var(--olive); font-weight: 600;">You are not starting from zero.</strong> You are inheriting a schema designed deliberately over weeks — with a Charter, version history, working policies, and a documented set of databases that make HubSpot's job easier rather than harder.</p>
+
+    <div class="problem-grid" style="margin-top: 3rem;">
+      <div class="problem-side">
+        <h3>Already in Notion</h3>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; border-bottom: 1px solid var(--border); position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">Project Charter</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">"Rhythm Schema Architecture — Master Reference," with version-controlled Working History. The architectural document governing every other system.</span>
+          </li>
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; border-bottom: 1px solid var(--border); position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">Properties Master Reference</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">Operational identity of Rhythm Outdoors and each property — legal entities, ownership structure, brand assets.</span>
+          </li>
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; border-bottom: 1px solid var(--border); position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">Pricing Schema</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">The rule layer for every billable service across every property. Per-guest rates, member discounts, partner discounts, instructor ratios, the conditions under which each price applies. <em>This is the source of HubSpot Products.</em></span>
+          </li>
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; border-bottom: 1px solid var(--border); position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">Pay Structures · 1099 Hourly (Active, 2026)</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">Instructor and program staff compensation rules, sourced from Drive Excel, ratified for 2026.</span>
+          </li>
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; border-bottom: 1px solid var(--border); position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">Events &amp; Tournaments DB</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">Lifecycle-aware schema: inquiry → proposal → signed → paid → fulfilled. Currently writing live from member-portal intakes. <em>Graduates to HubSpot Deals.</em></span>
+          </li>
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; border-bottom: 1px solid var(--border); position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">HSB Members DB</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">Membership roster with tier, household structure, member-specific properties. <em>Graduates to HubSpot Contacts.</em></span>
+          </li>
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; border-bottom: 1px solid var(--border); position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">HSB Member Adventures DB</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">Multi-day trips, exclusive member programming, household RSVP structures. <em>Graduates to HubSpot Deals (type=Adventure) or a Custom Object — to be decided.</em></span>
+          </li>
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; border-bottom: 1px solid var(--border); position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">Policies (Active &amp; Draft)</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">Cold Range Policy, Suppressed Rifle Caliber Rule, Private Lesson Group Threshold, Guest Policy. Each version-controlled, scoped to a property, linked to source documents.</span>
+          </li>
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; border-bottom: 1px solid var(--border); position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">HSBR Sporting Club Operating Agreement</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">Registered record pointing to Drive source. Foundational legal document.</span>
+          </li>
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; border-bottom: 1px solid var(--border); position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">Source Documents Registry</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">Catalog of canonical Drive files with metadata, ownership, version notes, last reviewed.</span>
+          </li>
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">FAQ Database</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">Internal knowledge base, structured by audience and property.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="problem-side">
+        <h3>Already in Drive</h3>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; border-bottom: 1px solid var(--border); position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">Canonical Folder Structure</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">"Rhythm AI Schemas" root, with property-specific subfolders for HSB, Hog Heaven, Packsaddle, Brand &amp; Design, Generated Bids, and Partner &amp; Resort.</span>
+          </li>
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; border-bottom: 1px solid var(--border); position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">Operating Agreement Source PDF</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">Signed HSBR Sporting Club agreement, registered in Notion.</span>
+          </li>
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; border-bottom: 1px solid var(--border); position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">HSB Master Roster (Excel)</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">The canonical member list, source-of-truth for the HSB Members DB and the upcoming HubSpot Contacts migration.</span>
+          </li>
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; border-bottom: 1px solid var(--border); position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">Hog Heaven × Camp Lucy Partner Pricing Guide v2.0</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">Active partner-rate document for Hog Heaven Sporting Club programming at Camp Lucy.</span>
+          </li>
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; border-bottom: 1px solid var(--border); position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">Pay Structure Source Spreadsheets</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">The calculation workbooks from which Notion's compensation rules are derived.</span>
+          </li>
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; border-bottom: 1px solid var(--border); position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">HSBR Pricing Schema (Narrative + Summary)</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">Original pricing-schema documents used to design the Notion rule layer.</span>
+          </li>
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; border-bottom: 1px solid var(--border); position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">HSB Master SKU List</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">Service catalog ready to populate HubSpot Products.</span>
+          </li>
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; border-bottom: 1px solid var(--border); position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">HHSC Guest Policy v3.0</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">Active guest policy for Hog Heaven Sporting Club.</span>
+          </li>
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; border-bottom: 1px solid var(--border); position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">Brand &amp; Design Assets</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">Logos, photography, brand books, fonts. The visual substrate for every bid page and prompted artifact.</span>
+          </li>
+          <li style="padding: 0.85rem 0 0.85rem 1.75rem; position: relative;">
+            <span style="position: absolute; left: 0; top: 0.95rem; color: var(--tan-deep); font-weight: 700;">✓</span>
+            <strong style="display: block; color: var(--olive); margin-bottom: 2px;">Working Drafts &amp; Recap Documents</strong>
+            <span style="font-size: 13.5px; color: var(--gray); line-height: 1.5;">Sporting Club recap notes, Master Reference drafts, executive triage briefs — the institutional memory of recent decisions.</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 style="margin-top: 4rem; margin-bottom: 0.75rem;">The migration conversations we need to have</h3>
+    <p style="color: var(--gray); font-size: 15px; max-width: 760px; margin: 0 0 2.5rem;">Not abstract questions — specific topics with proposed positions. The HubSpot lead's job is to confirm, push back, or refine. The Boundary Document v2.0 is the briefing artifact for the meeting.</p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem;">
+      <div style="background: var(--paper); border: 1px solid var(--border); border-left: 4px solid var(--tan-deep); border-radius: 4px; padding: 1.5rem 1.5rem 1.25rem;">
+        <div style="font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--tan-deep); font-weight: 600; margin-bottom: 0.5rem;">Conversation 1 · Schema Mapping</div>
+        <h4 style="margin-bottom: 0.5rem;">Events &amp; Tournaments DB → HubSpot Deals</h4>
+        <p style="font-size: 14px; color: var(--gray); line-height: 1.55; margin: 0;">Schema is documented and lifecycle-aware. The mapping is straightforward. We need to align with existing Deal pipelines and any custom Deal properties already in the HubSpot build.</p>
+      </div>
+
+      <div style="background: var(--paper); border: 1px solid var(--border); border-left: 4px solid var(--tan-deep); border-radius: 4px; padding: 1.5rem 1.5rem 1.25rem;">
+        <div style="font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--tan-deep); font-weight: 600; margin-bottom: 0.5rem;">Conversation 2 · Member Records</div>
+        <h4 style="margin-bottom: 0.5rem;">HSB Members → HubSpot Contacts</h4>
+        <p style="font-size: 14px; color: var(--gray); line-height: 1.55; margin: 0;">Membership tier, household relationships, member-specific properties become custom Contact properties. Need to verify no conflicts with existing Contact custom-property design.</p>
+      </div>
+
+      <div style="background: var(--paper); border: 1px solid var(--border); border-left: 4px solid var(--tan-deep); border-radius: 4px; padding: 1.5rem 1.5rem 1.25rem;">
+        <div style="font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--tan-deep); font-weight: 600; margin-bottom: 0.5rem;">Conversation 3 · Adventure Modeling</div>
+        <h4 style="margin-bottom: 0.5rem;">HSB Member Adventures — Deal or Custom Object?</h4>
+        <p style="font-size: 14px; color: var(--gray); line-height: 1.55; margin: 0;">Multi-day itineraries with party composition may exceed what a Deal can model gracefully. The HubSpot lead's call: type=Adventure on Deals, or a sibling Custom Object?</p>
+      </div>
+
+      <div style="background: var(--paper); border: 1px solid var(--border); border-left: 4px solid var(--tan-deep); border-radius: 4px; padding: 1.5rem 1.5rem 1.25rem;">
+        <div style="font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--tan-deep); font-weight: 600; margin-bottom: 0.5rem;">Conversation 4 · Pricing</div>
+        <h4 style="margin-bottom: 0.5rem;">Pricing Schema stays in Notion · Products derived</h4>
+        <p style="font-size: 14px; color: var(--gray); line-height: 1.55; margin: 0;">Notion holds the rule layer (the <em>why</em> of every price); HubSpot Products are the runtime materialization (the <em>what</em> on each deal). This preserves Notion's depth without making it a parallel database. Most consequential debate of the meeting.</p>
+      </div>
+
+      <div style="background: var(--paper); border: 1px solid var(--border); border-left: 4px solid var(--tan-deep); border-radius: 4px; padding: 1.5rem 1.5rem 1.25rem;">
+        <div style="font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--tan-deep); font-weight: 600; margin-bottom: 0.5rem;">Conversation 5 · The Boundary</div>
+        <h4 style="margin-bottom: 0.5rem;">What stays in Notion — permanently</h4>
+        <p style="font-size: 14px; color: var(--gray); line-height: 1.55; margin: 0;">Charter, Properties Master, Operating Agreement, Pay Structures, Policies, Source Documents, FAQ. These are not customer data and don't belong in HubSpot. Confirming this boundary unblocks every downstream decision.</p>
+      </div>
+
+      <div style="background: var(--paper); border: 1px solid var(--border); border-left: 4px solid var(--tan-deep); border-radius: 4px; padding: 1.5rem 1.5rem 1.25rem;">
+        <div style="font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--tan-deep); font-weight: 600; margin-bottom: 0.5rem;">Conversation 6 · Multi-Property</div>
+        <h4 style="margin-bottom: 0.5rem;">HSB · HH · Packsaddle · Camp Lucy</h4>
+        <p style="font-size: 14px; color: var(--gray); line-height: 1.55; margin: 0;">How does HubSpot model these today? Custom property on Contacts/Deals? Separate Pipelines? A Property custom object? The answer shapes how every report and workflow behaves.</p>
+      </div>
+
+      <div style="background: var(--paper); border: 1px solid var(--border); border-left: 4px solid var(--tan-deep); border-radius: 4px; padding: 1.5rem 1.5rem 1.25rem;">
+        <div style="font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--tan-deep); font-weight: 600; margin-bottom: 0.5rem;">Conversation 7 · Acuity</div>
+        <h4 style="margin-bottom: 0.5rem;">Stay alongside, or graduate to HubSpot Meetings?</h4>
+        <p style="font-size: 14px; color: var(--gray); line-height: 1.55; margin: 0;">Acuity currently handles instructor scheduling. Phase 7 (real-time inventory) needs an answer. The HubSpot lead's read on HubSpot's calendar primitives is decisive here.</p>
+      </div>
+
+      <div style="background: var(--paper); border: 1px solid var(--border); border-left: 4px solid var(--tan-deep); border-radius: 4px; padding: 1.5rem 1.5rem 1.25rem;">
+        <div style="font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--tan-deep); font-weight: 600; margin-bottom: 0.5rem;">Conversation 8 · Smart Waiver</div>
+        <h4 style="margin-bottom: 0.5rem;">Retire in Phase 6 in favor of native?</h4>
+        <p style="font-size: 14px; color: var(--gray); line-height: 1.55; margin: 0;">Smart Waiver is a brand-coherence problem — a third-party redirect that breaks the experience. The proposal: replace with a waiver flow embedded directly into bid pages. Same canvas signature, same archival, no redirect. Confirm direction with the HubSpot lead.</p>
+      </div>
+    </div>
+
+    <div style="margin-top: 3rem; padding: 2rem; background: var(--paper); border: 1px solid var(--border); border-radius: 4px;">
+      <div style="font-family: var(--serif); font-size: 18px; font-style: italic; color: var(--olive); line-height: 1.55; margin-bottom: 0.5rem;">
+        Walk into the meeting with the <strong style="font-style: normal; font-weight: 600;">Boundary Document v2.0</strong> as your briefing artifact. Use this Vision Document as the visual context. Use the eight conversations above as the agenda.
+      </div>
+      <div style="font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gray); font-weight: 500;">→ The HubSpot lead is partner, not contractor. This document is the bridge.</div>
+    </div>
+  </div>
+</section>
+
+<!-- OPEN QUESTIONS -->
+<section style="opacity: 0; transform: translateY(16px); transition: opacity 0.6s ease-out, transform 0.6s ease-out;">
+  <div class="eyebrow">For the Conversation</div>
+  <h2>Open questions for the team and the HubSpot lead.</h2>
+  <p class="lead">A vision document is only half the picture. These are the questions whose answers will shape the build. They belong in the next coordination meeting.</p>
+
+  <ol class="questions-list">
+    <li>What custom objects exist in HubSpot today, and what is their schema?</li>
+    <li>What deal pipelines are configured, and what stages do they have?</li>
+    <li>How does HubSpot model multi-property structure (HSB / HH / Packsaddle / partners)?</li>
+    <li>How are instructors modeled — as employees, contacts, or a custom object?</li>
+    <li>Does Acuity stay alongside HubSpot, or graduate into HubSpot Meetings?</li>
+    <li>Does Smart Waiver get replaced by a native waiver embedded in bid pages?</li>
+    <li>What is the right pattern for partner authentication — password per partner, or per-partner SSO?</li>
+    <li>How should the member portal authenticate against the HSB Member roster (read-only HubSpot lookup vs. dedicated auth)?</li>
+    <li>Where do real-time inventory primitives live — HubSpot custom objects, Google Calendar, or a dedicated service?</li>
+    <li>Who owns the pricing rule layer in Notion — the founder, the HubSpot lead, or a shared review process?</li>
+  </ol>
+</section>
+
+<footer>
+  <div class="colophon">A vision document for <strong>Rhythm Outdoors</strong> — operating Horseshoe Bay Sporting Club, Hog Heaven Sporting Club, and Packsaddle Precision.</div>
+  <div class="footer-meta">v1.0 · Drafted May 2026 · Living document, amended deliberately</div>
+</footer>
+
+<script>
+  // Audience tabs
+  document.querySelectorAll('.audience-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.target;
+      document.querySelectorAll('.audience-tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.audience-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(target).classList.add('active');
+    });
+  });
+
+  // POC tabs — iframe HTML is inlined via data-srcdoc; promoted to srcdoc on activation
+  function activatePocPanel(panel) {
+    if (!panel) return;
+    const iframe = panel.querySelector('iframe.poc-frame');
+    if (iframe && iframe.dataset.srcdoc && !iframe.getAttribute('srcdoc')) {
+      iframe.setAttribute('srcdoc', iframe.dataset.srcdoc);
+      iframe.removeAttribute('data-srcdoc');
+    }
+  }
+
+  // Eagerly activate any panel marked .active on page load
+  document.querySelectorAll('.poc-panel.active').forEach(activatePocPanel);
+
+  document.querySelectorAll('.poc-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.target;
+      document.querySelectorAll('.poc-tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.poc-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const panel = document.getElementById(target);
+      panel.classList.add('active');
+      activatePocPanel(panel);
+    });
+  });
+
+  // Reveal-on-scroll for sections
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('section').forEach((s, i) => {
+    if (i === 0) return; // hero stays
+    s.style.opacity = '0';
+    s.style.transform = 'translateY(16px)';
+    s.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+    observer.observe(s);
+  });
+</script>
+
+
+<veepn-lock-screen><template shadowrootmode="open"><style>html{box-sizing:border-box;text-size-adjust:100%;word-break:normal;tab-size:4}*,:before,:after{background-repeat:no-repeat;box-sizing:border-box}:before,:after{text-decoration:inherit;vertical-align:inherit}*{padding:0;margin:0}hr{overflow:visible;height:0;color:inherit;border:0;border-top:1px solid}details,main{display:block}summary{display:list-item}small{font-size:80%}[hidden]{display:none!important}abbr[title]{border-bottom:none;text-decoration:underline;text-decoration:underline dotted}a{background-color:transparent}a:active,a:hover{outline-width:0}code,kbd,pre,samp{font-family:monospace}pre{font-size:1em}b,strong{font-weight:bolder}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{border-color:inherit;text-indent:0}iframe{border-style:none}input{border-radius:0}[type=number]::-webkit-inner-spin-button,[type=number]::-webkit-outer-spin-button{height:auto}[type=search]{appearance:textfield;outline-offset:-2px}[type=search]::-webkit-search-decoration{appearance:none}textarea{overflow:auto;resize:vertical}button,input,optgroup,select,textarea{font:inherit;color:inherit}optgroup{font-weight:700}button{overflow:visible}button,select{text-transform:none}button,[type=button],[type=reset],[type=submit],[role=button]{cursor:pointer}button::-moz-focus-inner,[type=button]::-moz-focus-inner,[type=reset]::-moz-focus-inner,[type=submit]::-moz-focus-inner{border-style:none;padding:0}button,html [type=button],[type=reset],[type=submit]{appearance:auto}button,input,select,textarea{background-color:transparent;border-style:none}button:-moz-focusring,[type=button]::-moz-focus-inner,[type=reset]::-moz-focus-inner,[type=submit]::-moz-focus-inner{outline:1px dotted ButtonText}select{appearance:none}a:focus,button:focus,input:focus,select:focus,textarea:focus{outline-width:0}select::-ms-expand{display:none}select::-ms-value{color:currentcolor}legend{border:0;color:inherit;display:table;white-space:normal;max-width:100%}::-webkit-file-upload-button{appearance:auto;color:inherit;font:inherit}[disabled]{cursor:default}img{border-style:none}progress{vertical-align:baseline}[aria-busy=true]{cursor:progress}[aria-controls]{cursor:pointer}[aria-disabled=true]{cursor:default}ul,ol{list-style-type:none}figure{margin:0}@keyframes slide-in{0%{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}.gradient-blue{background:radial-gradient(106.41% 128.47% at 50.15% 128.47%,#23abff,#3066ff)}.gradient-green{background:radial-gradient(92.26% 118.88% at 50.15% .13%,#00c3c3,#00aab3)}.gradient-purple{background:radial-gradient(165.12% 115.56% at 50.15% .13%,#a15aff,#00a0eb)}.bg-blue{background-color:#f2f5ff}.bg-purple{background-color:#f7f0ff}.bg-green{background-color:#ebffed}.lock-screen{font-family:FigtreeVF,sans-serif;letter-spacing:normal;position:fixed;z-index:2147483638;right:24px;bottom:24px;width:327px;border-radius:24px;overflow:hidden;box-shadow:0 24px 32px #00000014;animation:slide-in .3s ease-in-out forwards}.lock-screen__content{position:relative;padding:24px 24px 64px}.lock-screen__close{position:absolute;top:16px;right:16px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;opacity:.5}.lock-screen__label{height:26px;width:fit-content;border-radius:50px;background-color:#fff3;padding-inline:16px;display:flex;align-items:center;justify-content:center;gap:8px;color:#fff;font-size:12px;line-height:18px;margin:-8px auto 16px}.lock-screen__title{color:#fff;text-align:center;font-size:20px;line-height:28px;font-weight:600;margin-bottom:8px}.lock-screen__description{color:#f5f6f7;text-align:center;font-size:14px;line-height:20px}.lock-screen__description b{font-weight:600}.lock-screen__card{position:relative;z-index:1;margin-top:-44px;background-color:#fff;border-radius:24px;padding:32px 20px 20px}.lock-screen__inner{margin-bottom:24px}.lock-screen__submit{display:flex;align-items:center;justify-content:center;gap:10px;font-weight:700;font-size:16px;height:40px;width:100%;border-radius:12px;padding-inline:16px;background-color:#f70;color:#fff;margin-bottom:16px}.lock-screen__skip{display:flex;align-items:center;justify-content:center;font-size:14px;line-height:20px;color:#82829c;margin-inline:auto}.price-card{border:1px solid #f2f2fc;background:linear-gradient(254.14deg,#fafbff .04%,#f5f8ff 100.04%);border-radius:24px;padding:24px 28px}.price-card__label{color:#4a5764;text-align:center;font-size:14px;line-height:20px;text-transform:uppercase;margin-bottom:16px}.price-card__price{display:flex;justify-content:center;align-items:flex-start;column-gap:2px;margin-bottom:12px}.price-card__currency{color:#515478;font-size:18px;line-height:28px}.price-card__number{color:#14142a;text-align:center;font-size:64px;line-height:54px}.price-card__wrap{display:flex;flex-direction:column}.price-card__decimal{color:#515478;font-size:18px;line-height:28px;font-weight:600}.price-card__period{color:#515478;font-size:14px;line-height:20px;margin-top:-6px}.price-card__discount{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:12px}.price-card__discount-divider{position:absolute;z-index:0;top:50%;left:0;width:100%;height:1px;background-color:#dbe2f9;transform:translateY(-50%)}.price-card__discount-icon{position:absolute;z-index:1;top:50%;left:50%;transform:translate(-50%,-50%)}.price-card__discount-text{position:relative;z-index:2;color:#fff;font-size:12px;font-weight:600;line-height:18px}.price-card__features{display:flex;align-items:center;justify-content:center;column-gap:16px}.price-card__feature{color:#222e3a;font-size:14px;line-height:20px;display:flex;align-items:center;gap:6px}.price-card__feature:before{content:"";display:block;width:4px;height:4px;background-color:#20df9e;border-radius:50%;flex-shrink:0}.features-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.features-list__item{display:flex;flex-direction:column;align-items:center;gap:6px}.features-list__icon{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center}.features-list__text{color:#293a53;text-align:center;font-size:16px;line-height:24px;letter-spacing:-.1px}</style></template><style>@font-face{font-family:FigtreeVF;src:url(chrome-extension://majdfhpaihoncoakbjgbdhglocklcgno/fonts/FigtreeVF.woff2) format("woff2 supports variations"),url(chrome-extension://majdfhpaihoncoakbjgbdhglocklcgno/fonts/FigtreeVF.woff2) format("woff2-variations");font-weight:100 1000;font-display:swap}</style></veepn-lock-screen></body></html>

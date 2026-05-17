@@ -1,0 +1,2989 @@
+<!DOCTYPE html>
+<!-- saved from url=(0058)https://camp-lucy-hartwellmitchell-hog-heaven.netlify.app/ -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><style>body {transition: opacity ease-in 0.2s; } 
+body[unresolved] {opacity: 0; display: block; overflow: hidden; position: relative; } 
+</style>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wedding Party Adventure for Sarah Hartwell &amp; Will Mitchell · Hog Heaven × Camp Lucy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="./Wedding Party Adventure for Sarah Hartwell &amp; Will Mitchell · Hog Heaven × Camp Lucy - proposal site_files/css2" rel="stylesheet">
+<style>
+  :root {
+    --hh-forest:      #232b26;
+    --hh-forest-deep: #1a1f1c;
+    --hh-orange:      #c95d2d;
+    --hh-orange-deep: #a84a23;
+    --hh-tan:         #c2b695;
+    --hh-tan-deep:    #9b8d6b;
+    --hh-cream:       #ecd9ca;
+    --hh-cream-soft:  #f5ebe0;
+    --hh-paper:       #fbf6ee;
+    --hh-ink:         #1a1f1c;
+    --hh-gray:        #6e6557;
+    --hh-gray-light:  #a59c8e;
+    --hh-rule:        #d8cfb8;
+    --hh-shadow:      rgba(35, 43, 38, 0.12);
+    --stripe:         #635bff;
+    --stripe-deep:    #4f47ce;
+    --serif:          'Playfair Display', Georgia, serif;
+    --sans:           'Libre Franklin', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --mono:           'DM Mono', 'SF Mono', Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--hh-paper);
+    color: var(--hh-ink);
+    line-height: 1.65;
+    font-weight: 400;
+    overflow-x: hidden;
+  }
+
+  button { font-family: inherit; cursor: pointer; border: none; background: none; }
+  a { color: inherit; }
+
+  /* ============================================================
+     NAV  —  fixed top, backdrop blur, pulsing live-status dot
+     ============================================================ */
+  .nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 18px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, rgba(35,43,38,0.85), transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: background 0.3s;
+  }
+
+  .nav.solid {
+    background: var(--hh-forest);
+    border-bottom: 1px solid rgba(194, 182, 149, 0.2);
+  }
+
+  .nav-brand {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--hh-cream);
+    letter-spacing: -0.01em;
+  }
+
+  .nav-brand span {
+    font-style: normal;
+    color: var(--hh-orange);
+    margin: 0 6px;
+    font-weight: 400;
+  }
+
+  .nav-status {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--hh-tan);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .nav-status::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--hh-orange);
+    animation: navPulse 2s infinite;
+  }
+
+  @keyframes navPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.5; transform: scale(1.3); }
+  }
+
+  /* ============================================================
+     HERO  —  forest green, radial gradients, dot-grid texture
+     ============================================================ */
+  .hero {
+    background:
+      radial-gradient(ellipse at 70% 30%, rgba(201, 93, 45, 0.18), transparent 55%),
+      radial-gradient(ellipse at 20% 80%, rgba(194, 182, 149, 0.08), transparent 50%),
+      var(--hh-forest);
+    color: var(--hh-cream);
+    padding: 140px 64px 96px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(194, 182, 149, 0.15) 1px, transparent 0);
+    background-size: 40px 40px;
+    opacity: 0.4;
+    pointer-events: none;
+    mask: linear-gradient(to bottom, transparent, black 30%, black 70%, transparent);
+    -webkit-mask: linear-gradient(to bottom, transparent, black 30%, black 70%, transparent);
+  }
+
+  .hero-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--hh-orange);
+    margin-bottom: 32px;
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    padding: 8px 18px;
+    border: 1px solid var(--hh-orange);
+    border-radius: 100px;
+  }
+
+  .hero-tag span { color: var(--hh-cream); opacity: 0.7; }
+
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(56px, 8vw, 120px);
+    font-weight: 700;
+    line-height: 0.92;
+    letter-spacing: -0.025em;
+    margin-bottom: 32px;
+    max-width: 1100px;
+    color: var(--hh-cream);
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--hh-orange);
+    font-weight: 400;
+  }
+
+  .hero h1 .small {
+    font-size: 0.32em;
+    display: block;
+    font-weight: 500;
+    font-family: var(--sans);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--hh-tan);
+    margin-bottom: 18px;
+    font-style: normal;
+  }
+
+  .hero-subtitle {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-style: italic;
+    color: var(--hh-tan);
+    max-width: 720px;
+    line-height: 1.5;
+    margin-bottom: 56px;
+  }
+
+  .hero-meta {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+    border-top: 1px solid rgba(194, 182, 149, 0.25);
+    padding-top: 40px;
+    max-width: 1100px;
+  }
+
+  .hero-meta dt {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--hh-orange);
+    margin-bottom: 12px;
+  }
+
+  .hero-meta dd {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--hh-cream);
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+
+  .hero-meta .meta-sub {
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--hh-tan);
+    font-weight: 400;
+    line-height: 1.4;
+  }
+
+  /* ============================================================
+     BUILDER  —  two-column: configurator + sticky summary
+     ============================================================ */
+  .builder {
+    background: var(--hh-paper);
+    padding: 96px 40px;
+  }
+
+  .builder-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 48px;
+    align-items: start;
+  }
+
+  /* ─── STEP CARDS ─── */
+  .step-card {
+    background: #fff;
+    border: 1px solid var(--hh-rule);
+    padding: 40px 44px;
+    margin-bottom: 24px;
+    border-radius: 2px;
+    position: relative;
+  }
+
+  .step-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--hh-orange);
+    margin-bottom: 14px;
+  }
+
+  .step-card h2 {
+    font-family: var(--serif);
+    font-size: 38px;
+    font-weight: 700;
+    color: var(--hh-forest);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+
+  .step-card h2 em { font-style: italic; color: var(--hh-orange); font-weight: 400; }
+
+  .step-card .step-lede {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-style: italic;
+    color: var(--hh-gray);
+    margin-bottom: 32px;
+    line-height: 1.55;
+  }
+
+  /* ─── DISCIPLINE PICKER ─── */
+  .disciplines {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+
+  .disciplines + .disciplines-help {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--hh-gray);
+    line-height: 1.55;
+    margin-top: 18px;
+    padding: 14px 18px;
+    background: var(--hh-cream-soft);
+    border-left: 3px solid var(--hh-tan);
+  }
+
+  .discipline-card {
+    background: var(--hh-paper);
+    border: 1.5px solid var(--hh-rule);
+    padding: 24px 26px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: left;
+    width: 100%;
+    position: relative;
+  }
+
+  .discipline-card:hover {
+    border-color: var(--hh-tan-deep);
+    background: #fff;
+  }
+
+  .discipline-card.selected {
+    border-color: var(--hh-orange);
+    background: var(--hh-cream-soft);
+    box-shadow: 0 2px 16px rgba(201, 93, 45, 0.14);
+  }
+
+  .discipline-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--hh-tan-deep);
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .discipline-card.selected .discipline-tag { color: var(--hh-orange); }
+
+  .discipline-tag .mutex {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.16em;
+    color: var(--hh-gray-light);
+    font-weight: 500;
+  }
+
+  .discipline-name {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--hh-forest);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+
+  .discipline-desc {
+    font-family: var(--serif);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--hh-gray);
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .discipline-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--hh-rule);
+  }
+
+  .discipline-card.selected .discipline-meta { border-top-color: rgba(201, 93, 45, 0.3); }
+
+  .discipline-price {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--hh-orange);
+    font-weight: 500;
+  }
+
+  .discipline-checkmark {
+    width: 22px; height: 22px;
+    border: 1.5px solid var(--hh-tan);
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.18s ease;
+  }
+
+  .discipline-card.selected .discipline-checkmark {
+    background: var(--hh-orange);
+    border-color: var(--hh-orange);
+  }
+
+  .discipline-card.selected .discipline-checkmark::after {
+    content: '';
+    width: 5px; height: 9px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    margin-bottom: 1px;
+  }
+
+  .discipline-empty-warning {
+    margin-top: 16px;
+    padding: 14px 18px;
+    background: rgba(201, 93, 45, 0.08);
+    border: 1px solid rgba(201, 93, 45, 0.3);
+    border-radius: 2px;
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--hh-orange-deep);
+    font-size: 14px;
+    line-height: 1.5;
+    display: none;
+  }
+
+  .discipline-empty-warning.show { display: block; }
+
+  /* ─── ARRIVAL WINDOW SELECTOR ─── */
+  .windows {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+  }
+
+  .window-card {
+    background: var(--hh-paper);
+    border: 1.5px solid var(--hh-rule);
+    padding: 22px 20px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    text-align: left;
+    border-radius: 2px;
+    display: block;
+    width: 100%;
+  }
+
+  .window-card:hover {
+    border-color: var(--hh-tan-deep);
+    background: #fff;
+  }
+
+  .window-card.selected {
+    background: var(--hh-forest);
+    border-color: var(--hh-forest);
+    color: var(--hh-cream);
+  }
+
+  .window-name {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--hh-forest);
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+
+  .window-card.selected .window-name { color: var(--hh-cream); }
+
+  .window-time {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--hh-orange);
+  }
+
+  .window-detail {
+    font-family: var(--serif);
+    font-size: 13px;
+    font-style: italic;
+    color: var(--hh-gray);
+    margin-top: 10px;
+    line-height: 1.4;
+  }
+
+  .window-card.selected .window-detail { color: var(--hh-tan); }
+
+  /* Computed end-time / duration readout */
+  .duration-readout {
+    margin-top: 22px;
+    padding: 16px 20px;
+    background: var(--hh-cream-soft);
+    border-left: 3px solid var(--hh-orange);
+    font-family: var(--serif);
+    font-size: 15px;
+    color: var(--hh-forest);
+    line-height: 1.55;
+  }
+
+  .duration-readout strong {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--hh-orange);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .duration-readout .end {
+    color: var(--hh-forest);
+    font-weight: 700;
+  }
+
+  /* ─── GUEST COUNT ─── */
+  .slider-block {
+    background: var(--hh-paper);
+    border: 1px solid var(--hh-rule);
+    padding: 28px 32px;
+    border-radius: 2px;
+  }
+
+  .slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 18px;
+  }
+
+  .slider-header .slider-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--hh-orange);
+    font-weight: 500;
+  }
+
+  .slider-header .count {
+    font-family: var(--serif);
+    font-size: 44px;
+    font-weight: 700;
+    color: var(--hh-forest);
+    letter-spacing: -0.025em;
+    line-height: 1;
+  }
+
+  .slider-header .count em {
+    font-size: 14px;
+    font-style: normal;
+    color: var(--hh-gray);
+    margin-left: 8px;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-weight: 400;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    background: var(--hh-rule);
+    border-radius: 3px;
+    outline: none;
+    margin: 12px 0 4px;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 28px;
+    height: 28px;
+    background: var(--hh-orange);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid var(--hh-paper);
+    box-shadow: 0 0 0 1px var(--hh-orange), 0 2px 6px rgba(201, 93, 45, 0.3);
+    transition: transform 0.15s ease;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    background: var(--hh-orange);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid var(--hh-paper);
+    box-shadow: 0 0 0 1px var(--hh-orange);
+  }
+
+  .slider-bounds {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--hh-gray-light);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    margin-top: 4px;
+  }
+
+  /* ─── ADD-ONS ─── */
+  .addon-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .addon-card {
+    background: var(--hh-paper);
+    border: 1.5px solid var(--hh-rule);
+    padding: 22px 24px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    border-radius: 2px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .addon-card:hover {
+    border-color: var(--hh-tan-deep);
+    background: #fff;
+  }
+
+  .addon-card.checked {
+    border-color: var(--hh-orange);
+    background: var(--hh-cream-soft);
+    box-shadow: 0 2px 12px rgba(201, 93, 45, 0.12);
+  }
+
+  .addon-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .addon-name {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--hh-forest);
+    line-height: 1.2;
+  }
+
+  .addon-checkmark {
+    width: 24px; height: 24px;
+    border: 1.5px solid var(--hh-tan);
+    border-radius: 4px;
+    background: #fff;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.18s ease;
+    margin-top: 2px;
+  }
+
+  .addon-card.checked .addon-checkmark {
+    background: var(--hh-orange);
+    border-color: var(--hh-orange);
+  }
+
+  .addon-card.checked .addon-checkmark::after {
+    content: '';
+    width: 6px; height: 11px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    margin-bottom: 2px;
+  }
+
+  .addon-desc {
+    font-family: var(--serif);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--hh-gray);
+    line-height: 1.5;
+  }
+
+  .addon-price {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--hh-orange);
+    font-weight: 500;
+    margin-top: 6px;
+  }
+
+  /* ============================================================
+     SUMMARY PANEL  —  sticky, forest, orange top-rule
+     ============================================================ */
+  .summary-panel {
+    position: sticky;
+    top: 90px;
+    background: var(--hh-forest);
+    color: var(--hh-cream);
+    padding: 32px;
+    border-top: 4px solid var(--hh-orange);
+    box-shadow: 0 4px 24px rgba(35, 43, 38, 0.18);
+  }
+
+  .summary-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--hh-orange);
+    margin-bottom: 16px;
+  }
+
+  .summary-panel h3 {
+    font-family: var(--serif);
+    font-size: 30px;
+    color: var(--hh-cream);
+    letter-spacing: -0.015em;
+    margin-bottom: 4px;
+    font-weight: 700;
+    line-height: 1.05;
+  }
+
+  .summary-panel h3 em {
+    font-style: italic;
+    color: var(--hh-orange);
+    font-weight: 400;
+  }
+
+  .summary-panel .for {
+    font-family: var(--serif);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--hh-tan);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  .line-items {
+    margin: 24px 0 0;
+    border-top: 1px solid rgba(194, 182, 149, 0.2);
+    padding-top: 16px;
+    min-height: 80px;
+  }
+
+  .line-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px dashed rgba(194, 182, 149, 0.15);
+    align-items: baseline;
+  }
+
+  .line-item:last-child { border-bottom: none; }
+
+  .line-item .li-name {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--hh-cream);
+  }
+
+  .line-item .li-detail {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--hh-tan);
+    opacity: 0.75;
+    margin-top: 2px;
+  }
+
+  .line-item .li-detail.exempt { color: var(--hh-orange); opacity: 1; }
+
+  .line-item .li-amount {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--hh-cream);
+    white-space: nowrap;
+  }
+
+  .totals {
+    border-top: 2px solid rgba(194, 182, 149, 0.4);
+    padding-top: 20px;
+    margin-top: 16px;
+  }
+
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 6px 0;
+  }
+
+  .total-row .t-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--hh-tan);
+  }
+
+  .total-row .t-value {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--hh-cream);
+  }
+
+  .total-row.tax .t-value {
+    font-size: 17px;
+    color: var(--hh-tan);
+  }
+
+  .total-row.tax .t-label small {
+    display: block;
+    font-size: 9px;
+    color: var(--hh-orange);
+    letter-spacing: 0.16em;
+    margin-top: 2px;
+    font-weight: 400;
+  }
+
+  .total-row.grand {
+    border-top: 1px dashed rgba(194, 182, 149, 0.3);
+    padding-top: 14px;
+    margin-top: 6px;
+  }
+
+  .total-row.grand .t-label { color: var(--hh-orange); font-size: 12px; }
+
+  .total-row.grand .t-value {
+    font-size: 40px;
+    color: var(--hh-orange);
+    letter-spacing: -0.025em;
+    transition: color 0.18s ease;
+  }
+
+  .total-row.grand .t-value.pulse {
+    animation: totalPulse 0.5s ease;
+  }
+
+  @keyframes totalPulse {
+    0%   { color: var(--hh-orange); transform: scale(1); }
+    50%  { color: var(--hh-cream); transform: scale(1.04); }
+    100% { color: var(--hh-orange); transform: scale(1); }
+  }
+
+  .deposit-readout {
+    margin-top: 18px;
+    padding: 14px 16px;
+    background: rgba(201, 93, 45, 0.12);
+    border: 1px solid rgba(201, 93, 45, 0.4);
+    border-radius: 2px;
+    font-family: var(--serif);
+    font-size: 14px;
+    color: var(--hh-cream);
+    line-height: 1.5;
+    text-align: center;
+    font-style: italic;
+  }
+
+  .deposit-readout strong {
+    font-style: normal;
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--hh-orange);
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .summary-cta {
+    display: block;
+    width: 100%;
+    background: var(--hh-orange);
+    color: #fff;
+    padding: 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-top: 22px;
+    transition: all 0.2s;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .summary-cta:hover {
+    background: var(--hh-cream);
+    color: var(--hh-forest);
+  }
+
+  /* ============================================================
+     FULL-WIDTH SECTIONS  —  Provided / Attire / Gear / Map
+     ============================================================ */
+  .section-wrap {
+    background: var(--hh-paper);
+    padding: 0 40px 96px;
+  }
+
+  .section-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .section-header {
+    margin-bottom: 40px;
+    max-width: 720px;
+  }
+
+  .section-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--hh-orange);
+    margin-bottom: 14px;
+  }
+
+  .section-header h2 {
+    font-family: var(--serif);
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--hh-forest);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    margin-bottom: 12px;
+  }
+
+  .section-header h2 em { font-style: italic; color: var(--hh-orange); font-weight: 400; }
+
+  .section-header p {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-style: italic;
+    color: var(--hh-gray);
+    line-height: 1.5;
+  }
+
+  /* Tile grid (Provided + Attire) */
+  .tile-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--hh-rule);
+    border: 1px solid var(--hh-rule);
+  }
+
+  .tile {
+    background: #fff;
+    padding: 28px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .tile h4 {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--hh-forest);
+    line-height: 1.2;
+    letter-spacing: -0.005em;
+  }
+
+  .tile p {
+    font-family: var(--serif);
+    font-size: 14px;
+    color: var(--hh-gray);
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  .tile .tile-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--hh-orange);
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  /* Two-column gear list */
+  .gear-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+
+  .gear-col {
+    background: #fff;
+    border: 1px solid var(--hh-rule);
+    padding: 32px 36px;
+    border-radius: 2px;
+  }
+
+  .gear-col h3 {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--hh-forest);
+    margin-bottom: 6px;
+  }
+
+  .gear-col h3 em {
+    font-style: italic;
+    color: var(--hh-orange);
+    font-weight: 400;
+  }
+
+  .gear-col .col-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--hh-orange);
+    margin-bottom: 8px;
+  }
+
+  .gear-col .col-lede {
+    font-family: var(--serif);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--hh-gray);
+    margin-bottom: 22px;
+    line-height: 1.5;
+  }
+
+  .gear-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .gear-list li {
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--hh-rule);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: baseline;
+  }
+
+  .gear-list li:last-child { border-bottom: none; }
+
+  .gear-list .gear-name {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--hh-forest);
+  }
+
+  .gear-list .gear-detail {
+    display: block;
+    font-family: var(--serif);
+    font-size: 13px;
+    font-style: italic;
+    color: var(--hh-gray);
+    font-weight: 400;
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+
+  .gear-list .gear-price {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--hh-orange);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* ─── MAP SECTION ─── */
+  .map-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 32px;
+    align-items: stretch;
+  }
+
+  .map-frame {
+    border: 1px solid var(--hh-rule);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+    background: var(--hh-cream-soft);
+    min-height: 380px;
+  }
+
+  .map-frame iframe {
+    width: 100%;
+    height: 100%;
+    min-height: 380px;
+    border: 0;
+    display: block;
+  }
+
+  .map-info {
+    background: #fff;
+    border: 1px solid var(--hh-rule);
+    padding: 32px 36px;
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .map-info-block .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--hh-orange);
+    margin-bottom: 6px;
+  }
+
+  .map-info-block .value {
+    font-family: var(--serif);
+    font-size: 18px;
+    color: var(--hh-forest);
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .map-info-block .value-sub {
+    font-family: var(--serif);
+    font-size: 14px;
+    color: var(--hh-gray);
+    font-style: italic;
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  .map-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 22px;
+    background: var(--hh-forest);
+    color: var(--hh-cream);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 2px;
+    transition: background 0.18s ease;
+    margin-top: 4px;
+    text-align: center;
+  }
+
+  .map-cta:hover { background: var(--hh-orange); }
+
+  /* ============================================================
+     INFO BAND  —  4-tile forest band (Distance/Included/Safety/Pay)
+     ============================================================ */
+  .info-band {
+    background: var(--hh-forest);
+    color: var(--hh-cream);
+    padding: 64px;
+    position: relative;
+  }
+
+  .info-band-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 48px;
+  }
+
+  .info-tile h5 {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--hh-orange);
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+
+  .info-tile p {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--hh-cream);
+  }
+
+  .info-tile p strong {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 6px;
+    color: var(--hh-cream);
+    letter-spacing: -0.01em;
+  }
+
+  /* ============================================================
+     AUTHORIZATION  —  deposit + signature (preserved from v1)
+     ============================================================ */
+  .auth-section {
+    background: var(--hh-paper);
+    padding: 96px 40px;
+  }
+
+  .auth-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+
+  /* ─── Auth section header (replaces standalone confirm-banner) ─── */
+  .auth-header {
+    text-align: center;
+    margin-bottom: 36px;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .auth-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--hh-orange);
+    margin-bottom: 14px;
+    font-weight: 500;
+  }
+
+  .auth-header h2 {
+    font-family: var(--serif);
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--hh-forest);
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    margin-bottom: 14px;
+  }
+
+  .auth-header h2 em { font-style: italic; color: var(--hh-orange); font-weight: 400; }
+
+  .auth-lede {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-style: italic;
+    color: var(--hh-gray);
+    line-height: 1.55;
+  }
+
+  .auth-lede strong {
+    font-style: normal;
+    font-weight: 600;
+    color: var(--hh-forest);
+  }
+
+  /* ─── Inline form inside step-sign-card ─── */
+  .sign-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .sign-fields .form-field input {
+    font-size: 15px;
+    padding: 8px 0;
+  }
+
+  .sig-block-inline {
+    margin-bottom: 16px;
+  }
+
+  .sig-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .sig-label-row label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--hh-orange);
+    font-weight: 500;
+    margin-bottom: 0;
+  }
+
+  .sig-label-row .clear-link {
+    position: static;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--hh-tan-deep);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    font-weight: 500;
+  }
+
+  .sig-label-row .clear-link:hover { color: var(--hh-orange); }
+
+  .step-sign-card .signature-pad-wrap {
+    height: 110px;
+    margin-top: 0;
+  }
+
+  .date-field-row {
+    margin-bottom: 16px;
+  }
+
+  /* ─── Completion state on step cards ─── */
+  .step-pay-card,
+  .step-sign-card { position: relative; }
+
+  .step-pay-card.complete::after,
+  .step-sign-card.complete::after {
+    content: '✓';
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 28px;
+    height: 28px;
+    background: var(--hh-orange);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(201, 93, 45, 0.3);
+  }
+
+  /* ─── Legacy auth-block (deprecated v2.3 — kept for safety; unused) ─── */
+  .auth-block {
+    background: #fff;
+    border: 1px solid var(--hh-rule);
+    padding: 48px 56px;
+    border-radius: 2px;
+  }
+
+  .auth-eyebrow-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .auth-eyebrow-row h3 {
+    font-family: var(--serif);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--hh-forest);
+    letter-spacing: -0.01em;
+  }
+
+  .auth-eyebrow-row .stamp {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.24em;
+    color: var(--hh-orange);
+    font-weight: 500;
+  }
+
+  .auth-block p {
+    color: var(--hh-ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.65;
+    margin-bottom: 18px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 28px;
+  }
+
+  .form-field { display: flex; flex-direction: column; }
+
+  .form-field label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--hh-orange);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .form-field input,
+  .form-field .static-value {
+    font-family: var(--serif);
+    font-size: 17px;
+    color: var(--hh-ink);
+    border: none;
+    border-bottom: 1px solid var(--hh-rule);
+    padding: 10px 0;
+    background: transparent;
+    outline: none;
+  }
+
+  .form-field input:focus { border-bottom-color: var(--hh-orange); }
+
+  .signature-block { margin-top: 28px; grid-column: 1 / -1; }
+
+  .signature-pad-wrap {
+    border: 1px solid var(--hh-rule);
+    border-radius: 2px;
+    background: #fff;
+    position: relative;
+    height: 140px;
+    margin-top: 8px;
+  }
+
+  #signature-pad {
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+    touch-action: none;
+  }
+
+  .signature-pad-wrap .placeholder {
+    position: absolute;
+    bottom: 12px;
+    left: 16px;
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--hh-gray-light);
+    font-size: 14px;
+    pointer-events: none;
+  }
+
+  .signature-pad-wrap.has-signature .placeholder { display: none; }
+
+  .clear-link {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--hh-orange);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-weight: 500;
+  }
+
+  .clear-link:hover { color: var(--hh-forest); }
+
+  .confirm-banner {
+    background: var(--hh-forest-deep);
+    color: var(--hh-cream);
+    text-align: center;
+    padding: 22px 32px;
+    margin: 40px 0 28px;
+    border-radius: 2px;
+    font-family: var(--serif);
+    font-size: 17px;
+    font-style: italic;
+    line-height: 1.55;
+  }
+
+  .confirm-banner strong { font-style: normal; font-weight: 700; color: #fff; }
+
+  .two-step-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+    align-items: stretch;
+  }
+
+  .step-pay-card {
+    background: var(--hh-forest);
+    color: var(--hh-cream);
+    border: 1px solid var(--hh-forest);
+    padding: 28px 30px;
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .step-sign-card {
+    background: #fff;
+    border: 1px solid var(--hh-rule);
+    padding: 28px 30px;
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .step-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: var(--hh-orange);
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+
+  .step-amt-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--hh-orange);
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+
+  .step-pay-card .step-amt {
+    font-family: var(--serif);
+    font-size: 52px;
+    color: var(--hh-cream);
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 18px;
+    letter-spacing: -0.025em;
+  }
+
+  .step-sign-card .step-amt {
+    font-family: var(--serif);
+    font-size: 38px;
+    color: var(--hh-forest);
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 18px;
+    letter-spacing: -0.02em;
+  }
+
+  .step-pay-card p {
+    font-family: var(--serif);
+    font-size: 14px;
+    color: var(--hh-tan);
+    line-height: 1.55;
+    margin-bottom: 18px;
+  }
+
+  .step-sign-card p {
+    font-family: var(--serif);
+    font-size: 14px;
+    color: var(--hh-gray);
+    line-height: 1.55;
+    margin-bottom: 18px;
+  }
+
+  .spacer-flex { flex: 1; }
+
+  .checkbox-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 16px;
+    font-family: var(--serif);
+    font-size: 14px;
+    line-height: 1.5;
+    cursor: pointer;
+  }
+
+  .step-pay-card .checkbox-row { color: var(--hh-cream); }
+  .step-sign-card .checkbox-row { color: var(--hh-ink); }
+
+  .checkbox-row input[type="checkbox"] {
+    margin-top: 4px;
+    cursor: pointer;
+    accent-color: var(--hh-orange);
+  }
+
+  .stripe-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 16px 24px;
+    background: var(--stripe);
+    color: #fff;
+    border-radius: 4px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 8px rgba(99, 91, 255, 0.3);
+  }
+
+  .stripe-btn:hover {
+    background: var(--stripe-deep);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 91, 255, 0.45);
+  }
+
+  .stripe-btn::before {
+    content: '';
+    display: inline-block;
+    width: 18px; height: 18px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff'><path d='M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.591-7.305z'/></svg>");
+    background-repeat: no-repeat;
+    background-size: contain;
+  }
+
+  .stripe-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--hh-tan);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+  }
+
+  .stripe-row .powered { display: inline-flex; align-items: center; gap: 6px; }
+
+  .stripe-row .powered .stripe-mark {
+    font-family: var(--sans);
+    color: var(--hh-cream);
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: -0.01em;
+    font-size: 13px;
+    font-style: italic;
+  }
+
+  .stripe-cards { display: inline-flex; gap: 4px; }
+
+  .stripe-cards span {
+    background: var(--hh-cream);
+    color: var(--hh-forest);
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .step-btn {
+    display: block;
+    text-align: center;
+    width: 100%;
+    padding: 16px 24px;
+    background: var(--hh-forest);
+    color: var(--hh-paper);
+    border: none;
+    border-radius: 2px;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.18s ease;
+  }
+
+  .step-btn:hover { background: var(--hh-orange); }
+  .step-btn:disabled { background: var(--hh-gray-light); cursor: not-allowed; }
+
+  .confirmed-msg {
+    grid-column: 1 / -1;
+    background: var(--hh-cream-soft);
+    border: 1px solid var(--hh-orange);
+    padding: 22px 24px;
+    border-radius: 2px;
+    font-family: var(--serif);
+    color: var(--hh-forest);
+    font-size: 17px;
+    text-align: center;
+    display: none;
+    margin-top: 16px;
+    line-height: 1.5;
+  }
+
+  .confirmed-msg.show { display: block; }
+
+  .booking-note {
+    margin-top: 32px;
+    padding: 24px 28px;
+    background: var(--hh-paper);
+    border: 1px solid var(--hh-rule);
+    border-radius: 2px;
+    font-family: var(--serif);
+    font-size: 14px;
+    color: var(--hh-gray);
+    line-height: 1.6;
+    font-style: italic;
+  }
+
+  .booking-note strong {
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    font-size: 10px;
+    color: var(--hh-orange);
+    font-weight: 500;
+    font-style: normal;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  /* ============================================================
+     CRAFT NOTE + FOOTER
+     ============================================================ */
+  .craft-note {
+    background: var(--hh-paper);
+    padding: 0 40px 80px;
+  }
+
+  .craft-note-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    text-align: center;
+    border-top: 1px solid var(--hh-rule);
+    border-bottom: 1px solid var(--hh-rule);
+    padding: 32px 0;
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--hh-gray);
+    font-size: 15px;
+    line-height: 1.65;
+  }
+
+  footer {
+    background: var(--hh-forest);
+    color: var(--hh-tan);
+    padding: 48px 64px 32px;
+    border-top: 1px solid rgba(194, 182, 149, 0.15);
+  }
+
+  .footer-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .footer-brand {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--hh-cream);
+  }
+
+  .footer-brand span {
+    font-style: normal;
+    color: var(--hh-orange);
+    margin: 0 6px;
+    font-weight: 400;
+  }
+
+  .footer-meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgba(194, 182, 149, 0.6);
+  }
+
+  .footer-address {
+    width: 100%;
+    text-align: center;
+    margin-top: 16px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
+    color: rgba(194, 182, 149, 0.6);
+  }
+
+  .footer-address a {
+    color: var(--hh-orange);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  @media (max-width: 1100px) {
+    .builder-inner { grid-template-columns: 1fr; }
+    .summary-panel { position: static; }
+  }
+
+  @media (max-width: 900px) {
+    .tile-grid { grid-template-columns: repeat(2, 1fr); }
+    .info-band-inner { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+    .map-grid { grid-template-columns: 1fr; }
+    .gear-grid { grid-template-columns: 1fr; }
+    .windows { grid-template-columns: repeat(3, 1fr); }
+    .disciplines { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 720px) {
+    .nav { padding: 14px 20px; }
+    .hero { padding: 110px 24px 64px; }
+    .hero-meta { grid-template-columns: 1fr 1fr; gap: 24px; }
+    .builder { padding: 64px 20px; }
+    .step-card { padding: 28px 24px; }
+    .step-card h2 { font-size: 30px; }
+    .windows { grid-template-columns: repeat(2, 1fr); }
+    .addon-grid { grid-template-columns: 1fr; }
+    .section-wrap { padding: 0 20px 64px; }
+    .section-header h2 { font-size: 34px; }
+    .tile-grid { grid-template-columns: 1fr; }
+    .info-band { padding: 48px 24px; }
+    .info-band-inner { grid-template-columns: 1fr; gap: 28px; }
+    .auth-section { padding: 64px 20px; }
+    .auth-block { padding: 32px 24px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .two-step-grid { grid-template-columns: 1fr; }
+    footer { padding: 32px 24px 24px; }
+    .footer-inner { flex-direction: column; gap: 16px; text-align: center; }
+  }
+
+  /* ============================================================
+     PRINT
+     ============================================================ */
+  @media print {
+    body { background: white; }
+    .nav, .summary-cta, .stripe-btn, .step-btn, .clear-link, .map-cta { display: none; }
+    .hero { background: var(--hh-forest); padding: 48px; color: var(--hh-cream); }
+    .hero::after { display: none; }
+    .summary-panel { position: static; page-break-inside: avoid; }
+    .info-band, footer { background: var(--hh-forest); color: var(--hh-cream); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     NAV
+     ═══════════════════════════════════════════════════════════════════════ -->
+<nav class="nav" id="nav">
+  <div class="nav-brand">Hog Heaven<span>×</span>Camp Lucy</div>
+  <div class="nav-status">Live Proposal · Draft</div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">Proposal for Camp Lucy <span>·</span> Prepared June 2026</div>
+    <h1>
+      <span class="small">A Texas Adventure for the</span>
+      Hartwell <em>&amp;</em> Mitchell<br>Wedding Weekend
+    </h1>
+    <p class="hero-subtitle">Friday afternoon. Sixteen guests. The wedding party, the whiskey, and clay targets soaring against the Hill Country sky. A pre-rehearsal escape your wedding party will remember longer than the toasts.</p>
+
+    <dl class="hero-meta">
+      <div>
+        <dt>Date</dt>
+        <dd>Friday, Jun 26</dd>
+        <span class="meta-sub">2026 · Late Afternoon</span>
+      </div>
+      <div>
+        <dt>Party Size</dt>
+        <dd id="hero-meta-guests">16 guests</dd>
+        <span class="meta-sub">12 groomsmen + 4 family</span>
+      </div>
+      <div>
+        <dt>Hosts</dt>
+        <dd>Sarah &amp; Will</dd>
+        <span class="meta-sub">Hartwell &amp; Mitchell</span>
+      </div>
+      <div>
+        <dt>Coordinated by</dt>
+        <dd>Taylor Crawford</dd>
+        <span class="meta-sub">Camp Lucy · 512.829.5986</span>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     BUILDER  (configurator + sticky summary panel)
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="builder">
+  <div class="builder-inner">
+
+    <!-- LEFT: Configurator -->
+    <div class="builder-config">
+
+      <!-- STEP 01 — ARRIVAL WINDOW -->
+      <div class="step-card">
+        <div class="step-tag">Step 01 · When you arrive</div>
+        <h2>Pick your <em>arrival window</em>.</h2>
+        <p class="step-lede">Five preset start times across the day. End time auto-calculates from the disciplines and add-ons you select below.</p>
+
+        <div class="windows">
+          <button type="button" class="window-card" data-window="nineAM" onclick="selectWindow(&#39;nineAM&#39;)">
+            <div class="window-name">9:00 AM</div>
+            <div class="window-time">Early start</div>
+            <div class="window-detail">First on the range, finished before lunch.</div>
+          </button>
+          <button type="button" class="window-card" data-window="tenAM" onclick="selectWindow(&#39;tenAM&#39;)">
+            <div class="window-name">10:00 AM</div>
+            <div class="window-time">Mid-morning</div>
+            <div class="window-detail">Out by lunch. Best for groups headed to a midday rehearsal.</div>
+          </button>
+          <button type="button" class="window-card" data-window="noon" onclick="selectWindow(&#39;noon&#39;)">
+            <div class="window-name">12:00 PM</div>
+            <div class="window-time">Midday</div>
+            <div class="window-detail">A shooting-anchored midday — Camp Lucy can coordinate lunch on their side.</div>
+          </button>
+          <button type="button" class="window-card" data-window="onePM" onclick="selectWindow(&#39;onePM&#39;)">
+            <div class="window-name">1:00 PM</div>
+            <div class="window-time">Early afternoon</div>
+            <div class="window-detail">Lunch first at Camp Lucy, then the ranch. Cooler than midday.</div>
+          </button>
+          <button type="button" class="window-card selected" data-window="threePM" onclick="selectWindow(&#39;threePM&#39;)">
+            <div class="window-name">3:00 PM</div>
+            <div class="window-time">Late afternoon</div>
+            <div class="window-detail">Hill Country light at its most flattering. Back in time to dress for dinner.</div>
+          </button>
+        </div>
+
+        <div class="duration-readout" id="duration-readout"><strong>Estimated end</strong>Arrival 3:00 PM · <span class="end">Estimated end 5:00 PM</span> · 2h total</div>
+      </div>
+
+      <!-- STEP 02 — DISCIPLINES (NEW in v2.2) -->
+      <div class="step-card">
+        <div class="step-tag">Step 02 · What you'll do</div>
+        <h2>Pick your <em>disciplines</em>.</h2>
+        <p class="step-lede">The two shotgun packages are alternative formats — pick one, or skip shotgun entirely. Pistol is independent: layer it onto either shotgun choice, or run it standalone. Instructors auto-staff to match what you pick.</p>
+
+        <div class="disciplines">
+
+          <button type="button" class="discipline-card selected" data-discipline="shotgun5stand" onclick="selectShotgunFormat(&#39;shotgun5stand&#39;)">
+            <div class="discipline-tag"><span>Shotgun</span><span class="mutex">Pick one</span></div>
+            <div class="discipline-name">The 5-Stand Shotgun Social</div>
+            <div class="discipline-desc">Two-hour social on our 5-Stand — stationary stations, group rotation, the conversational format. Shotguns, ammunition, targets, golf carts included.</div>
+            <div class="discipline-meta">
+              <div class="discipline-price">$185 / guest · 2h</div>
+              <div class="discipline-checkmark"></div>
+            </div>
+          </button>
+
+          <button type="button" class="discipline-card" data-discipline="shotgunChallenge" onclick="selectShotgunFormat(&#39;shotgunChallenge&#39;)">
+            <div class="discipline-tag"><span>Shotgun</span><span class="mutex">Pick one</span></div>
+            <div class="discipline-name">Hill Country Sporting Challenge</div>
+            <div class="discipline-desc">Two-hour sporting clays course — walk the property through varied presentations, the more competitive format. Same kit included as the 5-Stand.</div>
+            <div class="discipline-meta">
+              <div class="discipline-price">$185 / guest · 2h</div>
+              <div class="discipline-checkmark"></div>
+            </div>
+          </button>
+
+          <button type="button" class="discipline-card" data-discipline="pistol" onclick="togglePistol()">
+            <div class="discipline-tag"><span>Pistol</span><span class="mutex">Independent</span></div>
+            <div class="discipline-name">Texas Pistol Range</div>
+            <div class="discipline-desc">A guided pistol experience — the bachelor/bachelorette block, or the whole party. Certified instructor always required, no exceptions. Adds ~1 hour.</div>
+            <div class="discipline-meta">
+              <div class="discipline-price">$125 / guest · +1h</div>
+              <div class="discipline-checkmark"></div>
+            </div>
+          </button>
+
+        </div>
+
+        <div class="disciplines-help">
+          <strong style="font-style: normal; font-weight: 600; color: var(--hh-forest);">How instructors work:</strong> shotgun instructors are auto-staffed at the 1:5 ratio for groups of 10 or more (TX tax-exempt). Pistol instructors are required at 1:5 regardless of group size — even one shooter gets a coach. Pick what you want; the staffing adjusts to match.
+        </div>
+
+        <div class="discipline-empty-warning" id="discipline-empty-warning">
+          Select at least one discipline above to see your event total. You can run shotgun, pistol, or both.
+        </div>
+      </div>
+
+      <!-- STEP 03 — GUEST COUNT -->
+      <div class="step-card">
+        <div class="step-tag">Step 03 · How many guests</div>
+        <h2>Set your <em>guest count</em>.</h2>
+        <p class="step-lede">Pricing scales live. Instructor staffing recalculates whenever you change the count or the disciplines.</p>
+
+        <div class="slider-block">
+          <div class="slider-header">
+            <div class="slider-label">Party Size</div>
+            <div class="count"><span id="guest-count">16</span><em>guests</em></div>
+          </div>
+          <input type="range" id="guest-slider" min="3" max="30" value="16" step="1">
+          <div class="slider-bounds">
+            <span>Min · 3</span>
+            <span>Max · 30</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 04 — OPTIONAL ADD-ONS
+           v2.4 (2026-05-11): BBQ, Archery, and Fishing removed per Camp Lucy
+           (Taylor Crawford email). Only Senior Coach remains à la carte —
+           every other line is auto-derived from the discipline + guest count
+           selections in Steps 02/03. -->
+      <div class="step-card">
+        <div class="step-tag">Step 04 · Anything else</div>
+        <h2>Layer in <em>à la carte</em>.</h2>
+        <p class="step-lede">Required instructors auto-staff based on guest count. Add a senior coach below if you'd like one-on-one attention beyond the standard ratio.</p>
+
+        <div class="addon-grid">
+
+          <div class="addon-card" data-key="extraCoach" onclick="toggleAddon(&#39;extraCoach&#39;)">
+            <div class="addon-card-head">
+              <div class="addon-name">Senior Coach</div>
+              <div class="addon-checkmark"></div>
+            </div>
+            <div class="addon-desc">Required instructors are auto-included at the 1:5 ratio. Add an additional senior coach if you want extra one-on-one attention or have first-timers in the party.</div>
+            <div class="addon-price">$350 flat · TX-Exempt</div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Sticky Summary Panel -->
+    <aside class="summary-panel" id="summary-panel">
+      <div class="summary-tag">Live Proposal Summary</div>
+      <h3>Hartwell <em>&amp;</em> Mitchell</h3>
+      <div class="for">Friday, Jun 26 · <span id="summary-guests">16 guests</span> · <span id="summary-window">3:00 PM</span> arrival</div>
+
+      <div class="line-items" id="line-items">
+          <div class="line-item">
+            <div>
+              <div class="li-name">The 5-Stand Shotgun Social</div>
+              <div class="li-detail">16 guests × $185</div>
+            </div>
+            <div class="li-amount">$2,960</div>
+          </div>
+        
+          <div class="line-item">
+            <div>
+              <div class="li-name">Certified Shotgun Instructors</div>
+              <div class="li-detail exempt">4 instructors × $350 · TX Exempt</div>
+            </div>
+            <div class="li-amount">$1,400</div>
+          </div>
+        </div>
+
+      <div class="totals">
+        <div class="total-row">
+          <div class="t-label">Subtotal</div>
+          <div class="t-value" id="subtotal">$4,360</div>
+        </div>
+        <div class="total-row tax">
+          <div class="t-label">TX Sales Tax (8.25%) <small>Instructor lines exempt</small></div>
+          <div class="t-value" id="tax-amount">$244</div>
+        </div>
+        <div class="total-row grand">
+          <div class="t-label">Event Total</div>
+          <div class="t-value pulse" id="event-total">$4,604</div>
+        </div>
+      </div>
+
+      <div class="deposit-readout">
+        <strong>$500 Deposit</strong>
+        Holds your date · Balance billed prior to event
+      </div>
+
+      <a href="https://camp-lucy-hartwellmitchell-hog-heaven.netlify.app/#authorization" class="summary-cta">Review &amp; Sign →</a>
+    </aside>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     WHAT'S PROVIDED
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section-wrap">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-eyebrow">What we provide</div>
+      <h2>The kit, <em>handled</em>.</h2>
+      <p>Everything below is included on every booking. Your wedding party brings nothing but themselves and a sense of humor about who's going to win.</p>
+    </div>
+
+    <div class="tile-grid">
+      <div class="tile">
+        <div class="tile-tag">Standard</div>
+        <h4>Eyes &amp; Ears</h4>
+        <p>Safety glasses and hearing protection issued to every participant on arrival. Range-grade, fitted properly.</p>
+      </div>
+      <div class="tile">
+        <div class="tile-tag">Standard</div>
+        <h4>Shotguns &amp; Ammo</h4>
+        <p>20-gauge and 12-gauge over/under shotguns from our rental rack. Shells, eye and ear, magazines, belts — all included.</p>
+      </div>
+      <div class="tile">
+        <div class="tile-tag">When Pistol Added</div>
+        <h4>Pistol Gear</h4>
+        <p>Range-issued pistols, ammunition, holsters, and magazines. Provided automatically when the pistol session is added.</p>
+      </div>
+      <div class="tile">
+        <div class="tile-tag">Standard</div>
+        <h4>Targets &amp; Clays</h4>
+        <p>All clay targets fully stocked. Stations rotated to keep the energy up.</p>
+      </div>
+      <div class="tile">
+        <div class="tile-tag">Standard</div>
+        <h4>Certified Instructors</h4>
+        <p>Auto-staffed at 1:5. Calibrated to every level — first-timers to seasoned shooters. TX tax-exempt.</p>
+      </div>
+      <div class="tile">
+        <div class="tile-tag">Standard</div>
+        <h4>Golf Cart Transport</h4>
+        <p>On-property transport between the clubhouse, the bridge, and the shooting bays. Drive yourselves or be driven.</p>
+      </div>
+      <div class="tile">
+        <div class="tile-tag">Standard</div>
+        <h4>Range Safety Briefing</h4>
+        <p>Mandatory orientation before any live fire. Short, thorough, non-negotiable. About 15 minutes.</p>
+      </div>
+      <div class="tile">
+        <div class="tile-tag">Standard</div>
+        <h4>Sun &amp; Hydration</h4>
+        <p>Sunscreen, cold water, and shade at every station. Cold beer for after the shooting (Cold Range policy enforced).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     RECOMMENDED ATTIRE
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section-wrap">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-eyebrow">Recommended attire</div>
+      <h2>Dress for <em>Hill Country</em>.</h2>
+      <p>Outdoor range, active afternoon, possible sun. Pass this list along to the wedding party so nobody arrives in flip-flops.</p>
+    </div>
+
+    <div class="tile-grid">
+      <div class="tile">
+        <h4>Long Pants</h4>
+        <p>Jeans, chinos, or technical pants. No shorts on the range — protection from sun, brush, and ejected casings.</p>
+      </div>
+      <div class="tile">
+        <h4>Closed-Toe Shoes</h4>
+        <p>Boots, sneakers, or trail shoes. No sandals or flip-flops. Boots strongly preferred for the bridge crossing.</p>
+      </div>
+      <div class="tile">
+        <h4>Long-Sleeve Shirt</h4>
+        <p>Breathable fabric recommended. No tank tops or open shoulders. Casings get warm.</p>
+      </div>
+      <div class="tile">
+        <h4>Ball Cap or Hat</h4>
+        <p>Strongly recommended. The brim catches casings and shades the eyes from afternoon glare.</p>
+      </div>
+      <div class="tile">
+        <h4>Layers</h4>
+        <p>June afternoons in the Hill Country can swing 15° between 3 PM and sunset. A light vest is rarely a mistake.</p>
+      </div>
+      <div class="tile">
+        <h4>Sunglasses</h4>
+        <p>Wraparound or shooting-style preferred over fashion frames — they double as eye protection between stations.</p>
+      </div>
+      <div class="tile">
+        <h4>What Not to Wear</h4>
+        <p>White or light-colored clothing (clay dust). Heels. Open-back tops. Anything you'd be heartbroken about staining.</p>
+      </div>
+      <div class="tile">
+        <h4>Jewelry &amp; Watches</h4>
+        <p>Removable, please. Recoil and rings don't get along. We'll hold them at the clubhouse if needed.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     OPTIONAL GEAR
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section-wrap">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-eyebrow">Optional gear</div>
+      <h2>Bring your own, <em>or rent ours</em>.</h2>
+      <p>Most parties show up empty-handed and we hand them the kit. If your group prefers their own setup, here's what's welcome — and what we can rent on the day.</p>
+    </div>
+
+    <div class="gear-grid">
+
+      <!-- BRING YOUR OWN -->
+      <div class="gear-col">
+        <div class="col-eyebrow">Bring your own</div>
+        <h3>Welcome to <em>BYO</em></h3>
+        <p class="col-lede">If you've got a favorite gun, a chosen brand, or a piece of kit you swear by — bring it. We'll integrate it on the line after a brief instructor check.</p>
+
+        <ul class="gear-list">
+          <li>
+            <div>
+              <div class="gear-name">Personal Shotgun</div>
+              <div class="gear-detail">Any 12 / 20 / 28 gauge over-under, semi-auto, or pump. Cased to and from the range.</div>
+            </div>
+            <div class="gear-price">Welcome</div>
+          </li>
+          <li>
+            <div>
+              <div class="gear-name">Personal Pistol</div>
+              <div class="gear-detail">Pistol additions only. Holster required. Coordinate with our staff at check-in for safe handling and integration on the line.</div>
+            </div>
+            <div class="gear-price">Welcome</div>
+          </li>
+          <li>
+            <div>
+              <div class="gear-name">Eye &amp; Ear Protection</div>
+              <div class="gear-detail">Electronic muffs, custom-mold plugs, prescription shooting glasses — all welcome.</div>
+            </div>
+            <div class="gear-price">Welcome</div>
+          </li>
+          <li>
+            <div>
+              <div class="gear-name">Shooting Vest / Pouch</div>
+              <div class="gear-detail">Personal shell pouches, bandoliers, or shooting vests if you prefer your own carry.</div>
+            </div>
+            <div class="gear-price">Welcome</div>
+          </li>
+          <li>
+            <div>
+              <div class="gear-name">Cameras &amp; Phones</div>
+              <div class="gear-detail">Photographers welcome at staging areas. No phones on the line during live fire.</div>
+            </div>
+            <div class="gear-price">Welcome</div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- AVAILABLE TO RENT -->
+      <div class="gear-col">
+        <div class="col-eyebrow">Available to rent</div>
+        <h3>Available <em>on request</em></h3>
+        <p class="col-lede">Items beyond what's already included in your booking. Confirm with your Camp Lucy coordinator at least 48 hours ahead — some require gunsmith setup.</p>
+
+        <ul class="gear-list">
+          <li>
+            <div>
+              <div class="gear-name">Additional Shotgun Rental</div>
+              <div class="gear-detail">Beyond the auto-issued rentals — for guests who want to try a different gauge or model on the day.</div>
+            </div>
+            <div class="gear-price">$52 / gun</div>
+          </li>
+          <li>
+            <div>
+              <div class="gear-name">Extra Ammunition</div>
+              <div class="gear-detail">Beyond the included rounds — by the box, any caliber on request.</div>
+            </div>
+            <div class="gear-price">By caliber</div>
+          </li>
+          <li>
+            <div>
+              <div class="gear-name">Personal Coaching Block</div>
+              <div class="gear-detail">One-on-one time with a senior instructor between rounds — for the perfectionist or the first-timer.</div>
+            </div>
+            <div class="gear-price">$350 flat · TX-Exempt</div>
+          </li>
+          <li>
+            <div>
+              <div class="gear-name">Premium F&amp;B Upgrade</div>
+              <div class="gear-detail">Beyond the standard refreshments — premium spirits, expanded snack board, on request.</div>
+            </div>
+            <div class="gear-price">By selection</div>
+          </li>
+          <li>
+            <div>
+              <div class="gear-name">Wedding Photographer Add-on</div>
+              <div class="gear-detail">If your photographer wants to capture the afternoon, we'll work them into the staging plan. Coordinate via Camp Lucy.</div>
+            </div>
+            <div class="gear-price">Coordinate</div>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     GETTING THERE  (Google Maps embed)
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section-wrap">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-eyebrow">Getting to Hog Heaven</div>
+      <h2>About <em>fifteen minutes</em> from Camp Lucy.</h2>
+      <p>A short Hill Country drive in either direction. Camp Lucy can coordinate transport, or your party can self-drive. Address pin and live map below — pin opens directions in Google Maps.</p>
+    </div>
+
+    <div class="map-grid">
+      <div class="map-frame">
+        <iframe src="./Wedding Party Adventure for Sarah Hartwell &amp; Will Mitchell · Hog Heaven × Camp Lucy - proposal site_files/maps.html" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Hog Heaven Sporting Club — 24905 Ranch Road 12, Dripping Springs, TX 78620">
+        </iframe>
+      </div>
+
+      <div class="map-info">
+        <div class="map-info-block">
+          <div class="label">Address</div>
+          <div class="value">Hog Heaven Sporting Club</div>
+          <div class="value-sub">24905 Ranch Road 12<br>Dripping Springs, TX 78620</div>
+        </div>
+        <div class="map-info-block">
+          <div class="label">From Camp Lucy</div>
+          <div class="value">~15 min drive</div>
+          <div class="value-sub">A short run through the Hill Country in either direction. Camp Lucy can coordinate shuttle service for the wedding party.</div>
+        </div>
+        <div class="map-info-block">
+          <div class="label">Access at the gate</div>
+          <div class="value">Ring the call box</div>
+          <div class="value-sub">Hog Heaven's entry gate has a call box at the road. Ring on arrival and our staff will release the gate for your party.</div>
+        </div>
+        <div class="map-info-block">
+          <div class="label">Contact on the day</div>
+          <div class="value">Hog Heaven · 512.987.6938</div>
+          <div class="value-sub">Camp Lucy · Taylor Crawford · 512.829.5986</div>
+        </div>
+        <a href="https://www.google.com/maps/dir/?api=1&amp;destination=24905+Ranch+Road+12,+Dripping+Springs,+TX+78620" target="_blank" rel="noopener" class="map-cta">
+          Open in Google Maps →
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     INFO BAND  (4-tile forest band)
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="info-band">
+  <div class="info-band-inner">
+    <div class="info-tile">
+      <h5>Distance</h5>
+      <p><strong>~15 min drive</strong>From Camp Lucy chapel to Hog Heaven gate. Ring the call box on arrival. Camp Lucy can coordinate transport.</p>
+    </div>
+    <div class="info-tile">
+      <h5>What's Included</h5>
+      <p><strong>Everything for shooting</strong>Shotguns, ammunition, targets, golf carts, certified instructors, range safety briefing. Food &amp; beverage is coordinated by Camp Lucy.</p>
+    </div>
+    <div class="info-tile">
+      <h5>Safety</h5>
+      <p><strong>1:5 instructor ratio</strong>Pistol always requires a certified instructor. Shotgun for groups of 10+ auto-staffs at 1:5 after a 15-minute briefing.</p>
+    </div>
+    <div class="info-tile">
+      <h5>Payment</h5>
+      <p><strong>Deposit holds your date</strong>$500 deposit secures the booking. Balance billed prior to event date. TX sales tax applied per Charter Principle #12.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     AUTHORIZATION  (preserved from v1)
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="auth-section" id="authorization">
+  <div class="auth-inner">
+
+    <header class="auth-header">
+      <div class="auth-eyebrow">Authorization</div>
+      <h2>Confirm your <em>wedding party adventure</em>.</h2>
+      <p class="auth-lede">
+        Both steps below are required — pay the $500 deposit <strong>and</strong> sign acceptance. Neither alone holds the date. Signing authorizes the deposit and acknowledges the balance is billed prior to <strong>Friday, June 26, 2026</strong>; activities subject to safety policies and weather.
+      </p>
+    </header>
+
+    <div class="two-step-grid">
+
+      <!-- Step 1 · Pay Deposit -->
+      <div class="step-pay-card" id="step-pay-card">
+        <div class="step-num">Step 1 · Pay Deposit</div>
+        <div class="step-amt-eyebrow">Holds Your Date</div>
+        <div class="step-amt">$500</div>
+        <p>Fully applied toward your event total. Balance billed prior to event date. Secure payment processed by Stripe.</p>
+        <div class="spacer-flex"></div>
+        <button type="button" class="stripe-btn" id="stripe-btn" onclick="mockStripeCheckout(event)">
+          Pay $500 with Stripe
+        </button>
+        <div class="stripe-row">
+          <span class="powered">Powered by <span class="stripe-mark">stripe</span></span>
+          <span class="stripe-cards"><span>VISA</span><span>MC</span><span>AMEX</span></span>
+        </div>
+      </div>
+
+      <!-- Step 2 · Sign & Submit (form merged here in v2.3) -->
+      <div class="step-sign-card" id="step-sign-card">
+        <div class="step-num">Step 2 · Sign &amp; Submit</div>
+        <div class="step-amt-eyebrow">Approval</div>
+        <div class="step-amt">Acceptance</div>
+
+        <div class="sign-fields">
+          <div class="form-field">
+            <label>Your Name</label>
+            <input type="text" id="client-name" placeholder="Full name">
+          <div data-lastpass-icon-root="" style="position: relative !important; height: 0px !important; width: 0px !important; display: initial !important; float: left !important;"><template shadowrootmode="closed"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-lastpass-icon="true" data-testid="infield-icon" style="position: absolute; cursor: pointer; height: 22px; max-height: 22px; width: 22px; max-width: 22px; top: -30px; left: 199px; z-index: auto; color: rgb(186, 192, 202);"><rect x="0.680176" y="0.763062" width="22.6392" height="22.4737" rx="4" fill="currentColor"></rect><path fill-rule="evenodd" clip-rule="evenodd" d="M19.7935 7.9516C19.7935 7.64414 20.0427 7.3949 20.3502 7.3949C20.6576 7.3949 20.9069 7.64414 20.9069 7.9516V16.0487C20.9069 16.3562 20.6576 16.6054 20.3502 16.6054C20.0427 16.6054 19.7935 16.3562 19.7935 16.0487V7.9516Z" fill="white"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M4.76288 13.6577C5.68525 13.6577 6.43298 12.9154 6.43298 11.9998C6.43298 11.0842 5.68525 10.3419 4.76288 10.3419C3.8405 10.3419 3.09277 11.0842 3.09277 11.9998C3.09277 12.9154 3.8405 13.6577 4.76288 13.6577Z" fill="white"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M10.3298 13.6577C11.2521 13.6577 11.9999 12.9154 11.9999 11.9998C11.9999 11.0842 11.2521 10.3419 10.3298 10.3419C9.4074 10.3419 8.65967 11.0842 8.65967 11.9998C8.65967 12.9154 9.4074 13.6577 10.3298 13.6577Z" fill="white"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M15.8964 13.6577C16.8188 13.6577 17.5665 12.9154 17.5665 11.9998C17.5665 11.0842 16.8188 10.3419 15.8964 10.3419C14.974 10.3419 14.2263 11.0842 14.2263 11.9998C14.2263 12.9154 14.974 13.6577 15.8964 13.6577Z" fill="white"></path></svg></template></div></div>
+          <div class="form-field">
+            <label>Email</label>
+            <input type="email" id="email-confirm" placeholder="you@email.com">
+          </div>
+        </div>
+
+        <div class="sig-block-inline">
+          <div class="sig-label-row">
+            <label>Signature</label>
+            <button type="button" class="clear-link" onclick="clearSignature()">Clear</button>
+          </div>
+          <div class="signature-pad-wrap" id="sig-wrap">
+            <canvas id="signature-pad" width="466" height="108"></canvas>
+            <span class="placeholder">Sign with mouse or touch</span>
+          </div>
+        </div>
+
+        <div class="form-field date-field-row">
+          <label>Date Signed</label>
+          <input type="date" id="date-signed">
+        </div>
+
+        <div class="spacer-flex"></div>
+
+        <button type="button" class="step-btn" id="confirm-btn" onclick="submitConfirmation()">
+          Confirm &amp; Submit →
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Unified success message — fires only when BOTH steps are complete -->
+    <div class="confirmed-msg" id="confirmed-msg">
+      ✓ <strong>Event confirmed.</strong> Your deposit is paid and your acceptance is signed. Hog Heaven and Camp Lucy will follow up within 24 hours to walk through final details for your wedding weekend.
+    </div>
+
+    <div class="booking-note">
+      <strong>Booking Terms</strong>
+      Proposal valid 14 days from issue. Final guest count confirmed 72 hours prior. Hog Heaven adjusts instructor count to confirmed headcount. TX sales tax (8.25%) applies to taxable line items per Charter Principle #12; instructor lines tax-exempt under TX Tax Code §151.0048. Camp Lucy · Taylor Crawford · 512.829.5986. Hog Heaven · 512.987.6938.
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     CRAFT NOTE
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div class="craft-note">
+  <div class="craft-note-inner">
+    Drafted with AI. Reviewed and stewarded by <strong>Jeff Blackburn</strong>, Chief Operating Officer at Hog Heaven, in coordination with <strong>Taylor Crawford</strong> at Camp Lucy — the people on the other end of every email and every phone call about your wedding weekend.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════════════════════════════════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">Hog Heaven<span>×</span>Camp Lucy</div>
+    <div class="footer-meta">Live Proposal · v2.4 · Confidential</div>
+    <div class="footer-address">
+      24905 Ranch Road 12 · Dripping Springs, TX 78620 · Operated by <a href="https://rhythmoutdoors.com/" target="_blank" rel="noopener">Rhythm Outdoors</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     REACTIVE LOGIC
+     ═══════════════════════════════════════════════════════════════════════ -->
+<script>
+  // ============================================================
+  // PRICING (customer-facing retail only — no wholesale/margin)
+  // Schema-ratified Camp Lucy packages: 5-Stand & Sporting Challenge.
+  // ============================================================
+  const RATES = {
+    shotgun5stand:    { label: 'The 5-Stand Shotgun Social',      per: 185,  detail: '2-hour 5-Stand shotgun social · stationary stations, group rotation · shotguns, ammunition, targets, golf carts included' },
+    shotgunChallenge: { label: 'Hill Country Sporting Challenge', per: 185,  detail: '2-hour sporting clays course · walking presentations across the property · same kit included as the 5-Stand' },
+    pistol:           { label: 'Texas Pistol Range Session',      per: 125,  detail: 'Guided pistol experience · firearms & ammo included · certified instructor required regardless of group size' },
+    shotgunCoach:     { label: 'Certified Shotgun Instructors',   per: 350,  detail: 'Auto-staffed at 1:5 ratio · required for groups of 10+ shotgun · scales with guest count' },
+    pistolCoach:      { label: 'Certified Pistol Instructors',    per: 395,  detail: 'Auto-staffed at 1:5 ratio · always required for pistol activities, no exceptions' },
+    extraCoach:       { label: 'Senior Coach (à la carte)',       flat: 350, detail: 'Optional additional coach for extra one-on-one attention or first-time shooters' }
+    // v2.4 (2026-05-11): bridgeBBQ, bridgeSetup, archery, fishing all
+    // removed per Taylor Crawford email — partnership is shooting-only.
+  };
+
+  const SHOTGUN_RATIO = 5;
+  const PISTOL_RATIO = 5;
+  const SHOTGUN_AUTO_THRESHOLD = 10;
+  const TX_TAX_RATE = 0.0825;
+
+  // Activity durations in minutes (used for end-time auto-calc)
+  // Both shotgun packages run 2h; whichever is selected uses this same
+  // duration. extraCoach doesn't add time (it's an additional coach in
+  // the same window, not a separate activity).
+  const DURATIONS = {
+    shotgun:    120,
+    pistol:     60
+    // v2.4: bridgeBBQ, archery, fishing durations removed.
+  };
+
+  // Arrival windows (5 preset start times)
+  const ARRIVAL_WINDOWS = {
+    nineAM:  { label: '9:00 AM',  start: '9:00 AM',  startMinutes: 540 },
+    tenAM:   { label: '10:00 AM', start: '10:00 AM', startMinutes: 600 },
+    noon:    { label: '12:00 PM', start: '12:00 PM', startMinutes: 720 },
+    onePM:   { label: '1:00 PM',  start: '1:00 PM',  startMinutes: 780 },
+    threePM: { label: '3:00 PM',  start: '3:00 PM',  startMinutes: 900 }
+  };
+
+  // ============================================================
+  // STATE
+  //   shotgunFormat: 'shotgun5stand' | 'shotgunChallenge' | null
+  //   pistol:        boolean (independent of shotgunFormat)
+  //   At least one of (shotgunFormat !== null) or (pistol === true) must
+  //   be true for a valid bid; otherwise summary shows empty state.
+  // ============================================================
+  const state = {
+    window: 'threePM',
+    guests: 16,
+    shotgunFormat: 'shotgun5stand',  // default to 5-Stand (Hartwell-Mitchell sample)
+    pistol: false,
+    extraCoach: false
+    // v2.4: bridgeBBQ, archery, fishing state keys removed.
+  };
+
+  // ============================================================
+  // ELEMENTS
+  // ============================================================
+  const slider          = document.getElementById('guest-slider');
+  const guestCountEl    = document.getElementById('guest-count');
+  const heroMetaGuests  = document.getElementById('hero-meta-guests');
+  const summaryGuests   = document.getElementById('summary-guests');
+  const summaryWindow   = document.getElementById('summary-window');
+  const lineItemsEl     = document.getElementById('line-items');
+  const subtotalEl      = document.getElementById('subtotal');
+  const taxEl           = document.getElementById('tax-amount');
+  const eventTotalEl    = document.getElementById('event-total');
+  const endReadoutEl    = document.getElementById('end-readout');
+  const durationReadout = document.getElementById('duration-readout');
+
+  function fmt(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+
+  function fmtTime(minutes) {
+    const total = ((minutes % (24 * 60)) + (24 * 60)) % (24 * 60);
+    let h = Math.floor(total / 60);
+    const m = total % 60;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12; if (h === 0) h = 12;
+    return `${h}:${String(m).padStart(2, '0')} ${ampm}`;
+  }
+
+  function fmtDuration(minutes) {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (h && m) return `${h}h ${m}m`;
+    if (h)      return `${h}h`;
+    return `${m}m`;
+  }
+
+  // ============================================================
+  // BUILD LINE ITEMS
+  //   Tax convention per HSB Master SKU List v1.8 + Charter Principle #12:
+  //     TAXABLE: activities, gear rental, ammunition, F&B, cart fees, bridge setup, retail
+  //     EXEMPT (TX): instructor / pure-instruction service lines (Bundle Trap protected)
+  //
+  //   Discipline architecture (v2.2):
+  //     state.shotgunFormat ∈ {'shotgun5stand', 'shotgunChallenge', null}
+  //     state.pistol        boolean (independent of shotgun)
+  //     Instructors fire ONLY when their corresponding discipline is chosen.
+  // ============================================================
+  function buildLines() {
+    const lines = [];
+    const g = state.guests;
+
+    // ── SHOTGUN (mutex) ──
+    // Whichever shotgun format is selected fires its single line + auto
+    // shotgun instructors when group ≥ threshold. If shotgunFormat is null,
+    // no shotgun lines and no shotgun instructors.
+    if (state.shotgunFormat) {
+      const shotgunRate = RATES[state.shotgunFormat];
+      lines.push({
+        key: state.shotgunFormat,
+        name: shotgunRate.label,
+        detail: g + ' guests × ' + fmt(shotgunRate.per),
+        total: g * shotgunRate.per,
+        taxable: true
+      });
+
+      const shotgunInstructors = g >= SHOTGUN_AUTO_THRESHOLD ? Math.ceil(g / SHOTGUN_RATIO) : 0;
+      if (shotgunInstructors > 0) {
+        lines.push({
+          key: 'shotgunCoach',
+          name: RATES.shotgunCoach.label,
+          detail: shotgunInstructors + (shotgunInstructors === 1 ? ' instructor' : ' instructors') + ' × ' + fmt(RATES.shotgunCoach.per) + ' · TX Exempt',
+          total: shotgunInstructors * RATES.shotgunCoach.per,
+          taxable: false
+        });
+      }
+    }
+
+    // ── PISTOL (independent) ──
+    // Pistol fires only when state.pistol is true. Pistol instructors are
+    // ALWAYS required — minimum 1, scales at 1:5 above 5 guests.
+    if (state.pistol) {
+      lines.push({
+        key: 'pistol',
+        name: RATES.pistol.label,
+        detail: g + ' guests × ' + fmt(RATES.pistol.per),
+        total: g * RATES.pistol.per,
+        taxable: true
+      });
+      const pistolInstructors = Math.max(1, Math.ceil(g / PISTOL_RATIO));
+      lines.push({
+        key: 'pistolCoach',
+        name: RATES.pistolCoach.label,
+        detail: pistolInstructors + (pistolInstructors === 1 ? ' instructor' : ' instructors') + ' × ' + fmt(RATES.pistolCoach.per) + ' · TX Exempt',
+        total: pistolInstructors * RATES.pistolCoach.per,
+        taxable: false
+      });
+    }
+
+    // ── ADD-ONS ──
+    // v2.4 (2026-05-11): bridgeBBQ, archery, fishing all removed per
+    // Taylor Crawford email. Only Senior Coach (extraCoach) remains à
+    // la carte. Required instructors are still auto-staffed above.
+    if (state.extraCoach) {
+      lines.push({
+        key: 'extraCoach',
+        name: RATES.extraCoach.label,
+        detail: 'Flat · ' + fmt(RATES.extraCoach.flat) + ' · TX Exempt',
+        total: RATES.extraCoach.flat,
+        taxable: false
+      });
+    }
+
+    return lines;
+  }
+
+  // True if at least one primary discipline is selected
+  function hasAnyDiscipline() {
+    return state.shotgunFormat !== null || state.pistol === true;
+  }
+
+  // ============================================================
+  // COMPUTE DURATION + END TIME
+  //   Duration sums only the activities actually selected. With no
+  //   discipline picked, base duration is 0 and we display a prompt
+  //   instead of an end time.
+  // ============================================================
+  function computeDuration() {
+    let mins = 0;
+    if (state.shotgunFormat) mins += DURATIONS.shotgun;
+    if (state.pistol)        mins += DURATIONS.pistol;
+    // v2.4: bridgeBBQ, archery, fishing duration adds removed.
+    return mins;
+  }
+
+  function renderDuration() {
+    const w = ARRIVAL_WINDOWS[state.window];
+    const dur = computeDuration();
+
+    if (dur === 0) {
+      durationReadout.innerHTML =
+        '<strong>Estimated end</strong>' +
+        'Arrival ' + w.start + ' · ' +
+        '<span class="end" style="color: var(--hh-tan-deep);">Pick a discipline below to see end time</span>';
+    } else {
+      const endMin = w.startMinutes + dur;
+      durationReadout.innerHTML =
+        '<strong>Estimated end</strong>' +
+        'Arrival ' + w.start + ' · ' +
+        '<span class="end">Estimated end ' + fmtTime(endMin) + '</span> · ' +
+        fmtDuration(dur) + ' total';
+    }
+
+    summaryWindow.textContent = w.label;
+  }
+
+  // ============================================================
+  // RENDER
+  // ============================================================
+  function render() {
+    guestCountEl.textContent = state.guests;
+    heroMetaGuests.textContent = state.guests + ' guests';
+    summaryGuests.textContent = state.guests + (state.guests === 1 ? ' guest' : ' guests');
+
+    const lines = buildLines();
+
+    // Render line items in summary panel — empty-state if no discipline picked
+    if (lines.length === 0) {
+      lineItemsEl.innerHTML = '<div style="font-family: var(--serif); font-style: italic; color: rgba(194,182,149,0.7); text-align: center; padding: 28px 12px; font-size: 14px; line-height: 1.6;">Pick at least one discipline in <strong style="font-style: normal; color: var(--hh-orange);">Step 02</strong> to see your event total. You can run shotgun, pistol, or both.</div>';
+    } else {
+      lineItemsEl.innerHTML = lines.map(l => {
+        const detailClass = l.taxable === false ? 'li-detail exempt' : 'li-detail';
+        return `
+          <div class="line-item">
+            <div>
+              <div class="li-name">${l.name}</div>
+              <div class="${detailClass}">${l.detail}</div>
+            </div>
+            <div class="li-amount">${fmt(l.total)}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Compute totals
+    const subtotal = lines.reduce((s, l) => s + (l.total || 0), 0);
+    const taxableSubtotal = lines.reduce((s, l) => s + (l.taxable ? (l.total || 0) : 0), 0);
+    const tax = taxableSubtotal * TX_TAX_RATE;
+    const total = subtotal + tax;
+
+    subtotalEl.textContent = fmt(subtotal);
+    taxEl.textContent = fmt(tax);
+    eventTotalEl.textContent = fmt(total);
+
+    // Pulse on grand total
+    eventTotalEl.classList.remove('pulse');
+    void eventTotalEl.offsetWidth;
+    eventTotalEl.classList.add('pulse');
+
+    // Reflect addon checked state
+    document.querySelectorAll('.addon-card').forEach(card => {
+      const k = card.dataset.key;
+      if (state[k]) card.classList.add('checked');
+      else          card.classList.remove('checked');
+    });
+
+    // Reflect window selection
+    document.querySelectorAll('.window-card').forEach(card => {
+      const w = card.dataset.window;
+      if (w === state.window) card.classList.add('selected');
+      else                    card.classList.remove('selected');
+    });
+
+    // Reflect discipline selection
+    //   Shotgun cards: selected iff state.shotgunFormat matches data-discipline
+    //   Pistol card:   selected iff state.pistol is true
+    document.querySelectorAll('.discipline-card').forEach(card => {
+      const d = card.dataset.discipline;
+      let isSelected = false;
+      if (d === 'pistol')                              isSelected = state.pistol === true;
+      else if (d === state.shotgunFormat)              isSelected = true;
+      if (isSelected) card.classList.add('selected');
+      else            card.classList.remove('selected');
+    });
+
+    // Empty-state warning visibility
+    const emptyWarn = document.getElementById('discipline-empty-warning');
+    if (hasAnyDiscipline()) emptyWarn.classList.remove('show');
+    else                    emptyWarn.classList.add('show');
+
+    // Update duration readout
+    renderDuration();
+  }
+
+  // ============================================================
+  // EVENTS
+  // ============================================================
+  slider.addEventListener('input', () => {
+    state.guests = parseInt(slider.value, 10);
+    render();
+  });
+
+  function selectWindow(key) {
+    if (!ARRIVAL_WINDOWS[key]) return;
+    state.window = key;
+    render();
+  }
+
+  // Strict-mutex shotgun selector. Clicking the currently-selected format
+  // deselects it (state.shotgunFormat = null). Clicking the other shotgun
+  // format swaps cleanly. Pistol is unaffected.
+  function selectShotgunFormat(key) {
+    if (key !== 'shotgun5stand' && key !== 'shotgunChallenge') return;
+    state.shotgunFormat = (state.shotgunFormat === key) ? null : key;
+    render();
+  }
+
+  // Independent pistol toggle (does not affect shotgunFormat).
+  function togglePistol() {
+    state.pistol = !state.pistol;
+    render();
+  }
+
+  // Add-on toggle — pistol is no longer a valid key here (moved to Step 02).
+  // Guard against stale references just in case.
+  function toggleAddon(key) {
+    if (key === 'pistol') return; // disciplines now handle pistol
+    if (!(key in state)) return;
+    state[key] = !state[key];
+    render();
+  }
+
+  // ============================================================
+  // NAV — solidify on scroll
+  // ============================================================
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 80) nav.classList.add('solid');
+    else                     nav.classList.remove('solid');
+  });
+
+  // ============================================================
+  // SIGNATURE PAD
+  // ============================================================
+  const canvas  = document.getElementById('signature-pad');
+  const sigWrap = document.getElementById('sig-wrap');
+  const ctx     = canvas.getContext('2d');
+  let drawing = false;
+  let hasSignature = false;
+  let lastX = 0, lastY = 0;
+
+  function resizeCanvas() {
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width  = canvas.offsetWidth  * ratio;
+    canvas.height = canvas.offsetHeight * ratio;
+    ctx.scale(ratio, ratio);
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#232b26';
+  }
+
+  window.addEventListener('load', resizeCanvas);
+  window.addEventListener('resize', () => {
+    const data = canvas.toDataURL();
+    resizeCanvas();
+    if (hasSignature) {
+      const img = new Image();
+      img.onload = () => ctx.drawImage(img, 0, 0, canvas.offsetWidth, canvas.offsetHeight);
+      img.src = data;
+    }
+  });
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: clientX - rect.left, y: clientY - rect.top };
+  }
+
+  function startDraw(e) {
+    e.preventDefault();
+    drawing = true;
+    const pos = getPos(e);
+    lastX = pos.x; lastY = pos.y;
+  }
+
+  function draw(e) {
+    if (!drawing) return;
+    e.preventDefault();
+    const pos = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    lastX = pos.x; lastY = pos.y;
+    if (!hasSignature) {
+      hasSignature = true;
+      sigWrap.classList.add('has-signature');
+    }
+  }
+
+  function stopDraw() { drawing = false; }
+
+  canvas.addEventListener('mousedown',  startDraw);
+  canvas.addEventListener('mousemove',  draw);
+  canvas.addEventListener('mouseup',    stopDraw);
+  canvas.addEventListener('mouseleave', stopDraw);
+  canvas.addEventListener('touchstart', startDraw);
+  canvas.addEventListener('touchmove',  draw);
+  canvas.addEventListener('touchend',   stopDraw);
+
+  function clearSignature() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    hasSignature = false;
+    sigWrap.classList.remove('has-signature');
+  }
+
+  // ============================================================
+  // COMPLETION STATE  (v2.3)
+  //   Two flags track each step independently. The unified success
+  //   message fires ONLY when both are true — reinforcing that
+  //   neither step alone is sufficient to confirm.
+  // ============================================================
+  const completion = {
+    depositPaid:      false,
+    acceptanceSigned: false
+  };
+
+  function maybeShowConfirmed() {
+    if (completion.depositPaid && completion.acceptanceSigned) {
+      document.getElementById('confirmed-msg').classList.add('show');
+    }
+  }
+
+  // ============================================================
+  // MOCK STRIPE
+  // ============================================================
+  function mockStripeCheckout(ev) {
+    const proceed = confirm(
+      'STRIPE CHECKOUT (Demo)\n\n' +
+      'In production this would redirect to a Stripe-hosted checkout page.\n\n' +
+      'Hog Heaven Sporting Club\n' +
+      'Wedding Party Adventure — Deposit\n' +
+      'Hartwell-Mitchell · June 26, 2026\n' +
+      'Amount: $500.00\n\n' +
+      'Click OK to simulate a successful payment.'
+    );
+    if (proceed) {
+      const btn = ev.target.closest('.stripe-btn');
+      btn.innerHTML = '✓ Deposit Paid · $500';
+      btn.style.background = 'var(--hh-orange)';
+      btn.style.boxShadow = 'none';
+      btn.disabled = true;
+
+      // Mark Step 1 complete and update visual state
+      completion.depositPaid = true;
+      document.getElementById('step-pay-card').classList.add('complete');
+      maybeShowConfirmed();
+    }
+  }
+
+  // ============================================================
+  // SUBMIT
+  // ============================================================
+  function submitConfirmation() {
+    if (!hasSignature) { alert('Please add your signature before submitting.'); return; }
+    const name = document.getElementById('client-name').value.trim();
+    const dateSigned = document.getElementById('date-signed').value;
+    const email = document.getElementById('email-confirm').value;
+    if (!name)       { alert('Please add your name.'); return; }
+    if (!dateSigned) { alert('Please add the date signed.'); return; }
+    if (!email)      { alert('Please add an email for confirmation.'); return; }
+
+    const btn = document.getElementById('confirm-btn');
+    btn.textContent = '✓ Acceptance Signed';
+    btn.disabled = true;
+
+    // Mark Step 2 complete and update visual state
+    completion.acceptanceSigned = true;
+    document.getElementById('step-sign-card').classList.add('complete');
+    maybeShowConfirmed();
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  render();
+</script>
+
+
+
+<veepn-lock-screen><template shadowrootmode="open"><style>html{box-sizing:border-box;text-size-adjust:100%;word-break:normal;tab-size:4}*,:before,:after{background-repeat:no-repeat;box-sizing:border-box}:before,:after{text-decoration:inherit;vertical-align:inherit}*{padding:0;margin:0}hr{overflow:visible;height:0;color:inherit;border:0;border-top:1px solid}details,main{display:block}summary{display:list-item}small{font-size:80%}[hidden]{display:none!important}abbr[title]{border-bottom:none;text-decoration:underline;text-decoration:underline dotted}a{background-color:transparent}a:active,a:hover{outline-width:0}code,kbd,pre,samp{font-family:monospace}pre{font-size:1em}b,strong{font-weight:bolder}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{border-color:inherit;text-indent:0}iframe{border-style:none}input{border-radius:0}[type=number]::-webkit-inner-spin-button,[type=number]::-webkit-outer-spin-button{height:auto}[type=search]{appearance:textfield;outline-offset:-2px}[type=search]::-webkit-search-decoration{appearance:none}textarea{overflow:auto;resize:vertical}button,input,optgroup,select,textarea{font:inherit;color:inherit}optgroup{font-weight:700}button{overflow:visible}button,select{text-transform:none}button,[type=button],[type=reset],[type=submit],[role=button]{cursor:pointer}button::-moz-focus-inner,[type=button]::-moz-focus-inner,[type=reset]::-moz-focus-inner,[type=submit]::-moz-focus-inner{border-style:none;padding:0}button,html [type=button],[type=reset],[type=submit]{appearance:auto}button,input,select,textarea{background-color:transparent;border-style:none}button:-moz-focusring,[type=button]::-moz-focus-inner,[type=reset]::-moz-focus-inner,[type=submit]::-moz-focus-inner{outline:1px dotted ButtonText}select{appearance:none}a:focus,button:focus,input:focus,select:focus,textarea:focus{outline-width:0}select::-ms-expand{display:none}select::-ms-value{color:currentcolor}legend{border:0;color:inherit;display:table;white-space:normal;max-width:100%}::-webkit-file-upload-button{appearance:auto;color:inherit;font:inherit}[disabled]{cursor:default}img{border-style:none}progress{vertical-align:baseline}[aria-busy=true]{cursor:progress}[aria-controls]{cursor:pointer}[aria-disabled=true]{cursor:default}ul,ol{list-style-type:none}figure{margin:0}@keyframes slide-in{0%{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}.gradient-blue{background:radial-gradient(106.41% 128.47% at 50.15% 128.47%,#23abff,#3066ff)}.gradient-green{background:radial-gradient(92.26% 118.88% at 50.15% .13%,#00c3c3,#00aab3)}.gradient-purple{background:radial-gradient(165.12% 115.56% at 50.15% .13%,#a15aff,#00a0eb)}.bg-blue{background-color:#f2f5ff}.bg-purple{background-color:#f7f0ff}.bg-green{background-color:#ebffed}.lock-screen{font-family:FigtreeVF,sans-serif;letter-spacing:normal;position:fixed;z-index:2147483638;right:24px;bottom:24px;width:327px;border-radius:24px;overflow:hidden;box-shadow:0 24px 32px #00000014;animation:slide-in .3s ease-in-out forwards}.lock-screen__content{position:relative;padding:24px 24px 64px}.lock-screen__close{position:absolute;top:16px;right:16px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;opacity:.5}.lock-screen__label{height:26px;width:fit-content;border-radius:50px;background-color:#fff3;padding-inline:16px;display:flex;align-items:center;justify-content:center;gap:8px;color:#fff;font-size:12px;line-height:18px;margin:-8px auto 16px}.lock-screen__title{color:#fff;text-align:center;font-size:20px;line-height:28px;font-weight:600;margin-bottom:8px}.lock-screen__description{color:#f5f6f7;text-align:center;font-size:14px;line-height:20px}.lock-screen__description b{font-weight:600}.lock-screen__card{position:relative;z-index:1;margin-top:-44px;background-color:#fff;border-radius:24px;padding:32px 20px 20px}.lock-screen__inner{margin-bottom:24px}.lock-screen__submit{display:flex;align-items:center;justify-content:center;gap:10px;font-weight:700;font-size:16px;height:40px;width:100%;border-radius:12px;padding-inline:16px;background-color:#f70;color:#fff;margin-bottom:16px}.lock-screen__skip{display:flex;align-items:center;justify-content:center;font-size:14px;line-height:20px;color:#82829c;margin-inline:auto}.price-card{border:1px solid #f2f2fc;background:linear-gradient(254.14deg,#fafbff .04%,#f5f8ff 100.04%);border-radius:24px;padding:24px 28px}.price-card__label{color:#4a5764;text-align:center;font-size:14px;line-height:20px;text-transform:uppercase;margin-bottom:16px}.price-card__price{display:flex;justify-content:center;align-items:flex-start;column-gap:2px;margin-bottom:12px}.price-card__currency{color:#515478;font-size:18px;line-height:28px}.price-card__number{color:#14142a;text-align:center;font-size:64px;line-height:54px}.price-card__wrap{display:flex;flex-direction:column}.price-card__decimal{color:#515478;font-size:18px;line-height:28px;font-weight:600}.price-card__period{color:#515478;font-size:14px;line-height:20px;margin-top:-6px}.price-card__discount{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:12px}.price-card__discount-divider{position:absolute;z-index:0;top:50%;left:0;width:100%;height:1px;background-color:#dbe2f9;transform:translateY(-50%)}.price-card__discount-icon{position:absolute;z-index:1;top:50%;left:50%;transform:translate(-50%,-50%)}.price-card__discount-text{position:relative;z-index:2;color:#fff;font-size:12px;font-weight:600;line-height:18px}.price-card__features{display:flex;align-items:center;justify-content:center;column-gap:16px}.price-card__feature{color:#222e3a;font-size:14px;line-height:20px;display:flex;align-items:center;gap:6px}.price-card__feature:before{content:"";display:block;width:4px;height:4px;background-color:#20df9e;border-radius:50%;flex-shrink:0}.features-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.features-list__item{display:flex;flex-direction:column;align-items:center;gap:6px}.features-list__icon{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center}.features-list__text{color:#293a53;text-align:center;font-size:16px;line-height:24px;letter-spacing:-.1px}</style></template><style>@font-face{font-family:FigtreeVF;src:url(chrome-extension://majdfhpaihoncoakbjgbdhglocklcgno/fonts/FigtreeVF.woff2) format("woff2 supports variations"),url(chrome-extension://majdfhpaihoncoakbjgbdhglocklcgno/fonts/FigtreeVF.woff2) format("woff2-variations");font-weight:100 1000;font-display:swap}</style></veepn-lock-screen></body></html>

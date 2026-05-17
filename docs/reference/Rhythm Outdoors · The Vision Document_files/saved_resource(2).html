@@ -1,0 +1,2063 @@
+<!DOCTYPE html>
+<!-- saved from url=(0012)about:srcdoc -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rhythm Partner Portal · Intake</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&amp;family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&amp;family=Inter:wght@300;400;500;600;700&amp;family=Libre+Franklin:wght@300;400;500;600;700&amp;family=DM+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     BRAND VARIABLES (mirror the public intake)
+     ============================================================ */
+  :root {
+    --primary:       #2A3216;
+    --primary-deep:  #1F2614;
+    --accent:        #B89C73;
+    --accent-deep:   #8C7B58;
+    --cream:         #E8E4D5;
+    --cream-soft:    #F5EBE0;
+    --paper:         #FBFAF3;
+    --ink:           #1F2614;
+    --gray:          #6B6557;
+    --gray-light:    #9A958A;
+    --rule:          #D9D2BC;
+    --warning:       #c95d2d;
+    --serif:         'Cormorant Garamond', Georgia, serif;
+    --sans:          'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --mono:          'DM Mono', 'SF Mono', Menlo, monospace;
+  }
+
+  body[data-brand="hsb"] {
+    --primary:       #3F4A21; --primary-deep: #2A3216;
+    --accent:        #B89C73; --accent-deep:  #8C7B58;
+    --cream:         #E8E4D5; --cream-soft:   #F2EDDF;
+    --paper:         #FBFAF3; --ink:          #2A3216;
+    --gray:          #6B6557; --gray-light:   #9A958A; --rule: #D9D2BC;
+    --serif:         'Cormorant Garamond', Georgia, serif;
+    --sans:          'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+
+  body[data-brand="hh"] {
+    --primary:       #232b26; --primary-deep: #1a1f1c;
+    --accent:        #c95d2d; --accent-deep:  #a84a23;
+    --cream:         #ecd9ca; --cream-soft:   #f5ebe0;
+    --paper:         #fbf6ee; --ink:          #1a1f1c;
+    --gray:          #6e6557; --gray-light:   #a59c8e; --rule: #d8cfb8;
+    --serif:         'Playfair Display', Georgia, serif;
+    --sans:          'Libre Franklin', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+
+  body[data-brand="packsaddle"] {
+    --primary:       #2C3138; --primary-deep: #1F2329;
+    --accent:        #B87333; --accent-deep:  #92581F;
+    --cream:         #E8E4D5; --cream-soft:   #EFEAD9;
+    --paper:         #F8F6F0; --ink:          #1F2329;
+    --gray:          #5F5C57; --gray-light:   #948F87; --rule: #D6D2C5;
+    --serif:         'Cormorant Garamond', Georgia, serif;
+    --sans:          'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.6;
+    min-height: 100vh;
+    transition: background 0.4s ease, color 0.4s ease;
+  }
+
+  button { font-family: inherit; cursor: pointer; border: none; background: none; }
+  input, textarea, select { font-family: inherit; }
+
+  /* ============================================================
+     TOPBAR — features a "PARTNER PORTAL · CONFIDENTIAL" tag
+     ============================================================ */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--paper);
+    border-bottom: 1px solid var(--rule);
+    padding: 16px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    transition: background 0.4s ease, border-color 0.4s ease;
+  }
+
+  .brand-mark {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--primary);
+    letter-spacing: -0.01em;
+    transition: color 0.4s ease;
+  }
+
+  body[data-brand="hh"] .brand-mark { font-weight: 700; }
+
+  .brand-mark .mark-accent { color: var(--accent); margin: 0 6px; font-style: normal; }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .partner-stamp {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    padding: 5px 12px;
+    border: 1px solid var(--accent);
+    border-radius: 100px;
+    background: rgba(184, 156, 115, 0.08);
+    white-space: nowrap;
+  }
+
+  .progress {
+    flex: 1;
+    max-width: 360px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .progress-bar { flex: 1; height: 4px; background: var(--rule); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); width: 12.5%; transition: width 0.3s ease; border-radius: 2px; }
+
+  .progress-text {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gray);
+    white-space: nowrap;
+  }
+
+  .progress.hidden { visibility: hidden; }
+
+  /* ============================================================
+     SCREEN SYSTEM
+     ============================================================ */
+  main.form-container {
+    min-height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .screen {
+    display: none;
+    flex: 1;
+    padding: 56px 32px 96px;
+    animation: fadeUp 0.34s ease;
+  }
+
+  .screen.active { display: flex; flex-direction: column; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .screen-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .step-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 18px;
+    font-weight: 500;
+  }
+
+  .screen h2 {
+    font-family: var(--serif);
+    font-size: clamp(34px, 4.8vw, 50px);
+    font-weight: 700;
+    color: var(--primary);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 14px;
+  }
+
+  body[data-brand="hsb"] .screen h2 { font-weight: 600; }
+
+  .screen h2 em { font-style: italic; color: var(--accent); font-weight: 400; }
+
+  .step-lede {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-style: italic;
+    color: var(--gray);
+    line-height: 1.55;
+    margin-bottom: 36px;
+  }
+
+  /* ============================================================
+     SCREEN 1 · BRAND PICK
+     ============================================================ */
+  .screen-brand { padding: 0; }
+
+  .brand-pick {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    min-height: calc(100vh - 60px);
+  }
+
+  .brand-card {
+    cursor: pointer;
+    padding: 64px 44px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.3s ease, filter 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    border: none;
+    text-align: left;
+    color: inherit;
+  }
+
+  .brand-card:hover { filter: brightness(1.08); }
+  .brand-card:active { transform: scale(0.99); }
+
+  .brand-card.hsb {
+    background:
+      radial-gradient(ellipse at 30% 70%, rgba(184, 156, 115, 0.18), transparent 55%),
+      #3F4A21;
+    color: #E8E4D5;
+  }
+
+  .brand-card.hh {
+    background:
+      radial-gradient(ellipse at 70% 30%, rgba(201, 93, 45, 0.22), transparent 55%),
+      radial-gradient(ellipse at 20% 80%, rgba(194, 182, 149, 0.08), transparent 50%),
+      #232b26;
+    color: #ecd9ca;
+  }
+
+  .brand-card.packsaddle {
+    background:
+      radial-gradient(ellipse at 60% 40%, rgba(184, 115, 51, 0.20), transparent 55%),
+      radial-gradient(ellipse at 20% 90%, rgba(232, 228, 213, 0.06), transparent 60%),
+      #2C3138;
+    color: #E8E4D5;
+  }
+
+  .brand-card .coming-soon-badge {
+    position: absolute;
+    top: 32px;
+    right: 32px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 100px;
+    background: rgba(184, 115, 51, 0.18);
+    color: #B87333;
+    border: 1px solid rgba(184, 115, 51, 0.45);
+    z-index: 3;
+  }
+
+  .brand-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(232, 228, 213, 0.10) 1px, transparent 0);
+    background-size: 36px 36px;
+    pointer-events: none;
+    mask: linear-gradient(to bottom, transparent, black 35%, black 75%, transparent);
+    -webkit-mask: linear-gradient(to bottom, transparent, black 35%, black 75%, transparent);
+  }
+
+  .brand-card-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    opacity: 0.85;
+    margin-bottom: 28px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .brand-card.hsb        .brand-card-eyebrow { color: #B89C73; }
+  .brand-card.hh         .brand-card-eyebrow { color: #c95d2d; }
+  .brand-card.packsaddle .brand-card-eyebrow { color: #B87333; }
+
+  .brand-card-name {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(34px, 3.6vw, 54px);
+    line-height: 0.98;
+    letter-spacing: -0.025em;
+    font-weight: 600;
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .brand-card.hh .brand-card-name {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+  }
+
+  .brand-card-name em { font-style: italic; font-weight: 400; }
+
+  .brand-card.hsb        .brand-card-name em { color: #B89C73; }
+  .brand-card.hh         .brand-card-name em { color: #c95d2d; }
+  .brand-card.packsaddle .brand-card-name em { color: #B87333; }
+
+  .brand-card-desc {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 17px;
+    font-style: italic;
+    line-height: 1.55;
+    max-width: 380px;
+    opacity: 0.85;
+    position: relative;
+    z-index: 2;
+    margin-bottom: 40px;
+  }
+
+  .brand-card.hh .brand-card-desc { font-family: 'Playfair Display', Georgia, serif; }
+
+  .brand-card-cta {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 24px;
+    border: 1px solid currentColor;
+    border-radius: 100px;
+    align-self: flex-start;
+    transition: background 0.2s ease, color 0.2s ease;
+    position: relative;
+    z-index: 2;
+  }
+
+  .brand-card.hsb        .brand-card-cta { color: #E8E4D5; }
+  .brand-card.hh         .brand-card-cta { color: #ecd9ca; }
+  .brand-card.packsaddle .brand-card-cta { color: #E8E4D5; }
+
+  .brand-card.hsb:hover .brand-card-cta {
+    background: #E8E4D5;
+    color: #3F4A21;
+  }
+  .brand-card.hh:hover .brand-card-cta {
+    background: #ecd9ca;
+    color: #232b26;
+  }
+  .brand-card.packsaddle:hover .brand-card-cta {
+    background: #E8E4D5;
+    color: #2C3138;
+  }
+
+  .brand-pick-intro {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 48px 32px 32px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .brand-pick-intro .step-tag { margin-bottom: 14px; color: var(--accent); }
+
+  .brand-pick-intro h1 {
+    font-family: var(--serif);
+    font-size: clamp(30px, 4vw, 42px);
+    font-weight: 600;
+    color: var(--primary);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+
+  .brand-pick-intro p {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--gray);
+    font-size: 16px;
+    max-width: 580px;
+    margin: 0 auto;
+  }
+
+  /* ============================================================
+     PASSWORD GATE — full-screen, brand-immersive
+     ============================================================ */
+  .screen-gate {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .gate-canvas {
+    flex: 1;
+    background: var(--primary);
+    color: var(--cream);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 64px 32px;
+    min-height: calc(100vh - 60px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  body[data-brand="hsb"] .gate-canvas {
+    background:
+      radial-gradient(ellipse at 30% 70%, rgba(184, 156, 115, 0.18), transparent 55%),
+      #3F4A21;
+  }
+
+  body[data-brand="hh"] .gate-canvas {
+    background:
+      radial-gradient(ellipse at 70% 30%, rgba(201, 93, 45, 0.22), transparent 55%),
+      radial-gradient(ellipse at 20% 80%, rgba(194, 182, 149, 0.08), transparent 50%),
+      #232b26;
+  }
+
+  .gate-canvas::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(232, 228, 213, 0.10) 1px, transparent 0);
+    background-size: 40px 40px;
+    pointer-events: none;
+    mask: linear-gradient(to bottom, transparent, black 30%, black 70%, transparent);
+    -webkit-mask: linear-gradient(to bottom, transparent, black 30%, black 70%, transparent);
+  }
+
+  .gate-card {
+    max-width: 520px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  .gate-lock {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 1.5px solid var(--accent);
+    margin: 0 auto 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: var(--accent);
+  }
+
+  .gate-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+
+  .gate-title {
+    font-family: var(--serif);
+    font-size: clamp(30px, 4vw, 44px);
+    font-weight: 700;
+    color: var(--cream);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 14px;
+  }
+
+  body[data-brand="hsb"] .gate-title { font-weight: 600; }
+
+  .gate-title em { font-style: italic; color: var(--accent); font-weight: 400; }
+
+  .gate-subtitle {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-style: italic;
+    color: var(--cream);
+    opacity: 0.78;
+    line-height: 1.55;
+    margin-bottom: 36px;
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .gate-input-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .gate-input {
+    flex: 1;
+    font-family: var(--serif);
+    font-size: 18px;
+    color: var(--cream);
+    background: rgba(232, 228, 213, 0.10);
+    border: 1px solid rgba(232, 228, 213, 0.25);
+    padding: 16px 18px;
+    outline: none;
+    border-radius: 2px;
+    text-align: center;
+    letter-spacing: 0.04em;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+
+  .gate-input:focus {
+    border-color: var(--accent);
+    background: rgba(232, 228, 213, 0.15);
+  }
+
+  .gate-input::placeholder {
+    color: rgba(232, 228, 213, 0.4);
+    font-style: italic;
+  }
+
+  .gate-submit {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 500;
+    background: var(--accent);
+    color: var(--primary-deep);
+    border: none;
+    padding: 16px 24px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: filter 0.18s ease;
+  }
+
+  .gate-submit:hover { filter: brightness(1.08); }
+
+  .gate-error {
+    font-family: var(--serif);
+    font-size: 14px;
+    font-style: italic;
+    color: #ff8a5b;
+    margin-top: 14px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .gate-error.show { opacity: 1; }
+
+  .gate-card.shake { animation: shake 0.35s ease; }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+  }
+
+  .gate-hint {
+    font-family: var(--serif);
+    font-size: 13px;
+    color: var(--cream);
+    opacity: 0.55;
+    margin-top: 32px;
+    font-style: italic;
+    line-height: 1.6;
+  }
+
+  .gate-hint a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid var(--accent);
+  }
+
+  .gate-back {
+    margin-top: 24px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--cream);
+    opacity: 0.55;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .gate-back:hover { opacity: 1; }
+
+  /* ============================================================
+     CHOICE CARDS (event types, disciplines, addons)
+     ============================================================ */
+  .choice-grid {
+    display: grid;
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .choice-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+  .choice-card {
+    background: var(--paper);
+    border: 1.5px solid var(--rule);
+    padding: 22px 24px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    border-radius: 2px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    text-align: left;
+    width: 100%;
+    color: inherit;
+  }
+
+  .choice-card:hover { border-color: var(--accent-deep); background: #fff; }
+
+  .choice-card.selected {
+    border-color: var(--accent);
+    background: var(--cream-soft);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  }
+
+  .choice-checkmark {
+    width: 22px; height: 22px;
+    border: 1.5px solid var(--accent);
+    border-radius: 4px;
+    background: #fff;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+    transition: all 0.18s ease;
+  }
+
+  .choice-card.radio-mode .choice-checkmark { border-radius: 50%; }
+  .choice-card.selected .choice-checkmark { background: var(--accent); }
+
+  .choice-card.selected .choice-checkmark::after {
+    content: '';
+    width: 5px; height: 9px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    margin-bottom: 1px;
+  }
+
+  .choice-body { flex: 1; min-width: 0; }
+
+  .choice-name {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--primary);
+    line-height: 1.25;
+    margin-bottom: 4px;
+  }
+
+  body[data-brand="hh"] .choice-name { font-weight: 700; }
+
+  .choice-desc {
+    font-family: var(--serif);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--gray);
+    line-height: 1.5;
+  }
+
+  .choice-pricing {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-top: 8px;
+    padding: 4px 10px;
+    background: rgba(184, 156, 115, 0.12);
+    border-radius: 100px;
+  }
+
+  body[data-brand="hh"] .choice-pricing {
+    color: var(--accent);
+    background: rgba(201, 93, 45, 0.10);
+  }
+
+  .choice-confidential {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--warning);
+    font-weight: 600;
+    margin-top: 6px;
+    padding: 3px 9px;
+    background: rgba(201, 93, 45, 0.10);
+    border: 1px solid rgba(201, 93, 45, 0.3);
+    border-radius: 100px;
+  }
+
+  /* ============================================================
+     FORM INPUTS
+     ============================================================ */
+  .field-group {
+    display: grid;
+    gap: 22px;
+    margin-bottom: 28px;
+  }
+
+  .field-group.cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+  .field { display: flex; flex-direction: column; }
+
+  .field label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    font-family: var(--serif);
+    font-size: 17px;
+    color: var(--ink);
+    border: 1px solid var(--rule);
+    background: #fff;
+    padding: 14px 16px;
+    outline: none;
+    border-radius: 2px;
+    transition: border-color 0.18s ease;
+  }
+
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus { border-color: var(--accent); }
+
+  .field textarea { resize: vertical; min-height: 96px; }
+
+  .field-help {
+    font-family: var(--serif);
+    font-size: 13px;
+    font-style: italic;
+    color: var(--gray-light);
+    margin-top: 6px;
+  }
+
+  .field-static {
+    font-family: var(--serif);
+    font-size: 17px;
+    color: var(--primary);
+    padding: 14px 16px;
+    background: var(--cream-soft);
+    border-radius: 2px;
+    border-left: 2px solid var(--accent);
+  }
+
+  /* Slider */
+  .slider-block {
+    background: #fff;
+    border: 1px solid var(--rule);
+    padding: 26px 30px;
+    border-radius: 2px;
+    margin-bottom: 22px;
+  }
+
+  .slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 16px;
+  }
+
+  .slider-header .lbl {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .slider-header .count {
+    font-family: var(--serif);
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: -0.025em;
+    line-height: 1;
+  }
+
+  body[data-brand="hsb"] .slider-header .count { font-weight: 600; }
+
+  .slider-header .count em {
+    font-size: 13px;
+    font-style: normal;
+    color: var(--gray);
+    margin-left: 8px;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-weight: 400;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    background: var(--rule);
+    border-radius: 3px;
+    outline: none;
+    margin: 12px 0 4px;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 26px; height: 26px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid var(--paper);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 26px; height: 26px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid var(--paper);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+
+  .slider-bounds {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--gray-light);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    margin-top: 4px;
+  }
+
+  /* Arrival windows */
+  .windows-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+
+  .window-card {
+    background: #fff;
+    border: 1.5px solid var(--rule);
+    padding: 16px 12px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    border-radius: 2px;
+    text-align: center;
+  }
+
+  .window-card:hover { border-color: var(--accent-deep); }
+
+  .window-card.selected {
+    background: var(--primary);
+    color: var(--cream);
+    border-color: var(--primary);
+  }
+
+  .window-name {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--primary);
+    line-height: 1.1;
+  }
+
+  body[data-brand="hsb"] .window-name { font-weight: 600; }
+
+  .window-card.selected .window-name { color: var(--cream); }
+
+  .window-context {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-top: 4px;
+  }
+
+  .flex-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    font-family: var(--serif);
+    font-size: 14px;
+    color: var(--gray);
+    cursor: pointer;
+  }
+
+  .flex-toggle input { accent-color: var(--accent); cursor: pointer; }
+
+  /* Navigation */
+  .screen-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 28px;
+    gap: 16px;
+  }
+
+  .btn-back, .btn-next {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 500;
+    padding: 14px 28px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+  }
+
+  .btn-back {
+    background: transparent;
+    color: var(--gray);
+    border: 1px solid var(--rule);
+  }
+
+  .btn-back:hover { color: var(--primary); border-color: var(--primary); }
+
+  .btn-next {
+    background: var(--primary);
+    color: var(--cream);
+    border: 1px solid var(--primary);
+  }
+
+  .btn-next:hover { background: var(--accent); border-color: var(--accent); }
+
+  .btn-next:disabled {
+    background: var(--gray-light);
+    border-color: var(--gray-light);
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  /* Review screen */
+  .review-list { display: grid; gap: 12px; margin-bottom: 28px; }
+
+  .review-row {
+    display: grid;
+    grid-template-columns: 200px 1fr auto;
+    gap: 18px;
+    align-items: baseline;
+    padding: 14px 0;
+    border-bottom: 1px dashed var(--rule);
+  }
+
+  .review-row:last-child { border-bottom: none; }
+
+  .review-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .review-value {
+    font-family: var(--serif);
+    font-size: 17px;
+    color: var(--primary);
+    line-height: 1.4;
+  }
+
+  .review-edit {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-weight: 500;
+  }
+
+  .review-edit:hover { color: var(--primary); }
+
+  /* Success */
+  .success-screen .screen-inner {
+    text-align: center;
+    padding-top: 64px;
+  }
+
+  .success-mark {
+    font-size: 48px;
+    color: var(--accent);
+    margin-bottom: 24px;
+    line-height: 1;
+  }
+
+  .success-screen h2 { margin-bottom: 18px; }
+
+  .success-meta {
+    font-family: var(--serif);
+    font-size: 17px;
+    color: var(--gray);
+    line-height: 1.6;
+    max-width: 540px;
+    margin: 0 auto 36px;
+    font-style: italic;
+  }
+
+  .success-meta strong { font-style: normal; color: var(--primary); }
+
+  .success-detail {
+    background: var(--cream-soft);
+    border: 1px solid var(--rule);
+    padding: 24px 28px;
+    border-radius: 2px;
+    text-align: left;
+    max-width: 540px;
+    margin: 0 auto;
+  }
+
+  .success-detail h4 {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+
+  .success-detail p {
+    font-family: var(--serif);
+    font-size: 15px;
+    color: var(--ink);
+    line-height: 1.6;
+    margin-bottom: 8px;
+  }
+
+  /* Confidential banner — at top of disciplines step */
+  .confidential-banner {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--warning);
+    font-weight: 600;
+    margin-bottom: 14px;
+    padding: 10px 14px;
+    background: rgba(201, 93, 45, 0.08);
+    border: 1px solid rgba(201, 93, 45, 0.3);
+    border-radius: 2px;
+    text-align: center;
+  }
+
+  /* Footer */
+  .footer-craft {
+    text-align: center;
+    padding: 22px 32px 28px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gray-light);
+    border-top: 1px solid var(--rule);
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .brand-pick { grid-template-columns: 1fr; }
+    .brand-card { padding: 56px 40px; min-height: 320px; }
+    .brand-card .coming-soon-badge { top: 24px; right: 24px; }
+  }
+
+  @media (max-width: 720px) {
+    .topbar { padding: 12px 18px; gap: 12px; flex-wrap: wrap; }
+    .topbar-right { gap: 10px; }
+    .partner-stamp { font-size: 8px; padding: 4px 8px; letter-spacing: 0.20em; }
+    .brand-mark { font-size: 16px; }
+    .progress { max-width: none; }
+    .screen { padding: 32px 18px 56px; }
+    .brand-card { padding: 44px 26px; min-height: 260px; }
+    .gate-canvas { padding: 48px 22px; }
+    .gate-input-row { flex-direction: column; }
+    .windows-grid { grid-template-columns: repeat(2, 1fr); }
+    .choice-grid.cols-2 { grid-template-columns: 1fr; }
+    .field-group.cols-2 { grid-template-columns: 1fr; }
+    .review-row { grid-template-columns: 1fr; gap: 4px; }
+    .review-edit { justify-self: flex-start; padding-left: 0; }
+  }
+</style>
+</head>
+<body data-brand="">
+
+<header class="topbar">
+  <div class="brand-mark" id="brand-mark">Rhythm <span class="mark-accent">·</span> Partner Portal</div>
+  <div class="topbar-right">
+    <div class="progress hidden" id="progress">
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-text">Step <span id="step-num">1</span> of 7</div>
+    </div>
+    <div class="partner-stamp">Partner · Confidential</div>
+  </div>
+</header>
+
+<main class="form-container">
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       SCREEN 1 · BRAND PICK
+       ═══════════════════════════════════════════════════════════════════ -->
+  <section class="screen screen-brand active" data-step="1">
+    <div class="brand-pick-intro">
+      <div class="step-tag">Partner Portal · Welcome</div>
+      <h1>Submit a partner inquiry.</h1>
+      <p>You're in the right place. Pick the property your guest is interested in. The next screen will ask for your partner access code.</p>
+    </div>
+    <div class="brand-pick">
+
+      <button type="button" class="brand-card hsb" onclick="pickBrand(&#39;hsb&#39;)">
+        <div class="brand-card-eyebrow">Horseshoe Bay Resort Partner</div>
+        <div>
+          <div class="brand-card-name">Horseshoe Bay<br><em>Sporting Club</em></div>
+          <div class="brand-card-desc">Channel B · Hotel Group bookings. The all-inclusive partner package: shotgun experience, certified instruction, full kit, F&amp;B coordination.</div>
+        </div>
+        <div class="brand-card-cta">Resort Partner Access →</div>
+      </button>
+
+      <button type="button" class="brand-card hh" onclick="pickBrand(&#39;hh&#39;)">
+        <div class="brand-card-eyebrow">Camp Lucy Partner</div>
+        <div>
+          <div class="brand-card-name">Hog Heaven<br><em>Sporting Club</em></div>
+          <div class="brand-card-desc">Wedding-weekend bookings routed through Camp Lucy. The 5-Stand Social, the Sporting Challenge, pistol, and the supporting activities — fifteen minutes from the chapel.</div>
+        </div>
+        <div class="brand-card-cta">Camp Lucy Access →</div>
+      </button>
+
+      <button type="button" class="brand-card packsaddle" onclick="pickBrand(&#39;packsaddle&#39;)">
+        <div class="coming-soon-badge">Coming Soon</div>
+        <div class="brand-card-eyebrow">Horseshoe Bay, Texas</div>
+        <div>
+          <div class="brand-card-name">Packsaddle<br><em>Precision &amp; Training</em></div>
+          <div class="brand-card-desc">The world's finest and most accessible 4,000-yard range. Partner program forming — let us know if you'd like to be part of it.</div>
+        </div>
+        <div class="brand-card-cta">Partner Program Interest →</div>
+      </button>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       PASSWORD GATE  (between Q1 and Q2)
+       ═══════════════════════════════════════════════════════════════════ -->
+  <section class="screen screen-gate" data-step="gate">
+    <div class="gate-canvas">
+      <div class="gate-card" id="gate-card">
+        <div class="gate-lock">●</div>
+        <div class="gate-eyebrow">Partner Access · Restricted</div>
+        <h2 class="gate-title" id="gate-title"><em>Partner</em> Portal</h2>
+        <p class="gate-subtitle" id="gate-subtitle">Enter your partner access code to continue. Codes are issued by your sales coordinator.</p>
+
+        <div class="gate-input-row">
+          <input type="password" class="gate-input" id="gate-input" placeholder="Access code" autocomplete="off" autocapitalize="off" spellcheck="false" onkeydown="if(event.key===&#39;Enter&#39;){verifyAccess();}">
+          <button type="button" class="gate-submit" onclick="verifyAccess()">Verify Access →</button>
+        </div>
+
+        <div class="gate-error" id="gate-error">Access code not recognized. Try again or contact your sales coordinator.</div>
+
+        <div class="gate-hint" id="gate-hint">
+          Don't have access? Contact your sales coordinator or reach Rhythm Outdoors directly.
+        </div>
+
+        <button type="button" class="gate-back" onclick="showScreen(1)">← Back to property pick</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       SCREEN 2 · PARTNER CONCIERGE IDENTITY
+       ═══════════════════════════════════════════════════════════════════ -->
+  <section class="screen" data-step="2">
+    <div class="screen-inner">
+      <div class="step-tag">Step 01 · Partner concierge</div>
+      <h2>Who's <em>submitting</em>?</h2>
+      <p class="step-lede">For routing and follow-up. Replies and confirmations come back to you, not directly to the guest.</p>
+
+      <div class="field-group cols-2">
+        <div class="field">
+          <label>Partner organization</label>
+          <div class="field-static" id="partner-org-static">—</div>
+        </div>
+        <div class="field">
+          <label>Internal reference (optional)</label>
+          <input type="text" id="partner-ref" placeholder="Booking ID, group code, etc.">
+        </div>
+        <div class="field">
+          <label>Your name</label>
+          <input type="text" id="partner-name" placeholder="Full name" oninput="validatePartner()">
+        </div>
+        <div class="field">
+          <label>Your email</label>
+          <input type="email" id="partner-email" placeholder="you@partner.com" oninput="validatePartner()">
+        </div>
+      </div>
+
+      <div class="screen-nav">
+        <button class="btn-back" onclick="prevScreen()">← Back</button>
+        <button class="btn-next" id="next-2" onclick="nextScreen()" disabled="">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       SCREEN 3 · GUEST CONTACT
+       ═══════════════════════════════════════════════════════════════════ -->
+  <section class="screen" data-step="3">
+    <div class="screen-inner">
+      <div class="step-tag">Step 02 · Your guest</div>
+      <h2>Tell us about <em>your guest</em>.</h2>
+      <p class="step-lede">Their name and contact for the bid. The proposal link can be addressed to either you or them — your call at submit.</p>
+
+      <div class="field-group cols-2">
+        <div class="field">
+          <label>Guest / lead name</label>
+          <input type="text" id="guest-name" placeholder="Couple&#39;s names, group lead, etc." oninput="validateGuest()">
+        </div>
+        <div class="field">
+          <label>Group / wedding-party name</label>
+          <input type="text" id="guest-group" placeholder="Hartwell-Mitchell wedding · Acme Corp · etc.">
+        </div>
+        <div class="field">
+          <label>Guest email</label>
+          <input type="email" id="guest-email" placeholder="guest@example.com" oninput="validateGuest()">
+        </div>
+        <div class="field">
+          <label>Guest phone (optional)</label>
+          <input type="tel" id="guest-phone" placeholder="(512) 555-0123">
+        </div>
+      </div>
+
+      <div class="screen-nav">
+        <button class="btn-back" onclick="prevScreen()">← Back</button>
+        <button class="btn-next" id="next-3" onclick="nextScreen()" disabled="">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       SCREEN 4 · DATE + ARRIVAL WINDOW
+       ═══════════════════════════════════════════════════════════════════ -->
+  <section class="screen" data-step="4">
+    <div class="screen-inner">
+      <div class="step-tag">Step 03 · When</div>
+      <h2>Date and <em>arrival window</em>.</h2>
+      <p class="step-lede">If date isn't locked yet, tick the flexibility toggle below.</p>
+
+      <div class="field-group cols-2">
+        <div class="field">
+          <label>Event date</label>
+          <input type="date" id="event-date">
+          <label class="flex-toggle">
+            <input type="checkbox" id="date-flexible">
+            <span>Date flexible — open to suggestions</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="field" style="margin-bottom: 14px;">
+        <label>Arrival window</label>
+      </div>
+
+      <div class="windows-grid">
+        <button type="button" class="window-card" data-window="9 AM" onclick="selectWindow(&#39;9 AM&#39;)">
+          <div class="window-name">9:00 AM</div>
+          <div class="window-context">Early start</div>
+        </button>
+        <button type="button" class="window-card" data-window="10 AM" onclick="selectWindow(&#39;10 AM&#39;)">
+          <div class="window-name">10:00 AM</div>
+          <div class="window-context">Mid-morning</div>
+        </button>
+        <button type="button" class="window-card" data-window="12 PM" onclick="selectWindow(&#39;12 PM&#39;)">
+          <div class="window-name">12:00 PM</div>
+          <div class="window-context">Midday</div>
+        </button>
+        <button type="button" class="window-card" data-window="1 PM" onclick="selectWindow(&#39;1 PM&#39;)">
+          <div class="window-name">1:00 PM</div>
+          <div class="window-context">Early afternoon</div>
+        </button>
+        <button type="button" class="window-card" data-window="3 PM" onclick="selectWindow(&#39;3 PM&#39;)">
+          <div class="window-name">3:00 PM</div>
+          <div class="window-context">Late afternoon</div>
+        </button>
+      </div>
+
+      <div class="screen-nav">
+        <button class="btn-back" onclick="prevScreen()">← Back</button>
+        <button class="btn-next" id="next-4" onclick="nextScreen()" disabled="">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       SCREEN 5 · GROUP SIZE
+       ═══════════════════════════════════════════════════════════════════ -->
+  <section class="screen" data-step="5">
+    <div class="screen-inner">
+      <div class="step-tag">Step 04 · Group size</div>
+      <h2>How <em>many</em>?</h2>
+      <p class="step-lede" id="step-5-lede">Set the headcount. Adjustable later — we just need a working number for staffing and pricing.</p>
+
+      <div class="slider-block">
+        <div class="slider-header">
+          <div class="lbl">Total guests</div>
+          <div class="count"><span id="guest-count">12</span><em>guests</em></div>
+        </div>
+        <input type="range" id="guest-slider" min="2" max="100" value="12" step="1" oninput="updateGuestCount(this.value)">
+        <div class="slider-bounds"><span>2</span><span>100</span></div>
+      </div>
+
+      <div class="field-group cols-2">
+        <div class="field">
+          <label>Adults (16+)</label>
+          <input type="number" id="adults" min="0" max="100" value="12">
+        </div>
+        <div class="field">
+          <label>Juniors (under 16)</label>
+          <input type="number" id="juniors" min="0" max="100" value="0">
+        </div>
+      </div>
+
+      <div class="screen-nav">
+        <button class="btn-back" onclick="prevScreen()">← Back</button>
+        <button class="btn-next" id="next-5" onclick="nextScreen()">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       SCREEN 6 · DISCIPLINES / PACKAGES (CONFIDENTIAL pricing visible)
+       ═══════════════════════════════════════════════════════════════════ -->
+  <section class="screen" data-step="6">
+    <div class="screen-inner">
+      <div class="step-tag">Step 05 · Package</div>
+      <h2>Pick a <em>package</em>.</h2>
+      <p class="step-lede" id="step-6-lede">Channel-specific package pricing visible. These figures are partner-only — not displayed to the guest until the bid renders.</p>
+
+      <div class="confidential-banner">Channel B · Confidential · Internal Pricing</div>
+
+      <div class="choice-grid cols-2" id="disciplines-grid"></div>
+
+      <div class="screen-nav">
+        <button class="btn-back" onclick="prevScreen()">← Back</button>
+        <button class="btn-next" id="next-6" onclick="nextScreen()" disabled="">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       SCREEN 7 · ADD-ONS + PARTNER NOTES
+       ═══════════════════════════════════════════════════════════════════ -->
+  <section class="screen" data-step="7">
+    <div class="screen-inner">
+      <div class="step-tag">Step 06 · Add-ons + notes</div>
+      <h2>Anything <em>else</em>?</h2>
+      <p class="step-lede">Optional add-ons your guest is interested in, plus any partner-internal notes that should reach the bid team but not the guest.</p>
+
+      <div class="choice-grid cols-2" id="addons-grid"></div>
+
+      <div class="field" style="margin-bottom: 22px;">
+        <label>Partner-internal notes</label>
+        <textarea id="partner-notes" placeholder="Anything the bid team should know — guest preferences, sensitivities, partner-specific arrangements, prior history."></textarea>
+        <div class="field-help">These notes stay in our pipeline; they're not surfaced to the guest.</div>
+      </div>
+
+      <div class="field" style="margin-bottom: 22px;">
+        <label>Guest-visible special requests (optional)</label>
+        <textarea id="guest-requests" placeholder="Anything that should appear on the bid sent to your guest — accessibility, dietary, special arrangements they&#39;ve asked about."></textarea>
+        <div class="field-help">These DO surface on the customer-facing bid.</div>
+      </div>
+
+      <div class="screen-nav">
+        <button class="btn-back" onclick="prevScreen()">← Back</button>
+        <button class="btn-next" onclick="nextScreen()">Review →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       SCREEN 8 · REVIEW
+       ═══════════════════════════════════════════════════════════════════ -->
+  <section class="screen" data-step="8">
+    <div class="screen-inner">
+      <div class="step-tag">Step 07 · Review</div>
+      <h2>Confirm and <em>route</em>.</h2>
+      <p class="step-lede">A final read-through. The bid team sees this exactly as it's written — edit any line before submit.</p>
+
+      <div class="review-list" id="review-list"></div>
+
+      <div class="screen-nav">
+        <button class="btn-back" onclick="prevScreen()">← Back</button>
+        <button class="btn-next" onclick="submitForm()">Route Inquiry →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       SCREEN 9 · SUCCESS
+       ═══════════════════════════════════════════════════════════════════ -->
+  <section class="screen success-screen" data-step="9">
+    <div class="screen-inner">
+      <div class="success-mark">✓</div>
+      <h2>Inquiry <em>routed</em>.</h2>
+      <p class="success-meta">
+        Thank you, <strong id="success-name">friend</strong>. The Rhythm bid team will review and prepare a tailored proposal for <strong id="success-guest">your guest</strong> — typically within 24 hours.
+      </p>
+
+      <div class="success-detail">
+        <h4>What happens next</h4>
+        <p>1. We review the inquiry today and confirm any open variables with you directly.</p>
+        <p>2. A live, interactive bid is drafted and sent to your inbox first — for your eyes only.</p>
+        <p>3. Once you've blessed it, you forward to your guest, or we send it from our side with you cc'd. Your call.</p>
+        <p style="margin-top: 14px; font-style: italic; color: var(--gray);">Confidential package pricing stays partner-only. Guest sees the all-inclusive figure on the bid.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       SCREEN 10 · PACKSADDLE COMING SOON (partner program forming)
+       ═══════════════════════════════════════════════════════════════════ -->
+  <section class="screen" data-step="10">
+    <div class="screen-inner">
+      <div class="step-tag" style="color: var(--accent);">Coming Soon</div>
+      <h2>Packsaddle partner program is <em>forming</em>.</h2>
+      <p class="step-lede">A 4,000-yard precision rifle range needs partners who get it — outfitters, training operators, hospitality groups with a long-range angle. Drop your details and we'll bring you in as the program takes shape.</p>
+
+      <div class="field-group cols-2">
+        <div class="field">
+          <label>Your name</label>
+          <input type="text" id="ps-name" placeholder="Full name" oninput="validateComingSoon()">
+        </div>
+        <div class="field">
+          <label>Your email</label>
+          <input type="email" id="ps-email" placeholder="you@example.com" oninput="validateComingSoon()">
+        </div>
+        <div class="field">
+          <label>Organization</label>
+          <input type="text" id="ps-org" placeholder="Company / outfit">
+        </div>
+        <div class="field">
+          <label>Your role</label>
+          <input type="text" id="ps-role" placeholder="Title / how you&#39;d partner">
+        </div>
+      </div>
+
+      <div class="field" style="margin-bottom: 22px;">
+        <label>What kind of partnership are you imagining?</label>
+        <textarea id="ps-notes" placeholder="Outfitter referrals, corporate training packages, hospitality co-marketing, founding-partner interest — whatever you have in mind."></textarea>
+      </div>
+
+      <div class="screen-nav">
+        <button class="btn-back" onclick="showScreen(1)">← Back to property pick</button>
+        <button class="btn-next" id="ps-submit" onclick="submitComingSoon()" disabled="">Add me to the partner list →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       SCREEN 11 · PACKSADDLE LIST CONFIRMATION
+       ═══════════════════════════════════════════════════════════════════ -->
+  <section class="screen success-screen" data-step="11">
+    <div class="screen-inner">
+      <div class="success-mark" style="color: var(--accent);">✓</div>
+      <h2>You're on the partner <em>list</em>.</h2>
+      <p class="success-meta">
+        Thank you, <strong id="ps-success-name">friend</strong>. We'll be in touch as Packsaddle Precision &amp; Training Facility takes shape — partner-program updates first, founding-partner opportunities along the way.
+      </p>
+
+      <div class="success-detail">
+        <h4>While you wait</h4>
+        <p>If you have a guest interested in HSB or Hog Heaven in the meantime, route them through the relevant partner channel.</p>
+        <div style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;">
+          <button type="button" class="btn-next" style="flex: 1; min-width: 140px;" onclick="resetToBrandPick(&#39;hsb&#39;)">HSB Partner Inquiry →</button>
+          <button type="button" class="btn-next" style="flex: 1; min-width: 140px; background: var(--accent); border-color: var(--accent);" onclick="resetToBrandPick(&#39;hh&#39;)">Camp Lucy Inquiry →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer-craft">
+  Rhythm Partner Portal · Confidential · Maintained by Rhythm Outdoors
+</footer>
+
+<!-- Netlify form-detection stubs -->
+<form name="rhythm-partner-intake" data-netlify="true" netlify-honeypot="bot-field" hidden="">
+  <input type="text" name="brand">
+  <input type="text" name="partner-org">
+  <input type="text" name="partner-ref">
+  <input type="text" name="partner-name">
+  <input type="email" name="partner-email">
+  <input type="text" name="guest-name">
+  <input type="text" name="guest-group">
+  <input type="email" name="guest-email">
+  <input type="tel" name="guest-phone">
+  <input type="date" name="event-date">
+  <input type="text" name="date-flexible">
+  <input type="text" name="arrival-window">
+  <input type="text" name="guest-count">
+  <input type="text" name="adults">
+  <input type="text" name="juniors">
+  <input type="text" name="package">
+  <input type="text" name="addons">
+  <input type="text" name="partner-notes">
+  <input type="text" name="guest-requests">
+  <input type="text" name="bot-field">
+</form>
+
+<form name="packsaddle-partner-list" data-netlify="true" netlify-honeypot="bot-field" hidden="">
+  <input type="text" name="ps-name">
+  <input type="email" name="ps-email">
+  <input type="text" name="ps-org">
+  <input type="text" name="ps-role">
+  <input type="text" name="ps-notes">
+  <input type="text" name="bot-field">
+</form>
+
+<script>
+  // ============================================================
+  // ACCESS CODES (case-insensitive match)
+  //   Friction gate, not real security. URL obscurity at deploy
+  //   (partner.rhythmoutdoors.com or similar) provides the second
+  //   line of defense. For real security, layer SSO at the
+  //   hosting tier when partner usage demands it.
+  // ============================================================
+  const ACCESS_CODES = {
+    hsb: 'HSBResort',
+    hh:  'CampLucy'
+  };
+
+  const PARTNER_ORGS = {
+    hsb: 'Horseshoe Bay Resort',
+    hh:  'Camp Lucy'
+  };
+
+  // ============================================================
+  // PACKAGES (CONFIDENTIAL pricing — partner-internal only)
+  // ============================================================
+  const PACKAGES = {
+    hsb: [
+      {
+        key: 'hg-standard',
+        name: 'Hotel Group · Standard',
+        desc: 'All-inclusive partner package. Tue–Thu only. 10–100 guests, $4K minimum. Shotgun experience, ammunition, certified instruction, F&B coordinated, range coordination.',
+        retail: '$254 / guest',
+        wholesale: 'SC base $203'
+      },
+      {
+        key: 'hg-premium',
+        name: 'Hotel Group · Premium',
+        desc: 'All-inclusive partner package, premium tier. Tue–Thu only. 10–100 guests, $4K minimum. Adds premium F&B, Senior Instructor lead, expanded gear.',
+        retail: '$299 / guest',
+        wholesale: 'SC base $239'
+      },
+      {
+        key: 'custom',
+        name: 'Custom — discuss with bid team',
+        desc: 'Configuration that doesn\'t fit Standard or Premium. Bid team will work with you on a custom proposal — common for larger groups, multi-day, F&B variations.',
+        retail: 'TBD',
+        wholesale: ''
+      }
+    ],
+    hh: [
+      {
+        key: 'shotgun5stand',
+        name: 'The 5-Stand Shotgun Social',
+        desc: 'Two-hour 5-Stand, stationary stations, group rotation. Shotguns, ammunition, targets, golf carts included. Conversational format.',
+        retail: '$185 / guest',
+        wholesale: 'Wholesale $145 · Margin ~22%'
+      },
+      {
+        key: 'shotgunChallenge',
+        name: 'Hill Country Sporting Challenge',
+        desc: 'Two-hour walking sporting clays course. Same kit included as the 5-Stand. Competitive format, varied presentations.',
+        retail: '$185 / guest',
+        wholesale: 'Wholesale $145 · Margin ~22%'
+      },
+      {
+        key: 'pistol',
+        name: 'Texas Pistol Range',
+        desc: 'Guided pistol experience. Adds ~1 hour. Certified instructor required regardless of group size.',
+        retail: '$125 / guest',
+        wholesale: 'Wholesale = Retail · Margin TBD per Charter'
+      },
+      {
+        key: 'shotgun-plus-pistol',
+        name: 'Shotgun + Pistol combo',
+        desc: 'Pick a shotgun format + the pistol range. Common configuration for bachelor / bachelorette blocks.',
+        retail: '$185 + $125 / guest',
+        wholesale: 'Combo discount available — discuss with bid team'
+      }
+    ]
+  };
+
+  const ADDONS = {
+    hsb: [
+      { key: 'fnb-standard', name: 'F&B · Standard',           desc: 'Coordinated through Resort Banquets. Three-course Group Meal Package — 35% partner discount.' },
+      { key: 'fnb-premium',  name: 'F&B · Premium',            desc: 'Premium menu through Resort Banquets — discuss with bid team.' },
+      { key: 'open-bar',     name: 'Open bar at The Last Shot', desc: 'Full bar service in the Sporting Club\'s on-site bar.' },
+      { key: 'photographer', name: 'Photographer access',       desc: 'Bringing in their own photographer; we\'ll coordinate staging.' },
+      { key: 'cart-extras',  name: 'Additional carts',          desc: 'Beyond standard transport.' },
+      { key: 'merch',        name: 'Branded merchandise',       desc: 'Hats, vests, gear bags for the group.' }
+    ],
+    hh: [
+      { key: 'bridgeBBQ',    name: 'Covered Bridge BBQ',  desc: 'Local Texas BBQ + beer service on the bridge. Photo backdrop. ~75 minutes.' },
+      { key: 'archery',      name: 'Ranch Archery',       desc: 'Compound bows on the outdoor range. ~1 hour.' },
+      { key: 'fishing',      name: 'Lakeside Fishing',    desc: '15-acre lake, Florida-strain bass. ~1.5 hours.' },
+      { key: 'extraCoach',   name: 'Senior Coach',        desc: 'Additional certified coach beyond auto-staffing.' },
+      { key: 'photographer', name: 'Photographer access', desc: 'Bringing their own; we work them into staging.' },
+      { key: 'fnb-extras',   name: 'Premium F&B',         desc: 'Beyond included refreshments.' }
+    ]
+  };
+
+  // ============================================================
+  // STATE
+  // ============================================================
+  const state = {
+    brand:           null,
+    partnerOrg:      null,
+    partnerRef:      '',
+    partnerName:     '',
+    partnerEmail:    '',
+    guestName:       '',
+    guestGroup:      '',
+    guestEmail:      '',
+    guestPhone:      '',
+    eventDate:       null,
+    dateFlexible:    false,
+    arrivalWindow:   null,
+    guests:          12,
+    adults:          12,
+    juniors:         0,
+    packageKey:      null,
+    addons:          [],
+    partnerNotes:    '',
+    guestRequests:   ''
+  };
+
+  let currentStep = 1;
+  const TOTAL_STEPS = 7; // partner-side: 7 question screens (Q2-Q7 + review)
+
+  // ============================================================
+  // SCREEN NAVIGATION
+  // ============================================================
+  function showScreen(step) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    let target;
+    if (step === 'gate') {
+      target = document.querySelector('.screen[data-step="gate"]');
+    } else {
+      target = document.querySelector(`.screen[data-step="${step}"]`);
+    }
+    if (target) target.classList.add('active');
+    currentStep = step;
+    updateProgress();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // If we just landed on the gate, focus the input
+    if (step === 'gate') {
+      setTimeout(() => document.getElementById('gate-input').focus(), 350);
+    }
+  }
+
+  function nextScreen() {
+    const nextMap = { 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8 };
+    if (nextMap[currentStep]) showScreen(nextMap[currentStep]);
+    if (currentStep === 8) renderReview();
+  }
+
+  function prevScreen() {
+    const backMap = { 2: 'gate', 3: 2, 4: 3, 5: 4, 6: 5, 7: 6, 8: 7 };
+    if (currentStep === 'gate') showScreen(1);
+    else if (backMap[currentStep]) showScreen(backMap[currentStep]);
+  }
+
+  function updateProgress() {
+    const progress = document.getElementById('progress');
+    const fill = document.getElementById('progress-fill');
+    const stepNum = document.getElementById('step-num');
+
+    // Hide on Q1, gate, success, packsaddle screens
+    if (currentStep === 1 || currentStep === 'gate' || currentStep === 9 || currentStep === 10 || currentStep === 11) {
+      progress.classList.add('hidden');
+    } else {
+      progress.classList.remove('hidden');
+      // Steps 2-8 map to 1/7 through 7/7
+      const displayStep = currentStep - 1;
+      fill.style.width = ((displayStep / TOTAL_STEPS) * 100) + '%';
+      stepNum.textContent = displayStep;
+    }
+  }
+
+  // ============================================================
+  // BRAND PIVOT (Q1 → password gate, except Packsaddle)
+  // ============================================================
+  function pickBrand(brand) {
+    state.brand = brand;
+    document.body.setAttribute('data-brand', brand);
+
+    const mark = document.getElementById('brand-mark');
+    if (brand === 'hsb') {
+      mark.innerHTML = 'HSB Resort <span class="mark-accent">·</span> Partner Portal';
+    } else if (brand === 'hh') {
+      mark.innerHTML = 'Camp Lucy <span class="mark-accent">·</span> Partner Portal';
+    } else if (brand === 'packsaddle') {
+      mark.innerHTML = 'Packsaddle <span class="mark-accent">·</span> Partner Interest';
+    }
+
+    // Packsaddle skips the gate — no partner program yet, just interest capture
+    if (brand === 'packsaddle') {
+      showScreen(10);
+      return;
+    }
+
+    // HSB / HH path — set up the gate screen
+    state.partnerOrg = PARTNER_ORGS[brand];
+    document.getElementById('partner-org-static').textContent = state.partnerOrg;
+
+    // Update gate copy per brand
+    const title = document.getElementById('gate-title');
+    const subtitle = document.getElementById('gate-subtitle');
+    if (brand === 'hsb') {
+      title.innerHTML = 'Horseshoe Bay Resort <em>Partner Portal</em>';
+      subtitle.textContent = 'Enter your partner access code to continue. Codes are issued by your Resort sales coordinator.';
+    } else if (brand === 'hh') {
+      title.innerHTML = 'Camp Lucy <em>Partner Portal</em>';
+      subtitle.textContent = 'Enter your partner access code to continue. Codes are issued by Taylor and the Camp Lucy team.';
+    }
+
+    showScreen('gate');
+  }
+
+  function resetToBrandPick(targetBrand) {
+    showScreen(1);
+    setTimeout(() => pickBrand(targetBrand), 200);
+  }
+
+  // ============================================================
+  // PASSWORD GATE
+  // ============================================================
+  function verifyAccess() {
+    const input = document.getElementById('gate-input');
+    const errorEl = document.getElementById('gate-error');
+    const cardEl = document.getElementById('gate-card');
+    const value = input.value.trim();
+    const expected = ACCESS_CODES[state.brand];
+
+    if (value.toLowerCase() === expected.toLowerCase()) {
+      // Correct — populate brand-conditional content + advance
+      populateDisciplines();
+      populateAddons();
+      showScreen(2);
+    } else {
+      // Incorrect — shake, show error
+      cardEl.classList.remove('shake');
+      void cardEl.offsetWidth; // force reflow
+      cardEl.classList.add('shake');
+      errorEl.classList.add('show');
+      input.value = '';
+      input.focus();
+      setTimeout(() => errorEl.classList.remove('show'), 5000);
+    }
+  }
+
+  // ============================================================
+  // POPULATE BRAND-CONDITIONAL CONTENT
+  // ============================================================
+  function populateDisciplines() {
+    const grid = document.getElementById('disciplines-grid');
+    const lede = document.getElementById('step-6-lede');
+
+    if (state.brand === 'hsb') {
+      lede.textContent = 'Channel B Hotel Group package tiers. Pricing visible — partner-internal only.';
+    } else if (state.brand === 'hh') {
+      lede.textContent = 'Camp Lucy partner packages. Pricing visible — partner-internal only.';
+    }
+
+    grid.innerHTML = PACKAGES[state.brand].map(opt => `
+      <button type="button" class="choice-card radio-mode" data-package="${opt.key}" onclick="selectPackage('${opt.key}')">
+        <div class="choice-checkmark"></div>
+        <div class="choice-body">
+          <div class="choice-name">${opt.name}</div>
+          <div class="choice-desc">${opt.desc}</div>
+          <div class="choice-pricing">${opt.retail}</div>
+          ${opt.wholesale ? `<div class="choice-confidential" style="margin-left:8px;">${opt.wholesale}</div>` : ''}
+        </div>
+      </button>
+    `).join('');
+  }
+
+  function populateAddons() {
+    const grid = document.getElementById('addons-grid');
+    grid.innerHTML = ADDONS[state.brand].map(opt => `
+      <button type="button" class="choice-card" data-addon="${opt.key}" onclick="toggleAddon('${opt.key}')">
+        <div class="choice-checkmark"></div>
+        <div class="choice-body">
+          <div class="choice-name">${opt.name}</div>
+          <div class="choice-desc">${opt.desc}</div>
+        </div>
+      </button>
+    `).join('');
+  }
+
+  // ============================================================
+  // SELECTION HANDLERS
+  // ============================================================
+  function selectPackage(key) {
+    state.packageKey = key;
+    document.querySelectorAll('[data-package]').forEach(c => {
+      c.classList.toggle('selected', c.dataset.package === key);
+    });
+    document.getElementById('next-6').disabled = false;
+  }
+
+  function toggleAddon(key) {
+    const idx = state.addons.indexOf(key);
+    if (idx === -1) state.addons.push(key);
+    else            state.addons.splice(idx, 1);
+    document.querySelectorAll('[data-addon]').forEach(c => {
+      c.classList.toggle('selected', state.addons.includes(c.dataset.addon));
+    });
+  }
+
+  function selectWindow(key) {
+    state.arrivalWindow = key;
+    document.querySelectorAll('[data-window]').forEach(c => {
+      c.classList.toggle('selected', c.dataset.window === key);
+    });
+    validateScreen4();
+  }
+
+  function validateScreen4() {
+    const dateOK = !!document.getElementById('event-date').value || document.getElementById('date-flexible').checked;
+    const windowOK = !!state.arrivalWindow;
+    document.getElementById('next-4').disabled = !(dateOK && windowOK);
+  }
+
+  function validatePartner() {
+    state.partnerName  = document.getElementById('partner-name').value.trim();
+    state.partnerEmail = document.getElementById('partner-email').value.trim();
+    state.partnerRef   = document.getElementById('partner-ref').value.trim();
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.partnerEmail);
+    document.getElementById('next-2').disabled = !(state.partnerName.length > 1 && emailValid);
+  }
+
+  function validateGuest() {
+    state.guestName  = document.getElementById('guest-name').value.trim();
+    state.guestEmail = document.getElementById('guest-email').value.trim();
+    state.guestGroup = document.getElementById('guest-group').value.trim();
+    state.guestPhone = document.getElementById('guest-phone').value.trim();
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.guestEmail);
+    document.getElementById('next-3').disabled = !(state.guestName.length > 1 && emailValid);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('event-date').addEventListener('change', e => {
+      state.eventDate = e.target.value;
+      validateScreen4();
+    });
+    document.getElementById('date-flexible').addEventListener('change', e => {
+      state.dateFlexible = e.target.checked;
+      validateScreen4();
+    });
+    document.getElementById('adults').addEventListener('input', e => {
+      state.adults = parseInt(e.target.value, 10) || 0;
+      syncGuestTotals();
+    });
+    document.getElementById('juniors').addEventListener('input', e => {
+      state.juniors = parseInt(e.target.value, 10) || 0;
+      syncGuestTotals();
+    });
+    document.getElementById('partner-notes').addEventListener('input', e => {
+      state.partnerNotes = e.target.value;
+    });
+    document.getElementById('guest-requests').addEventListener('input', e => {
+      state.guestRequests = e.target.value;
+    });
+  });
+
+  function updateGuestCount(val) {
+    state.guests = parseInt(val, 10);
+    document.getElementById('guest-count').textContent = state.guests;
+    if ((state.adults + state.juniors) !== state.guests) {
+      state.adults = Math.max(0, state.guests - state.juniors);
+      document.getElementById('adults').value = state.adults;
+    }
+  }
+
+  function syncGuestTotals() {
+    const total = state.adults + state.juniors;
+    if (total > 0 && total !== state.guests) {
+      state.guests = total;
+      document.getElementById('guest-slider').value = Math.min(100, Math.max(2, total));
+      document.getElementById('guest-count').textContent = state.guests;
+    }
+  }
+
+  // ============================================================
+  // REVIEW
+  // ============================================================
+  function renderReview() {
+    const pkg = (PACKAGES[state.brand].find(p => p.key === state.packageKey) || {}).name || '—';
+    const pkgRetail = (PACKAGES[state.brand].find(p => p.key === state.packageKey) || {}).retail || '';
+    const addonLabels = state.addons
+      .map(k => (ADDONS[state.brand].find(a => a.key === k) || {}).name)
+      .filter(Boolean)
+      .join(' · ') || 'None';
+
+    const dateLabel = state.dateFlexible
+      ? 'Flexible'
+      : (state.eventDate ? new Date(state.eventDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : '—');
+
+    const compositionLabel = state.juniors > 0
+      ? `${state.guests} (${state.adults} adults · ${state.juniors} juniors)`
+      : `${state.guests} guests`;
+
+    const rows = [
+      { label: 'Property',     value: state.brand === 'hsb' ? 'Horseshoe Bay Sporting Club' : 'Hog Heaven Sporting Club', step: 1 },
+      { label: 'Partner',      value: `${state.partnerOrg} · ${state.partnerName} · ${state.partnerEmail}`, step: 2 },
+      ...(state.partnerRef ? [{ label: 'Partner ref', value: state.partnerRef, step: 2 }] : []),
+      { label: 'Guest',        value: `${state.guestName} · ${state.guestEmail}${state.guestPhone ? ' · ' + state.guestPhone : ''}`, step: 3 },
+      ...(state.guestGroup ? [{ label: 'Group / party', value: state.guestGroup, step: 3 }] : []),
+      { label: 'Date',         value: dateLabel, step: 4 },
+      { label: 'Arrival',      value: state.arrivalWindow || '—', step: 4 },
+      { label: 'Group size',   value: compositionLabel, step: 5 },
+      { label: 'Package',      value: `${pkg}${pkgRetail ? ' · ' + pkgRetail : ''}`, step: 6 },
+      { label: 'Add-ons',      value: addonLabels, step: 7 },
+      ...(state.partnerNotes ? [{ label: 'Partner notes', value: state.partnerNotes, step: 7 }] : []),
+      ...(state.guestRequests ? [{ label: 'Guest-facing notes', value: state.guestRequests, step: 7 }] : [])
+    ];
+
+    document.getElementById('review-list').innerHTML = rows.map(r => `
+      <div class="review-row">
+        <div class="review-label">${r.label}</div>
+        <div class="review-value">${r.value}</div>
+        <button type="button" class="review-edit" onclick="showScreen(${r.step})">Edit</button>
+      </div>
+    `).join('');
+  }
+
+  // ============================================================
+  // SUBMISSION  (mock for v1 — wire to Netlify at deploy)
+  // ============================================================
+  function submitForm() {
+    const payload = { ...state, submittedAt: new Date().toISOString() };
+
+    const params = new URLSearchParams({
+      brand:        state.brand,
+      partnerOrg:   state.partnerOrg || '',
+      partnerName:  state.partnerName,
+      partnerEmail: state.partnerEmail,
+      guestName:    state.guestName,
+      guestEmail:   state.guestEmail,
+      guestGroup:   state.guestGroup,
+      eventDate:    state.eventDate || '',
+      flexible:     state.dateFlexible ? '1' : '0',
+      arrival:      state.arrivalWindow || '',
+      guests:       state.guests,
+      adults:       state.adults,
+      juniors:      state.juniors,
+      packageKey:   state.packageKey || '',
+      addons:       state.addons.join(','),
+      requests:     state.guestRequests
+    });
+
+    const bidTemplate = state.brand === 'hsb'
+      ? '/HSB_Group_Event_Bid_STANDARD.html'        // Channel B-aware variant TBD
+      : '/HH_CampLucy_Group_Proposal.html';
+    const autoDraftURL = bidTemplate + '?' + params.toString();
+
+    console.log('[Rhythm Partner Intake] Submission:', payload);
+    console.log('[Rhythm Partner Intake] Auto-draft bid URL:', autoDraftURL);
+
+    document.getElementById('success-name').textContent = state.partnerName.split(' ')[0] || 'friend';
+    document.getElementById('success-guest').textContent = state.guestName || 'your guest';
+    showScreen(9);
+  }
+
+  // ============================================================
+  // PACKSADDLE PARTNER LIST
+  // ============================================================
+  function validateComingSoon() {
+    const name = document.getElementById('ps-name').value.trim();
+    const email = document.getElementById('ps-email').value.trim();
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    document.getElementById('ps-submit').disabled = !(name.length > 1 && emailValid);
+  }
+
+  function submitComingSoon() {
+    const psPayload = {
+      name:  document.getElementById('ps-name').value.trim(),
+      email: document.getElementById('ps-email').value.trim(),
+      org:   document.getElementById('ps-org').value.trim(),
+      role:  document.getElementById('ps-role').value.trim(),
+      notes: document.getElementById('ps-notes').value.trim(),
+      submittedAt: new Date().toISOString()
+    };
+    console.log('[Packsaddle Partner List] Capture:', psPayload);
+    document.getElementById('ps-success-name').textContent = psPayload.name.split(' ')[0] || 'friend';
+    showScreen(11);
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  updateProgress();
+</script>
+
+
+
+</body></html>

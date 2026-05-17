@@ -1,0 +1,2991 @@
+<!DOCTYPE html>
+<!-- saved from url=(0012)about:srcdoc -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Members' Entrance · Horseshoe Bay Sporting Club</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com/">
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --olive: #3F4A21;
+      --olive-deep: #2A3216;
+      --olive-darker: #1F2611;
+      --tan: #B89C73;
+      --tan-deep: #9A8159;
+      --cream: #E8E4D5;
+      --paper: #FBFAF3;
+      --paper-warm: #F5F1E5;
+      --gray: #6B6557;
+      --gray-light: #D4CEBE;
+      --border: rgba(63, 74, 33, 0.15);
+      --border-strong: rgba(63, 74, 33, 0.28);
+      --serif: 'Cormorant Garamond', Georgia, serif;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+      --shadow-soft: 0 1px 2px rgba(31, 38, 17, 0.04), 0 8px 24px rgba(31, 38, 17, 0.06);
+      --shadow-lift: 0 1px 2px rgba(31, 38, 17, 0.06), 0 16px 48px rgba(31, 38, 17, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans);
+      color: var(--olive);
+      background: var(--paper);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+    }
+
+    /* WIP corner stamp — visible across both views */
+    .wip-stamp {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 200;
+      font-family: var(--sans);
+      font-size: 9.5px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--tan-deep);
+      background: rgba(232, 228, 213, 0.92);
+      padding: 5px 10px 4px;
+      border-radius: 2px;
+      border: 1px solid rgba(154, 129, 89, 0.4);
+      pointer-events: none;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════
+       LOGIN VIEW — full-bleed olive with centered ivory card
+       ═══════════════════════════════════════════════════════════════════ */
+    .login-view {
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(184, 156, 115, 0.12) 0%, transparent 60%),
+        linear-gradient(180deg, var(--olive-deep) 0%, var(--olive-darker) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .login-view::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 1px 1px, rgba(184, 156, 115, 0.08) 1px, transparent 1px);
+      background-size: 24px 24px;
+      pointer-events: none;
+    }
+    .login-card {
+      position: relative;
+      background: var(--paper);
+      border-radius: 3px;
+      padding: 3.5rem 3rem 2.75rem;
+      max-width: 460px;
+      width: 100%;
+      box-shadow: var(--shadow-lift);
+      border: 1px solid rgba(184, 156, 115, 0.2);
+      text-align: center;
+    }
+    .login-crest {
+      font-family: var(--serif);
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--tan-deep);
+      font-weight: 500;
+      margin-bottom: 1.5rem;
+    }
+    .login-crest::before, .login-crest::after {
+      content: "·";
+      margin: 0 10px;
+      color: var(--tan);
+    }
+    .login-wordmark {
+      font-family: var(--serif);
+      font-size: 32px;
+      font-weight: 600;
+      color: var(--olive);
+      line-height: 1.15;
+      margin: 0 0 0.25rem;
+      letter-spacing: -0.3px;
+    }
+    .login-wordmark em {
+      font-style: italic;
+      font-weight: 500;
+      color: var(--tan-deep);
+    }
+    .login-tag {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 16px;
+      color: var(--gray);
+      margin: 0.25rem 0 2.25rem;
+    }
+    .login-divider {
+      width: 50px;
+      height: 1px;
+      background: var(--tan);
+      margin: 0 auto 2.25rem;
+    }
+    .login-eyebrow {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--tan-deep);
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+    .login-form { text-align: left; }
+    .login-field { margin-bottom: 1.25rem; }
+    .login-field label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gray);
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    .login-field input {
+      width: 100%;
+      padding: 12px 14px;
+      font-family: var(--sans);
+      font-size: 15px;
+      color: var(--olive);
+      background: var(--paper-warm);
+      border: 1px solid var(--border-strong);
+      border-radius: 2px;
+      outline: none;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    .login-field input:focus {
+      border-color: var(--tan-deep);
+      background: var(--paper);
+    }
+    .login-submit {
+      width: 100%;
+      padding: 14px 20px;
+      margin-top: 0.75rem;
+      background: var(--olive);
+      color: var(--cream);
+      font-family: var(--sans);
+      font-size: 12px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      font-weight: 600;
+      border: none;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .login-submit:hover { background: var(--olive-deep); }
+    .login-submit:disabled { opacity: 0.5; cursor: wait; }
+
+    .login-error {
+      margin-top: 1rem;
+      font-size: 13px;
+      color: #8B3030;
+      font-style: italic;
+      min-height: 18px;
+      text-align: center;
+    }
+    .login-foot {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--gray);
+      line-height: 1.6;
+    }
+    .login-foot a { color: var(--tan-deep); text-decoration: none; }
+    .login-foot a:hover { text-decoration: underline; }
+
+    .shake { animation: shake 0.4s ease-out; }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-5px); }
+      80% { transform: translateX(5px); }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════
+       PORTAL VIEW — authenticated landing
+       ═══════════════════════════════════════════════════════════════════ */
+    .portal-view { display: none; }
+    .portal-view.active { display: block; }
+    .login-view.hidden { display: none; }
+
+    .portal-topbar {
+      background: var(--olive);
+      color: var(--cream);
+      padding: 14px 0;
+      border-bottom: 1px solid var(--olive-darker);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .topbar-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
+    .topbar-mark {
+      font-family: var(--serif);
+      font-size: 19px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+    }
+    .topbar-mark em { font-style: italic; color: var(--tan); font-weight: 500; }
+    .topbar-mark .dot { color: var(--tan); margin: 0 8px; }
+    .topbar-mark .small {
+      font-family: var(--sans);
+      font-size: 9.5px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--tan);
+      font-weight: 500;
+      margin-left: 12px;
+      padding-left: 12px;
+      border-left: 1px solid rgba(184, 156, 115, 0.4);
+    }
+    .topbar-member {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .member-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--tan-deep);
+      color: var(--paper);
+      font-family: var(--serif);
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      letter-spacing: -0.5px;
+    }
+    .member-meta {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+    .member-meta .name { font-size: 14px; font-weight: 500; }
+    .member-meta .num { font-size: 11px; color: var(--tan); letter-spacing: 1px; }
+    .signout {
+      background: transparent;
+      border: 1px solid rgba(184, 156, 115, 0.4);
+      color: var(--cream);
+      padding: 8px 14px;
+      font-family: var(--sans);
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 500;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .signout:hover { background: rgba(184, 156, 115, 0.12); }
+
+    /* Welcome masthead */
+    .portal-masthead {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 4rem 2rem 2rem;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 3rem;
+    }
+    .greeting-eyebrow {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--tan-deep);
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+    .greeting-title {
+      font-family: var(--serif);
+      font-size: 52px;
+      font-weight: 600;
+      color: var(--olive);
+      margin: 0 0 0.5rem;
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+    }
+    .greeting-title em { font-style: italic; color: var(--tan-deep); }
+    .greeting-deck {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 19px;
+      color: var(--gray);
+      margin: 0;
+    }
+    .greeting-tier-pill {
+      display: inline-block;
+      margin-top: 1.25rem;
+      font-family: var(--sans);
+      font-size: 10px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      font-weight: 600;
+      padding: 5px 14px;
+      border-radius: 100px;
+    }
+    .pill-Founder { background: rgba(110, 70, 130, 0.12); color: #5A3D6E; border: 1px solid rgba(110, 70, 130, 0.3); }
+    .pill-Charter { background: rgba(50, 90, 140, 0.10); color: #2F5482; border: 1px solid rgba(50, 90, 140, 0.3); }
+    .pill-Member  { background: rgba(63, 74, 33, 0.10);  color: var(--olive-deep); border: 1px solid rgba(63, 74, 33, 0.3); }
+    .pill-Legacy  { background: rgba(154, 129, 89, 0.12); color: var(--tan-deep); border: 1px solid rgba(154, 129, 89, 0.3); }
+
+    /* Section frame */
+    .portal-section {
+      max-width: 1180px;
+      margin: 0 auto 4rem;
+      padding: 0 2rem;
+    }
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 1.75rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .section-eyebrow {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--tan-deep);
+      font-weight: 500;
+    }
+    .section-title {
+      font-family: var(--serif);
+      font-size: 36px;
+      font-weight: 600;
+      color: var(--olive);
+      margin: 0.25rem 0 0;
+      letter-spacing: -0.3px;
+    }
+    .section-title::after {
+      content: "";
+      display: block;
+      width: 36px;
+      height: 2px;
+      background: var(--tan);
+      margin-top: 0.625rem;
+    }
+    .section-deck {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 17px;
+      color: var(--gray);
+      margin: 0.75rem 0 0;
+      max-width: 620px;
+    }
+
+    /* Adventures grid */
+    .adv-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    .adv-card {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1.75rem 1.75rem 1.5rem;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      position: relative;
+    }
+    .adv-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+    .adv-badge {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      font-size: 9.5px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 600;
+      padding: 4px 9px;
+      border-radius: 2px;
+    }
+    .badge-Open      { background: rgba(63, 110, 50, 0.12); color: #2D5520; }
+    .badge-Filling   { background: rgba(184, 130, 30, 0.14); color: #8C5E0F; }
+    .badge-Waitlist  { background: rgba(184, 100, 30, 0.14); color: #8C4A0F; }
+    .badge-Full      { background: rgba(140, 50, 50, 0.10); color: #8B3030; }
+    .badge-Past      { background: rgba(107, 101, 87, 0.12); color: var(--gray); }
+    .badge-Draft     { background: rgba(154, 129, 89, 0.12); color: var(--tan-deep); }
+
+    .adv-type {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--tan-deep);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .adv-name {
+      font-family: var(--serif);
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--olive);
+      margin: 0 0 0.5rem;
+      line-height: 1.15;
+      letter-spacing: -0.2px;
+      padding-right: 70px;
+    }
+    .adv-headline {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 15px;
+      color: var(--gray);
+      margin: 0 0 1.25rem;
+      line-height: 1.45;
+    }
+    .adv-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem 1rem;
+      padding: 1rem 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.25rem;
+    }
+    .adv-meta-item .lbl { font-size: 9.5px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gray); font-weight: 500; }
+    .adv-meta-item .val { font-family: var(--serif); font-size: 16px; color: var(--olive); font-weight: 500; margin-top: 2px; }
+    .adv-foot {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-top: auto;
+    }
+    .adv-price-wrap { display: flex; align-items: baseline; gap: 0.5rem; }
+    .adv-price-lbl { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gray); font-weight: 500; }
+    .adv-price { font-family: var(--serif); font-size: 22px; font-weight: 600; color: var(--olive); }
+    .adv-price.included { color: var(--tan-deep); font-style: italic; font-size: 18px; }
+    .adv-cta {
+      font-family: var(--sans);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--tan-deep);
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 6px 0;
+    }
+    .adv-cta:hover { color: var(--olive); }
+
+    /* Member pricing — two-column display per Charter Principle #2 */
+    .pricing-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .pricing-table thead th {
+      background: var(--olive);
+      color: var(--cream);
+      padding: 14px 18px;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 500;
+      text-align: left;
+    }
+    .pricing-table thead th:nth-child(2),
+    .pricing-table thead th:nth-child(3) { text-align: right; }
+    .pricing-table tbody tr { border-top: 1px solid var(--border); }
+    .pricing-table tbody tr:first-child { border-top: none; }
+    .pricing-category-row td {
+      background: var(--paper-warm);
+      padding: 14px 18px 12px;
+    }
+    .pricing-cat-name {
+      font-size: 10px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--tan-deep);
+    }
+    .pricing-cat-note {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 14px;
+      color: var(--gray);
+      margin-top: 4px;
+      letter-spacing: 0;
+      text-transform: none;
+      font-weight: 400;
+      line-height: 1.5;
+    }
+    .pricing-sub {
+      font-size: 12.5px;
+      color: var(--tan-deep);
+      margin-top: 6px;
+      font-style: italic;
+    }
+    .pricing-retail.unified .unified-mark {
+      color: var(--gray-light);
+      font-style: italic;
+    }
+    .pricing-retail.unified { text-decoration: none; }
+    .pricing-table tbody td {
+      padding: 14px 18px;
+      vertical-align: top;
+      font-size: 14px;
+    }
+    .pricing-name {
+      font-family: var(--serif);
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--olive);
+      margin-bottom: 2px;
+    }
+    .pricing-note { font-size: 12.5px; color: var(--gray); line-height: 1.5; }
+    .pricing-retail, .pricing-member {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-family: var(--serif);
+      font-size: 17px;
+      font-weight: 500;
+    }
+    .pricing-retail { color: var(--gray); text-decoration: line-through; text-decoration-color: rgba(107, 101, 87, 0.5); }
+    .pricing-member { color: var(--olive); font-weight: 600; }
+    .pricing-savings-note {
+      font-size: 12.5px;
+      color: var(--gray);
+      font-style: italic;
+      margin-top: 1rem;
+      max-width: 560px;
+    }
+
+    /* Tile grid — for Events, FAQ, Concierge */
+    .tile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+    .tile {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1.5rem 1.5rem 1.25rem;
+      box-shadow: var(--shadow-soft);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    .tile:hover { transform: translateY(-1px); box-shadow: var(--shadow-lift); }
+    .tile-eyebrow {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--tan-deep);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .tile-title {
+      font-family: var(--serif);
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--olive);
+      margin: 0 0 0.5rem;
+      line-height: 1.2;
+    }
+    .tile-body { font-size: 14px; color: var(--gray); line-height: 1.6; margin: 0 0 0.75rem; }
+    .tile-link { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--tan-deep); font-weight: 600; text-decoration: none; }
+    .tile-link:hover { color: var(--olive); }
+
+    /* FAQ accordion */
+    .faq-list { background: var(--paper); border: 1px solid var(--border); border-radius: 3px; overflow: hidden; }
+    .faq-item { border-top: 1px solid var(--border); }
+    .faq-item:first-child { border-top: none; }
+    .faq-q {
+      width: 100%;
+      text-align: left;
+      padding: 18px 22px;
+      background: transparent;
+      border: none;
+      font-family: var(--serif);
+      font-size: 19px;
+      font-weight: 500;
+      color: var(--olive);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+    .faq-q::after {
+      content: "+";
+      font-family: var(--sans);
+      font-size: 20px;
+      color: var(--tan-deep);
+      font-weight: 300;
+      transition: transform 0.18s ease;
+    }
+    .faq-item.open .faq-q::after { content: "−"; }
+    .faq-a {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.25s ease, padding 0.25s ease;
+      padding: 0 22px;
+      font-size: 14.5px;
+      color: var(--gray);
+      line-height: 1.7;
+    }
+    .faq-item.open .faq-a {
+      max-height: 320px;
+      padding: 0 22px 18px;
+    }
+
+    /* Account card */
+    .account-card {
+      background: linear-gradient(180deg, var(--olive) 0%, var(--olive-deep) 100%);
+      color: var(--cream);
+      border-radius: 3px;
+      padding: 2.25rem 2rem;
+    }
+    .account-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.5rem 2rem;
+    }
+    .account-item .lbl { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--tan); font-weight: 500; margin-bottom: 6px; }
+    .account-item .val { font-family: var(--serif); font-size: 19px; color: var(--cream); font-weight: 500; }
+    .account-item .val .sub { font-size: 13px; color: var(--gray-light); display: block; margin-top: 4px; font-style: italic; }
+    .account-foot {
+      margin-top: 1.75rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(184, 156, 115, 0.25);
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 15px;
+      color: var(--gray-light);
+      line-height: 1.65;
+    }
+    .account-foot a { color: var(--tan); text-decoration: none; font-style: normal; font-weight: 500; }
+
+    /* Footer */
+    .portal-foot {
+      max-width: 1180px;
+      margin: 4rem auto 0;
+      padding: 2.5rem 2rem 3rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 12px;
+      color: var(--gray);
+      line-height: 1.7;
+    }
+    .portal-foot .crest {
+      font-family: var(--serif);
+      font-size: 14px;
+      font-style: italic;
+      color: var(--tan-deep);
+      margin-bottom: 0.5rem;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════
+       BOOKING HUB — four large action tiles, the centerpiece of v0.2
+       ═══════════════════════════════════════════════════════════════════ */
+    .booking-hub-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.25rem;
+    }
+    .booking-tile {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1.75rem 1.75rem 1.5rem;
+      box-shadow: var(--shadow-soft);
+      cursor: pointer;
+      text-align: left;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      font-family: var(--sans);
+    }
+    .booking-tile::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--tan);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.25s ease;
+    }
+    .booking-tile:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lift);
+      border-color: var(--tan);
+    }
+    .booking-tile:hover::before { transform: scaleX(1); }
+    .booking-tile:focus-visible { outline: 2px solid var(--tan-deep); outline-offset: 2px; }
+    .booking-tile-icon {
+      font-family: var(--serif);
+      font-size: 36px;
+      color: var(--tan-deep);
+      line-height: 1;
+      margin-bottom: 1rem;
+      font-weight: 500;
+    }
+    .booking-tile-numeral {
+      font-family: var(--serif);
+      font-style: italic;
+      font-weight: 500;
+      font-size: 22px;
+      color: var(--tan-deep);
+      letter-spacing: 1px;
+      line-height: 1;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+      width: 36px;
+    }
+    .booking-tile-eyebrow {
+      font-size: 10px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--tan-deep);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .booking-tile-title {
+      font-family: var(--serif);
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--olive);
+      margin: 0 0 0.625rem;
+      letter-spacing: -0.2px;
+      line-height: 1.15;
+    }
+    .booking-tile-body {
+      font-size: 14px;
+      color: var(--gray);
+      line-height: 1.6;
+      margin: 0 0 1.25rem;
+    }
+    .booking-tile-cta {
+      margin-top: auto;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--tan-deep);
+      font-weight: 600;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════
+       BOOKING MODAL — full-screen overlay with a paper card
+       ═══════════════════════════════════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(31, 38, 17, 0.78);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 100;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+      overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-shell {
+      background: var(--paper);
+      max-width: 880px;
+      width: 100%;
+      border-radius: 4px;
+      box-shadow: 0 20px 80px rgba(31, 38, 17, 0.45);
+      border: 1px solid rgba(184, 156, 115, 0.3);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      max-height: calc(100vh - 4rem);
+    }
+    .modal-head {
+      background: var(--olive);
+      color: var(--cream);
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .modal-head-text { flex: 1; }
+    .modal-eyebrow {
+      font-size: 10px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--tan);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .modal-title {
+      font-family: var(--serif);
+      font-size: 26px;
+      font-weight: 600;
+      margin: 0;
+      letter-spacing: -0.2px;
+    }
+    .modal-close {
+      background: transparent;
+      border: 1px solid rgba(184, 156, 115, 0.45);
+      color: var(--cream);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      transition: background 0.15s ease;
+    }
+    .modal-close:hover { background: rgba(184, 156, 115, 0.18); }
+
+    .modal-stepper {
+      background: var(--paper-warm);
+      padding: 14px 2rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .stepper-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--gray-light);
+      transition: background 0.2s ease, width 0.2s ease;
+    }
+    .stepper-dot.done { background: var(--tan-deep); }
+    .stepper-dot.current { background: var(--olive); width: 24px; border-radius: 100px; }
+    .stepper-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gray);
+      font-weight: 500;
+      margin-left: 12px;
+    }
+
+    .modal-body {
+      padding: 2rem;
+      overflow-y: auto;
+    }
+    .modal-step { display: none; }
+    .modal-step.active { display: block; }
+    .step-title {
+      font-family: var(--serif);
+      font-size: 30px;
+      font-weight: 600;
+      color: var(--olive);
+      margin: 0 0 0.5rem;
+      letter-spacing: -0.3px;
+    }
+    .step-title em { font-style: italic; color: var(--tan-deep); }
+    .step-lede {
+      font-size: 15px;
+      color: var(--gray);
+      line-height: 1.65;
+      margin: 0 0 1.75rem;
+      max-width: 620px;
+    }
+
+    /* Field primitives */
+    .field { margin-bottom: 1.25rem; }
+    .field label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gray);
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    .field input[type="text"], .field input[type="email"], .field input[type="tel"],
+    .field input[type="date"], .field input[type="time"], .field input[type="number"],
+    .field textarea, .field select {
+      width: 100%;
+      padding: 12px 14px;
+      font-family: var(--sans);
+      font-size: 15px;
+      color: var(--olive);
+      background: var(--paper-warm);
+      border: 1px solid var(--border-strong);
+      border-radius: 2px;
+      outline: none;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      border-color: var(--tan-deep);
+      background: var(--paper);
+    }
+    .field textarea { min-height: 100px; resize: vertical; line-height: 1.6; }
+
+    .field-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .field-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+
+    /* Choice cards (radio-style) */
+    .choice-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .choice-card {
+      background: var(--paper-warm);
+      border: 1px solid var(--border-strong);
+      border-radius: 3px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: border-color 0.15s ease, background 0.15s ease;
+      text-align: left;
+      font-family: var(--sans);
+    }
+    .choice-card:hover { border-color: var(--tan-deep); background: var(--paper); }
+    .choice-card.selected { border-color: var(--olive); background: var(--paper); box-shadow: inset 0 0 0 1px var(--olive); }
+    .choice-card .name {
+      font-family: var(--serif);
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--olive);
+      margin-bottom: 3px;
+    }
+    .choice-card .desc { font-size: 13px; color: var(--gray); line-height: 1.5; }
+
+    /* Chip-style multi-select */
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.25rem; }
+    .chip {
+      padding: 8px 14px;
+      background: var(--paper-warm);
+      border: 1px solid var(--border-strong);
+      border-radius: 100px;
+      font-size: 13px;
+      color: var(--olive);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: var(--sans);
+    }
+    .chip:hover { border-color: var(--tan-deep); }
+    .chip.selected { background: var(--olive); color: var(--cream); border-color: var(--olive); }
+
+    /* Slider */
+    .guest-slider-block { background: var(--paper-warm); padding: 1.25rem 1.5rem; border-radius: 3px; margin-bottom: 1rem; }
+    .guest-slider-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.75rem; }
+    .guest-slider-lbl { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gray); font-weight: 500; }
+    .guest-slider-count { font-family: var(--serif); font-size: 28px; font-weight: 600; color: var(--olive); }
+    .guest-slider-count em { font-size: 14px; font-style: italic; color: var(--gray); font-weight: 400; margin-left: 6px; }
+    .guest-slider-block input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; background: var(--gray-light); border-radius: 2px; outline: none; }
+    .guest-slider-block input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--tan-deep); cursor: pointer; border: 2px solid var(--paper); box-shadow: 0 0 0 1px var(--tan-deep); }
+    .guest-slider-block input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--tan-deep); cursor: pointer; border: 2px solid var(--paper); box-shadow: 0 0 0 1px var(--tan-deep); }
+
+    .tier-tag {
+      display: inline-block;
+      margin-top: 0.625rem;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--olive);
+      background: rgba(63, 74, 33, 0.10);
+      border: 1px solid rgba(63, 74, 33, 0.25);
+      padding: 4px 10px;
+      border-radius: 100px;
+      font-weight: 600;
+    }
+    .tier-tag em { font-style: normal; color: var(--tan-deep); margin-left: 6px; }
+
+    /* Live estimate footer */
+    .modal-foot {
+      background: var(--paper-warm);
+      border-top: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .modal-estimate {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      min-width: 200px;
+    }
+    .modal-estimate .lbl { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--gray); font-weight: 500; }
+    .modal-estimate .val { font-family: var(--serif); font-size: 24px; font-weight: 600; color: var(--olive); }
+    .modal-estimate .sub { font-size: 12px; color: var(--gray); font-style: italic; }
+    .modal-nav { display: flex; gap: 0.75rem; }
+    .btn-step {
+      padding: 12px 22px;
+      font-family: var(--sans);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: background 0.15s ease, opacity 0.15s ease;
+      border: 1px solid transparent;
+    }
+    .btn-back {
+      background: transparent;
+      color: var(--gray);
+      border-color: var(--border-strong);
+    }
+    .btn-back:hover { color: var(--olive); border-color: var(--olive); }
+    .btn-next, .btn-submit {
+      background: var(--olive);
+      color: var(--cream);
+    }
+    .btn-next:hover, .btn-submit:hover { background: var(--olive-deep); }
+    .btn-next:disabled, .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Review block (last step before submit) */
+    .review-block {
+      background: var(--paper-warm);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1.5rem 1.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .review-row {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 1rem;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+    .review-row:last-child { border-bottom: none; }
+    .review-row .lbl { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--gray); font-weight: 500; padding-top: 2px; }
+    .review-row .val { color: var(--olive); font-family: var(--serif); font-size: 16px; line-height: 1.5; }
+    .estimate-block {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .estimate-line { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; color: var(--olive); }
+    .estimate-line.muted { color: var(--gray); font-style: italic; font-size: 13px; }
+    .estimate-total { display: flex; justify-content: space-between; padding-top: 12px; margin-top: 8px; border-top: 1px solid var(--border-strong); }
+    .estimate-total .lbl { font-family: var(--serif); font-size: 17px; font-weight: 600; color: var(--olive); }
+    .estimate-total .val { font-family: var(--serif); font-size: 22px; font-weight: 700; color: var(--olive); }
+    .estimate-disclaimer {
+      font-size: 12.5px;
+      color: var(--gray);
+      font-style: italic;
+      line-height: 1.6;
+      margin-top: 0.75rem;
+    }
+
+    /* Confirmation overlay */
+    .confirm-overlay {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(180deg, var(--olive-deep) 0%, var(--olive-darker) 100%);
+      z-index: 110;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      color: var(--cream);
+    }
+    .confirm-overlay.open { display: flex; }
+    .confirm-card {
+      max-width: 560px;
+      text-align: center;
+    }
+    .confirm-check {
+      width: 72px;
+      height: 72px;
+      border: 2px solid var(--tan);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 2rem;
+      color: var(--tan);
+      font-size: 36px;
+      font-family: var(--serif);
+      animation: confirm-pop 0.4s ease-out;
+    }
+    @keyframes confirm-pop {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .confirm-eyebrow {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--tan);
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+    .confirm-title {
+      font-family: var(--serif);
+      font-size: 48px;
+      font-weight: 600;
+      margin: 0 0 1rem;
+      letter-spacing: -0.4px;
+      line-height: 1.1;
+    }
+    .confirm-deck {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 19px;
+      color: var(--gray-light);
+      max-width: 480px;
+      margin: 0 auto 2rem;
+      line-height: 1.5;
+    }
+    .confirm-ref {
+      display: inline-block;
+      font-family: var(--sans);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--tan);
+      border: 1px solid rgba(184, 156, 115, 0.4);
+      padding: 8px 18px;
+      border-radius: 2px;
+      margin-bottom: 2.5rem;
+    }
+    .confirm-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .confirm-btn {
+      padding: 13px 26px;
+      font-family: var(--sans);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
+      border-radius: 2px;
+      cursor: pointer;
+      border: 1px solid var(--tan);
+      background: transparent;
+      color: var(--cream);
+      transition: background 0.15s ease;
+    }
+    .confirm-btn:hover { background: rgba(184, 156, 115, 0.15); }
+    .confirm-btn.primary { background: var(--tan); color: var(--olive-deep); border-color: var(--tan); font-weight: 700; }
+    .confirm-btn.primary:hover { background: var(--tan-deep); color: var(--cream); }
+
+    @media (max-width: 720px) {
+      .login-card { padding: 2.5rem 1.75rem 2rem; }
+      .login-wordmark { font-size: 26px; }
+      .greeting-title { font-size: 38px; }
+      .section-title { font-size: 28px; }
+      .topbar-mark .small { display: none; }
+      .topbar-inner { padding: 0 1rem; }
+      .portal-section, .portal-masthead { padding-left: 1.25rem; padding-right: 1.25rem; }
+      .modal-overlay { padding: 0; }
+      .modal-shell { max-height: 100vh; border-radius: 0; }
+      .modal-body { padding: 1.5rem; }
+      .modal-head { padding: 1.25rem 1.5rem; }
+      .modal-stepper { padding: 12px 1.5rem; }
+      .modal-foot { padding: 1rem 1.5rem; }
+      .step-title { font-size: 24px; }
+      .field-grid-2 { grid-template-columns: 1fr; }
+      .review-row { grid-template-columns: 1fr; gap: 4px; }
+      .confirm-title { font-size: 36px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="wip-stamp">⚑ WIP · v0.3</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     LOGIN VIEW
+     ═══════════════════════════════════════════════════════════════════ -->
+<div class="login-view" id="login-view">
+  <div class="login-card" id="login-card">
+    <div class="login-crest">Members' Entrance</div>
+    <h1 class="login-wordmark">Horseshoe Bay<br><em>Sporting Club</em></h1>
+    <p class="login-tag">A private foyer for those we know by name.</p>
+    <div class="login-divider"></div>
+    <div class="login-eyebrow">Identify yourself</div>
+    <form class="login-form" id="login-form" autocomplete="off">
+      <div class="login-field">
+        <label for="last-name">Family name</label>
+        <input type="text" id="last-name" name="last-name" placeholder="As it appears on your roster card" required="">
+      </div>
+      <div class="login-field">
+        <label for="member-number">Member number</label>
+        <input type="text" id="member-number" name="member-number" placeholder="HSB-####" required="">
+      </div>
+      <button type="submit" class="login-submit" id="login-submit">Enter</button>
+    </form>
+    <div class="login-error" id="login-error"></div>
+    <div class="login-foot">
+      Trouble with your number? Reach the concierge at <a href="mailto:concierge@horseshoebaysportingclub.com">concierge@horseshoebaysportingclub.com</a> or by phone at the front gate.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     PORTAL VIEW
+     ═══════════════════════════════════════════════════════════════════ -->
+<div class="portal-view" id="portal-view">
+
+  <!-- Topbar -->
+  <header class="portal-topbar">
+    <div class="topbar-inner">
+      <div class="topbar-mark">
+        Horseshoe Bay<span class="dot">·</span><em>Sporting Club</em>
+        <span class="small">Members' Portal</span>
+      </div>
+      <div class="topbar-member">
+        <div class="member-avatar" id="member-avatar"></div>
+        <div class="member-meta">
+          <span class="name" id="member-topbar-name"></span>
+          <span class="num" id="member-topbar-num"></span>
+        </div>
+        <button type="button" class="signout" onclick="signOut()">Sign out</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Welcome masthead -->
+  <section class="portal-masthead">
+    <div class="greeting-eyebrow">Welcome back</div>
+    <h1 class="greeting-title" id="greeting-title">Welcome.</h1>
+    <p class="greeting-deck" id="greeting-deck">It's good to have you with us.</p>
+    <div class="greeting-tier-pill" id="tier-pill"></div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       MEMBER BOOKING HUB · v0.2
+       Four entry points for member self-service. Each opens a tailored
+       modal flow. Submissions route to the Events & Tournaments
+       database as Channel-A inquiries with the authenticated member
+       attached as the host of record (single-payer billing per
+       Charter Principle #07).
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="portal-section" id="booking-hub">
+    <div class="section-head">
+      <div>
+        <div class="section-eyebrow">Member Booking</div>
+        <h2 class="section-title">What can we set up for you?</h2>
+      </div>
+    </div>
+    <p class="section-deck">A private foyer where the friction comes off. Tell us what you have in mind and your concierge will confirm within a few hours.</p>
+    <div style="margin-top: 1.75rem;">
+      <div class="booking-hub-grid">
+
+        <button type="button" class="booking-tile" onclick="openBookingFlow(&#39;visit&#39;)">
+          <div class="booking-tile-numeral">I</div>
+          <div class="booking-tile-eyebrow">Plan a Visit</div>
+          <h3 class="booking-tile-title">Come out and shoot</h3>
+          <p class="booking-tile-body">A quick afternoon for yourself, or bring a few guests along. Tier pricing applies automatically as your group grows — cart and clays are bundled in.</p>
+          <span class="booking-tile-cta">Set it up →</span>
+        </button>
+
+        <button type="button" class="booking-tile" onclick="openBookingFlow(&#39;lesson&#39;)">
+          <div class="booking-tile-numeral">II</div>
+          <div class="booking-tile-eyebrow">Private Lesson</div>
+          <h3 class="booking-tile-title">One-on-one with an instructor</h3>
+          <p class="booking-tile-body">$200 the hour. Pick a discipline and an instructor, or let us recommend one. Bring a friend if you'd like — non-members add a guest fee.</p>
+          <span class="booking-tile-cta">Book a lesson →</span>
+        </button>
+
+        <button type="button" class="booking-tile" onclick="openBookingFlow(&#39;event&#39;)">
+          <div class="booking-tile-numeral">III</div>
+          <div class="booking-tile-eyebrow">Special Event</div>
+          <h3 class="booking-tile-title">Host an occasion</h3>
+          <p class="booking-tile-body">A milestone birthday, a member tournament, a charity gathering, a family reunion. Tell us the shape and we'll build it around the day.</p>
+          <span class="booking-tile-cta">Begin the inquiry →</span>
+        </button>
+
+        <button type="button" class="booking-tile" onclick="document.getElementById(&#39;adventures-section&#39;).scrollIntoView({behavior:&#39;smooth&#39;, block:&#39;start&#39;})">
+          <div class="booking-tile-numeral">IV</div>
+          <div class="booking-tile-eyebrow">Adventures</div>
+          <h3 class="booking-tile-title">Go further afield</h3>
+          <p class="booking-tile-body">Argentina dove, Sonora whitetail, the World Sporting Clays Championship. Curated trips listed below — reservations through your concierge.</p>
+          <span class="booking-tile-cta">Browse adventures →</span>
+        </button>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ADVENTURES — first-class member offering -->
+  <section class="portal-section" id="adventures-section">
+    <div class="section-head">
+      <div>
+        <div class="section-eyebrow">Adventures</div>
+        <h2 class="section-title">Where we're going next</h2>
+      </div>
+    </div>
+    <p class="section-deck">Curated trips and signature experiences for the membership. A mix of marquee travel and quieter, closer-to-home invitations.</p>
+    <div style="margin-top: 1.75rem;">
+      <div class="adv-grid" id="adv-grid"></div>
+    </div>
+  </section>
+
+  <!-- MEMBER PRICING — two-column display per Charter Principle #2 -->
+  <section class="portal-section">
+    <div class="section-head">
+      <div>
+        <div class="section-eyebrow">Member Pricing</div>
+        <h2 class="section-title">What you save</h2>
+      </div>
+    </div>
+    <p class="section-deck">A reference card for what things cost — guest fees scale with party size, lessons run $200 the hour, the printed Beverage Menu carries the member rate. Booking happens above; this is for orientation.</p>
+    <div style="margin-top: 1.75rem;">
+      <table class="pricing-table" id="pricing-table"></table>
+      <p class="pricing-savings-note">All prices subject to Texas state and local sales tax where applicable. Instructor and pure-instruction service lines are tax-exempt under Texas Tax Code §151.0048. Pricing reflected here is sourced live from the HSB Pricing schema and refreshes as it does.</p>
+    </div>
+  </section>
+
+  <!-- UPCOMING AT THE CLUB -->
+  <section class="portal-section">
+    <div class="section-head">
+      <div>
+        <div class="section-eyebrow">Upcoming at the Club</div>
+        <h2 class="section-title">On the calendar</h2>
+      </div>
+    </div>
+    <p class="section-deck">Events open to the membership. To host your own — corporate, charity, or private — start with the inquiry form linked below.</p>
+    <div style="margin-top: 1.75rem;">
+      <div class="tile-grid">
+        <div class="tile">
+          <div class="tile-eyebrow">Monthly</div>
+          <h3 class="tile-title">First Friday Cocktails</h3>
+          <p class="tile-body">The clubhouse stays open late on the first Friday of each month. Members and one guest. No reservation required, but a head-count helps.</p>
+          <a class="tile-link" href="mailto:concierge@horseshoebaysportingclub.com">RSVP →</a>
+        </div>
+        <div class="tile">
+          <div class="tile-eyebrow">Quarterly</div>
+          <h3 class="tile-title">Members' Tournament</h3>
+          <p class="tile-body">The club championship. Sporting clays format, member-only, with a closing dinner and a small trophy. Spring, summer, fall.</p>
+          <a class="tile-link" href="https://rhythm-roadmap.netlify.app/#">Tournament rules →</a>
+        </div>
+        <div class="tile">
+          <div class="tile-eyebrow">By inquiry</div>
+          <h3 class="tile-title">Host a private event</h3>
+          <p class="tile-body">Bring a corporate group, a charity tournament, or a private gathering. Use the inquiry form and we'll respond within a business day.</p>
+          <a class="tile-link" href="https://rhythm-roadmap.netlify.app/Rhythm_Intake_Form.html">Begin an inquiry →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MEMBER FAQ -->
+  <section class="portal-section">
+    <div class="section-head">
+      <div>
+        <div class="section-eyebrow">Member Resources</div>
+        <h2 class="section-title">Common questions</h2>
+      </div>
+    </div>
+    <p class="section-deck">A handful of the questions members ask most often. The full FAQ database lives behind the concierge — write or call if what you need isn't here.</p>
+    <div style="margin-top: 1.75rem;">
+      <div class="faq-list" id="faq-list"></div>
+    </div>
+  </section>
+
+  <!-- ACCOUNT -->
+  <section class="portal-section">
+    <div class="section-head">
+      <div>
+        <div class="section-eyebrow">Your Account</div>
+        <h2 class="section-title">Membership status</h2>
+      </div>
+    </div>
+    <div style="margin-top: 1.75rem;">
+      <div class="account-card">
+        <div class="account-grid">
+          <div class="account-item">
+            <div class="lbl">Member Number</div>
+            <div class="val" id="acct-num"></div>
+          </div>
+          <div class="account-item">
+            <div class="lbl">Tier</div>
+            <div class="val" id="acct-tier"></div>
+          </div>
+          <div class="account-item">
+            <div class="lbl">Member since</div>
+            <div class="val" id="acct-since"></div>
+          </div>
+          <div class="account-item">
+            <div class="lbl">Initiation</div>
+            <div class="val" id="acct-init"></div>
+          </div>
+          <div class="account-item">
+            <div class="lbl">Monthly dues</div>
+            <div class="val" id="acct-dues"></div>
+          </div>
+          <div class="account-item">
+            <div class="lbl">On file</div>
+            <div class="val" id="acct-contact"></div>
+          </div>
+        </div>
+        <p class="account-foot">
+          Anything to update — address, billing, family additions, dietary notes — reach the concierge at <a href="mailto:concierge@horseshoebaysportingclub.com">concierge@horseshoebaysportingclub.com</a>. Quietly handled, same day.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       BOOKING MODAL · v0.2 — universal modal, content rendered per flow
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="booking-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-shell">
+      <div class="modal-head">
+        <div class="modal-head-text">
+          <div class="modal-eyebrow" id="modal-eyebrow">Member Booking</div>
+          <h2 class="modal-title" id="modal-title">Plan a Visit</h2>
+        </div>
+        <button type="button" class="modal-close" onclick="closeBookingFlow()" aria-label="Close">×</button>
+      </div>
+      <div class="modal-stepper" id="modal-stepper"></div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-foot">
+        <div class="modal-estimate" id="modal-estimate">
+          <span class="lbl">Estimated investment</span>
+          <span class="val" id="estimate-val">—</span>
+          <span class="sub" id="estimate-sub">Concierge will confirm final pricing.</span>
+        </div>
+        <div class="modal-nav">
+          <button type="button" class="btn-step btn-back" id="btn-back" onclick="prevStep()">← Back</button>
+          <button type="button" class="btn-step btn-next" id="btn-next" onclick="nextStep()">Continue →</button>
+          <button type="button" class="btn-step btn-submit" id="btn-submit" onclick="submitBooking()" style="display:none;">Reserve →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation overlay -->
+  <div class="confirm-overlay" id="confirm-overlay">
+    <div class="confirm-card">
+      <div class="confirm-check">✓</div>
+      <div class="confirm-eyebrow" id="confirm-eyebrow">Reservation received</div>
+      <h2 class="confirm-title" id="confirm-title">Reserved.</h2>
+      <p class="confirm-deck" id="confirm-deck">Your concierge will confirm in the next few hours.</p>
+      <div class="confirm-ref" id="confirm-ref">HSB-INQ-—</div>
+      <div class="confirm-actions">
+        <button type="button" class="confirm-btn primary" onclick="dismissConfirm()">Back to portal</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="portal-foot">
+    <div class="crest">Horseshoe Bay Sporting Club</div>
+    <div>A members-only sporting destination in the Texas Hill Country.</div>
+    <div style="margin-top: 1rem; font-size: 11px; color: var(--gray); letter-spacing: 1px;">
+      Members Portal v0.1 · Work in progress · Built on the Rhythm schema architecture
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  /* ============================================================
+     ROSTER & ADVENTURES — DEMO MODE DATA
+     ────────────────────────────────────────────────────────────
+     ROSTER mirrors the HSB Sporting Club Roster Excel file
+     maintained in Google Drive (recommended canonical path):
+       Rhythm AI Schemas / 04_Operations / HSB Sporting Club /
+         Membership Roster / HSB_Sporting_Club_Roster.xlsx
+     145 active members as of 2026-04-30 (the file's "(1) 4.30"
+     suffix indicates v1, dated April 30). Plus the Vedros test
+     record at the top (member #17690) — flagged isTestRecord
+     for development logins.
+
+     Each household record carries a primary identity AND, when
+     applicable, a spouse identity. Either last name authenticates
+     with the shared member number — honoring the Charter §07
+     single-payer billing model where the household is the unit
+     of membership. Hyphenated last names (e.g., "Hull-Rainwater")
+     match either component or the full hyphenated form.
+
+     REFRESH WORKFLOW: when the Drive Excel updates, re-run the
+     extraction script against the latest download and replace
+     this ROSTER block. The script lives at
+       06_Sales & Marketing / Estimating Templates / scripts /
+         roster_to_js.py
+     (to be relocated alongside the templates folder).
+
+     PRODUCTION: replace this seed with /.netlify/functions/member-auth
+     that reads either the Drive Excel (Google Drive API) or a
+     Notion HSB Members database synced from it. The access token
+     lives server-side, never here.
+     ============================================================ */
+  const ROSTER = [
+    { memberNum: '17690', primary: { firstName: 'Nicholas', lastName: 'Vedros' }, spouse: null, email: 'nicholas@rhythmoutdoors.com', joinDate: '2026-01-15', tier: 'Founder', status: 'Active', initiation: 'Paid', dues: 'Current', hometown: 'Horseshoe Bay, TX', isTestRecord: true },
+    { memberNum: '41555', primary: { firstName: 'Kirk', lastName: 'McDonald' }, spouse: { firstName: 'Debbie', lastName: 'McDonald' }, email: 'aprylmcdonald@icloud.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41782', primary: { firstName: 'Beki', lastName: 'Hutchison' }, spouse: { firstName: 'Craig', lastName: 'Hutchison' }, email: 'craighutchison26@gmail.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52462', primary: { firstName: 'Yvonne', lastName: 'Kaatz' }, spouse: { firstName: 'Kelly', lastName: 'Kaatz' }, email: 'kelly.kaatz@HDRINC.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17524', primary: { firstName: 'Samuel', lastName: 'Mende' }, spouse: { firstName: 'Martha', lastName: 'Richardson' }, email: 'sjmmor@gmail.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52852', primary: { firstName: 'Valerie', lastName: 'Kelly' }, spouse: { firstName: 'Patrick', lastName: 'Kelly' }, email: 'patrick@kellyrealtyteam.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17505', primary: { firstName: 'Rich', lastName: 'Strasser' }, spouse: { firstName: 'Laura', lastName: 'Strasser' }, email: 'lbstrasser@gmail.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17435', primary: { firstName: 'Matt', lastName: 'Swain' }, spouse: { firstName: 'Kristin', lastName: 'Swain' }, email: 'kristinswain@icloud.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52724', primary: { firstName: 'Dan', lastName: 'Wegmiller' }, spouse: { firstName: 'Jennifer', lastName: 'Wegmiller' }, email: 'dan@spfmuni.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52915', primary: { firstName: 'Lynnanne', lastName: 'Eurton' }, spouse: { firstName: 'Tim', lastName: 'Eurton' }, email: 'teurton@att.net', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41207', primary: { firstName: 'Kay', lastName: 'Maynard' }, spouse: { firstName: 'Bryan', lastName: 'Maynard' }, email: 'bryan438@gmail.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52396', primary: { firstName: 'Bryan', lastName: 'Scott' }, spouse: { firstName: 'Nicole', lastName: 'Scott' }, email: 'cswheeler2@gmail.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41770', primary: { firstName: 'Larry', lastName: 'Olson' }, spouse: { firstName: 'Ricci', lastName: 'Olson' }, email: 'larry.c.olson@gmail.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17419', primary: { firstName: 'Patrick', lastName: 'Culp' }, spouse: { firstName: 'Marta', lastName: 'Culp' }, email: 'talk2pculp@gmail.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '16672', primary: { firstName: 'Dale', lastName: 'Pittman' }, spouse: { firstName: 'Kay', lastName: 'Pittman' }, email: 'kayanddalepittman@gmail.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52810', primary: { firstName: 'Peter', lastName: 'Cook' }, spouse: { firstName: 'Andira', lastName: 'Cook' }, email: 'pdcook16@gmail.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17002', primary: { firstName: 'John', lastName: 'Bishop' }, spouse: { firstName: 'Joan', lastName: 'Bishop' }, email: 'innerlooper@me.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52710', primary: { firstName: 'Cody', lastName: 'Lusk' }, spouse: { firstName: 'Michelle', lastName: 'Lusk' }, email: 'codlusk@yahoo.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52612', primary: { firstName: 'Patricia', lastName: 'Price' }, spouse: null, email: 'patyprice@yahoo.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17190', primary: { firstName: 'Richard', lastName: 'Town' }, spouse: { firstName: 'Maureen', lastName: 'Town' }, email: 'mimi@modhometx.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52104', primary: { firstName: 'Kyle', lastName: 'James' }, spouse: { firstName: 'Christy', lastName: 'James' }, email: 'christyj27@verizon.net', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '15382', primary: { firstName: 'Wayne', lastName: 'McDonald' }, spouse: { firstName: 'Nancy', lastName: 'McDonald' }, email: 'aprylmcdonald@icloud.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52794', primary: { firstName: 'Richard', lastName: 'Barkley' }, spouse: { firstName: 'Jauhnea', lastName: 'Barkley' }, email: 'rbarkley@pciawealth.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41493', primary: { firstName: 'Tammy', lastName: 'Carter' }, spouse: { firstName: 'Robert', lastName: 'Carter' }, email: 'tammygcarter99@gmail.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52464', primary: { firstName: 'Caroline', lastName: 'Bradshaw' }, spouse: null, email: 'cbdb@tstar.net', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17173', primary: { firstName: 'Mike', lastName: 'McDoniel' }, spouse: { firstName: 'Margaret', lastName: 'McDoniel' }, email: 'mltmcdoniel@gmail.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52459', primary: { firstName: 'Forrest', lastName: 'Dunlap' }, spouse: { firstName: 'Chris', lastName: 'Dunlap' }, email: 'chrisedunlap@gmail.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '16823', primary: { firstName: 'Russell', lastName: 'Backus' }, spouse: { firstName: 'Keri', lastName: 'Backus' }, email: 'russellb@ihm-cardinal.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '16875', primary: { firstName: 'Rick', lastName: 'Imig' }, spouse: { firstName: 'Sally', lastName: 'Imig' }, email: 'sally.imig@gmail.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '15994', primary: { firstName: 'James', lastName: 'Dudley' }, spouse: { firstName: 'Kara', lastName: 'Dudley' }, email: 'kara.dudley@gmail.com', joinDate: '2026-03-20', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17699', primary: { firstName: 'David', lastName: 'Strubbe' }, spouse: { firstName: 'Loretta', lastName: 'Strubbe' }, email: 'loristrubbe@yahoo.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '51985', primary: { firstName: 'Benjamin', lastName: 'McWilliams' }, spouse: { firstName: 'Courtney', lastName: 'McWilliams' }, email: 'mcwilliamscourtney1@gmail.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '31116', primary: { firstName: 'Ernest', lastName: 'Barberio' }, spouse: { firstName: 'Laurie', lastName: 'Barberio' }, email: 'ernestbarberio@sbcglobal.net', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52305', primary: { firstName: 'Lori', lastName: 'Wittman' }, spouse: { firstName: 'Mike', lastName: 'Wittman' }, email: 'mwittman10@comcast.net', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52799', primary: { firstName: 'Greg', lastName: 'Goree' }, spouse: null, email: 'goree@pl-gc.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52619', primary: { firstName: 'Kirsten', lastName: 'Sorensen' }, spouse: { firstName: 'Jonathan', lastName: 'Schoonmaker' }, email: null, joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '16700', primary: { firstName: 'Devin', lastName: 'Brewster' }, spouse: { firstName: 'Christy', lastName: 'Brewster' }, email: 'cabrewster@me.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17322', primary: { firstName: 'James', lastName: 'Roark' }, spouse: { firstName: 'Tammy', lastName: 'Roark' }, email: 'TAMMY@IROARK.COM', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52415', primary: { firstName: 'Eric', lastName: 'Chase' }, spouse: { firstName: 'Trisha', lastName: 'Chase' }, email: 'trisha@chaseracing.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52882', primary: { firstName: 'Roger', lastName: 'Hinds' }, spouse: { firstName: 'Katherine', lastName: 'Hinds' }, email: 'katherinemhinds@gmail.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17126', primary: { firstName: 'John', lastName: 'Richey' }, spouse: { firstName: 'Beth', lastName: 'McGregor' }, email: 'richeyjw@gmail.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17191', primary: { firstName: 'Greg', lastName: 'McDonald' }, spouse: { firstName: 'Apryl', lastName: 'McDonald' }, email: 'aprylmcdonald@icloud.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52544', primary: { firstName: 'Rusty', lastName: 'Smith' }, spouse: { firstName: 'Kendall', lastName: 'Smith' }, email: 'ksmith0627@gmail.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '16870', primary: { firstName: 'Jerry', lastName: 'Tyroch' }, spouse: { firstName: 'Martha', lastName: 'Tyroch' }, email: 'marthatyroch@hotmail.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17455', primary: { firstName: 'Todd', lastName: 'Vastine' }, spouse: { firstName: 'Teresa', lastName: 'Vastine' }, email: 'terevastine@v2incentives.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52547', primary: { firstName: 'Richard', lastName: 'Segina' }, spouse: { firstName: 'Wendy', lastName: 'Segina' }, email: 'segina@sbcglobal.net  ', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17536', primary: { firstName: 'David', lastName: 'Barrow' }, spouse: { firstName: 'Lucy', lastName: 'Barrow' }, email: 'barrow.david@gmail.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17180', primary: { firstName: 'John', lastName: 'Childers' }, spouse: { firstName: 'Sarah', lastName: 'Dillard' }, email: 'john.childers@am.jll.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41712', primary: { firstName: 'Steve', lastName: 'Johnson' }, spouse: { firstName: 'Lisa', lastName: 'Johnson' }, email: 'yvetteinhsb@gmail.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52680', primary: { firstName: 'Jason', lastName: 'Harris' }, spouse: { firstName: 'Brenda', lastName: 'Harris' }, email: 'jkharris711@gmail.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17003', primary: { firstName: 'Keith', lastName: 'Montgomery' }, spouse: { firstName: 'Renee', lastName: 'Montgomery' }, email: 'reneemontgomery67@att.net', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52684', primary: { firstName: 'Rex', lastName: 'Hecht' }, spouse: { firstName: 'Lisa', lastName: 'Hecht' }, email: 'lisa.hecht@aol.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17232', primary: { firstName: 'Gregory', lastName: 'Cardwell' }, spouse: { firstName: 'Doree', lastName: 'Gordon-Cardwell' }, email: 'doreeg2222@gmail.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52811', primary: { firstName: 'Cliff', lastName: 'Coffin' }, spouse: { firstName: 'Rhonda', lastName: 'Coffin' }, email: 'rlcoffin@gvtc.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52820', primary: { firstName: 'Brian', lastName: 'Surovik' }, spouse: { firstName: 'Kari', lastName: 'Surovik' }, email: 'kariasurovik@gmail.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '16408', primary: { firstName: 'Mark', lastName: 'Knudson' }, spouse: { firstName: 'Suzanne', lastName: 'Knudson' }, email: 'flamigo50@yahoo.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '13893', primary: { firstName: 'Alvin', lastName: 'Bledsoe' }, spouse: { firstName: 'Marti', lastName: 'Bledsoe' }, email: 'mbledsoe001@me.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17635', primary: { firstName: 'Mark', lastName: 'Anderson' }, spouse: { firstName: 'Monica', lastName: 'Anderson' }, email: 'moando99@gmail.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41644', primary: { firstName: 'Courtney', lastName: 'Fossas' }, spouse: { firstName: 'David', lastName: 'Fossas' }, email: 'dfossas@gmail.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '42034', primary: { firstName: 'Mark', lastName: 'Donica' }, spouse: { firstName: 'Shaye', lastName: 'Donica' }, email: 'shaye@arborhouseliving.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52306', primary: { firstName: 'Don', lastName: 'Bice' }, spouse: { firstName: 'Susan', lastName: 'Bice' }, email: 'sanddbice@gmail.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '16723', primary: { firstName: 'Jay', lastName: 'Patterson' }, spouse: { firstName: 'DeAnne', lastName: 'Patterson' }, email: 'dee.patterson4@outlook.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41895', primary: { firstName: 'Carla', lastName: 'Coan' }, spouse: { firstName: 'Richard', lastName: 'Coan' }, email: 'cjcoan89@gmail.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17254', primary: { firstName: 'Rick', lastName: 'Hull' }, spouse: { firstName: 'Tammy', lastName: 'Hull-Rainwater' }, email: 'rick@hullsupply.com', joinDate: '2026-03-23', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52690', primary: { firstName: 'Patrick', lastName: 'Racette' }, spouse: { firstName: 'Marti', lastName: 'Racette' }, email: 'patrick.racette@gmail.com', joinDate: '2026-03-24', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17178', primary: { firstName: 'Bennett', lastName: 'Robb' }, spouse: { firstName: 'Sheryl', lastName: 'Robb' }, email: 'bbennettrobb@gmail.com', joinDate: '2026-03-24', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17473', primary: { firstName: 'David', lastName: 'Prigmore' }, spouse: { firstName: 'Laura', lastName: 'Prigmore' }, email: 'lauraprigmore@msn.com', joinDate: '2026-03-24', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41454', primary: { firstName: 'James', lastName: 'Hollerbach' }, spouse: { firstName: 'Rhonda', lastName: 'Hollerbach' }, email: 'jhollerbach@hollerbach.com', joinDate: '2026-03-25', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17195', primary: { firstName: 'Randall', lastName: 'Sutton' }, spouse: { firstName: 'Barbara', lastName: 'Towne' }, email: 'randall.c.sutton@gmail.com', joinDate: '2026-03-25', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41953', primary: { firstName: 'Derek', lastName: 'Meader' }, spouse: { firstName: 'Roberta', lastName: 'Meader' }, email: 'derek@gavilanranch.com', joinDate: '2026-03-25', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41622', primary: { firstName: 'Karl', lastName: 'Nalepa' }, spouse: { firstName: 'Marti', lastName: 'Nalepa' }, email: 'msnalepa@gmail.com', joinDate: '2026-03-25', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52453', primary: { firstName: 'Paul', lastName: 'Figel' }, spouse: { firstName: 'Julie', lastName: 'Figel' }, email: 'no email', joinDate: '2026-03-25', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '16745', primary: { firstName: 'E', lastName: 'Williams' }, spouse: { firstName: 'Alan', lastName: 'Williams' }, email: 'awilliams_cfa@ymail.com', joinDate: '2026-03-25', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52880', primary: { firstName: 'Peter', lastName: 'Sullivan' }, spouse: { firstName: 'Tayna', lastName: 'Sullivan' }, email: 'tanya10s@hotmail.com', joinDate: '2026-03-25', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17207', primary: { firstName: 'Paul', lastName: 'Beavers' }, spouse: { firstName: 'Jeanne', lastName: 'Beavers' }, email: 'paul@bldgenvconsultants.com', joinDate: '2026-03-26', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52908', primary: { firstName: 'Ernie', lastName: 'Gigliotti' }, spouse: { firstName: 'Karen', lastName: 'Gigliotti' }, email: 'kagigliotti@sbcglobal.net', joinDate: '2026-03-26', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17661', primary: { firstName: 'Kirk', lastName: 'Knussmann' }, spouse: { firstName: 'Crari', lastName: 'Orts' }, email: 'txsportsfield@gmail.com', joinDate: '2026-03-26', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17460', primary: { firstName: 'Rodrick', lastName: 'Rhoads' }, spouse: { firstName: 'Patti', lastName: 'Rhoads' }, email: 'pattirhoads@me.com', joinDate: '2026-03-26', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52895', primary: { firstName: 'Rupert', lastName: 'Lion' }, spouse: { firstName: 'Sharon', lastName: 'Lion' }, email: 'sharon.r.lion@gmail.com', joinDate: '2026-03-26', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52655', primary: { firstName: 'Brent', lastName: 'Warrington' }, spouse: { firstName: 'Kari', lastName: 'Warrington' }, email: 'kariwarrington@me.com', joinDate: '2026-03-26', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17681', primary: { firstName: 'Carl', lastName: 'Eckersley' }, spouse: { firstName: 'Jackie', lastName: 'Eckersley' }, email: 'jackieeckersley88@gmail.com', joinDate: '2026-03-26', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '16806', primary: { firstName: 'Jeff', lastName: 'Ford' }, spouse: { firstName: 'Lara', lastName: 'Ford' }, email: 'laraford@yahoo.com', joinDate: '2026-03-26', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52480', primary: { firstName: 'Theresa', lastName: 'Brownd' }, spouse: { firstName: 'Robert', lastName: 'Brownd' }, email: 't@btbrownd.com', joinDate: '2026-03-26', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41383', primary: { firstName: 'Ronnie', lastName: 'Harpe' }, spouse: { firstName: 'Sheila', lastName: 'Harpe' }, email: 'rharpeslt@gmail.com', joinDate: '2026-03-26', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41705', primary: { firstName: 'Stephen', lastName: 'Bush' }, spouse: { firstName: 'Winnie', lastName: 'Bush' }, email: 'sbushmd@gmail.com', joinDate: '2026-03-26', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52287', primary: { firstName: 'Larry', lastName: 'Kappmeyer' }, spouse: { firstName: 'Penni', lastName: 'Kappmeyer' }, email: 'lwkappmeyer@gmail.com', joinDate: '2026-03-26', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52219', primary: { firstName: 'Tim', lastName: 'Dykes' }, spouse: { firstName: 'Becky', lastName: 'Dykes' }, email: 'rrdykes1@gmail.com', joinDate: '2026-03-26', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52861', primary: { firstName: 'Ken', lastName: 'Baird' }, spouse: { firstName: 'Kathryn', lastName: 'Baird' }, email: 'kathrynbaird575@gmail.com', joinDate: '2026-03-26', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '15620', primary: { firstName: 'Gary', lastName: 'Blankenship' }, spouse: { firstName: 'Cynthia', lastName: 'Blankenship' }, email: 'gblankenship@bnkwest.com', joinDate: '2026-03-26', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52835', primary: { firstName: 'Steve', lastName: 'Flatt' }, spouse: { firstName: 'Jerri', lastName: 'Flatt' }, email: 'jmflatt61@gmail.com', joinDate: '2026-03-26', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52394', primary: { firstName: 'Gary', lastName: 'Howze' }, spouse: { firstName: 'Kim', lastName: 'Howze' }, email: 'ghowze453@gmail.com', joinDate: '2026-03-26', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17311', primary: { firstName: 'James', lastName: 'McBurney' }, spouse: { firstName: 'Kathleen', lastName: 'McBurney' }, email: 'mcburney.jay@gmail.com', joinDate: '2026-03-27', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41690', primary: { firstName: 'Cathy', lastName: 'Ryden' }, spouse: { firstName: 'Michael', lastName: 'Ryden' }, email: 'cathyryden@gmail.com', joinDate: '2026-03-27', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17491', primary: { firstName: 'Bruce', lastName: 'Sharp' }, spouse: { firstName: 'Dana', lastName: 'Sharp' }, email: 'bsharp@longhorntubular.com', joinDate: '2026-03-27', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '51857', primary: { firstName: 'Scott', lastName: 'Heitkamp' }, spouse: { firstName: 'Carrie', lastName: 'Heitkamp' }, email: 'scotth@vbtex.com', joinDate: '2026-03-27', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17576', primary: { firstName: 'Lee', lastName: 'Womble' }, spouse: { firstName: 'Seliece', lastName: 'Womble' }, email: 'seliecew@gmail.com', joinDate: '2026-03-27', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17502', primary: { firstName: 'David', lastName: 'Groos' }, spouse: { firstName: 'Cathy', lastName: 'Groos' }, email: 'cgroos0@gmail.com', joinDate: '2026-03-27', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41989', primary: { firstName: 'Trent', lastName: 'Walton' }, spouse: { firstName: 'Dana', lastName: 'Canard' }, email: 'trentawalton@aol.com', joinDate: '2026-03-27', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '51618', primary: { firstName: 'James', lastName: 'Hower' }, spouse: { firstName: 'Ellen', lastName: 'Hower' }, email: 'ellenhower@gmail.com', joinDate: '2026-03-27', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52407', primary: { firstName: 'Al', lastName: 'Jansen' }, spouse: { firstName: 'Barb', lastName: 'Jansen' }, email: 'bigalc141@gmail.com', joinDate: '2026-03-27', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52644', primary: { firstName: 'Jay', lastName: 'Umphrey' }, spouse: { firstName: 'Karen', lastName: 'Umphrey' }, email: 'jayandkaren24@gmail.com', joinDate: '2026-03-28', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52887', primary: { firstName: 'Robert', lastName: 'Hess' }, spouse: { firstName: 'Brenda', lastName: 'Hess' }, email: null, joinDate: '2026-03-28', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '33134', primary: { firstName: 'John', lastName: 'Hollowell' }, spouse: { firstName: 'Paula', lastName: 'Hollowell' }, email: 'jhhollowell79@gmail.com', joinDate: '2026-03-28', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '33273', primary: { firstName: 'Alan', lastName: 'Palermo' }, spouse: { firstName: 'Tina', lastName: 'Palermo' }, email: 'tina@legendshine.com', joinDate: '2026-03-28', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52728', primary: { firstName: 'Marcus', lastName: 'Countiss' }, spouse: { firstName: 'Janis', lastName: 'Countiss' }, email: 'mcountiss55@gmail.com', joinDate: '2026-03-28', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '31425', primary: { firstName: 'Gail', lastName: 'Essex' }, spouse: null, email: 'gessex15@gmail.com', joinDate: '2026-03-28', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17563', primary: { firstName: 'Deborah', lastName: 'Arnold' }, spouse: { firstName: 'Frank', lastName: 'Grassler' }, email: 'deborah.arnold@hotmail.com', joinDate: '2026-03-28', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52865', primary: { firstName: 'Kenneth', lastName: 'Neupert' }, spouse: { firstName: 'Rosie', lastName: 'Neupert' }, email: 'rosieneupert@yahoo.com', joinDate: '2026-03-28', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17162', primary: { firstName: 'Grant', lastName: 'Hutchinson' }, spouse: { firstName: 'Bethany', lastName: 'Hutchinson' }, email: 'bethhutch12@yahoo.com', joinDate: '2026-03-28', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '42015', primary: { firstName: 'Greg', lastName: 'Ball' }, spouse: null, email: 'greg@blackstonetexas.com', joinDate: '2026-03-28', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41570', primary: { firstName: 'John', lastName: 'Garner' }, spouse: { firstName: 'Nancy', lastName: 'Heerssen' }, email: 'mgarner1983@gmail.com', joinDate: '2026-03-28', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '16775', primary: { firstName: 'John', lastName: 'Florence' }, spouse: { firstName: 'Mary', lastName: 'Florence' }, email: 'beth@jbflorence.com', joinDate: '2026-03-30', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17432', primary: { firstName: 'Richard', lastName: 'Cain' }, spouse: { firstName: 'Wendy', lastName: 'Cain' }, email: 'Wecain6@gmail.com', joinDate: '2026-03-30', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17148', primary: { firstName: 'Russ', lastName: 'Allison' }, spouse: null, email: 'russ.allison72@gmail.com', joinDate: '2026-03-30', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17424', primary: { firstName: 'Bob', lastName: 'Furio' }, spouse: { firstName: 'Valerie', lastName: 'Gnagi' }, email: 'bobfurio@gmail.com', joinDate: '2026-03-30', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17305', primary: { firstName: 'Dana', lastName: 'Townsend' }, spouse: { firstName: 'Paul', lastName: 'Townsend' }, email: 'Tom@3025llc.com', joinDate: '2026-03-30', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17465', primary: { firstName: 'Clayton', lastName: 'Snyder' }, spouse: null, email: 'crsnyder1739@gmail.com', joinDate: '2026-03-30', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17416', primary: { firstName: 'William', lastName: 'Scott' }, spouse: { firstName: 'Carol', lastName: 'Scott' }, email: 'cswheeler2@gmail.com', joinDate: '2026-03-30', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52708', primary: { firstName: 'Howard', lastName: 'Rough' }, spouse: { firstName: 'Lana', lastName: 'Rough' }, email: 'hrough@comcast.net', joinDate: '2026-03-30', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52277', primary: { firstName: 'Michael', lastName: 'Lucksinger' }, spouse: { firstName: 'Sally', lastName: 'Lucksinger' }, email: 'sally@dannett.net', joinDate: '2026-03-30', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52144', primary: { firstName: 'Gary', lastName: 'Schmitz' }, spouse: { firstName: 'Susan', lastName: 'Schmitz' }, email: 'gary_schmitz@icloud.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '42079', primary: { firstName: 'Heather', lastName: 'McCormick' }, spouse: { firstName: 'Mark', lastName: 'McCormick' }, email: 'mark@efoinc.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17329', primary: { firstName: 'Kyle', lastName: 'Lehne' }, spouse: { firstName: 'Kathy', lastName: 'Lehne' }, email: 'kyle@5klr.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '16998', primary: { firstName: 'Jeramy', lastName: 'McMahon' }, spouse: { firstName: 'Morgan', lastName: 'McMahon' }, email: 'mmvaughan7@gmail.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41977', primary: { firstName: 'Jim', lastName: 'Benedict' }, spouse: { firstName: 'Jenice', lastName: 'Benedict' }, email: 'aggiebenedictfamily@gmail.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '16808', primary: { firstName: 'Raymond', lastName: 'McNiece' }, spouse: { firstName: 'Maureen', lastName: 'McNiece' }, email: 'elrayfeo@gmail.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17523', primary: { firstName: 'Scott', lastName: 'Malia' }, spouse: { firstName: 'Kelly', lastName: 'Newberg' }, email: 'smalia704@gmail.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52168', primary: { firstName: 'Mark', lastName: 'Garner' }, spouse: { firstName: 'Connie', lastName: 'Garner' }, email: 'mgarner1983@gmail.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52718', primary: { firstName: 'Chad', lastName: 'Upham' }, spouse: { firstName: 'Krista', lastName: 'Upham' }, email: 'kristaupham@gmail.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41524', primary: { firstName: 'Karla', lastName: 'Stephens' }, spouse: { firstName: 'Kale', lastName: 'Stephens' }, email: 'Kale@horseshoebayliving.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41857', primary: { firstName: 'Linda', lastName: 'Bull' }, spouse: null, email: 'labull64@yahoo.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52669', primary: { firstName: 'Bryan', lastName: 'Hisey' }, spouse: { firstName: 'Kristin', lastName: 'Hisey' }, email: 'bryanhisey@gmail.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52359', primary: { firstName: 'Jim', lastName: 'Shindler' }, spouse: { firstName: 'Leslie', lastName: 'Shindler' }, email: 'jim@coniferre.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52864', primary: { firstName: 'Yvette', lastName: 'Johnson' }, spouse: { firstName: 'Jon', lastName: 'Claussen' }, email: 'yvetteinhsb@gmail.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41991', primary: { firstName: 'Robert', lastName: 'Putz' }, spouse: { firstName: 'Rhonda', lastName: 'Putz' }, email: 'rob_putz@ml.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '33414', primary: { firstName: 'Ken', lastName: 'Landry' }, spouse: { firstName: 'Suzy', lastName: 'Foster' }, email: 'landrykcl@aol.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17277', primary: { firstName: 'Steve', lastName: 'Dillinger' }, spouse: { firstName: 'Emily', lastName: 'Dillinger' }, email: 'steve@providentarms.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17461', primary: { firstName: 'Marsha', lastName: 'Brooks' }, spouse: { firstName: 'Sam', lastName: 'Brooks' }, email: 'samb@sambrooks.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41945', primary: { firstName: 'Will', lastName: 'Mitchell' }, spouse: { firstName: 'Laura', lastName: 'Mitchell' }, email: 'lauramitchell0513@gmail.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17760', primary: { firstName: 'Jeff', lastName: 'Green' }, spouse: { firstName: 'Dixie', lastName: 'Green' }, email: 'jeffgreen375@gmail.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '16315', primary: { firstName: 'James', lastName: 'Bailey' }, spouse: { firstName: 'Reagan', lastName: 'Bailey' }, email: 'jpbaileyjr@gmail.com', joinDate: '2026-03-31', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '17156', primary: { firstName: 'Scott', lastName: 'Bale' }, spouse: { firstName: 'Cassie', lastName: 'Bale' }, email: 'scottbale@me.com', joinDate: '2026-04-24', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '11010', primary: { firstName: 'John', lastName: 'Mariner' }, spouse: { firstName: 'Jacqueline', lastName: 'Mariner' }, email: 'jmariner19@outlook.com', joinDate: '2026-04-27', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '52761', primary: { firstName: 'Chloe', lastName: 'Rucker' }, spouse: { firstName: 'Jon', lastName: 'Rucker' }, email: null, joinDate: '2026-04-28', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '41823', primary: { firstName: 'Doug', lastName: 'Peterson' }, spouse: { firstName: 'Meghan', lastName: 'Peterson' }, email: null, joinDate: '2026-04-29', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' },
+    { memberNum: '42090', primary: { firstName: 'Daniel', lastName: 'Smith' }, spouse: { firstName: 'Linda', lastName: 'Smith' }, email: 'ksmith0627@gmail.com', joinDate: '2026-04-30', tier: 'Member', status: 'Active', initiation: 'Paid', dues: 'Current' }
+  ];
+
+  const ADVENTURES = [
+    { name: "Argentina Dove · Córdoba",                     type: "Wingshooting",          location: "Córdoba, Argentina",   start: "2026-12-04", end: "2026-12-09", duration: "5 nights / 4 hunting days", memberPrice: 6850, capacity: 8,  booked: 3,  status: "Filling",  tierRequired: [], headline: "The mythic high-volume hunt — five days at an estancia in the Córdoba foothills." },
+    { name: "Founders' Retreat · Pedernales",               type: "Member Retreat",         location: "Pedernales River, TX", start: "2026-10-23", end: "2026-10-25", duration: "2 nights",                  memberPrice: 0,    capacity: 30, booked: 18, status: "Open",     tierRequired: ["Founder"], headline: "An invitation-only weekend for the inaugural Founder class." },
+    { name: "Texas Hill Country Quail · January",           type: "Wingshooting",          location: "Brady, Texas",         start: "2027-01-15", end: "2027-01-18", duration: "3 nights / 2 hunting days", memberPrice: 2950, capacity: 6,  booked: 1,  status: "Open",     tierRequired: [], headline: "Three days on a fourth-generation ranch outside Brady — wild birds, classic dog work." },
+    { name: "Sonora Whitetail · Late Season",               type: "Big Game",              location: "Sonora, Mexico",       start: "2027-01-08", end: "2027-01-13", duration: "5 nights / 4 hunting days", memberPrice: 9800, capacity: 4,  booked: 4,  status: "Waitlist", tierRequired: [], headline: "Trophy whitetail at a managed concession in northern Mexico." },
+    { name: "World Sporting Clays Championship · Spring",   type: "Sporting Clays Travel", location: "TBD",                  start: null,         end: null,         duration: "4 nights",                  memberPrice: null, capacity: null, booked: null, status: "Draft",    tierRequired: [], headline: "Members' travel cohort to the World — coaching, evening tables, a shared experience." }
+  ];
+
+  /* Member-facing pricing — sourced from the HSB Pricing schema (Visibility ∈ {Public, Member-Only}).
+     The two-column display preserves Charter Principle #2: members see what they save where a
+     member rate diverges from retail. Where members and non-members pay the same (e.g., private
+     lessons, firearms rental), the column is unified — honest representation matters more than
+     forcing a parallel structure. */
+  const PRICING = [
+    { category: "Guest Fees", note: "When a member brings guests, the tier ladder fires automatically. Cart and clays are bundled into the per-guest rate at every tier." },
+    { name: "Standard tier · 1–4 guests",         note: "Member-led, no dedicated supervision required.",                            retail: 85,  member: 85,  juniorAdult: 55  },
+    { name: "Concierge · 5–9 guests",             note: "Dedicated club RSO included; reserved field/bay; logistical coordination.", retail: 110, member: 110, juniorAdult: 80  },
+    { name: "Concierge+ · 10–14 guests",          note: "Club RSO + additional RSO at 1:5 ratio.",                                   retail: 130, member: 130, juniorAdult: 100 },
+    { name: "Private Event · 15–19 guests",       note: "Club RSO + Senior Professional Instructor. 72-hour notice.",                retail: 150, member: 150, juniorAdult: 120 },
+    { name: "Private Event · 20–24 guests",       note: "Two Senior Professional Instructors. 72-hour notice.",                      retail: 160, member: 160, juniorAdult: 130 },
+
+    { category: "Member Package Experience", note: "Curated 2–2.5 hour sessions for the member who'd rather be guided than improvise. F&B not bundled." },
+    { name: "Standard",                           note: "Sporting clays or 5-Stand experience, ammunition, certified instruction.", retail: 156, member: 156 },
+    { name: "Premium",                            note: "Senior Instructor lead, expanded gear, premium consumables.",              retail: 176, member: 176 },
+
+    { category: "Private Lessons", note: "Discipline-agnostic instruction at $200/hour. Tax-exempt under TX §151.0048 (pure-instruction service)." },
+    { name: "Private Lesson · per hour",          note: "Members: $200/hr — that's the lesson, range access is covered by your dues. Non-members: $200/hr lesson + $85 guest fee for range access (net $285 for a one-hour 1-on-1).", retail: 200, member: 200 },
+
+    { category: "On Property", note: "" },
+    { name: "Cart Fee · per use",                 note: "Member days where the cart isn't bundled into the visit.",                  retail: 15,    member: 12    },
+    { name: "Firearms Rental · all models",       note: "Belt, holster, magazine pouches included with pistol rentals.",             retail: 52,    member: 52    },
+    { name: "Ammunition · per box",               note: "Caliber-specific. Member discount applies at point of sale per Charter Principle #2.", retail: "$10.99–$25.99", member: "20% off retail" },
+
+    { category: "Food & Beverage", note: "Per HSB resort vernacular, the printed menu rate IS the member rate. The two-column convention on the Beverage Menu (e.g., $19 | $16 cocktails) shows what you save." },
+    { name: "House cocktails",                    note: "Beverage Menu printed two-column.",                                          retail: 19,   member: 16 },
+    { name: "Wines by the glass",                 note: "Resort-aligned pricing.",                                                    retail: 18,   member: 14 },
+    { name: "Beer · domestic and craft",          note: "",                                                                            retail: 9,    member: 7  },
+
+    { category: "Membership", note: "" },
+    { name: "Initiation",                         note: "One-time, non-refundable, non-transferable. Available exclusively to families holding a Club at Horseshoe Bay membership.", retail: null, member: 2950 },
+    { name: "Monthly Dues",                       note: "Auto-billed to your account on file.",                                      retail: null, member: 295  }
+  ];
+
+  /* Member-facing FAQ — sourced from FAQ schema, Audience = Member */
+  const FAQ = [
+    { q: "May I bring guests?",
+      a: "Yes. Members may host guests at any time, with single-payer billing — the hosting member is the bill-payer of record for the visit. Guests pay nothing directly to the club; charges go to the member's account and settle at month-end." },
+    { q: "What does my monthly dues include?",
+      a: "Your $295 dues maintain your membership in good standing and entitle you to member pricing on every activity, retail, and F&B item. Activity participation is paid as you go at the member rate. Dues do not bundle range time." },
+    { q: "What's the dress code?",
+      a: "On the range: weather-appropriate, modest. In the clubhouse: neat casual — collared shirts, denim is welcome, hats off at the table. We are not pretending to be a country club, but we expect the same self-respect." },
+    { q: "Can my spouse use the club without me?",
+      a: "Yes. Family memberships extend to spouses and children under 22. Each named family member has their own member number for guest-billing purposes." },
+    { q: "Are dogs welcome on property?",
+      a: "Working dogs and well-mannered companions, yes. Please keep them leashed near the clubhouse and out of the dining areas. The clubhouse staff has biscuits behind the bar." },
+    { q: "How do I sign up for an Adventure?",
+      a: "Adventures are listed in the Adventures section of this portal. To reserve, write the concierge — once we confirm capacity and travel logistics with the outfitter, your spot is held with a deposit applied to your account." },
+    { q: "What's the cancellation policy on member-led visits?",
+      a: "Cancellations made more than 72 hours in advance are without penalty. Inside 72 hours, the activity rate for the booked party becomes due. We hold the courtesy in both directions — if we have to cancel, we make it right." }
+  ];
+
+  /* ============================================================
+     AUTH
+     ============================================================ */
+  let currentMember = null;
+
+  /* Last-name match with hyphenated tolerance.
+     "Hull-Rainwater" matches "hull", "rainwater", or "hull-rainwater". */
+  function matchesLastName(input, target) {
+    if (!target) return false;
+    const t = String(target).toLowerCase().trim();
+    const i = String(input).toLowerCase().trim();
+    if (!t || !i) return false;
+    if (t === i) return true;
+    if (t.includes('-')) {
+      return t.split('-').map(s => s.trim()).some(p => p === i);
+    }
+    return false;
+  }
+
+  function authenticate(lastName, memberNum) {
+    const lnNorm = (lastName || '').trim().toLowerCase();
+    const mnNorm = (memberNum || '').trim().toUpperCase().replace(/\s+|HSB-?/g, '');
+    if (!lnNorm || !mnNorm) return null;
+
+    for (const m of ROSTER) {
+      const memberDigits = String(m.memberNum).replace(/^HSB-?/i, '');
+      if (memberDigits !== mnNorm) continue;
+
+      /* Primary member match */
+      if (matchesLastName(lnNorm, m.primary && m.primary.lastName)) {
+        return Object.assign({}, m, {
+          matched: 'primary',
+          firstName: m.primary.firstName,
+          lastName: m.primary.lastName
+        });
+      }
+      /* Spouse / co-member match */
+      if (m.spouse && matchesLastName(lnNorm, m.spouse.lastName)) {
+        return Object.assign({}, m, {
+          matched: 'spouse',
+          firstName: m.spouse.firstName,
+          lastName: m.spouse.lastName
+        });
+      }
+    }
+    return null;
+  }
+
+  /* In production, replace with:
+     async function authenticate(lastName, memberNum) {
+       const r = await fetch('/.netlify/functions/member-auth', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ lastName, memberNum })
+       });
+       if (!r.ok) return null;
+       return r.json();
+     }
+  */
+
+  document.getElementById('login-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const submitBtn = document.getElementById('login-submit');
+    const errEl = document.getElementById('login-error');
+    const card = document.getElementById('login-card');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Verifying…';
+    errEl.textContent = '';
+
+    const ln = document.getElementById('last-name').value;
+    const mn = document.getElementById('member-number').value;
+
+    /* Slight delay so it feels deliberate */
+    setTimeout(() => {
+      const member = authenticate(ln, mn);
+      if (member) {
+        currentMember = member;
+        renderPortal(member);
+        document.getElementById('login-view').classList.add('hidden');
+        document.getElementById('portal-view').classList.add('active');
+        window.scrollTo(0, 0);
+      } else {
+        errEl.textContent = "We couldn't find that combination. Try again, or reach the concierge.";
+        card.classList.add('shake');
+        setTimeout(() => card.classList.remove('shake'), 450);
+      }
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Enter';
+    }, 350);
+  });
+
+  function signOut() {
+    currentMember = null;
+    document.getElementById('login-view').classList.remove('hidden');
+    document.getElementById('portal-view').classList.remove('active');
+    document.getElementById('login-form').reset();
+    document.getElementById('login-error').textContent = '';
+    window.scrollTo(0, 0);
+  }
+
+  /* ============================================================
+     RENDERERS
+     ============================================================ */
+  function honorific(member) {
+    /* Greets with the matched identity (member or spouse). */
+    return `${member.firstName} ${member.lastName}`;
+  }
+
+  function initials(member) {
+    const f = (member.firstName || '?').charAt(0);
+    const l = (member.lastName || '?').charAt(0);
+    return (f + l).toUpperCase();
+  }
+
+  function formatMemberNum(num) {
+    if (!num) return '';
+    return '#' + String(num).replace(/^HSB-?/i, '');
+  }
+
+  function formatJoinDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso + 'T12:00:00');
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+  }
+
+  function formatDateRange(start, end) {
+    if (!start) return 'Dates to be announced';
+    const s = new Date(start + 'T12:00:00');
+    const e = end ? new Date(end + 'T12:00:00') : null;
+    const sameMonth = e && s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear();
+    if (e && sameMonth) {
+      return s.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) + '–' + e.getDate() + ', ' + s.getFullYear();
+    } else if (e) {
+      return s.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' – ' + e.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    return s.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  }
+
+  function formatPrice(n) {
+    if (n === null || n === undefined) return '—';
+    if (n === 0) return 'Included';
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
+  }
+
+  function renderPortal(member) {
+    const since = formatJoinDate(member.joinDate);
+
+    /* Topbar */
+    document.getElementById('member-avatar').textContent = initials(member);
+    document.getElementById('member-topbar-name').textContent = honorific(member);
+    document.getElementById('member-topbar-num').textContent = formatMemberNum(member.memberNum);
+
+    /* Greeting */
+    document.getElementById('greeting-title').innerHTML = `Welcome back, <em>${member.firstName}</em>.`;
+    let deckText;
+    if (member.tier === 'Founder')      deckText = `Founder of the club — member since ${since}.`;
+    else if (member.tier === 'Charter') deckText = `Charter member since ${since}.`;
+    else if (member.tier === 'Legacy')  deckText = `Legacy member since ${since}.`;
+    else                                deckText = `Member since ${since}.`;
+    /* When the spouse logs in, surface the household connection gently. */
+    if (member.matched === 'spouse' && member.primary && member.primary.firstName) {
+      deckText = deckText + ` On the household with ${member.primary.firstName}.`;
+    }
+    document.getElementById('greeting-deck').textContent = deckText;
+
+    const pill = document.getElementById('tier-pill');
+    const pillTier = member.tier || 'Member';
+    pill.textContent = (pillTier === 'Member') ? 'Active Member' : pillTier + ' Member';
+    pill.className = 'greeting-tier-pill pill-' + pillTier;
+
+    /* Adventures */
+    renderAdventures(member);
+
+    /* Pricing */
+    renderPricing();
+
+    /* FAQ */
+    renderFAQ();
+
+    /* Account */
+    document.getElementById('acct-num').textContent = formatMemberNum(member.memberNum);
+    document.getElementById('acct-tier').textContent = (pillTier === 'Member') ? 'Active' : pillTier;
+    document.getElementById('acct-since').textContent = since;
+    document.getElementById('acct-init').innerHTML = (member.initiation || 'On file') + '<span class="sub">$2,950 · one-time</span>';
+    document.getElementById('acct-dues').innerHTML = (member.dues || 'On file') + '<span class="sub">$295 / month</span>';
+    const emailLine = member.email || 'On file with concierge';
+    const subLine = member.hometown || (member.matched === 'spouse' ? `Member of record: ${member.primary.firstName} ${member.primary.lastName}` : '');
+    document.getElementById('acct-contact').innerHTML = emailLine + (subLine ? '<span class="sub">' + subLine + '</span>' : '');
+  }
+
+  function renderAdventures(member) {
+    const grid = document.getElementById('adv-grid');
+    /* Filter: show only Adventures the member's tier can access */
+    const visible = ADVENTURES.filter(a => {
+      if (a.status === 'Past') return false;
+      if (!a.tierRequired || a.tierRequired.length === 0) return true;
+      return a.tierRequired.includes(member.tier);
+    });
+    grid.innerHTML = visible.map(a => `
+      <article class="adv-card">
+        <span class="adv-badge badge-${a.status}">${badgeLabel(a.status)}</span>
+        <div class="adv-type">${a.type}</div>
+        <h3 class="adv-name">${a.name}</h3>
+        <p class="adv-headline">${a.headline}</p>
+        <div class="adv-meta">
+          <div class="adv-meta-item">
+            <div class="lbl">Where</div>
+            <div class="val">${a.location}</div>
+          </div>
+          <div class="adv-meta-item">
+            <div class="lbl">When</div>
+            <div class="val">${formatDateRange(a.start, a.end)}</div>
+          </div>
+          <div class="adv-meta-item">
+            <div class="lbl">Duration</div>
+            <div class="val">${a.duration}</div>
+          </div>
+          <div class="adv-meta-item">
+            <div class="lbl">Capacity</div>
+            <div class="val">${a.capacity ? `${a.booked} of ${a.capacity}` : 'TBD'}</div>
+          </div>
+        </div>
+        <div class="adv-foot">
+          <div class="adv-price-wrap">
+            <span class="adv-price-lbl">Member</span>
+            <span class="adv-price ${a.memberPrice === 0 ? 'included' : ''}">${formatPrice(a.memberPrice)}</span>
+          </div>
+          <button type="button" class="adv-cta" onclick="inquireAdventure('${encodeURIComponent(a.name)}')">${ctaLabel(a.status)} &rarr;</button>
+        </div>
+      </article>
+    `).join('');
+  }
+
+  function badgeLabel(status) {
+    return ({
+      Open: 'Now Booking',
+      Filling: 'Filling Fast',
+      Waitlist: 'Waitlist Only',
+      Full: 'Sold Out',
+      Past: 'Past Trip',
+      Draft: 'Coming Soon'
+    })[status] || status;
+  }
+
+  function ctaLabel(status) {
+    return ({
+      Open: 'Reserve',
+      Filling: 'Reserve',
+      Waitlist: 'Join Waitlist',
+      Full: 'Notify me',
+      Draft: 'Stay informed',
+      Past: 'View'
+    })[status] || 'Inquire';
+  }
+
+  function inquireAdventure(name) {
+    const decoded = decodeURIComponent(name);
+    /* v0.2: route through the unified booking flow with the adventure pre-selected,
+       rather than dropping into a mailto. Keeps the inquiry experience consistent
+       across all four booking surfaces. */
+    openBookingFlow('adventure', { adventureName: decoded });
+  }
+
+  function renderPricing() {
+    const t = document.getElementById('pricing-table');
+    let html = `
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Retail</th>
+          <th>Member</th>
+        </tr>
+      </thead>
+      <tbody>
+    `;
+    PRICING.forEach(row => {
+      if (row.category) {
+        const noteHtml = row.note ? `<div class="pricing-cat-note">${row.note}</div>` : '';
+        html += `<tr class="pricing-category-row"><td colspan="3"><div class="pricing-cat-name">${row.category}</div>${noteHtml}</td></tr>`;
+      } else {
+        const fmt = (v) => {
+          if (v === null || v === undefined) return '<span style="color: var(--gray); font-style: italic;">—</span>';
+          if (typeof v === 'string') return v;
+          return '$' + v.toLocaleString('en-US', { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 });
+        };
+        const retailCell = fmt(row.retail);
+        const memberCell = fmt(row.member);
+        const sameRate = (typeof row.retail === 'number' && typeof row.member === 'number' && row.retail === row.member);
+        const juniorTag = (row.juniorAdult !== undefined) ? `<div class="pricing-sub">Junior (under 16): $${row.juniorAdult}/guest</div>` : '';
+        html += `
+          <tr>
+            <td>
+              <div class="pricing-name">${row.name}</div>
+              ${row.note ? `<div class="pricing-note">${row.note}</div>` : ''}
+              ${juniorTag}
+            </td>
+            <td class="pricing-retail ${sameRate ? 'unified' : ''}">${sameRate ? '<span class="unified-mark">—</span>' : retailCell}</td>
+            <td class="pricing-member">${memberCell}</td>
+          </tr>
+        `;
+      }
+    });
+    html += '</tbody>';
+    t.innerHTML = html;
+  }
+
+  function renderFAQ() {
+    const list = document.getElementById('faq-list');
+    list.innerHTML = FAQ.map((f, i) => `
+      <div class="faq-item">
+        <button type="button" class="faq-q" onclick="toggleFAQ(${i})">${f.q}</button>
+        <div class="faq-a">${f.a}</div>
+      </div>
+    `).join('');
+  }
+
+  function toggleFAQ(i) {
+    const items = document.querySelectorAll('.faq-item');
+    items[i].classList.toggle('open');
+  }
+
+  /* ════════════════════════════════════════════════════════════════════
+     MEMBER BOOKING FLOWS · v0.2
+     ────────────────────────────────────────────────────────────────────
+     Three reactive flows + adventure inquiry. Each writes to the
+     Events & Tournaments database (data source 0e164287-d4f1-43fd-a510-
+     6626601df7f1) as Channel = "A: Member-Led", Status = "Inquiry",
+     with the authenticated member as host of record (Charter §07
+     single-payer billing).
+
+     v0.2 ships with DEMO submit (logs payload to console + shows
+     confirmation overlay). At deployment, swap submitBooking() to call
+     /.netlify/functions/member-booking which performs the Notion write.
+     ════════════════════════════════════════════════════════════════════ */
+
+  /* HSB tier ladder — bundles cart + clays per Charter "Confirmed Pricing Levels" */
+  const TIER_LADDER = [
+    { min: 1,  max: 4,  name: 'Standard',     adult: 85,  junior: 55,  staffing: 'Member-led — no dedicated supervision required.' },
+    { min: 5,  max: 9,  name: 'Concierge',    adult: 110, junior: 80,  staffing: 'Dedicated club RSO included; reserved field/bay.' },
+    { min: 10, max: 14, name: 'Concierge+',   adult: 130, junior: 100, staffing: 'Club RSO + additional RSO at 1:5 ratio.' },
+    { min: 15, max: 19, name: 'Private Event', adult: 150, junior: 120, staffing: 'Senior Professional Instructor required. 72-hour notice.' },
+    { min: 20, max: 24, name: 'Private Event', adult: 160, junior: 130, staffing: 'Two Senior Professional Instructors. 72-hour notice.' },
+    { min: 25, max: 999, name: 'Custom Event', adult: null, junior: null, staffing: 'Beyond standard tiers — concierge will configure.' }
+  ];
+
+  function tierFor(adults, juniors) {
+    const total = (adults || 0) + (juniors || 0);
+    return TIER_LADDER.find(t => total >= t.min && total <= t.max) || TIER_LADDER[TIER_LADDER.length - 1];
+  }
+
+  const ARRIVAL_WINDOWS = [
+    { key: '9 AM',  ctx: 'Early start' },
+    { key: '10 AM', ctx: 'Mid-morning' },
+    { key: '12 PM', ctx: 'Midday' },
+    { key: '1 PM',  ctx: 'Early afternoon' },
+    { key: '3 PM',  ctx: 'Late afternoon' }
+  ];
+
+  const DISCIPLINES = [
+    { key: 'sporting-clays', name: 'Sporting Clays' },
+    { key: '5-stand',        name: '5-Stand' },
+    { key: 'skeet',          name: 'Skeet' },
+    { key: 'trap',           name: 'Trap' },
+    { key: 'pistol',         name: 'Pistol Range' },
+    { key: 'mixed',          name: 'Mixed / open to suggestion' }
+  ];
+
+  const INSTRUCTORS = [
+    { key: 'no-pref',     name: 'No preference',                  desc: 'We\'ll match you with the right coach for the discipline and your level.' },
+    { key: 'senior-pro',  name: 'Senior Professional',            desc: 'Senior-tier coaching. Best for refining technique or pre-tournament prep.' },
+    { key: 'specific',    name: 'Request a specific instructor',  desc: 'You have someone in mind. Tell us their name on the next step.' }
+  ];
+
+  const OCCASIONS = [
+    { key: 'birthday',   name: 'Birthday / milestone',  desc: 'A round of clays followed by drinks and dinner. Common request.' },
+    { key: 'tournament', name: 'Member tournament',     desc: 'Sporting clays format with a leaderboard, sponsor opportunities, awards.' },
+    { key: 'charity',    name: 'Charity / fundraiser',  desc: 'You\'re hosting on behalf of a cause. We\'ll work the bid around the cause\'s needs.' },
+    { key: 'family',     name: 'Family gathering',      desc: 'Multi-generational, mixed disciplines, room for the kids.' },
+    { key: 'corporate',  name: 'Corporate offsite',     desc: 'Your team, hosted by you. We\'ll work F&B and instruction around your agenda.' },
+    { key: 'other',      name: 'Something else',        desc: 'Tell us in the details on a later step.' }
+  ];
+
+  /* ──────────────────────────────────────────────────────────────────
+     STATE
+     ────────────────────────────────────────────────────────────────── */
+  const bookingState = {
+    flow: null,        // 'visit' | 'lesson' | 'event' | 'adventure'
+    step: 0,
+    totalSteps: 0,
+    data: {},
+    estimate: { total: 0, lines: [] }
+  };
+
+  const FLOW_TITLES = {
+    visit:     { title: 'Plan a Visit',          eyebrow: 'Member Booking' },
+    lesson:    { title: 'Private Lesson',         eyebrow: 'Member Booking' },
+    event:     { title: 'Special Event Inquiry',  eyebrow: 'Member Booking' },
+    adventure: { title: 'Adventure Inquiry',      eyebrow: 'Member Booking' }
+  };
+
+  const FLOW_STEP_LABELS = {
+    visit:     ['When', 'Who', 'What', 'Extras', 'Review'],
+    lesson:    ['When', 'Discipline', 'Instructor', 'Companions', 'Review'],
+    event:     ['When', 'Occasion', 'Group', 'Format', 'Review'],
+    adventure: ['Trip', 'Companions', 'Notes', 'Review']
+  };
+
+  /* ──────────────────────────────────────────────────────────────────
+     OPEN / CLOSE
+     ────────────────────────────────────────────────────────────────── */
+  function openBookingFlow(flow, prefill = {}) {
+    bookingState.flow = flow;
+    bookingState.step = 0;
+    bookingState.totalSteps = FLOW_STEP_LABELS[flow].length;
+    bookingState.data = defaultData(flow);
+    Object.assign(bookingState.data, prefill);
+
+    document.getElementById('modal-title').textContent = FLOW_TITLES[flow].title;
+    document.getElementById('modal-eyebrow').textContent = FLOW_TITLES[flow].eyebrow;
+
+    document.getElementById('booking-modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    renderModal();
+  }
+
+  function closeBookingFlow() {
+    document.getElementById('booking-modal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function defaultData(flow) {
+    if (flow === 'visit') {
+      return { date: '', dateFlexible: false, arrival: null, mode: null, adults: 0, juniors: 0, disciplines: [], extras: [], notes: '' };
+    }
+    if (flow === 'lesson') {
+      return { date: '', time: '', duration: 1, discipline: null, instructor: 'no-pref', instructorName: '', companions: 0, companionType: 'all-members', goals: '' };
+    }
+    if (flow === 'event') {
+      return { date: '', dateFlexible: false, occasion: null, adults: 0, juniors: 0, format: [], fnb: 'discuss', notes: '' };
+    }
+    if (flow === 'adventure') {
+      return { adventureName: '', companions: 0, notes: '' };
+    }
+    return {};
+  }
+
+  /* ──────────────────────────────────────────────────────────────────
+     STEP NAVIGATION
+     ────────────────────────────────────────────────────────────────── */
+  function nextStep() {
+    if (!validateStep()) return;
+    if (bookingState.step < bookingState.totalSteps - 1) {
+      bookingState.step++;
+      renderModal();
+    }
+  }
+  function prevStep() {
+    if (bookingState.step > 0) {
+      bookingState.step--;
+      renderModal();
+    }
+  }
+
+  function validateStep() {
+    const { flow, step, data } = bookingState;
+    if (flow === 'visit') {
+      if (step === 0) return !!data.date && !!data.arrival;
+      if (step === 1) return data.mode === 'solo' || (data.mode === 'guests' && (data.adults + data.juniors > 0));
+      if (step === 2) return data.disciplines.length > 0;
+      return true;
+    }
+    if (flow === 'lesson') {
+      if (step === 0) return !!data.date && !!data.time;
+      if (step === 1) return !!data.discipline;
+      if (step === 2) return !!data.instructor && (data.instructor !== 'specific' || data.instructorName.trim().length > 0);
+      return true;
+    }
+    if (flow === 'event') {
+      if (step === 0) return !!data.date || data.dateFlexible;
+      if (step === 1) return !!data.occasion;
+      if (step === 2) return (data.adults + data.juniors > 0);
+      return true;
+    }
+    if (flow === 'adventure') {
+      if (step === 0) return !!data.adventureName;
+      return true;
+    }
+    return true;
+  }
+
+  /* ──────────────────────────────────────────────────────────────────
+     RENDERER
+     ────────────────────────────────────────────────────────────────── */
+  function renderModal() {
+    renderStepper();
+    document.getElementById('modal-body').innerHTML = renderStepBody();
+    bindStepHandlers();
+    updateEstimate();
+    updateNavButtons();
+  }
+
+  function renderStepper() {
+    const labels = FLOW_STEP_LABELS[bookingState.flow];
+    let html = '';
+    for (let i = 0; i < labels.length; i++) {
+      const cls = i < bookingState.step ? 'done' : (i === bookingState.step ? 'current' : '');
+      html += `<span class="stepper-dot ${cls}"></span>`;
+    }
+    html += `<span class="stepper-label">Step ${bookingState.step + 1} of ${labels.length} · ${labels[bookingState.step]}</span>`;
+    document.getElementById('modal-stepper').innerHTML = html;
+  }
+
+  function updateNavButtons() {
+    const isLast = bookingState.step === bookingState.totalSteps - 1;
+    document.getElementById('btn-back').style.visibility = bookingState.step === 0 ? 'hidden' : 'visible';
+    document.getElementById('btn-next').style.display = isLast ? 'none' : 'inline-block';
+    document.getElementById('btn-submit').style.display = isLast ? 'inline-block' : 'none';
+  }
+
+  /* ──────────────────────────────────────────────────────────────────
+     STEP CONTENT
+     ────────────────────────────────────────────────────────────────── */
+  function renderStepBody() {
+    const { flow, step } = bookingState;
+    if (flow === 'visit')     return renderVisitStep(step);
+    if (flow === 'lesson')    return renderLessonStep(step);
+    if (flow === 'event')     return renderEventStep(step);
+    if (flow === 'adventure') return renderAdventureStep(step);
+    return '';
+  }
+
+  /* VISIT FLOW */
+  function renderVisitStep(step) {
+    const d = bookingState.data;
+    if (step === 0) {
+      return `
+        <h3 class="step-title">When are you <em>coming out</em>?</h3>
+        <p class="step-lede">Pick a date and a time of day. Tee-up time is whatever works for you within the window.</p>
+        <div class="field-grid-2">
+          <div class="field">
+            <label>Date</label>
+            <input type="date" id="v-date" value="${d.date}" oninput="bookingState.data.date = this.value; updateEstimate();" />
+          </div>
+          <div class="field">
+            <label>&nbsp;</label>
+            <label style="display:flex; gap:8px; align-items:center; padding-top:14px;">
+              <input type="checkbox" id="v-flex" ${d.dateFlexible ? 'checked' : ''} onchange="bookingState.data.dateFlexible = this.checked;" />
+              <span style="font-size:13px; color:var(--gray); text-transform:none; letter-spacing:0; font-weight:400;">I'm flexible on the date</span>
+            </label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Arrival window</label>
+          <div class="choice-row">
+            ${ARRIVAL_WINDOWS.map(w => `
+              <button type="button" class="choice-card ${d.arrival === w.key ? 'selected' : ''}" onclick="bookingState.data.arrival = '${w.key}'; renderModal();">
+                <div class="name">${w.key}</div>
+                <div class="desc">${w.ctx}</div>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+    if (step === 1) {
+      const tier = tierFor(d.adults, d.juniors);
+      return `
+        <h3 class="step-title">Who's <em>coming with you</em>?</h3>
+        <p class="step-lede">If it's just you, your dues cover the visit. If you're bringing guests, the tier ladder fires automatically — cart and clays bundle into the per-guest rate.</p>
+        <div class="choice-row" style="margin-bottom: 1.5rem;">
+          <button type="button" class="choice-card ${d.mode === 'solo' ? 'selected' : ''}" onclick="bookingState.data.mode = 'solo'; bookingState.data.adults = 0; bookingState.data.juniors = 0; renderModal();">
+            <div class="name">Just me</div>
+            <div class="desc">A quick afternoon to myself. Your dues cover access; ammunition is at-cost.</div>
+          </button>
+          <button type="button" class="choice-card ${d.mode === 'guests' ? 'selected' : ''}" onclick="bookingState.data.mode = 'guests'; if(!bookingState.data.adults) bookingState.data.adults = 2; renderModal();">
+            <div class="name">Bringing guests</div>
+            <div class="desc">Tier-ladder pricing applies. Member must be present and is bill-payer of record.</div>
+          </button>
+        </div>
+        ${d.mode === 'guests' ? `
+          <div class="field-grid-2">
+            <div class="guest-slider-block">
+              <div class="guest-slider-head">
+                <span class="guest-slider-lbl">Adult guests (16+)</span>
+                <span class="guest-slider-count"><span id="v-adults-count">${d.adults}</span><em>guests</em></span>
+              </div>
+              <input type="range" min="0" max="24" value="${d.adults}" oninput="bookingState.data.adults = +this.value; setSliderCount('v-adults-count', this.value); refreshTier('v'); updateEstimate();" />
+            </div>
+            <div class="guest-slider-block">
+              <div class="guest-slider-head">
+                <span class="guest-slider-lbl">Junior guests (under 16)</span>
+                <span class="guest-slider-count"><span id="v-juniors-count">${d.juniors}</span><em>guests</em></span>
+              </div>
+              <input type="range" min="0" max="24" value="${d.juniors}" oninput="bookingState.data.juniors = +this.value; setSliderCount('v-juniors-count', this.value); refreshTier('v'); updateEstimate();" />
+            </div>
+          </div>
+          <div class="tier-tag" id="v-tier-tag">${tier.name} tier <em>· ${tier.adult ? '$' + tier.adult + ' adult / $' + tier.junior + ' junior' : 'Custom — concierge will configure'}</em></div>
+          <p class="step-lede" id="v-tier-staff" style="margin-top: 1rem; font-size:13px;">${tier.staffing}</p>
+        ` : ''}
+      `;
+    }
+    if (step === 2) {
+      return `
+        <h3 class="step-title">What would you <em>like to shoot</em>?</h3>
+        <p class="step-lede">Pick one or several. We'll work out a sequence that flows.</p>
+        <div class="chip-row">
+          ${DISCIPLINES.map(disc => `
+            <button type="button" class="chip ${d.disciplines.includes(disc.key) ? 'selected' : ''}" onclick="toggleArrayItem(bookingState.data.disciplines, '${disc.key}'); renderModal();">${disc.name}</button>
+          `).join('')}
+        </div>
+      `;
+    }
+    if (step === 3) {
+      const extras = [
+        { key: 'open-bar',     name: 'Open bar at The Last Shot',  desc: 'Full bar service.' },
+        { key: 'fnb',          name: 'F&B coordination',           desc: 'Resort Banquets handles food. We connect you.' },
+        { key: 'photographer', name: 'Photographer access',        desc: 'Bringing your own; we work them into staging.' },
+        { key: 'cart-extras',  name: 'Additional carts',           desc: 'Beyond the standard transport bundled in your tier.' }
+      ];
+      return `
+        <h3 class="step-title">Anything <em>else</em>?</h3>
+        <p class="step-lede">Optional add-ons and a place to leave a note. Skip what doesn't apply.</p>
+        <div class="choice-row">
+          ${extras.map(x => `
+            <button type="button" class="choice-card ${d.extras.includes(x.key) ? 'selected' : ''}" onclick="toggleArrayItem(bookingState.data.extras, '${x.key}'); renderModal();">
+              <div class="name">${x.name}</div>
+              <div class="desc">${x.desc}</div>
+            </button>
+          `).join('')}
+        </div>
+        <div class="field" style="margin-top: 1.5rem;">
+          <label>Notes for the concierge</label>
+          <textarea id="v-notes" placeholder="Allergies, mobility considerations, who's never shot before, what you're celebrating…" oninput="bookingState.data.notes = this.value;">${d.notes}</textarea>
+        </div>
+      `;
+    }
+    /* Step 4: Review */
+    const tier = tierFor(d.adults, d.juniors);
+    const summary = visitReviewRows(d, tier);
+    return renderReview('Plan a Visit', summary, bookingState.estimate);
+  }
+
+  /* LESSON FLOW */
+  function renderLessonStep(step) {
+    const d = bookingState.data;
+    if (step === 0) {
+      return `
+        <h3 class="step-title">When would <em>you like to come in</em>?</h3>
+        <p class="step-lede">A 1-hour lesson is the most common; 2 hours gives breathing room for a full diagnostic + drilling.</p>
+        <div class="field-grid-2">
+          <div class="field">
+            <label>Date</label>
+            <input type="date" value="${d.date}" oninput="bookingState.data.date = this.value;" />
+          </div>
+          <div class="field">
+            <label>Time</label>
+            <input type="time" value="${d.time}" oninput="bookingState.data.time = this.value;" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Duration</label>
+          <div class="choice-row">
+            ${[1, 2, 3].map(h => `
+              <button type="button" class="choice-card ${d.duration === h ? 'selected' : ''}" onclick="bookingState.data.duration = ${h}; renderModal();">
+                <div class="name">${h} hour${h > 1 ? 's' : ''}</div>
+                <div class="desc">${h === 1 ? 'Standard private lesson.' : h === 2 ? 'Diagnostic plus drilling.' : 'Half-day intensive.'}</div>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+    if (step === 1) {
+      return `
+        <h3 class="step-title">What do you want to <em>work on</em>?</h3>
+        <p class="step-lede">Discipline focus. Pick one — we can revisit on a follow-up.</p>
+        <div class="choice-row">
+          ${DISCIPLINES.filter(x => x.key !== 'mixed').map(disc => `
+            <button type="button" class="choice-card ${d.discipline === disc.key ? 'selected' : ''}" onclick="bookingState.data.discipline = '${disc.key}'; renderModal();">
+              <div class="name">${disc.name}</div>
+              <div class="desc">${disciplineHint(disc.key)}</div>
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }
+    if (step === 2) {
+      return `
+        <h3 class="step-title">Any <em>instructor preference</em>?</h3>
+        <p class="step-lede">No wrong answer. If a name comes to mind, tell us.</p>
+        <div class="choice-row">
+          ${INSTRUCTORS.map(ins => `
+            <button type="button" class="choice-card ${d.instructor === ins.key ? 'selected' : ''}" onclick="bookingState.data.instructor = '${ins.key}'; renderModal();">
+              <div class="name">${ins.name}</div>
+              <div class="desc">${ins.desc}</div>
+            </button>
+          `).join('')}
+        </div>
+        ${d.instructor === 'specific' ? `
+          <div class="field" style="margin-top: 1rem;">
+            <label>Instructor name</label>
+            <input type="text" placeholder="e.g., Ray Bacon" value="${d.instructorName}" oninput="bookingState.data.instructorName = this.value;" />
+          </div>
+        ` : ''}
+      `;
+    }
+    if (step === 3) {
+      return `
+        <h3 class="step-title">Bringing <em>anyone</em>?</h3>
+        <p class="step-lede">A friend learning alongside? A spouse? Tell us how many people are in the lesson.</p>
+        <div class="guest-slider-block">
+          <div class="guest-slider-head">
+            <span class="guest-slider-lbl">Additional people in the lesson</span>
+            <span class="guest-slider-count"><span id="lesson-comp-count">${d.companions}</span><em id="lesson-comp-suffix">${d.companions === 1 ? 'person' : 'people'}</em></span>
+          </div>
+          <input type="range" min="0" max="4" value="${d.companions}" oninput="
+            const prev = bookingState.data.companions;
+            bookingState.data.companions = +this.value;
+            setSliderCount('lesson-comp-count', this.value, 'lesson-comp-suffix', 'person', 'people');
+            updateEstimate();
+            if ((prev === 0) !== (+this.value === 0)) renderModal();
+          " /></div>
+        ${d.companions > 0 ? `
+          <div class="field" style="margin-top: 1rem;">
+            <label>Are they members?</label>
+            <div class="choice-row">
+              <button type="button" class="choice-card ${d.companionType === 'all-members' ? 'selected' : ''}" onclick="bookingState.data.companionType = 'all-members'; renderModal();">
+                <div class="name">Members</div>
+                <div class="desc">No additional fees beyond the lesson rate.</div>
+              </button>
+              <button type="button" class="choice-card ${d.companionType === 'all-guests' ? 'selected' : ''}" onclick="bookingState.data.companionType = 'all-guests'; renderModal();">
+                <div class="name">Non-member guests</div>
+                <div class="desc">Adds the $85 Standard-tier guest fee per non-member for range access.</div>
+              </button>
+              <button type="button" class="choice-card ${d.companionType === 'mixed' ? 'selected' : ''}" onclick="bookingState.data.companionType = 'mixed'; renderModal();">
+                <div class="name">Mixed</div>
+                <div class="desc">Concierge will sort out the breakdown.</div>
+              </button>
+            </div>
+          </div>
+        ` : ''}
+        <div class="field" style="margin-top: 1.25rem;">
+          <label>Goals or specifics</label>
+          <textarea placeholder="What you'd like to improve, drills you've worked, recent matches, equipment notes…" oninput="bookingState.data.goals = this.value;">${d.goals}</textarea>
+        </div>
+      `;
+    }
+    /* Review */
+    const summary = lessonReviewRows(d);
+    return renderReview('Private Lesson', summary, bookingState.estimate);
+  }
+
+  /* EVENT FLOW */
+  function renderEventStep(step) {
+    const d = bookingState.data;
+    if (step === 0) {
+      return `
+        <h3 class="step-title">When are you <em>thinking</em>?</h3>
+        <p class="step-lede">Lock a date if you have one, or tick the box and we'll work to a window.</p>
+        <div class="field-grid-2">
+          <div class="field">
+            <label>Date</label>
+            <input type="date" value="${d.date}" oninput="bookingState.data.date = this.value;" />
+          </div>
+          <div class="field">
+            <label>&nbsp;</label>
+            <label style="display:flex; gap:8px; align-items:center; padding-top:14px;">
+              <input type="checkbox" ${d.dateFlexible ? 'checked' : ''} onchange="bookingState.data.dateFlexible = this.checked;" />
+              <span style="font-size:13px; color:var(--gray); text-transform:none; letter-spacing:0; font-weight:400;">I'm open — recommend a window</span>
+            </label>
+          </div>
+        </div>
+      `;
+    }
+    if (step === 1) {
+      return `
+        <h3 class="step-title">What's the <em>occasion</em>?</h3>
+        <p class="step-lede">A few words help us start in the right place. We'll capture more on the next step.</p>
+        <div class="choice-row">
+          ${OCCASIONS.map(o => `
+            <button type="button" class="choice-card ${d.occasion === o.key ? 'selected' : ''}" onclick="bookingState.data.occasion = '${o.key}'; renderModal();">
+              <div class="name">${o.name}</div>
+              <div class="desc">${o.desc}</div>
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }
+    if (step === 2) {
+      const tier = tierFor(d.adults, d.juniors);
+      return `
+        <h3 class="step-title">How <em>many guests</em>?</h3>
+        <p class="step-lede">Pricing scales with the tier ladder. You can adjust later — we just need a working number.</p>
+        <div class="field-grid-2">
+          <div class="guest-slider-block">
+            <div class="guest-slider-head">
+              <span class="guest-slider-lbl">Adult guests (16+)</span>
+              <span class="guest-slider-count"><span id="e-adults-count">${d.adults}</span><em>guests</em></span>
+            </div>
+            <input type="range" min="0" max="80" value="${d.adults}" oninput="bookingState.data.adults = +this.value; setSliderCount('e-adults-count', this.value); refreshTier('e'); updateEstimate();" />
+          </div>
+          <div class="guest-slider-block">
+            <div class="guest-slider-head">
+              <span class="guest-slider-lbl">Junior guests (under 16)</span>
+              <span class="guest-slider-count"><span id="e-juniors-count">${d.juniors}</span><em>guests</em></span>
+            </div>
+            <input type="range" min="0" max="40" value="${d.juniors}" oninput="bookingState.data.juniors = +this.value; setSliderCount('e-juniors-count', this.value); refreshTier('e'); updateEstimate();" />
+          </div>
+        </div>
+        <div class="tier-tag" id="e-tier-tag">${tier.name} tier <em>· ${tier.adult ? '$' + tier.adult + ' adult / $' + tier.junior + ' junior' : 'Custom — concierge will configure'}</em></div>
+        <p class="step-lede" id="e-tier-staff" style="margin-top: 1rem; font-size:13px;">${tier.staffing}</p>
+      `;
+    }
+    if (step === 3) {
+      const formats = [
+        { key: 'sporting-clays', name: 'Sporting clays course' },
+        { key: '5-stand', name: '5-Stand rotation' },
+        { key: 'tournament', name: 'Tournament with leaderboard' },
+        { key: 'mixed', name: 'Mixed — multiple stations' },
+        { key: 'instruction', name: 'Instruction-heavy (first-timers)' }
+      ];
+      return `
+        <h3 class="step-title">How would you <em>like to run it</em>?</h3>
+        <p class="step-lede">Format and any F&B coordination. None of this is binding — it gives the bid team a starting point.</p>
+        <div class="chip-row">
+          ${formats.map(f => `
+            <button type="button" class="chip ${d.format.includes(f.key) ? 'selected' : ''}" onclick="toggleArrayItem(bookingState.data.format, '${f.key}'); renderModal();">${f.name}</button>
+          `).join('')}
+        </div>
+        <div class="field" style="margin-top: 1.5rem;">
+          <label>Food &amp; beverage</label>
+          <div class="choice-row">
+            <button type="button" class="choice-card ${d.fnb === 'yes' ? 'selected' : ''}" onclick="bookingState.data.fnb = 'yes'; renderModal();">
+              <div class="name">Yes — coordinate F&B</div>
+              <div class="desc">Resort Banquets handles food under separate cover; the bid team connects you.</div>
+            </button>
+            <button type="button" class="choice-card ${d.fnb === 'no' ? 'selected' : ''}" onclick="bookingState.data.fnb = 'no'; renderModal();">
+              <div class="name">No food needed</div>
+              <div class="desc">Activity-only event.</div>
+            </button>
+            <button type="button" class="choice-card ${d.fnb === 'discuss' ? 'selected' : ''}" onclick="bookingState.data.fnb = 'discuss'; renderModal();">
+              <div class="name">Let's discuss</div>
+              <div class="desc">We'll figure it out together.</div>
+            </button>
+          </div>
+        </div>
+        <div class="field" style="margin-top: 1.25rem;">
+          <label>Anything else</label>
+          <textarea placeholder="Sponsor opportunities, prize structure, dietary needs, transportation, anything we should know…" oninput="bookingState.data.notes = this.value;">${d.notes}</textarea>
+        </div>
+      `;
+    }
+    /* Review */
+    const tier = tierFor(d.adults, d.juniors);
+    const summary = eventReviewRows(d, tier);
+    return renderReview('Special Event Inquiry', summary, bookingState.estimate);
+  }
+
+  /* ADVENTURE FLOW */
+  function renderAdventureStep(step) {
+    const d = bookingState.data;
+    if (step === 0) {
+      const available = ADVENTURES.filter(a => a.status !== 'Past');
+      return `
+        <h3 class="step-title">Which <em>trip</em>?</h3>
+        <p class="step-lede">Reservations on adventures route through your concierge — capacity, outfitter logistics, and travel coordination get handled together.</p>
+        <div class="choice-row">
+          ${available.map(a => `
+            <button type="button" class="choice-card ${d.adventureName === a.name ? 'selected' : ''}" onclick="bookingState.data.adventureName = '${a.name.replace(/'/g, "\\'")}'; renderModal();">
+              <div class="name">${a.name}</div>
+              <div class="desc">${a.location} · ${a.duration} · ${a.memberPrice ? '$' + a.memberPrice.toLocaleString() + ' member' : 'Pricing on inquiry'}</div>
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }
+    if (step === 1) {
+      return `
+        <h3 class="step-title">Anyone <em>coming with you</em>?</h3>
+        <p class="step-lede">Most adventures permit a member +1 at the guest rate. Tell us if you're bringing someone.</p>
+        <div class="guest-slider-block">
+          <div class="guest-slider-head">
+            <span class="guest-slider-lbl">Additional travelers</span>
+            <span class="guest-slider-count"><span id="adv-comp-count">${d.companions}</span><em id="adv-comp-suffix">${d.companions === 1 ? 'person' : 'people'}</em></span>
+          </div>
+          <input type="range" min="0" max="6" value="${d.companions}" oninput="bookingState.data.companions = +this.value; setSliderCount('adv-comp-count', this.value, 'adv-comp-suffix', 'person', 'people'); updateEstimate();" />
+        </div>
+      `;
+    }
+    if (step === 2) {
+      return `
+        <h3 class="step-title">Anything we should <em>know</em>?</h3>
+        <p class="step-lede">Dietary requests, gear questions, travel preferences, accessibility needs.</p>
+        <div class="field">
+          <textarea placeholder="Tell us anything that helps." oninput="bookingState.data.notes = this.value;">${d.notes}</textarea>
+        </div>
+      `;
+    }
+    /* Review */
+    const summary = adventureReviewRows(d);
+    return renderReview('Adventure Inquiry', summary, bookingState.estimate);
+  }
+
+  /* ──────────────────────────────────────────────────────────────────
+     HELPERS
+     ────────────────────────────────────────────────────────────────── */
+  function toggleArrayItem(arr, item) {
+    const i = arr.indexOf(item);
+    if (i === -1) arr.push(item);
+    else arr.splice(i, 1);
+  }
+
+  function disciplineHint(key) {
+    return ({
+      'sporting-clays': 'Walking course through varied stations.',
+      '5-stand': 'Stationary stations, group rotation.',
+      'skeet': 'Traditional skeet field. Predictable presentations.',
+      'trap': 'Going-away targets, competitive and approachable.',
+      'pistol': 'Guided pistol session, certified instructor required.'
+    })[key] || '';
+  }
+
+  function bindStepHandlers() {
+    /* All input bindings are inline (oninput / onclick) — kept here for future
+       moves to delegated event listeners if the modal grows. */
+  }
+
+  /* ──────────────────────────────────────────────────────────────────
+     LIGHTWEIGHT UI UPDATERS — used by sliders to avoid the full
+     renderModal() re-render on every input event. Re-rendering the
+     entire modal body on every slider tick destroys the slider DOM
+     mid-drag, breaks pointer capture, and queues so much work that
+     the modal becomes unresponsive. These targeted updaters mutate
+     only the pieces that need to change.
+     ────────────────────────────────────────────────────────────────── */
+  function setSliderCount(elId, value, suffixId, oneText, manyText) {
+    const el = document.getElementById(elId);
+    if (el) el.textContent = value;
+    if (suffixId) {
+      const sEl = document.getElementById(suffixId);
+      if (sEl) sEl.textContent = (parseInt(value, 10) === 1 ? oneText : manyText);
+    }
+  }
+  function refreshTier(prefix) {
+    const tier = tierFor(bookingState.data.adults || 0, bookingState.data.juniors || 0);
+    const tagEl = document.getElementById(prefix + '-tier-tag');
+    if (tagEl) {
+      tagEl.innerHTML = `${tier.name} tier <em>· ${tier.adult ? '$' + tier.adult + ' adult / $' + tier.junior + ' junior' : 'Custom — concierge will configure'}</em>`;
+    }
+    const staffEl = document.getElementById(prefix + '-tier-staff');
+    if (staffEl) staffEl.textContent = tier.staffing;
+  }
+
+  /* ──────────────────────────────────────────────────────────────────
+     ESTIMATE CALCULATIONS
+     ────────────────────────────────────────────────────────────────── */
+  function updateEstimate() {
+    const { flow, data } = bookingState;
+    let est = { lines: [], total: 0, note: 'Concierge will confirm final pricing.' };
+
+    if (flow === 'visit') {
+      if (data.mode === 'guests' && (data.adults || data.juniors)) {
+        const tier = tierFor(data.adults, data.juniors);
+        if (tier.adult) {
+          if (data.adults) est.lines.push({ name: `${tier.name} · adult guests × ${data.adults}`, amount: tier.adult * data.adults });
+          if (data.juniors) est.lines.push({ name: `${tier.name} · junior guests × ${data.juniors}`, amount: tier.junior * data.juniors });
+          est.lines.push({ name: 'Cart + clays', amount: 0, note: 'bundled in tier rate' });
+        } else {
+          est.note = 'Group size beyond standard tiers — concierge will configure.';
+        }
+      } else if (data.mode === 'solo') {
+        est.note = 'Your dues cover access. Ammunition at-cost on arrival.';
+      }
+    }
+    if (flow === 'lesson') {
+      if (data.duration) {
+        est.lines.push({ name: `Private instruction × ${data.duration} hour${data.duration > 1 ? 's' : ''}`, amount: 200 * data.duration, note: 'tax-exempt · TX §151.0048' });
+        if (data.companions > 0 && data.companionType === 'all-guests') {
+          est.lines.push({ name: `Non-member guest fee · Standard tier × ${data.companions}`, amount: 85 * data.companions });
+        }
+      }
+    }
+    if (flow === 'event') {
+      if (data.adults || data.juniors) {
+        const tier = tierFor(data.adults, data.juniors);
+        if (tier.adult) {
+          if (data.adults) est.lines.push({ name: `${tier.name} · adult × ${data.adults}`, amount: tier.adult * data.adults });
+          if (data.juniors) est.lines.push({ name: `${tier.name} · junior × ${data.juniors}`, amount: tier.junior * data.juniors });
+          if (data.fnb === 'yes' || data.fnb === 'discuss') {
+            est.lines.push({ name: 'F&B (separate cover · Resort Banquets)', amount: 0, note: 'not included in this estimate' });
+          }
+        } else {
+          est.note = 'Group size beyond standard tiers — concierge will configure a custom bid.';
+        }
+      }
+    }
+    if (flow === 'adventure') {
+      const adv = ADVENTURES.find(a => a.name === data.adventureName);
+      if (adv) {
+        if (adv.memberPrice !== null && adv.memberPrice !== undefined) {
+          est.lines.push({ name: `${adv.name} · member`, amount: adv.memberPrice });
+          if (data.companions > 0 && adv.guestPrice) {
+            est.lines.push({ name: `Guest companions × ${data.companions}`, amount: adv.guestPrice * data.companions });
+          }
+        } else {
+          est.note = 'Pricing released as the trip is finalized.';
+        }
+      }
+    }
+
+    est.total = est.lines.reduce((s, l) => s + (l.amount || 0), 0);
+    bookingState.estimate = est;
+
+    document.getElementById('estimate-val').textContent = est.total > 0 ? '$' + est.total.toLocaleString() : '—';
+    document.getElementById('estimate-sub').textContent = est.note;
+  }
+
+  /* ──────────────────────────────────────────────────────────────────
+     REVIEW SUMMARY ROWS
+     ────────────────────────────────────────────────────────────────── */
+  function visitReviewRows(d, tier) {
+    const rows = [];
+    rows.push(['Date', d.date ? formatDate(d.date) : 'Flexible' + (d.dateFlexible ? ' (open to suggestion)' : '')]);
+    rows.push(['Arrival', d.arrival || '—']);
+    if (d.mode === 'solo') {
+      rows.push(['Party', 'Just you']);
+    } else if (d.mode === 'guests') {
+      rows.push(['Guests', `${d.adults} adult${d.adults !== 1 ? 's' : ''}${d.juniors ? ', ' + d.juniors + ' junior' + (d.juniors !== 1 ? 's' : '') : ''}`]);
+      rows.push(['Tier', tier.name + (tier.adult ? ' · $' + tier.adult + '/adult' : '')]);
+    }
+    if (d.disciplines.length) rows.push(['Disciplines', d.disciplines.map(k => DISCIPLINES.find(x => x.key === k)?.name || k).join(', ')]);
+    if (d.extras.length) rows.push(['Extras', d.extras.join(', ')]);
+    if (d.notes) rows.push(['Notes', d.notes]);
+    return rows;
+  }
+  function lessonReviewRows(d) {
+    const rows = [];
+    rows.push(['Date', d.date ? formatDate(d.date) : '—']);
+    rows.push(['Time', d.time || '—']);
+    rows.push(['Duration', d.duration + ' hour' + (d.duration > 1 ? 's' : '')]);
+    rows.push(['Discipline', DISCIPLINES.find(x => x.key === d.discipline)?.name || '—']);
+    const ins = INSTRUCTORS.find(x => x.key === d.instructor);
+    rows.push(['Instructor', (ins?.name || '—') + (d.instructor === 'specific' && d.instructorName ? ' · ' + d.instructorName : '')]);
+    if (d.companions > 0) {
+      const types = { 'all-members': 'all members', 'all-guests': 'all non-members', 'mixed': 'mixed' };
+      rows.push(['With you', `${d.companions} companion${d.companions !== 1 ? 's' : ''} · ${types[d.companionType]}`]);
+    }
+    if (d.goals) rows.push(['Goals', d.goals]);
+    return rows;
+  }
+  function eventReviewRows(d, tier) {
+    const rows = [];
+    rows.push(['Date', d.date ? formatDate(d.date) : (d.dateFlexible ? 'Open — recommend a window' : '—')]);
+    rows.push(['Occasion', OCCASIONS.find(o => o.key === d.occasion)?.name || '—']);
+    rows.push(['Group', `${d.adults} adult${d.adults !== 1 ? 's' : ''}${d.juniors ? ', ' + d.juniors + ' junior' + (d.juniors !== 1 ? 's' : '') : ''} · ${tier.name} tier`]);
+    if (d.format.length) rows.push(['Format', d.format.join(', ')]);
+    rows.push(['F&B', { yes: 'Coordinate F&B', no: 'No F&B', discuss: 'Discuss with concierge' }[d.fnb]]);
+    if (d.notes) rows.push(['Notes', d.notes]);
+    return rows;
+  }
+  function adventureReviewRows(d) {
+    const rows = [];
+    rows.push(['Trip', d.adventureName || '—']);
+    if (d.companions > 0) rows.push(['Companions', d.companions]);
+    if (d.notes) rows.push(['Notes', d.notes]);
+    return rows;
+  }
+
+  function renderReview(label, rows, est) {
+    const memberLine = currentMember ? `<div class="review-row"><span class="lbl">Host</span><span class="val">${honorific(currentMember)} · ${formatMemberNum(currentMember.memberNum)}</span></div>` : '';
+    return `
+      <h3 class="step-title">Look it <em>over</em>.</h3>
+      <p class="step-lede">A summary of your inquiry. When you reserve, your concierge picks it up immediately and confirms within a few hours.</p>
+      <div class="review-block">
+        ${memberLine}
+        ${rows.map(r => `<div class="review-row"><span class="lbl">${r[0]}</span><span class="val">${r[1] || '—'}</span></div>`).join('')}
+      </div>
+      ${est.lines.length ? `
+        <div class="estimate-block">
+          ${est.lines.map(l => `
+            <div class="estimate-line ${l.amount === 0 ? 'muted' : ''}">
+              <span>${l.name}${l.note ? ' <em style="color:var(--gray); font-style:italic;">· ' + l.note + '</em>' : ''}</span>
+              <span>${l.amount > 0 ? '$' + l.amount.toLocaleString() : (l.note ? '' : '$0')}</span>
+            </div>
+          `).join('')}
+          <div class="estimate-total">
+            <span class="lbl">Estimated</span>
+            <span class="val">${est.total > 0 ? '$' + est.total.toLocaleString() : '—'}</span>
+          </div>
+          <div class="estimate-disclaimer">${est.note} Final tax application per Charter Principle #12 — instructor lines are TX-exempt; tier rates and most goods are taxable.</div>
+        </div>
+      ` : `<div class="estimate-block"><div class="estimate-disclaimer">${est.note}</div></div>`}
+    `;
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso + 'T12:00:00');
+    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  }
+
+  /* ──────────────────────────────────────────────────────────────────
+     SUBMIT
+     ────────────────────────────────────────────────────────────────── */
+  function submitBooking() {
+    const payload = {
+      ref: 'HSB-INQ-' + Math.random().toString(36).slice(2, 8).toUpperCase(),
+      flow: bookingState.flow,
+      member: currentMember ? {
+        num: currentMember.memberNum,
+        name: honorific(currentMember),
+        matched: currentMember.matched,
+        primary: currentMember.primary,
+        spouse: currentMember.spouse,
+        email: currentMember.email,
+        tier: currentMember.tier
+      } : null,
+      data: bookingState.data,
+      estimate: bookingState.estimate,
+      submittedAt: new Date().toISOString(),
+      channel: 'A: Member-Led',
+      status: 'Inquiry'
+    };
+    /* DEMO: console + confirmation overlay */
+    console.log('Member booking inquiry payload (would POST to /.netlify/functions/member-booking):', payload);
+
+    /* PRODUCTION (sketch — wire at deploy):
+       fetch('/.netlify/functions/member-booking', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify(payload)
+       }).then(r => r.json()).then(({ ref }) => showConfirmation(ref, bookingState.flow));
+    */
+
+    closeBookingFlow();
+    showConfirmation(payload.ref, bookingState.flow);
+  }
+
+  function showConfirmation(ref, flow) {
+    const titles = {
+      visit:     { title: 'Reserved.',      deck: 'Your visit is in the book. The concierge will confirm details and any field-time logistics within the next few hours.' },
+      lesson:    { title: 'Lesson held.',   deck: 'Your instructor will be in touch within the next few hours to confirm time, range, and what to bring.' },
+      event:     { title: 'In motion.',     deck: 'Your event inquiry has reached the bid team. Expect a draft proposal — and any clarifying questions — within one business day.' },
+      adventure: { title: 'On the list.',   deck: 'Your concierge is reaching out to the outfitter to hold your spot. They\'ll confirm capacity and next steps shortly.' }
+    };
+    const t = titles[flow] || titles.visit;
+    document.getElementById('confirm-title').textContent = t.title;
+    document.getElementById('confirm-deck').textContent = t.deck;
+    document.getElementById('confirm-ref').textContent = ref;
+    document.getElementById('confirm-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function dismissConfirm() {
+    document.getElementById('confirm-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+</script>
+
+<!--
+  ═══════════════════════════════════════════════════════════════════════════
+  NETLIFY FUNCTION SHAPE  (for v1.0 deployment)
+  ───────────────────────────────────────────────────────────────────────────
+  /.netlify/functions/member-auth.js
+  ───────────────────────────────────────────────────────────────────────────
+  POST  { lastName: string, memberNum: string }
+  Returns 200 { firstName, lastName, memberNum, tier, joinDate, email, hometown,
+                 initiation, dues } on match,
+          401 on no match.
+
+  Implementation (sketch):
+    const { Client } = require('@notionhq/client');
+    exports.handler = async (event) => {
+      const { lastName, memberNum } = JSON.parse(event.body);
+      const notion = new Client({ auth: process.env.NOTION_TOKEN });
+      const digits = memberNum.replace(/^HSB-?/i, '').trim();
+      const r = await notion.databases.query({
+        database_id: process.env.HSB_MEMBERS_DB_ID,    // df6306c5-06a6-49c2-a8b8-09884bdaf47a
+        filter: {
+          and: [
+            { property: 'Last Name',      title:  { equals: lastName.trim() } },
+            { property: 'Member Number',  unique_id: { equals: parseInt(digits, 10) } },
+            { property: 'Status',         select:    { equals: 'Active' } }
+          ]
+        }
+      });
+      if (!r.results.length) return { statusCode: 401, body: 'Unknown member' };
+      const m = r.results[0].properties;
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          firstName:   m['First Name'].rich_text[0]?.plain_text || '',
+          lastName:    m['Last Name'].title[0]?.plain_text || '',
+          memberNum:   `HSB-${m['Member Number'].unique_id.number}`,
+          tier:        m['Tier'].select?.name,
+          joinDate:    m['Join Date'].date?.start,
+          email:       m['Email'].email,
+          hometown:    m['Hometown'].rich_text[0]?.plain_text || '',
+          initiation:  m['Initiation Status'].select?.name,
+          dues:        m['Dues Status'].select?.name
+        })
+      };
+    };
+
+  ───────────────────────────────────────────────────────────────────────────
+  /.netlify/functions/member-booking.js  (v0.2)
+  ───────────────────────────────────────────────────────────────────────────
+  POST  { ref, flow, member, data, estimate, channel: 'A: Member-Led', status: 'Inquiry' }
+  Writes a new page to the Events & Tournaments data source with the
+  authenticated member as Host of Record (Charter §07 single-payer billing).
+  Maps booking-flow data to the existing 17 intake properties on Events &
+  Tournaments (Contact Name/Email/Phone, Audience Type, Adults/Juniors,
+  Requested Channel, F&B Notes, Cart Needs, Ammo Notes, Budget Range, Lead
+  Source = 'Member Portal', Submission Type = 'Member Booking', Submitted At,
+  Special Requests, Instruction Requested).
+  Returns 200 { ref } on success.
+
+  Implementation (sketch):
+    exports.handler = async (event) => {
+      const payload = JSON.parse(event.body);
+      const notion = new Client({ auth: process.env.NOTION_TOKEN });
+      await notion.pages.create({
+        parent: { database_id: process.env.EVENTS_TOURNAMENTS_DB_ID }, // 0e164287-d4f1-43fd-a510-6626601df7f1
+        properties: mapBookingToEventsProps(payload)
+      });
+      return { statusCode: 200, body: JSON.stringify({ ref: payload.ref }) };
+    };
+
+  Required env vars on Netlify:
+    NOTION_TOKEN              — Notion integration token (must be invited to
+                                Members, Adventures, Events & Tournaments DBs)
+    HSB_MEMBERS_DB_ID         — df6306c5-06a6-49c2-a8b8-09884bdaf47a
+    HSB_ADVENTURES_DB_ID      — 6b66ffd4-2976-4ff3-93f2-c107b0e83779
+    EVENTS_TOURNAMENTS_DB_ID  — 0e164287-d4f1-43fd-a510-6626601df7f1
+    HSB_PRICING_DB_ID         — d680b4ad-16d8-42b1-ac94-2a3fbe08fd13
+  ═══════════════════════════════════════════════════════════════════════════
+-->
+
+
+</body></html>
