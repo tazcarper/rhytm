@@ -565,7 +565,7 @@ SELECT * FROM bookings;       -- should return all rows
 
 **`WITH CHECK` vs `USING` for INSERT.** `USING` filters rows the user can see. `WITH CHECK` filters rows the user can insert. For INSERT policies, only `WITH CHECK` applies. If you write `FOR INSERT USING (...)` instead of `FOR INSERT WITH CHECK (...)`, Postgres accepts it but the behavior may not be what you expect.
 
-**RLS does not apply to service role.** The Supabase service role (`SUPABASE_SERVICE_ROLE_KEY`) bypasses all RLS policies. Server Actions and Route Handlers that use the service role client have access to all rows. This is intentional — the service role is used for operations that cross user boundaries (checkout, webhook handling, member seeding). Guard it at the application layer, not the RLS layer.
+**RLS does not apply to service role.** The Supabase service role (`SUPABASE_SECRET_KEY`) bypasses all RLS policies. Server Actions and Route Handlers that use the service role client have access to all rows. This is intentional — the service role is used for operations that cross user boundaries (checkout, webhook handling, member seeding). Guard it at the application layer, not the RLS layer.
 
 **`auth.uid()` returns null for unauthenticated requests.** A policy like `member_user_id = auth.uid()` evaluated for an anon user returns `false` (not an error), because `null = null` is `null`, which is falsy in a USING clause. This is the correct behavior — anon users see nothing in tables with only authenticated-user policies.
 

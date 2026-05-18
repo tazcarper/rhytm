@@ -1,7 +1,13 @@
 import { createClient } from "@supabase/supabase-js";
 
-// Service-role Supabase client. **Bypasses all RLS.** Server-side ONLY.
+// Secret-key Supabase client. **Bypasses all RLS.** Server-side ONLY.
 // Never import this from a client component or expose the key it uses.
+//
+// The function is named `createServiceRoleClient` because Supabase still
+// authenticates `sb_secret_…` keys as the Postgres `service_role` role
+// under the hood — that's how RLS-bypass works. The user-facing key
+// vocabulary is "secret"; the database-level role vocabulary is still
+// "service_role." Both names are correct, depending on the layer.
 //
 // Use for:
 //   - Public booking-flow writes (Server Action that creates booking + bid).
@@ -16,7 +22,7 @@ import { createClient } from "@supabase/supabase-js";
 export function createServiceRoleClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    process.env.SUPABASE_SECRET_KEY!,
     {
       auth: {
         // No session persistence — service role doesn't represent a user.

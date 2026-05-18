@@ -412,7 +412,7 @@ This is the application-level gate. RLS is the database-level gate. Both must ho
 
 ## Notes
 
-**`app_metadata` is not writable by the client.** Only the service role Admin API can set `app_metadata`. The Supabase client SDK (`NEXT_PUBLIC_SUPABASE_ANON_KEY`) cannot modify it. This is the correct security boundary — role escalation from the client is impossible.
+**`app_metadata` is not writable by the client.** Only the service role Admin API can set `app_metadata`. The Supabase client SDK (`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`) cannot modify it. This is the correct security boundary — role escalation from the client is impossible.
 
 **`members.user_id` is nullable until invite is accepted.** A member row exists in the database (seeded from Excel) before the member has ever logged in. `user_id` is null. Once they accept the invite, `user_id` is set and `app_metadata` is stamped. RLS policies that check `user_id = auth.uid()` will not match until this link is established.
 

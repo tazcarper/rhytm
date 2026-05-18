@@ -532,7 +532,7 @@ Without the prefixes, alphabetical order would be `check` < `set` < `validate`, 
 
 **Money as `numeric(10,2)`** — Never `float` or `real` for monetary values. `numeric` is exact decimal arithmetic. `10,2` supports up to $99,999,999.99 — sufficient for any booking or event pricing.
 
-**Service role for public writes** — The checkout Server Action creates the booking and bid in one transaction using `SUPABASE_SERVICE_ROLE_KEY`. This key must never be exposed client-side. The `NEXT_PUBLIC_SUPABASE_ANON_KEY` is for read-only public queries (available slots, services, etc.) and authenticated user reads (member portal, partner portal).
+**Service role for public writes** — The checkout Server Action creates the booking and bid in one transaction using `SUPABASE_SECRET_KEY`. This key must never be exposed client-side. The `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` is for read-only public queries (available slots, services, etc.) and authenticated user reads (member portal, partner portal).
 
 **`booking_disciplines` and `booking_add_ons` RLS** — The EXISTS subquery on `bookings` is correct but adds a join on every row read. For high-volume admin list views, use the service role client on the server side instead of relying on RLS joins. RLS is the safety net; the application should use the appropriate key for each access pattern.
 

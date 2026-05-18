@@ -33,7 +33,7 @@ Status key: ✅ Done · 🔄 In Progress · ⏸ Blocked · 🔲 Not Started
 
 | # | Epic | Status | Notes |
 |---|------|--------|-------|
-| App 1 | Project Scaffold | 🔄 In Progress | Next.js 16 App Router + TypeScript scaffold landed (2026-05-18). Three Supabase clients (browser, cookie-aware server, service role), auth middleware, and a smoke-test page in place. **Still pending**: fill `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` from the dashboard, upgrade local Node to ≥ 20.9.0, then confirm `npm run dev` boots and the landing page lists the 3 properties. Vercel deploy is the last step (connect repo + env vars in dashboard). |
+| App 1 | Project Scaffold | 🔄 In Progress | Next.js 16 App Router + TypeScript scaffold landed (2026-05-18). Three Supabase clients (browser, cookie-aware server, service role), auth middleware, and a smoke-test page in place. **Still pending**: fill `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY` in `.env.local` from the dashboard, upgrade local Node to ≥ 20.9.0, then confirm `npm run dev` boots and the landing page lists the 3 properties. Vercel deploy is the last step (connect repo + env vars in dashboard). |
 | App 2 | Public Booking Flow | 🔲 Not Started | Property selection → service → time → guest info → checkout → bid page |
 | App 3 | Admin Portal | 🔲 Not Started | Booking review, bid editor, status management |
 | App 4 | Member Portal | 🔲 Not Started | Login, my bookings, adventures, RSVP |
