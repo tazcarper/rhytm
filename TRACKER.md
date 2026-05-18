@@ -4,6 +4,33 @@ Status key: ✅ Done · 🔄 In Progress · ⏸ Blocked · 🔲 Not Started
 
 ---
 
+## Session Handoff (last updated 2026-05-18)
+
+**Where we are.** All foundational DB work and the Next.js scaffold are in place:
+
+- **Database** — Phases 1, 2, 3, 4, 6 applied to project `vgmlordqsigalrpmuwap`. Phase 5 (Member Adventures) is the only remaining DB migration. Phase 7 is documentation-only (no migration). Both Phase 5 and Phase 7 plan docs have been reviewed and tightened — they are ready to apply / use as-is.
+- **Application** — Next.js 16 + TypeScript scaffold landed; three Supabase clients (browser publishable, cookie-aware server, secret-key service role) + auth middleware + smoke-test landing page wired. Local `npm run dev` confirmed working against the live Supabase. Vercel deploy is not yet connected.
+- **Open client questions** — Q2 / Q4 / Q5 / Q9 / Q14 / Q16 still block seed data for `time_slots`, `services`, `add_ons`, `instructors`, `pricing_rules`, and the membership tier vocabulary. None block more schema work.
+
+**How to resume in a fresh session:**
+
+1. `git pull` to get to the latest main.
+2. Read `CLAUDE.md`, then this file, then the plan doc for whichever phase you're touching next (in `plan/supabase/phase-*.md`).
+3. Verify the DB hasn't drifted: `./node_modules/.bin/supabase migration list` should show 5 matched rows.
+4. Verify local dev: `npm run dev` should boot and list 3 properties at `/`.
+5. Pick one of the next moves below and go.
+
+**Next moves — pick one based on what the user wants:**
+
+- **A. Apply Phase 5 (Member Adventures)** — the last DB migration. Plan is ready at `plan/supabase/phase-5-adventures.md`. Unblocks App 4 (Member Portal).
+- **B. Build `/auth/callback` route handler + portal middleware guards** — exercises Phase 4 auth. The `/auth/callback` flow needs to link every pending `members` row for the signed-in user's email and enforce `invite_expires_at`. The middleware needs `/admin`, `/member`, `/partner` allowlists based on `app_metadata.role`. See `plan/supabase/phase-4-auth-users.md` Steps 4 and "Middleware Route Guards" for the exact shape.
+- **C. Wire Vercel deploy** — Connect the GitHub repo in the Vercel dashboard, add the same env vars from `.env.local` (publishable key, secret key, BID_COOKIE_SECRET), trigger the first deploy.
+- **D. Get the six open client questions in front of the client.** Q2 + Q4 are the lowest-cost asks ("send us your operating hours" + "send us your catalogs") and unblock the most seed data. Pure project-management work — no code from us required.
+
+If unsure, **B** is the most leveraged code path — every portal phase depends on it, and it's tangible progress against a working scaffold.
+
+---
+
 ## Database Phases (Supabase)
 
 | # | Epic | Status | Completed | Notes |
@@ -33,7 +60,7 @@ Status key: ✅ Done · 🔄 In Progress · ⏸ Blocked · 🔲 Not Started
 
 | # | Epic | Status | Notes |
 |---|------|--------|-------|
-| App 1 | Project Scaffold | 🔄 In Progress | Next.js 16 App Router + TypeScript scaffold landed (2026-05-18). Three Supabase clients (browser, cookie-aware server, service role), auth middleware, and a smoke-test page in place. **Still pending**: fill `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY` in `.env.local` from the dashboard, upgrade local Node to ≥ 20.9.0, then confirm `npm run dev` boots and the landing page lists the 3 properties. Vercel deploy is the last step (connect repo + env vars in dashboard). |
+| App 1 | Project Scaffold | 🔄 In Progress | Next.js 16 App Router + TypeScript scaffold landed (2026-05-18). Three Supabase clients (browser publishable, cookie-aware server, secret-key service role), auth middleware, smoke-test page. Env vars filled in `.env.local`; Node upgraded; `npm run dev` confirmed working against live Supabase (lists the 3 properties). **Remaining**: connect the GitHub repo in the Vercel dashboard, add the same env vars (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY), trigger the first deploy. |
 | App 2 | Public Booking Flow | 🔲 Not Started | Property selection → service → time → guest info → checkout → bid page |
 | App 3 | Admin Portal | 🔲 Not Started | Booking review, bid editor, status management |
 | App 4 | Member Portal | 🔲 Not Started | Login, my bookings, adventures, RSVP |
