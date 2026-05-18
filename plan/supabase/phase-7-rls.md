@@ -2,49 +2,56 @@
 
 ## Overview
 
-RLS policies are written alongside each table in Phases 1–6. This document is the authoritative reference for the complete policy set, the helper functions that make them readable, and the testing protocol.
+RLS policies and helper functions are *created* in their native phase (Phases 1–6) alongside their tables. **This phase has no migration of its own.** It is a regenerated reference document — the authoritative cross-cutting view of every RLS policy in the system, the helper functions they use, the role capability matrix, and the testing protocol.
+
+> **Maintenance rule:** when an RLS policy or helper function changes in any of Phases 1–6, this document must be updated in the same change. Drift between this doc and the per-phase plans is the expected failure mode; the role-matrix and testing recipes here are only useful if they match the live schema.
 
 ---
 
 ## Helper Functions (defined in Phase 4)
 
-All RLS policies use these functions instead of raw `auth.jwt()` calls. This keeps policies auditable and ensures the JWT parsing logic is in one place.
+All RLS policies use these functions instead of raw `auth.jwt()` calls. This keeps policies auditable, ensures the JWT parsing logic lives in one place, and — because each helper internally wraps `auth.jwt()` in a `(SELECT auth.jwt())` subquery — gives Postgres a per-query InitPlan so the JWT is parsed once per query instead of once per row.
+
+All helpers are `LANGUAGE sql STABLE` with default `SECURITY INVOKER`. Reading the caller's own JWT does not require elevated privileges; `SECURITY DEFINER` here would be a footgun if a helper ever got extended to read tables.
 
 ```sql
 -- Current user's role
 auth_role()             → text    -- 'super_admin' | 'admin' | 'property_manager' | ...
 
--- Current user's property_id (staff and partner roles)
+-- Current user's property_id (staff and partner roles only; NULL for members)
 auth_property_id()      → uuid
 
--- Current user's partner_org_id (partner role)
+-- Current user's partner_org_id (partner role only)
 auth_partner_org_id()   → uuid
-
--- Current user's member_id (member role)
-auth_member_id()        → uuid
 
 -- Convenience checks
 is_admin()              → boolean  -- true for super_admin and admin
 is_staff()              → boolean  -- true for any internal role
 ```
 
+There is intentionally **no `auth_member_id()` helper.** Members can hold memberships at multiple properties (one `members` row per property), so a single `member_id` claim cannot represent the full picture. Member-facing policies join `members` on `user_id = auth.uid()` instead — see the policies on `members`, `member_adventures`, and `member_adventure_rsvps` below.
+
 ---
 
 ## Role Capability Matrix
+
+"R" / "W" reflect **what RLS allows**. Writes via service-role Server Actions are not represented here — every role can have additional write paths through Server Actions, which bypass RLS entirely.
 
 | Role | properties | time_slots | services | add_ons | instructors | pricing_rules | bookings | bids | members | adventures | rsvps |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `super_admin` | R/W | R/W | R/W | R/W | R/W | R/W | R/W | R/W | R/W | R/W | R/W |
 | `admin` | R/W | R/W | R/W | R/W | R/W | R/W | R/W | R/W | R/W | R/W | R/W |
-| `property_manager` | R | R | R | R | R/W† | R | R/W† | R/W† | R/W† | R/W† | R/W† |
-| `concierge` | R | R | R | R | R | — | R/W‡ | R/W‡ | — | — | — |
+| `property_manager` | R | R | R | R | R/W† | R | R/W† | R/W† | R† | R/W† | R/W† |
+| `concierge` | R | R | R | R | R | — | R‡§ | R‡§ | — | — | — |
 | `membership_coordinator` | R | — | — | — | — | — | — | — | R/W† | — | — |
-| `partner` | R | R | R | R | R | — | R/W‡ | R/W‡ | — | — | — |
-| `member` | R | R | R | R | R | — | R‡ | R‡ | R/W‡ | R | R/W‡ |
+| `partner` | R | R | R | R | R | — | R‡§ | R‡§ | — | — | — |
+| `member` | R | R | R | R | R | — | R‡ | R‡ | R§ | R★ | R§ |
 | Anon | R | R (active) | R (active) | R (active) | R (active) | — | — | — | — | — | — |
 
-† Scoped to their `property_id`
-‡ Scoped to records they own or created
+† Scoped to their `property_id` claim.
+‡ Scoped to records they own or created (via `concierge_user_id = auth.uid()` etc.).
+§ Writes for this role go through service-role Server Actions, not RLS. RLS deliberately exposes no `FOR INSERT/UPDATE` policy because RLS is row-level (not column-level) and would otherwise let the client change any column.
+★ Members see adventures (and their own RSVPs) at **any** property where they hold an active `members` row — cross-property membership is supported (Phase 4 decision). RLS does the join through `members.user_id = auth.uid()`.
 
 ---
 
@@ -288,7 +295,13 @@ CREATE POLICY "bids: staff update"
   ON bids FOR UPDATE
   USING (
     is_admin()
-    OR auth_role() = 'property_manager'
+    OR (
+      auth_role() = 'property_manager'
+      AND EXISTS (
+        SELECT 1 FROM bookings b
+        WHERE b.id = booking_id AND b.property_id = auth_property_id()
+      )
+    )
   );
 ```
 
@@ -308,8 +321,17 @@ CREATE POLICY "partner_orgs: partner read own"
   ON partner_organizations FOR SELECT
   USING (auth_role() = 'partner' AND id = auth_partner_org_id());
 
-CREATE POLICY "partner_orgs: admin write"
-  ON partner_organizations FOR ALL USING (is_admin());
+-- Split into explicit insert/update/delete so the policy intent is obvious
+-- on audit. (FOR ALL would govern SELECT too, redundantly with the three
+-- explicit SELECT policies above.)
+CREATE POLICY "partner_orgs: admin insert"
+  ON partner_organizations FOR INSERT WITH CHECK (is_admin());
+
+CREATE POLICY "partner_orgs: admin update"
+  ON partner_organizations FOR UPDATE USING (is_admin());
+
+CREATE POLICY "partner_orgs: admin delete"
+  ON partner_organizations FOR DELETE USING (is_admin());
 ```
 
 ### `members`
@@ -332,9 +354,11 @@ CREATE POLICY "members: member read own"
   ON members FOR SELECT
   USING (auth_role() = 'member' AND user_id = auth.uid());
 
-CREATE POLICY "members: member update own"
-  ON members FOR UPDATE
-  USING (auth_role() = 'member' AND user_id = auth.uid());
+-- No FOR UPDATE policy for members. RLS is row-level, not column-level —
+-- a member-role update policy would let the client change `status`,
+-- `membership_tier`, `member_number`, `property_id`, etc. Member self-edits
+-- route through a Server Action that uses the service role and enforces
+-- the column allowlist (typically: phone, communication preferences).
 
 CREATE POLICY "members: membership_coordinator update"
   ON members FOR UPDATE
@@ -349,12 +373,20 @@ CREATE POLICY "members: admin write"
 ```sql
 ALTER TABLE member_adventures ENABLE ROW LEVEL SECURITY;
 
+-- Members see published/sold_out adventures at any property where they
+-- hold an active membership. Joins through `members` because members can
+-- hold memberships at multiple properties (Phase 4 cross-property model),
+-- so the JWT carries no single property_id claim for them.
 CREATE POLICY "adventures: member read published"
   ON member_adventures FOR SELECT
   USING (
     auth_role() = 'member'
     AND status IN ('published', 'sold_out')
-    AND property_id = auth_property_id()
+    AND property_id IN (
+      SELECT property_id FROM members
+      WHERE user_id = (SELECT auth.uid())
+        AND status = 'active'
+    )
   );
 
 CREATE POLICY "adventures: admin read all"
@@ -377,17 +409,34 @@ CREATE POLICY "adventures: property_manager write"
 ```sql
 ALTER TABLE member_adventure_rsvps ENABLE ROW LEVEL SECURITY;
 
+-- Member reads RSVPs tied to any of their memberships.
 CREATE POLICY "rsvps: member read own"
   ON member_adventure_rsvps FOR SELECT
-  USING (auth_role() = 'member' AND member_id = auth_member_id());
+  USING (
+    auth_role() = 'member'
+    AND member_id IN (
+      SELECT id FROM members WHERE user_id = (SELECT auth.uid())
+    )
+  );
 
+-- Member can insert an RSVP only against one of their *active* memberships.
+-- The capacity trigger enforces the slot limit server-side.
 CREATE POLICY "rsvps: member insert own"
   ON member_adventure_rsvps FOR INSERT
-  WITH CHECK (auth_role() = 'member' AND member_id = auth_member_id());
+  WITH CHECK (
+    auth_role() = 'member'
+    AND member_id IN (
+      SELECT id FROM members
+      WHERE user_id = (SELECT auth.uid())
+        AND status = 'active'
+    )
+  );
 
-CREATE POLICY "rsvps: member cancel own"
-  ON member_adventure_rsvps FOR UPDATE
-  USING (auth_role() = 'member' AND member_id = auth_member_id() AND status != 'cancelled');
+-- No FOR UPDATE policy for members. Same reasoning as `members`: RLS is
+-- row-level, not column-level. Member cancellations route through a
+-- Server Action that uses the service role, enforces "status can only
+-- change to 'cancelled'", applies refund policy, and triggers waitlist
+-- promotion.
 
 CREATE POLICY "rsvps: admin read all"
   ON member_adventure_rsvps FOR SELECT USING (is_admin());
@@ -418,7 +467,16 @@ CREATE POLICY "rsvps: staff update"
 
 ### `processed_webhooks`
 
-RLS is intentionally **not enabled** on this table. It is accessed exclusively by service role Route Handlers.
+```sql
+-- RLS enabled with NO policies. Supabase's default GRANTs to anon and
+-- authenticated would otherwise let the anon key list every webhook ID
+-- we've processed. Enabled-with-no-policies denies all access except
+-- the service role.
+ALTER TABLE processed_webhooks ENABLE ROW LEVEL SECURITY;
+-- (No CREATE POLICY statements.)
+```
+
+This table is accessed exclusively by service-role Route Handlers (Stripe webhook, Dropbox Sign webhook). RLS-enabled-with-no-policies is the Supabase-idiomatic way to say "service role only" while still defending against future regressions from someone enabling/disabling RLS without policies elsewhere.
 
 ---
 
@@ -429,21 +487,42 @@ Run these queries in the Supabase SQL editor against a test user's JWT to verify
 ### Setup: test as a specific role
 
 ```sql
--- Test as a member (replace with a real member's user ID and their property_id)
+-- Test as a member. The member's app_metadata carries only `role` — there
+-- is no member_id / property_id claim (cross-property model). The RLS
+-- subqueries join `members` on user_id = auth.uid(), so the test setup
+-- must include matching rows in `members` for the chosen 'sub'.
 SET LOCAL role TO authenticated;
 SET LOCAL request.jwt.claims TO '{
   "sub": "member-user-uuid",
   "role": "authenticated",
   "app_metadata": {
-    "role": "member",
-    "member_id": "member-row-uuid",
-    "property_id": "property-uuid"
+    "role": "member"
   }
 }';
 
 -- Now run queries — RLS applies based on the claims above
 SELECT * FROM bookings;  -- should only return rows where member_user_id = 'member-user-uuid'
 SELECT * FROM pricing_rules;  -- should return 0 rows
+SELECT * FROM members;        -- should return only the member's own row(s) (one per property)
+```
+
+```sql
+-- Test cross-property member access. Seed two members rows for the same
+-- user_id, one per property, both active. The member should see adventures
+-- and RSVPs at *both* properties.
+INSERT INTO members (id, user_id, property_id, email, member_number, first_name, last_name, status)
+VALUES
+  ('m1-uuid', 'member-user-uuid', 'hsb-property-uuid',        'a@b.com', 'HSB-001', 'Jane', 'Doe', 'active'),
+  ('m2-uuid', 'member-user-uuid', 'packsaddle-property-uuid', 'a@b.com', 'PS-001',  'Jane', 'Doe', 'active');
+
+SET LOCAL role TO authenticated;
+SET LOCAL request.jwt.claims TO '{"sub":"member-user-uuid","role":"authenticated","app_metadata":{"role":"member"}}';
+
+SELECT property_id FROM member_adventures WHERE status = 'published';
+-- expect rows for both hsb-property-uuid and packsaddle-property-uuid
+
+SELECT member_id FROM member_adventure_rsvps;
+-- expect rows where member_id IN ('m1-uuid', 'm2-uuid') only
 ```
 
 ```sql
@@ -490,4 +569,8 @@ SELECT * FROM bookings;       -- should return all rows
 
 **`auth.uid()` returns null for unauthenticated requests.** A policy like `member_user_id = auth.uid()` evaluated for an anon user returns `false` (not an error), because `null = null` is `null`, which is falsy in a USING clause. This is the correct behavior — anon users see nothing in tables with only authenticated-user policies.
 
-**EXISTS subqueries in policies are evaluated per row.** Policies on `booking_disciplines` and `booking_add_ons` use `EXISTS (SELECT 1 FROM bookings ...)`. This is a correlated subquery — it runs for every row returned. On large result sets from the admin portal, use the service role client on the server side rather than relying on these policies for admin reads. RLS is the safety net; use the right client for the right job.
+**EXISTS subqueries in policies are evaluated per row.** Policies on `booking_disciplines`, `booking_add_ons`, and `bids` use `EXISTS (SELECT 1 FROM bookings WHERE id = booking_id ...)`. This is a correlated subquery — it runs for every row returned. In practice the inner lookup is by PK (`bookings.id`), which is index-backed and returns at most one row; the additional predicate (`b.property_id = auth_property_id()` or `b.member_user_id = auth.uid()`) is then applied to that single row. So the per-row cost is one PK lookup, not a scan. On very large result sets from the admin portal you may still prefer the service role client on the server side, but for the volume here the EXISTS-by-PK pattern is fine.
+
+**RLS is row-level, not column-level.** An `UPDATE` policy that matches grants permission to update *any* column on the matched rows. This is the most consequential RLS gotcha in this project — it bit us twice during plan review (the original `members: member update own` and `rsvps: member cancel own` policies would have let the browser-side client change `status`, `membership_tier`, `member_number`, `guest_count`, etc.). If you need column-level restrictions, route the write through a Server Action that uses the service role and enforces an explicit allowlist server-side. Do not rely on RLS to police column writes.
+
+**Use the helper functions, not raw `auth.jwt()` / `auth.uid()`.** Every helper (`auth_role()`, `auth_property_id()`, `is_admin()`, `is_staff()`) internally wraps `auth.jwt()` in a `(SELECT auth.jwt())` subquery, which Postgres treats as an InitPlan and evaluates once per query. A raw `auth.jwt() -> 'app_metadata' ->> 'role'` inline in a policy gets re-evaluated for every row. The helpers are also more audit-friendly — `is_admin()` is unambiguous in a way that `(auth.jwt() -> 'app_metadata' ->> 'role') IN ('super_admin', 'admin')` isn't. If you find yourself writing the long form, you're skipping a helper that already exists.

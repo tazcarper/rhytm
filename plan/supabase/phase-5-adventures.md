@@ -5,7 +5,7 @@
 - Phase 1 complete (`properties`)
 - Phase 4 complete (`members`)
 - `handle_updated_at()` trigger function created (Phase 1)
-- Helper functions `auth_role()`, `is_admin()`, `auth_property_id()`, `auth_member_id()` created (Phase 4)
+- Helper functions `auth_role()`, `is_admin()`, `auth_property_id()` created (Phase 4). No `auth_member_id()` — members can hold memberships at multiple properties, so the "current member" is derived from `members` joined on `user_id = auth.uid()`, not from a JWT claim.
 
 ## What This Phase Builds
 
@@ -22,6 +22,10 @@ Plus: a capacity enforcement trigger that prevents race conditions when multiple
 **The capacity check must be in the database, not the application.** Two concurrent RSVP requests near capacity can both pass an application-level check before either commits. A `BEFORE INSERT OR UPDATE` trigger with a `SELECT ... FOR UPDATE` lock on the adventure row prevents this race.
 
 **Waitlist is application logic, not a constraint.** The trigger only prevents over-confirming. Setting a new RSVP to `waitlisted` instead of `confirmed` is the application's responsibility when it detects the adventure is full.
+
+**Member-facing access follows cross-property memberships (Phase 4).** A member who holds memberships at HSB and Packsaddle can see and RSVP to adventures at *either* property. RLS does not read a single `property_id` claim from the JWT (members don't carry one); instead, every member-facing policy joins `members` on `user_id = auth.uid()` and accepts rows whose `property_id` matches any of the user's active memberships. The "active" filter (`members.status = 'active'`) lives in the policy itself, so lapsed/suspended members are excluded automatically.
+
+**Member updates go through Server Actions, not RLS.** Mirroring the Phase 4 decision on `members`: there is no `FOR UPDATE` policy for members on `member_adventure_rsvps`. Cancellations (and any future member-initiated edits) call a Server Action that uses the service role and validates the column allowlist — typically only allowing `status = 'cancelled'`. RLS is row-level and would otherwise let a browser-side `update()` change `guest_count`, `member_id`, or `deposit_payment_intent_id`.
 
 ---
 
@@ -80,13 +84,20 @@ CREATE TRIGGER member_adventures_updated_at
 
 ALTER TABLE member_adventures ENABLE ROW LEVEL SECURITY;
 
--- Members see published adventures for their property only
+-- Members see published/sold_out adventures at any property where they
+-- hold an active membership. Joins through `members` because members
+-- can hold memberships at multiple properties (Phase 4 cross-property
+-- model), so the JWT carries no single property_id claim for them.
 CREATE POLICY "adventures: member read published"
   ON member_adventures FOR SELECT
   USING (
     auth_role() = 'member'
     AND status IN ('published', 'sold_out')
-    AND property_id = auth_property_id()
+    AND property_id IN (
+      SELECT property_id FROM members
+      WHERE user_id = (SELECT auth.uid())
+        AND status = 'active'
+    )
   );
 
 -- Staff see all adventures for their scope
@@ -226,37 +237,81 @@ CREATE TRIGGER rsvps_sync_adventure_sold_out
   FOR EACH ROW EXECUTE FUNCTION sync_adventure_sold_out();
 ```
 
+### Step 5.5 — Trigger: re-sync `sold_out` when staff changes `max_capacity`
+
+If staff edits `max_capacity` while RSVPs already exist, the visible status can desync — e.g., dropping a 20-cap adventure to 10 while 15 confirmed RSVPs exist should immediately mark the adventure `sold_out`. This trigger fires only when `max_capacity` changes and flips `status` in-place before the row is written.
+
+```sql
+CREATE OR REPLACE FUNCTION resync_adventure_sold_out_on_capacity_change()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_confirmed_count integer;
+BEGIN
+  IF NEW.max_capacity IS NOT DISTINCT FROM OLD.max_capacity THEN
+    RETURN NEW;
+  END IF;
+
+  SELECT COALESCE(SUM(guest_count), 0) INTO v_confirmed_count
+  FROM member_adventure_rsvps
+  WHERE adventure_id = NEW.id AND status = 'confirmed';
+
+  IF v_confirmed_count >= NEW.max_capacity AND NEW.status = 'published' THEN
+    NEW.status := 'sold_out';
+  ELSIF v_confirmed_count < NEW.max_capacity AND NEW.status = 'sold_out' THEN
+    NEW.status := 'published';
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER adventures_resync_capacity
+  BEFORE UPDATE OF max_capacity ON member_adventures
+  FOR EACH ROW EXECUTE FUNCTION resync_adventure_sold_out_on_capacity_change();
+```
+
+**Note:** this trigger does *not* reject downsized capacities that go below the current confirmed count. Staff dropping 20 → 10 while 15 are confirmed silently keeps the 15 booked and just flips the visible status to `sold_out`. If you want to reject such changes outright, raise an exception in the same trigger when `v_confirmed_count > NEW.max_capacity`. Deferred for now — the current behavior matches the staff intent of "stop accepting new RSVPs" rather than "evict confirmed members."
+
 ### Step 6 — RLS on `member_adventure_rsvps`
 
 ```sql
 ALTER TABLE member_adventure_rsvps ENABLE ROW LEVEL SECURITY;
 
--- Member reads their own RSVPs
+-- Member reads RSVPs tied to any of their memberships.
+-- `member_id IN (...)` handles the multi-property case where the same
+-- auth user is linked to multiple `members` rows.
 CREATE POLICY "rsvps: member read own"
   ON member_adventure_rsvps FOR SELECT
   USING (
     auth_role() = 'member'
-    AND member_id = auth_member_id()
+    AND member_id IN (
+      SELECT id FROM members WHERE user_id = (SELECT auth.uid())
+    )
   );
 
--- Member can insert their own RSVP
--- The capacity trigger enforces the slot limit server-side
+-- Member can insert an RSVP only against one of their *active* memberships.
+-- The capacity trigger enforces the slot limit server-side.
+-- The `status = 'active'` filter in the subquery means lapsed/suspended
+-- members cannot RSVP without re-activation by staff.
 CREATE POLICY "rsvps: member insert own"
   ON member_adventure_rsvps FOR INSERT
   WITH CHECK (
     auth_role() = 'member'
-    AND member_id = auth_member_id()
+    AND member_id IN (
+      SELECT id FROM members
+      WHERE user_id = (SELECT auth.uid())
+        AND status = 'active'
+    )
   );
 
--- Member can cancel their own RSVP (set status to 'cancelled')
--- Full cancellation logic (refunds, waitlist promotion) handled in a Server Action
-CREATE POLICY "rsvps: member cancel own"
-  ON member_adventure_rsvps FOR UPDATE
-  USING (
-    auth_role() = 'member'
-    AND member_id = auth_member_id()
-    AND status != 'cancelled'  -- can't un-cancel
-  );
+-- Members do NOT have a FOR UPDATE policy. RLS is row-level — a member
+-- update policy would allow changing any column on their own RSVP
+-- (guest_count, deposit_payment_intent_id, even member_id) from the
+-- browser using just the anon-key Supabase client. Cancellations and
+-- any other member-initiated edits go through a Server Action that uses
+-- the service role and enforces the column allowlist (typically only
+-- `status` may change, and only to `'cancelled'`). The Server Action
+-- also handles refund policy and triggers waitlist promotion.
 
 -- Staff reads all RSVPs for their scope
 CREATE POLICY "rsvps: admin read all"
@@ -329,4 +384,14 @@ Until Q14 is answered, build only the deposit path. The balance payment workflow
 
 **`sold_out` vs. application-level check.** The `sync_adventure_sold_out` trigger maintains the `sold_out` status automatically. The member portal can query `status = 'published'` to show available adventures without counting RSVPs. This is a performance optimization — the trigger maintains the derived state.
 
-**Cancellation refunds.** The `rsvps: member cancel own` policy allows a member to set `status = 'cancelled'`. The refund logic (whether to issue a Stripe refund and how much) is handled in the Server Action that wraps this update — not in the database. The Server Action checks the cancellation policy (e.g., full refund if `> 30 days before start_date`, no refund if `< 14 days`) and calls the Stripe API accordingly before updating the RSVP status.
+**Member-initiated RSVP edits go through a Server Action, not RLS.** There is no `FOR UPDATE` policy for members on `member_adventure_rsvps` (same reasoning as `members: member update own` in Phase 4 — RLS can't restrict to specific columns). The cancellation Server Action uses the service role to set `status = 'cancelled'`, calls the Stripe API for any refund per cancellation policy (e.g., full refund if `> 30 days before start_date`, no refund if `< 14 days`), and emits the Inngest event that picks up the next waitlisted RSVP.
+
+**Adventure cancellation is a multi-step Server Action, not a DB cascade.** When staff cancels an entire adventure, there is intentionally no trigger that mass-cancels all confirmed RSVPs. Refund decisions are not uniform — staff may want full refunds, partial refunds, or future-credit comps per RSVP — and a blind cascade would leave unrefunded charges on Stripe. The "cancel adventure" admin Server Action walks each non-cancelled RSVP and applies the appropriate refund + cancellation + notification per the staff-selected policy.
+
+**Re-RSVP after cancellation is an UPDATE, not an INSERT.** The `UNIQUE (adventure_id, member_id)` constraint prevents inserting a new row over a cancelled one. To re-join a previously cancelled RSVP, the application UPDATEs the existing row's `status` from `'cancelled'` back to `'confirmed'`. The capacity trigger re-validates because it fires on `UPDATE OF status`. The capacity trigger also covers the `confirmed → confirmed` no-op gracefully because the `id IS DISTINCT FROM NEW.id` check excludes the row from its own count.
+
+**`details jsonb` is unstructured today.** It can carry itinerary, packing list, FAQs, etc. — currently no shape validation (same as Phase 3's `gear_list` / `faq`). Tracked in Deferred Improvements.
+
+**`start_date` and `end_date` are `date`, not `timestamptz`.** An adventure is defined as "the day(s) the event happens," interpreted in the property's timezone. This is sufficient for the multi-day adventures planned here (e.g., "Friday–Sunday weekend"). If an adventure ever needs to be time-precise (e.g., "Saturday 8:00 AM – 4:00 PM"), upgrade to `timestamptz` and add a `property_id`-derived timezone reference like the `bookings` slot validator.
+
+**Pricing semantics — `price` is per-RSVP, not per-person.** A member RSVPing with `guest_count = 4` pays one `price`, not `price × 4`. This matches typical "join the trip" adventure pricing where a single fee covers the member + their party. If a future product decision changes this (per-person pricing for some adventure types), introduce a `price_mode` column or split into a separate adventure type — do not silently overload `price`. This decision is partly bound to Q14 (deposit vs full payment) and should be confirmed alongside it.

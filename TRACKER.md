@@ -56,3 +56,19 @@ Status key: ✅ Done · 🔄 In Progress · ⏸ Blocked · 🔲 Not Started
 | Q9 | Membership tier names and definitions | members.membership_tier, adventures access gating |
 | Q14 | Adventures: deposit upfront or full payment at RSVP? | Phase 5 payment flow |
 | Q16 | Annual dues model (affects membership lapse logic) | membership_status_enum |
+
+---
+
+## Deferred Improvements
+
+Items identified during review as worth doing eventually but explicitly deferred — not blocking, not bugs. Promote to active work when the listed condition becomes true.
+
+| Phase | Item | Reason Deferred | Promote When |
+|-------|------|----------------|--------------|
+| Phase 3 | `generate_bid_slug` retry-on-conflict inside the function | Slug collisions resolve via UNIQUE constraint + app-layer retry; expected volume is tiny | Logs show serialization errors at bid creation |
+| Phase 3 | `bids_status_history` audit trail (who confirmed/denied/regenerated, when) | Single-staff operation today; cheap to add later but adds a table + trigger | More than one staff member regularly edits bids, or a dispute requires reconstructing a bid's history |
+| Phase 3, 5 | `CHECK (jsonb_typeof(...))` on `bids.gear_list`, `bids.faq`, and `member_adventures.details` | App layer validates shape today; small trusted authoring team | Before public launch, or after any bug from malformed JSON |
+| Phase 5 | `created_by_user_id` audit on `member_adventures` and `member_adventure_rsvps` | Same audit-trail family as Phase 3 bids — single-staff operation today | Dispute resolution requires "who created/edited this adventure or RSVP" or more than one staff member regularly touches adventures |
+| Phase 5 | Belt-and-braces "RSVP's member.property_id matches adventure.property_id" trigger | RLS already enforces this on the member path; service-role mis-writes would be the only way to violate it | A bug or incident shows a service-role path could create a mismatched RSVP |
+| Phase 5 → 6 | Waitlist promotion via Supabase Database Webhook → Inngest depends on the Phase 6 webhook/idempotency layer | Configurable in dashboard (no SQL), but the receiving Inngest endpoint must use `processed_webhooks` for dedupe | When Phase 6 is built — wire the `rsvp.cancelled` webhook through Phase 6's idempotent receiver |
+| Phase 6 → 10 | Structured logging on the duplicate-claim path (`23505` conflict) for idempotency observability | Belongs in Phase 10 (Sentry / Axiom integration), not the webhook handler itself | Phase 10 is in progress — emit a `webhook.duplicate_claim` structured event with `{ source, event_type, id }` so Axiom can chart it |

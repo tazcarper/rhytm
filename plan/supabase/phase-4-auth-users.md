@@ -73,16 +73,18 @@ Each partner concierge is a Supabase Auth account linked to a `partner_organizat
 
 ### Members
 
-Members log in with email + magic link (passwordless). Their Supabase Auth account is linked to a `members` row via `members.user_id`. The link is established when the member accepts their invite.
+Members log in with email + magic link (passwordless). Their Supabase Auth account is linked to **every `members` row that matches their email**, via `members.user_id`. The link is established when the member accepts their invite.
 
 **`app_metadata` shape (set when invite is accepted):**
 ```json
 {
-  "role": "member",
-  "member_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-  "property_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  "role": "member"
 }
 ```
+
+Memberships are property-specific: a person can be a member at Horseshoe Bay and not at Hog Heaven, or at all three. Each property's membership lives in its own `members` row with its own `member_number`, `membership_tier`, dues status, etc. One Supabase Auth account (one email) can therefore be linked to multiple `members` rows — they all share the same `user_id`.
+
+This is why `app_metadata` carries only `role` for members, and not `member_id` or `property_id`: there is no single answer to "what is this member's property?" RLS policies on member-owned data use `user_id = auth.uid()` (joining `members` where needed) instead of reading a single claim. If the member portal UI needs a "currently-viewing property" concept, that lives in a Server-Action-managed cookie, not in `app_metadata`.
 
 ---
 
@@ -90,54 +92,50 @@ Members log in with email + magic link (passwordless). Their Supabase Auth accou
 
 ### Step 1 — JWT claim helper functions
 
-Define once. Used by every RLS policy in every phase. Marking as `SECURITY DEFINER` ensures they run with the function owner's privileges, not the caller's.
+Define once. Used by every RLS policy in every phase. These are `SECURITY INVOKER` (default) — reading `auth.jwt()` does not require elevated privileges, and `SECURITY DEFINER` here would be a quiet footgun if anyone later extended a helper to touch tables. The inner `(SELECT auth.jwt())` forces an InitPlan, so each helper is evaluated once per query rather than once per row (same pattern as the RLS policies in Phases 1–3).
 
 ```sql
 -- Current user's role from app_metadata
 CREATE OR REPLACE FUNCTION auth_role()
 RETURNS text
-LANGUAGE sql STABLE SECURITY DEFINER AS $$
-  SELECT auth.jwt() -> 'app_metadata' ->> 'role';
+LANGUAGE sql STABLE AS $$
+  SELECT (SELECT auth.jwt()) -> 'app_metadata' ->> 'role';
 $$;
 
 -- Current user's property_id from app_metadata (staff and partner roles)
+-- Members do NOT carry property_id in app_metadata — see cross-property note below.
 CREATE OR REPLACE FUNCTION auth_property_id()
 RETURNS uuid
-LANGUAGE sql STABLE SECURITY DEFINER AS $$
-  SELECT (auth.jwt() -> 'app_metadata' ->> 'property_id')::uuid;
+LANGUAGE sql STABLE AS $$
+  SELECT ((SELECT auth.jwt()) -> 'app_metadata' ->> 'property_id')::uuid;
 $$;
 
 -- Current user's partner_org_id from app_metadata (partner role)
 CREATE OR REPLACE FUNCTION auth_partner_org_id()
 RETURNS uuid
-LANGUAGE sql STABLE SECURITY DEFINER AS $$
-  SELECT (auth.jwt() -> 'app_metadata' ->> 'partner_org_id')::uuid;
-$$;
-
--- Current user's member_id from app_metadata (member role)
-CREATE OR REPLACE FUNCTION auth_member_id()
-RETURNS uuid
-LANGUAGE sql STABLE SECURITY DEFINER AS $$
-  SELECT (auth.jwt() -> 'app_metadata' ->> 'member_id')::uuid;
+LANGUAGE sql STABLE AS $$
+  SELECT ((SELECT auth.jwt()) -> 'app_metadata' ->> 'partner_org_id')::uuid;
 $$;
 
 -- Convenience: is the current user a cross-property admin?
 CREATE OR REPLACE FUNCTION is_admin()
 RETURNS boolean
-LANGUAGE sql STABLE SECURITY DEFINER AS $$
+LANGUAGE sql STABLE AS $$
   SELECT auth_role() IN ('super_admin', 'admin');
 $$;
 
 -- Convenience: is the current user any internal staff?
 CREATE OR REPLACE FUNCTION is_staff()
 RETURNS boolean
-LANGUAGE sql STABLE SECURITY DEFINER AS $$
+LANGUAGE sql STABLE AS $$
   SELECT auth_role() IN (
     'super_admin', 'admin', 'property_manager',
     'concierge', 'membership_coordinator'
   );
 $$;
 ```
+
+There is intentionally **no `auth_member_id()` helper.** Members can hold memberships at multiple properties (one `members` row per property — see "Cross-property membership" below), so a single `member_id` claim in `app_metadata` cannot represent the full picture. Queries that need "the current user's memberships" join `members` on `members.user_id = auth.uid()` and let Postgres return all matching rows.
 
 These helper functions make RLS policies readable. Compare:
 
@@ -191,10 +189,18 @@ CREATE POLICY "partner_orgs: partner read own"
     AND id = auth_partner_org_id()
   );
 
--- Only admins can create or modify partner orgs
-CREATE POLICY "partner_orgs: admin write"
-  ON partner_organizations FOR ALL
-  USING (is_admin());
+-- Only admins can create, update, or delete partner orgs.
+-- (`FOR ALL` would govern SELECT too, which is already covered by the three
+--  explicit SELECT policies above — keeping writes on a separate policy
+--  makes the intent obvious during the Phase 7 audit.)
+CREATE POLICY "partner_orgs: admin insert"
+  ON partner_organizations FOR INSERT WITH CHECK (is_admin());
+
+CREATE POLICY "partner_orgs: admin update"
+  ON partner_organizations FOR UPDATE USING (is_admin());
+
+CREATE POLICY "partner_orgs: admin delete"
+  ON partner_organizations FOR DELETE USING (is_admin());
 ```
 
 ### Step 3 — `members`
@@ -278,14 +284,13 @@ CREATE POLICY "members: member read own"
     AND user_id = auth.uid()
   );
 
--- Member can update limited fields on their own record (phone, etc.)
--- Full profile updates go through a Server Action that validates allowed fields
-CREATE POLICY "members: member update own"
-  ON members FOR UPDATE
-  USING (
-    auth_role() = 'member'
-    AND user_id = auth.uid()
-  );
+-- Members do NOT have a direct UPDATE policy. RLS is row-level, not
+-- column-level, so an UPDATE policy on `members` for the member role
+-- would allow them to change any column on their own row (status,
+-- membership_tier, member_number, property_id, etc.) using just the
+-- anon-key Supabase client from the browser. Instead, member profile
+-- edits (phone, etc.) go through a Server Action that uses the service
+-- role and validates the column allowlist before writing.
 
 -- Membership coordinator can update member status and tier
 CREATE POLICY "members: membership_coordinator update"
@@ -304,75 +309,83 @@ CREATE POLICY "members: admin write"
 -- No INSERT policy needed here: service role bypasses RLS
 ```
 
-### Step 4 — Trigger: stamp `app_metadata` when invite is accepted
+### Step 4 — `/auth/callback` link flow
 
-When a member clicks their magic link and the Supabase Auth `SIGNED_IN` event fires for the first time on a new account, the application must:
+When a member clicks their magic link and the Supabase Auth `SIGNED_IN` event fires for the first time on a new account, the Next.js Auth callback route must:
 
-1. Look up the `members` row by email
-2. Set `members.user_id = auth.uid()` and `members.invite_accepted_at = now()`
-3. Update `app_metadata` with `role`, `member_id`, and `property_id`
+1. Look up **every** `members` row whose `email` matches the new user, whose `user_id` is still null, and whose `invite_expires_at` is still in the future.
+2. Link them all by setting `user_id = auth.uid()` and `invite_accepted_at = now()`.
+3. Stamp `app_metadata` with just `{ role: 'member' }`.
 
-This is application logic, not a DB trigger — it runs in the Next.js Auth callback route (`/auth/callback`). The DB trigger below handles the `app_metadata` sync if you prefer to keep it in the database:
+There is **no `member_id` or `property_id` claim** for members — see the cross-property note in the User Types section. Per-property context (if the UI wants one) lives in a session cookie, not the JWT.
 
-```sql
--- Optional: if you want to sync app_metadata from the database side
--- This requires the pg_net extension or a Supabase Edge Function hook
--- Recommended approach: handle in the /auth/callback Server Action instead
-```
-
-**Recommended `/auth/callback` flow:**
+This is application logic, not a DB trigger.
 
 ```typescript
 // app/auth/callback/route.ts
 const { data: { user } } = await supabase.auth.getUser()
 
 if (user && !user.app_metadata?.role) {
-  // New session — look up the member row by email
-  const { data: member } = await supabaseAdmin
+  // Find every unaccepted, unexpired members row for this email.
+  // One user/email may map to N members rows (cross-property membership).
+  const { data: pending } = await supabaseAdmin
     .from('members')
-    .select('id, property_id')
+    .select('id')
     .eq('email', user.email)
-    .single()
+    .is('user_id', null)
+    .gt('invite_expires_at', new Date().toISOString())
 
-  if (member) {
-    // Link the auth user to the member row
-    await supabaseAdmin
-      .from('members')
-      .update({
-        user_id: user.id,
-        invite_accepted_at: new Date().toISOString(),
-      })
-      .eq('id', member.id)
-
-    // Stamp app_metadata so RLS policies work immediately
-    await supabaseAdmin.auth.admin.updateUserById(user.id, {
-      app_metadata: {
-        role: 'member',
-        member_id: member.id,
-        property_id: member.property_id,
-      }
-    })
+  if (!pending || pending.length === 0) {
+    // Either no invite was ever issued for this email, or every invite
+    // has expired. Sign the user out and surface a clear "this invite
+    // is no longer valid — request a new one" page.
+    await supabase.auth.signOut()
+    return NextResponse.redirect(new URL('/invite-not-found', request.url))
   }
+
+  // Link the auth user to every pending members row for this email.
+  await supabaseAdmin
+    .from('members')
+    .update({
+      user_id: user.id,
+      invite_accepted_at: new Date().toISOString(),
+    })
+    .in('id', pending.map(m => m.id))
+
+  // Stamp the JWT role. No per-property fields — see cross-property note.
+  await supabaseAdmin.auth.admin.updateUserById(user.id, {
+    app_metadata: { role: 'member' }
+  })
 }
 ```
+
+**Expired invite path.** The query above filters on `invite_expires_at > now()`. A user clicking an expired link hits the "no pending invite" branch, gets signed out, and lands on `/invite-not-found`. From that page, a Server Action can call `inviteUserByEmail(email)` again to re-issue. This keeps expired magic links from quietly succeeding.
+
+**Partial-acceptance case.** If a member is invited to HSB on Monday and Packsaddle on Friday, and accepts the HSB invite on Tuesday, the HSB row gets linked (`user_id = X`, `invite_accepted_at = Tue`). On Friday, the Packsaddle invite is sent — the Auth account already exists, so it's a normal magic-link sign-in; the callback finds the Packsaddle row (`user_id IS NULL`, not yet expired) and links it. Both rows end up with the same `user_id`, and the member's two memberships are visible to the portal via `members WHERE user_id = auth.uid()`.
 
 ---
 
 ## Member Seeding Flow (Excel Roster)
 
-The Excel roster is loaded once at launch. For each row:
+The Excel roster is loaded once at launch. Memberships are property-specific, so the roster may include the same email at more than one property — each appears as its own `members` row. For each row:
 
-1. Create a `members` row with status `pending`, `user_id = null`, `invited_at = null`
-2. An Inngest function (`seed-member-invites`) picks up each un-invited member and:
-   a. Calls `supabaseAdmin.auth.admin.inviteUserByEmail(email)` — Supabase sends the magic link
-   b. Sets `members.invited_at = now()` and `members.invite_expires_at = now() + 7 days`
-3. When the member clicks the link, the `/auth/callback` flow above runs and completes the link
+1. Create a `members` row with status `pending`, `user_id = null`, `invited_at = null`.
 
-Inngest should rate-limit invite sends (e.g., 10/second) to avoid hitting Supabase Auth rate limits. Batch the seed over several minutes.
+Then an Inngest function (`seed-member-invites`) processes the seed:
 
-**Resend invite flow** — If `invite_expires_at < now()` and `user_id IS NULL`:
-1. Inngest or admin UI action calls `inviteUserByEmail` again
-2. Updates `invited_at` and `invite_expires_at`
+2. **Group pending rows by email.** Email is the unique identity for Supabase Auth, so the same email at multiple properties is **one auth account but multiple member rows**.
+3. For each unique email with at least one un-invited row:
+   a. Call `supabaseAdmin.auth.admin.inviteUserByEmail(email)` exactly once — Supabase creates the auth user (if new) and sends one magic link covering all their pending memberships.
+   b. `UPDATE members SET invited_at = now(), invite_expires_at = now() + interval '7 days' WHERE email = $email AND user_id IS NULL`.
+4. When the member clicks the link, the `/auth/callback` flow links **every** matching pending row for that email (see Step 4 above).
+
+Inngest should rate-limit invite sends (e.g., 10/second per unique email) to avoid hitting Supabase Auth rate limits. Batch the seed over several minutes.
+
+**Resend invite flow** — If a member has any rows where `invite_expires_at < now() AND user_id IS NULL`:
+1. Inngest or admin UI calls `inviteUserByEmail(email)` again.
+2. `UPDATE members SET invited_at = now(), invite_expires_at = now() + interval '7 days' WHERE email = $email AND user_id IS NULL`.
+
+A subsequent successful sign-in links all those rows at once.
 
 ---
 
@@ -402,6 +415,10 @@ This is the application-level gate. RLS is the database-level gate. Both must ho
 **`app_metadata` is not writable by the client.** Only the service role Admin API can set `app_metadata`. The Supabase client SDK (`NEXT_PUBLIC_SUPABASE_ANON_KEY`) cannot modify it. This is the correct security boundary — role escalation from the client is impossible.
 
 **`members.user_id` is nullable until invite is accepted.** A member row exists in the database (seeded from Excel) before the member has ever logged in. `user_id` is null. Once they accept the invite, `user_id` is set and `app_metadata` is stamped. RLS policies that check `user_id = auth.uid()` will not match until this link is established.
+
+**Cross-property membership.** A person can hold memberships at multiple properties — each property is an independent membership with its own `members` row, `member_number`, `membership_tier`, and dues status. One email maps to one Supabase Auth account; that account links to **N** `members` rows (one per property where the person is a member). `app_metadata` for members therefore carries only `role`, never a single `member_id` or `property_id`. To find "this member's properties," query `SELECT property_id FROM members WHERE user_id = auth.uid() AND status = 'active'`. The member portal UI is responsible for showing all of a member's memberships and (if the product needs it) letting them switch active context via a Server-Action-managed cookie.
+
+**Deactivation is per-membership.** Because memberships are property-specific, setting `members.status = 'inactive'` on one row does not affect that person's status at other properties. There is intentionally no "deactivate this user across everything" path — that would be conflating identity (the Auth account) with membership (per-property rows). To fully remove someone's portal access, deactivate every row *and* delete the Auth account.
 
 **Partner concierge accounts are created manually.** Unlike members (bulk-seeded from Excel), partner concierge accounts are created one at a time by an admin when a partnership is established. The flow:
 1. Admin creates the `partner_organizations` row
