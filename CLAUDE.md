@@ -6,6 +6,8 @@ A single Next.js web application serving three properties — Horseshoe Bay Spor
 
 **Core outcome:** Every inquiry ends as a signed bid page with embedded deposit — no phone calls, no five-tab lookups.
 
+**Project tracker:** See `TRACKER.md` for phase status (what's done, in progress, blocked, and next). Update it whenever a phase completes.
+
 ## Stack
 
 | Layer | Tool |

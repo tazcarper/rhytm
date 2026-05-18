@@ -1,0 +1,332 @@
+# Phase 5 — Member Adventures
+
+## Prerequisites
+
+- Phase 1 complete (`properties`)
+- Phase 4 complete (`members`)
+- `handle_updated_at()` trigger function created (Phase 1)
+- Helper functions `auth_role()`, `is_admin()`, `auth_property_id()`, `auth_member_id()` created (Phase 4)
+
+## What This Phase Builds
+
+`adventure_status_enum`, `rsvp_status_enum`, `member_adventures`, `member_adventure_rsvps`
+
+Plus: a capacity enforcement trigger that prevents race conditions when multiple members RSVP simultaneously near the capacity limit.
+
+---
+
+## Key Design Decisions
+
+**Adventures are capacity-constrained, not time-slot-constrained.** Unlike bookings, adventures do not interact with `time_slots` or the property capacity trigger. They have their own `max_capacity` and the constraint is enforced here.
+
+**The capacity check must be in the database, not the application.** Two concurrent RSVP requests near capacity can both pass an application-level check before either commits. A `BEFORE INSERT OR UPDATE` trigger with a `SELECT ... FOR UPDATE` lock on the adventure row prevents this race.
+
+**Waitlist is application logic, not a constraint.** The trigger only prevents over-confirming. Setting a new RSVP to `waitlisted` instead of `confirmed` is the application's responsibility when it detects the adventure is full.
+
+---
+
+## Migration
+
+### Step 1 — Enums
+
+```sql
+CREATE TYPE adventure_status_enum AS ENUM (
+  'draft',      -- invisible to members
+  'published',  -- visible and bookable
+  'sold_out',   -- visible but no new RSVPs (capacity full)
+  'cancelled',  -- cancelled by staff
+  'completed'   -- event happened
+);
+
+CREATE TYPE rsvp_status_enum AS ENUM (
+  'confirmed',   -- holding a confirmed spot
+  'waitlisted',  -- on the waitlist; no spot held
+  'cancelled'    -- member cancelled their RSVP
+);
+```
+
+### Step 2 — `member_adventures`
+
+```sql
+CREATE TABLE member_adventures (
+  id           uuid   PRIMARY KEY DEFAULT gen_random_uuid(),
+  property_id  uuid   NOT NULL REFERENCES properties(id),
+
+  title        text   NOT NULL,
+  description  text,
+  start_date   date   NOT NULL,
+  end_date     date   NOT NULL,
+  max_capacity integer NOT NULL CHECK (max_capacity > 0),
+
+  -- Pricing (pending Q14: deposit vs. full payment)
+  price           numeric(10,2) NOT NULL CHECK (price >= 0),
+  deposit_amount  numeric(10,2),  -- null = full payment upfront
+
+  status  adventure_status_enum NOT NULL DEFAULT 'draft',
+  details jsonb NOT NULL DEFAULT '{}'::jsonb,
+
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+
+  CONSTRAINT end_after_start CHECK (end_date >= start_date)
+);
+
+CREATE INDEX idx_adventures_property_status
+  ON member_adventures (property_id, status, start_date);
+
+CREATE TRIGGER member_adventures_updated_at
+  BEFORE UPDATE ON member_adventures
+  FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
+
+ALTER TABLE member_adventures ENABLE ROW LEVEL SECURITY;
+
+-- Members see published adventures for their property only
+CREATE POLICY "adventures: member read published"
+  ON member_adventures FOR SELECT
+  USING (
+    auth_role() = 'member'
+    AND status IN ('published', 'sold_out')
+    AND property_id = auth_property_id()
+  );
+
+-- Staff see all adventures for their scope
+CREATE POLICY "adventures: admin read all"
+  ON member_adventures FOR SELECT
+  USING (is_admin());
+
+CREATE POLICY "adventures: property_manager read"
+  ON member_adventures FOR SELECT
+  USING (
+    auth_role() = 'property_manager'
+    AND property_id = auth_property_id()
+  );
+
+-- Only admin and property_manager can create/update/delete adventures
+CREATE POLICY "adventures: admin write"
+  ON member_adventures FOR ALL
+  USING (is_admin());
+
+CREATE POLICY "adventures: property_manager write"
+  ON member_adventures FOR ALL
+  USING (
+    auth_role() = 'property_manager'
+    AND property_id = auth_property_id()
+  );
+```
+
+### Step 3 — `member_adventure_rsvps`
+
+```sql
+CREATE TABLE member_adventure_rsvps (
+  id           uuid   PRIMARY KEY DEFAULT gen_random_uuid(),
+  adventure_id uuid   NOT NULL REFERENCES member_adventures(id),
+  member_id    uuid   NOT NULL REFERENCES members(id),
+
+  guest_count  integer NOT NULL DEFAULT 1 CHECK (guest_count > 0),
+  status       rsvp_status_enum NOT NULL DEFAULT 'confirmed',
+
+  -- Payment (pending Q14)
+  deposit_payment_intent_id  text,
+  balance_payment_intent_id  text,
+
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+
+  -- One RSVP per member per adventure
+  UNIQUE (adventure_id, member_id)
+);
+
+CREATE INDEX idx_rsvps_adventure ON member_adventure_rsvps (adventure_id, status);
+CREATE INDEX idx_rsvps_member    ON member_adventure_rsvps (member_id);
+
+CREATE TRIGGER member_adventure_rsvps_updated_at
+  BEFORE UPDATE ON member_adventure_rsvps
+  FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
+```
+
+### Step 4 — Trigger: capacity enforcement
+
+Locks the parent `member_adventures` row (`FOR UPDATE`) before counting confirmed RSVPs. This serializes concurrent RSVP inserts and prevents two guests from both "seeing room" before either commits.
+
+```sql
+CREATE OR REPLACE FUNCTION check_adventure_capacity()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_max_capacity   integer;
+  v_confirmed_count integer;
+BEGIN
+  -- Only enforce for confirmed RSVPs (waitlisted and cancelled don't consume capacity)
+  IF NEW.status != 'confirmed' THEN
+    RETURN NEW;
+  END IF;
+
+  -- Lock the adventure row to serialize concurrent RSVPs
+  SELECT max_capacity INTO v_max_capacity
+  FROM member_adventures
+  WHERE id = NEW.adventure_id
+  FOR UPDATE;
+
+  -- Count current confirmed guest slots (sum of guest_count, not just row count)
+  SELECT COALESCE(SUM(guest_count), 0) INTO v_confirmed_count
+  FROM member_adventure_rsvps
+  WHERE adventure_id = NEW.adventure_id
+    AND status = 'confirmed'
+    AND id IS DISTINCT FROM NEW.id;
+
+  IF v_confirmed_count + NEW.guest_count > v_max_capacity THEN
+    RAISE EXCEPTION
+      'adventure is at capacity (% of % spots taken)',
+      v_confirmed_count, v_max_capacity;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER rsvps_check_capacity
+  BEFORE INSERT OR UPDATE OF status, guest_count ON member_adventure_rsvps
+  FOR EACH ROW EXECUTE FUNCTION check_adventure_capacity();
+```
+
+### Step 5 — Trigger: auto-update adventure status to `sold_out`
+
+When a new RSVP brings confirmed guests to exactly `max_capacity`, flip the adventure to `sold_out`. This keeps the member portal's "available" indicator accurate without polling.
+
+```sql
+CREATE OR REPLACE FUNCTION sync_adventure_sold_out()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_max_capacity    integer;
+  v_confirmed_count integer;
+BEGIN
+  SELECT max_capacity INTO v_max_capacity
+  FROM member_adventures WHERE id = NEW.adventure_id;
+
+  SELECT COALESCE(SUM(guest_count), 0) INTO v_confirmed_count
+  FROM member_adventure_rsvps
+  WHERE adventure_id = NEW.adventure_id AND status = 'confirmed';
+
+  IF v_confirmed_count >= v_max_capacity THEN
+    UPDATE member_adventures
+    SET status = 'sold_out', updated_at = now()
+    WHERE id = NEW.adventure_id AND status = 'published';
+  ELSE
+    -- Re-open if a cancellation freed space
+    UPDATE member_adventures
+    SET status = 'published', updated_at = now()
+    WHERE id = NEW.adventure_id AND status = 'sold_out';
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER rsvps_sync_adventure_sold_out
+  AFTER INSERT OR UPDATE OF status, guest_count ON member_adventure_rsvps
+  FOR EACH ROW EXECUTE FUNCTION sync_adventure_sold_out();
+```
+
+### Step 6 — RLS on `member_adventure_rsvps`
+
+```sql
+ALTER TABLE member_adventure_rsvps ENABLE ROW LEVEL SECURITY;
+
+-- Member reads their own RSVPs
+CREATE POLICY "rsvps: member read own"
+  ON member_adventure_rsvps FOR SELECT
+  USING (
+    auth_role() = 'member'
+    AND member_id = auth_member_id()
+  );
+
+-- Member can insert their own RSVP
+-- The capacity trigger enforces the slot limit server-side
+CREATE POLICY "rsvps: member insert own"
+  ON member_adventure_rsvps FOR INSERT
+  WITH CHECK (
+    auth_role() = 'member'
+    AND member_id = auth_member_id()
+  );
+
+-- Member can cancel their own RSVP (set status to 'cancelled')
+-- Full cancellation logic (refunds, waitlist promotion) handled in a Server Action
+CREATE POLICY "rsvps: member cancel own"
+  ON member_adventure_rsvps FOR UPDATE
+  USING (
+    auth_role() = 'member'
+    AND member_id = auth_member_id()
+    AND status != 'cancelled'  -- can't un-cancel
+  );
+
+-- Staff reads all RSVPs for their scope
+CREATE POLICY "rsvps: admin read all"
+  ON member_adventure_rsvps FOR SELECT
+  USING (is_admin());
+
+CREATE POLICY "rsvps: property_manager read"
+  ON member_adventure_rsvps FOR SELECT
+  USING (
+    auth_role() = 'property_manager'
+    AND EXISTS (
+      SELECT 1 FROM member_adventures a
+      WHERE a.id = adventure_id
+        AND a.property_id = auth_property_id()
+    )
+  );
+
+-- Staff can update RSVPs (waitlist management, manual overrides)
+CREATE POLICY "rsvps: staff update"
+  ON member_adventure_rsvps FOR UPDATE
+  USING (
+    is_admin()
+    OR (
+      auth_role() = 'property_manager'
+      AND EXISTS (
+        SELECT 1 FROM member_adventures a
+        WHERE a.id = adventure_id
+          AND a.property_id = auth_property_id()
+      )
+    )
+  );
+```
+
+---
+
+## Waitlist Promotion Flow
+
+Waitlist promotion is application logic, not a database constraint. When a confirmed RSVP is cancelled:
+
+1. The member sets their RSVP `status = 'cancelled'` (via RLS-allowed UPDATE or Server Action)
+2. The `sync_adventure_sold_out` trigger fires and may re-open the adventure to `published`
+3. An Inngest event fires (`rsvp.cancelled`) triggered by a Supabase Database Webhook on `member_adventure_rsvps`
+4. The Inngest function:
+   a. Queries the next waitlisted RSVP (`ORDER BY created_at ASC`)
+   b. Promotes it to `confirmed` (the capacity trigger re-validates — safe because the prior cancellation freed the slot)
+   c. Sends the waitlisted member a "your spot is confirmed" email via Resend
+
+**Supabase Database Webhook** — Configure in the Supabase dashboard to fire an HTTP POST to the Inngest endpoint when `member_adventure_rsvps.status` changes to `cancelled`. This keeps Inngest as the event router without polling.
+
+---
+
+## Open Questions (from overall plan)
+
+**Q14 — Adventure deposit vs. full payment**
+
+The `deposit_amount` column exists but its behavior is undefined until Q14 is answered:
+
+- If `deposit_amount IS NULL`: charge `price` in full at RSVP time. One Stripe charge, one `deposit_payment_intent_id`.
+- If `deposit_amount IS NOT NULL`: charge `deposit_amount` at RSVP time, charge `price - deposit_amount` before the event. Two Stripe charges. An Inngest workflow must fire the balance charge at a configured interval before `start_date`.
+
+Until Q14 is answered, build only the deposit path. The balance payment workflow is a separate Inngest function that can be added without schema changes.
+
+---
+
+## Notes
+
+**`FOR UPDATE` lock is correct here.** The `check_adventure_capacity` trigger uses `SELECT ... FOR UPDATE` on the adventure row. This is a row-level lock — it only blocks other transactions that try to RSVP to the same adventure at the same time. It does not affect reads, other adventures, or any other table. The lock is held for the duration of the RSVP transaction (milliseconds), then released on commit.
+
+**`guest_count` in capacity math.** The capacity check sums `guest_count`, not rows. A member RSVPing for themselves + 3 guests (`guest_count = 4`) consumes 4 slots. This is intentional — the adventure has a people capacity, not an RSVP-count capacity. Ensure the member portal UI makes this clear.
+
+**`sold_out` vs. application-level check.** The `sync_adventure_sold_out` trigger maintains the `sold_out` status automatically. The member portal can query `status = 'published'` to show available adventures without counting RSVPs. This is a performance optimization — the trigger maintains the derived state.
+
+**Cancellation refunds.** The `rsvps: member cancel own` policy allows a member to set `status = 'cancelled'`. The refund logic (whether to issue a Stripe refund and how much) is handled in the Server Action that wraps this update — not in the database. The Server Action checks the cancellation policy (e.g., full refund if `> 30 days before start_date`, no refund if `< 14 days`) and calls the Stripe API accordingly before updating the RSVP status.

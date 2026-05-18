@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "next": "^16.2.6"
+  },
+  "devDependencies": {
+    "supabase": "^2.98.2"
   }
 }
