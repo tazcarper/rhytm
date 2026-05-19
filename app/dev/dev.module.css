@@ -1,0 +1,231 @@
+/* Internal developer dashboard styling. Composes the design-system
+   primitives but ships a few inline bits — the magic-link surfacing,
+   the table, the WIP stamp — that are not worth promoting into the
+   shared lib (this whole tree is removed before launch). */
+
+.header {
+  text-align: center;
+  padding: var(--space-12) 0 var(--space-8);
+  margin-bottom: var(--space-8);
+  border-bottom: 1px solid var(--border);
+}
+
+.header > * + * {
+  margin-top: var(--space-3);
+}
+
+.headerSubtitle {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: var(--text-body-lg);
+  color: var(--gray);
+  max-width: var(--content-prose);
+  margin: var(--space-4) auto 0;
+}
+
+.headerSubtitle code {
+  font-family: var(--sans);
+  font-style: normal;
+  font-size: 0.9em;
+  color: var(--olive);
+  background: rgba(63, 74, 33, 0.06);
+  padding: 2px 6px;
+  border-radius: var(--radius-sharp);
+}
+
+.note {
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  color: var(--olive);
+  line-height: var(--leading-body);
+}
+
+.note code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+  color: var(--olive-deep);
+  background: rgba(63, 74, 33, 0.07);
+  padding: 1px 5px;
+  border-radius: var(--radius-sharp);
+}
+
+.note ol {
+  margin: var(--space-3) 0 0;
+  padding-left: var(--space-6);
+}
+
+.note li {
+  margin-bottom: var(--space-2);
+}
+
+.sectionTitle {
+  margin-bottom: var(--space-4);
+}
+
+.sectionDescription {
+  color: var(--gray);
+  font-size: var(--text-body);
+  margin-top: 0;
+  margin-bottom: var(--space-5);
+}
+
+.sectionDescription code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+  color: var(--olive-deep);
+  background: rgba(63, 74, 33, 0.07);
+  padding: 1px 5px;
+  border-radius: var(--radius-sharp);
+}
+
+.formStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.select {
+  width: 100%;
+  padding: 12px 14px;
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  color: var(--olive);
+  background: var(--paper-warm);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sharp);
+  outline: none;
+  appearance: none;
+  /* Caret arrow via inline SVG so it inherits olive color. */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%239a8159' stroke-width='1.5'><path d='M1 1.5l5 5 5-5'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 12px 8px;
+  padding-right: 36px;
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.select:focus {
+  border-color: var(--tan-deep);
+  background-color: var(--paper);
+}
+
+.fieldset {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sharp);
+  padding: var(--space-3) var(--space-4);
+  margin: 0;
+}
+
+.fieldset legend {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--gray);
+  padding: 0 var(--space-2);
+  font-weight: 500;
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+  font-size: var(--text-body);
+  cursor: pointer;
+}
+
+.linkOut {
+  word-break: break-all;
+  color: var(--tan-deep);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+}
+
+.pre {
+  background: var(--paper-warm);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sharp);
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: var(--olive);
+  line-height: 1.5;
+  margin: var(--space-2) 0 var(--space-3);
+}
+
+.tableWrap {
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-micro);
+}
+
+.table thead tr {
+  background: var(--paper-warm);
+}
+
+.table th {
+  text-align: left;
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--gray);
+  padding: var(--space-3) var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.table td {
+  padding: var(--space-3) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  font-family: var(--sans);
+  color: var(--olive);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.tableEmpty {
+  color: var(--gray);
+  text-align: center;
+  font-style: italic;
+  padding: var(--space-6) !important;
+}
+
+.code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  color: var(--gray);
+}
+
+.sessionRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--text-body);
+}
+
+.sessionRow code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  color: var(--gray);
+}

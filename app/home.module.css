@@ -1,0 +1,473 @@
+/* Public landing surface. Pattern reference:
+   docs/reference/Rhythm Outdoors · The Vision Document.html (hero,
+   pullquote, click-strip) and the editorial gestures from the
+   Members' Entrance card. Cross-referenced against Aman, Filson, and
+   editorial private-club sites for the section rhythm. */
+
+/* ───── Hero ─────────────────────────────────────────────────────── */
+
+.hero {
+  position: relative;
+  min-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 8rem 2rem 6rem;
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 50% 0%,
+      rgba(184, 156, 115, 0.18) 0%,
+      transparent 70%
+    ),
+    linear-gradient(180deg, var(--paper) 0%, var(--cream) 100%);
+  overflow: hidden;
+  text-align: center;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(63, 74, 33, 0.07) 1px,
+    transparent 1px
+  );
+  background-size: 32px 32px;
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+.heroInner {
+  position: relative;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.heroEstablished {
+  display: inline-block;
+  font-family: var(--serif);
+  font-size: var(--text-eyebrow);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--tan-deep);
+  font-weight: 500;
+  margin-bottom: 2.5rem;
+}
+
+.heroEstablished::before,
+.heroEstablished::after {
+  content: "\b7";
+  margin: 0 14px;
+  color: var(--tan);
+}
+
+.heroTitle {
+  font-family: var(--serif);
+  font-size: clamp(40px, 7vw, 76px);
+  line-height: 1.05;
+  color: var(--olive);
+  font-weight: 600;
+  letter-spacing: -1px;
+  margin: 0 auto 1.5rem;
+  max-width: 18ch;
+}
+
+.heroTitle em {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--tan-deep);
+}
+
+.heroLead {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(18px, 2.2vw, 22px);
+  line-height: 1.5;
+  color: var(--gray);
+  margin: 0 auto 3rem;
+  max-width: 36ch;
+}
+
+.heroActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 5rem;
+}
+
+.heroMeta {
+  display: flex;
+  gap: 2.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: var(--gray);
+}
+
+.heroMeta strong {
+  color: var(--olive);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ───── Pull quote / manifesto ───────────────────────────────────── */
+
+.manifesto {
+  background: var(--olive);
+  color: var(--cream);
+  padding: 6rem 2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.manifesto::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(184, 156, 115, 0.08) 1px,
+    transparent 1px
+  );
+  background-size: 24px 24px;
+}
+
+.manifestoInner {
+  position: relative;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.manifestoMark {
+  font-family: var(--serif);
+  font-size: var(--text-eyebrow);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--tan);
+  margin-bottom: 1.5rem;
+}
+
+.manifestoQuote {
+  font-family: var(--serif);
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.25;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--cream);
+  margin: 0 0 2rem;
+  letter-spacing: -0.3px;
+}
+
+.manifestoQuote strong {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--tan);
+}
+
+.manifestoAttr {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(232, 228, 213, 0.7);
+  font-weight: 500;
+}
+
+/* ───── Properties section ───────────────────────────────────────── */
+
+.section {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 6rem 2rem;
+}
+
+.sectionHead {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.sectionHead > * + * {
+  margin-top: 1rem;
+}
+
+.sectionDeck {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--gray);
+  max-width: 560px;
+  margin: 1rem auto 0;
+  line-height: 1.5;
+}
+
+.propertyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.propertyCard {
+  display: flex;
+  flex-direction: column;
+  padding: 3rem 2rem 2.5rem;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--paper);
+  box-shadow: var(--shadow-soft);
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base),
+    border-color var(--transition-base);
+  position: relative;
+  text-decoration: none;
+  color: inherit;
+}
+
+.propertyCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lift);
+  border-color: rgba(184, 156, 115, 0.4);
+}
+
+.propertyOrdinal {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: var(--tan-deep);
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+}
+
+.propertyName {
+  font-family: var(--serif);
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--olive);
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+  margin: 0 0 0.5rem;
+}
+
+.propertyLocale {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--gray);
+  margin: 0 0 1.5rem;
+}
+
+.propertyRule {
+  width: 36px;
+  height: 1px;
+  background: var(--tan);
+  margin: 0 auto 1.5rem;
+}
+
+.propertyTagline {
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--olive);
+  margin: 0 0 2rem;
+  flex: 1;
+}
+
+.propertyCta {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--tan-deep);
+  transition: color var(--transition-fast);
+}
+
+.propertyCard:hover .propertyCta {
+  color: var(--olive);
+}
+
+.propertyError {
+  grid-column: 1 / -1;
+}
+
+/* ───── How it works ─────────────────────────────────────────────── */
+
+.howSection {
+  background:
+    radial-gradient(
+      ellipse 100% 50% at 50% 100%,
+      rgba(184, 156, 115, 0.08) 0%,
+      transparent 60%
+    ),
+    var(--paper-warm);
+  padding: 6rem 2rem;
+}
+
+.howInner {
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+.howCard {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 3.5rem 3rem;
+  margin-top: 3rem;
+}
+
+.howCardTitle {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 22px;
+  color: var(--olive);
+  text-align: center;
+  margin: 0 0 3rem;
+  letter-spacing: -0.2px;
+}
+
+.howSteps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 2rem;
+}
+
+.howStep {
+  text-align: center;
+  position: relative;
+}
+
+.howStepNum {
+  font-family: var(--serif);
+  font-size: 44px;
+  font-weight: 600;
+  color: var(--tan-deep);
+  line-height: 1;
+  margin-bottom: 0.75rem;
+  display: block;
+  letter-spacing: -1px;
+}
+
+.howStepLabel {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: var(--track-button);
+  text-transform: uppercase;
+  color: var(--olive);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.howStepDesc {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--gray);
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* ───── Final CTA strip ──────────────────────────────────────────── */
+
+.finalCta {
+  background: var(--olive);
+  color: var(--cream);
+  padding: 6rem 2rem;
+  text-align: center;
+}
+
+.finalCtaInner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.finalCtaEyebrow {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: var(--tan);
+  font-weight: 600;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.finalCtaTitle {
+  font-family: var(--serif);
+  font-size: clamp(32px, 5vw, 48px);
+  line-height: 1.1;
+  color: var(--cream);
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  margin: 0 0 1.5rem;
+}
+
+.finalCtaTitle em {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--tan);
+}
+
+.finalCtaDeck {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+  color: rgba(232, 228, 213, 0.85);
+  margin: 0 0 2.5rem;
+  line-height: 1.5;
+}
+
+.finalCtaActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ───── Footer ───────────────────────────────────────────────────── */
+
+.footer {
+  background: var(--olive-darker);
+  color: rgba(232, 228, 213, 0.7);
+  padding: 3rem 2rem;
+  font-family: var(--sans);
+  font-size: 12px;
+}
+
+.footerInner {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.footerMark {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--cream);
+  letter-spacing: 0.5px;
+}
+
+.footerCopy {
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}

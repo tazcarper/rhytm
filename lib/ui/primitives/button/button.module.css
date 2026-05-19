@@ -1,0 +1,135 @@
+/* Base — every variant inherits from here. The button itself is a
+   plain native <button> (or, via asChild, whatever element a caller
+   passes through Radix Slot). Variant + size classes are appended. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--sans);
+  font-weight: 600;
+  letter-spacing: var(--track-button);
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sharp);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+  white-space: nowrap;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--tan-deep);
+  outline-offset: 2px;
+}
+
+.button:disabled,
+.button[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Variants */
+.primary {
+  background: var(--olive);
+  color: var(--cream);
+}
+.primary:not(:disabled):not([aria-disabled="true"]):hover {
+  background: var(--olive-deep);
+}
+
+.secondary {
+  background: var(--paper);
+  color: var(--olive);
+  border-color: var(--border-strong);
+  /* Slightly softer letter-spacing for outlined — feels lighter */
+  letter-spacing: var(--track-label);
+  text-transform: none;
+  font-weight: 500;
+  font-size: var(--text-body);
+}
+.secondary:not(:disabled):not([aria-disabled="true"]):hover {
+  background: var(--paper-warm);
+  border-color: var(--tan-deep);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--tan-deep);
+  border-color: transparent;
+}
+.ghost:not(:disabled):not([aria-disabled="true"]):hover {
+  color: var(--olive);
+  background: rgba(184, 156, 115, 0.08);
+}
+
+.link {
+  background: none;
+  border: none;
+  color: var(--tan-deep);
+  padding: 0;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  font-weight: 600;
+  font-size: var(--text-eyebrow);
+}
+.link:not(:disabled):not([aria-disabled="true"]):hover {
+  color: var(--olive);
+}
+
+/* Sizes — applied AFTER variant classes so size padding wins. */
+.sm {
+  padding: 8px 14px;
+  font-size: 10px;
+  letter-spacing: var(--track-label);
+}
+.md {
+  padding: 12px 20px;
+  font-size: var(--text-micro);
+}
+.lg {
+  padding: 14px 24px;
+  font-size: 13px;
+  letter-spacing: 3px;
+}
+
+/* size + variant adjustments */
+.secondary.sm,
+.secondary.md,
+.secondary.lg {
+  /* secondary already has its own font-size; sizes only adjust padding */
+  font-size: var(--text-body);
+  letter-spacing: var(--track-label);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.loading::after {
+  content: "";
+  width: 0.75em;
+  height: 0.75em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+  margin-left: var(--space-1);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading::after {
+    animation: none;
+  }
+}

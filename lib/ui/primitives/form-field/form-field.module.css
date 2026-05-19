@@ -1,0 +1,35 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+
+.label {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--gray);
+  font-weight: 500;
+}
+
+.label .required {
+  color: var(--tan-deep);
+  margin-left: 0.25em;
+}
+
+.helper {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+  line-height: 1.5;
+}
+
+.error {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  font-style: italic;
+  color: var(--accent-error);
+  line-height: 1.5;
+}

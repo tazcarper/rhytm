@@ -1,3 +1,89 @@
+/* Brand tokens — ported from the HSB members portal reference at
+   docs/reference/Members' Entrance · Horseshoe Bay Sporting Club.html.
+   These are the shared palette / shadow / type aliases used across
+   all portals. Component-scoped styles live in .module.css files. */
+:root {
+  /* Palette */
+  --olive: #3f4a21;
+  --olive-deep: #2a3216;
+  --olive-darker: #1f2611;
+  --tan: #b89c73;
+  --tan-deep: #9a8159;
+  --cream: #e8e4d5;
+  --paper: #fbfaf3;
+  --paper-warm: #f5f1e5;
+  --gray: #6b6557;
+  --gray-light: #d4cebe;
+  --border: rgba(63, 74, 33, 0.15);
+  --border-strong: rgba(63, 74, 33, 0.28);
+
+  /* Semantic accents */
+  --accent-error: #8b3030;
+  --accent-warn: #8c5e0f;
+  --accent-info: #2f5482;
+  --accent-success: #2d5520;
+
+  /* Elevation */
+  --shadow-soft: 0 1px 2px rgba(31, 38, 17, 0.04),
+    0 8px 24px rgba(31, 38, 17, 0.06);
+  --shadow-lift: 0 1px 2px rgba(31, 38, 17, 0.06),
+    0 16px 48px rgba(31, 38, 17, 0.12);
+
+  /* Typography (font families injected by next/font in app/layout.tsx) */
+  --serif: var(--font-serif), "Cormorant Garamond", Georgia, serif;
+  --sans: var(--font-sans), "Inter", -apple-system, BlinkMacSystemFont,
+    sans-serif;
+
+  /* Type scale */
+  --text-eyebrow: 11px;
+  --text-micro: 12px;
+  --text-body: 15px;
+  --text-body-lg: 17px;
+  --text-h4: 19px;
+  --text-h3: 24px;
+  --text-h2: 36px;
+  --text-h1: 52px;
+  --text-display: clamp(48px, 8vw, 72px);
+
+  --leading-tight: 1.15;
+  --leading-snug: 1.3;
+  --leading-body: 1.6;
+
+  --track-eyebrow: 3px;
+  --track-button: 2.5px;
+  --track-label: 1.5px;
+  --track-display: -0.5px;
+
+  /* Spacing (4px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  /* Radius */
+  --radius-sharp: 2px;
+  --radius-card: 3px;
+  --radius-pill: 100px;
+
+  /* Motion */
+  --transition-fast: 150ms ease;
+  --transition-base: 240ms ease;
+  --transition-slow: 360ms ease;
+
+  /* Layout */
+  --content-max: 1180px;
+  --content-narrow: 720px;
+  --content-prose: 620px;
+}
+
 *,
 *::before,
 *::after {
@@ -11,23 +97,34 @@ body {
 }
 
 body {
-  font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    sans-serif;
-  line-height: 1.5;
-  color: #1a1a1a;
-  background: #fafafa;
-}
-
-main {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 2rem 1.25rem;
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--olive);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
 }
 
 a {
-  color: #0a58ca;
+  color: var(--tan-deep);
+}
+
+/* No global <main> rule. Every page composes its own layout via
+   <PageShell> from @/lib/ui — full-bleed surfaces (login, 404, home
+   hero) need no constraint, and content pages pick their max-width
+   explicitly. */
+
+/* Reduced-motion baseline. Cap most animations at near-zero duration,
+   but allow components to opt back in with their own @media query when
+   the entrance animation is critical to UX (e.g. login letter
+   cascade is replaced with a fade-in rather than killed entirely). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms;
+    transition-duration: 0.01ms;
+  }
 }

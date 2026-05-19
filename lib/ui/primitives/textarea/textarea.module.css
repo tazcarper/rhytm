@@ -1,0 +1,40 @@
+.textarea {
+  width: 100%;
+  padding: 12px 14px;
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--olive);
+  background: var(--paper-warm);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sharp);
+  outline: none;
+  resize: vertical;
+  min-height: 6rem;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.textarea::placeholder {
+  color: var(--gray);
+  opacity: 0.7;
+}
+
+.textarea:focus {
+  border-color: var(--tan-deep);
+  background: var(--paper);
+}
+
+.textarea:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.invalid {
+  border-color: var(--accent-error);
+  background: rgba(139, 48, 48, 0.03);
+}
+.invalid:focus {
+  border-color: var(--accent-error);
+}

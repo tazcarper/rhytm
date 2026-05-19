@@ -1,0 +1,57 @@
+.shell {
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-5);
+}
+
+.narrow {
+  max-width: var(--content-narrow);
+}
+.wide {
+  max-width: var(--content-max);
+}
+.prose {
+  max-width: var(--content-prose);
+}
+
+/* Full-bleed dark olive background — used by login, 404, any "outside
+   the portal" surface. The card / content area centers within.
+   max-width / margin reset explicitly because the global `main {}`
+   rule (kept for legacy stubs) would otherwise constrain the dark
+   wrapper to 720px and collapse the full-bleed look. */
+.dark {
+  min-height: 100vh;
+  max-width: none;
+  margin: 0;
+  background:
+    radial-gradient(
+      ellipse at 50% 0%,
+      rgba(184, 156, 115, 0.12) 0%,
+      transparent 60%
+    ),
+    linear-gradient(180deg, var(--olive-deep) 0%, var(--olive-darker) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-5);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle ivory dot grid over dark background — matches login. */
+.dotGrid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(184, 156, 115, 0.08) 1px,
+    transparent 1px
+  );
+  background-size: 24px 24px;
+  pointer-events: none;
+}
+
+.center {
+  text-align: center;
+}

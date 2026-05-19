@@ -1,0 +1,250 @@
+/* Login view chrome. The card composition itself, the wordmark sizing,
+   the cycling property, and the "or" divider live here — these are
+   scene-specific. Generic form elements (Input, Button, FormField,
+   Alert, Eyebrow, Heading, Divider, PageShell) now come from @/lib/ui. */
+
+.loginCard {
+  position: relative;
+  background: var(--paper);
+  border-radius: var(--radius-card);
+  padding: 3.5rem 3rem 2.75rem;
+  max-width: 460px;
+  width: 100%;
+  box-shadow: var(--shadow-lift);
+  border: 1px solid rgba(184, 156, 115, 0.2);
+  text-align: center;
+}
+
+/* Spacing overrides for the primitive instances on this page. */
+.loginCrest {
+  margin-bottom: 1.5rem;
+}
+
+.loginWordmark {
+  /* The card is narrow — 32px reads better than the default 36px h2. */
+  font-size: 32px;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.3px;
+}
+
+.loginTag {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--gray);
+  margin: 0.25rem 0 0.35rem;
+}
+
+/* Accent divider beneath the cycling property — the global Divider
+   primitive defaults to 1.5rem of vertical margin; we want extra. */
+.loginAccent {
+  margin: 0 auto 2.25rem;
+}
+
+.loginEyebrow {
+  margin-bottom: 0.75rem;
+}
+
+.loginForm {
+  text-align: left;
+}
+
+/* Cycling property name beneath the tagline. The CyclingProperty
+   component re-renders the span with a fresh React key each tick,
+   which restarts the fade animation. Reserve a fixed line of height
+   so the card doesn't reflow as longer names swap in. */
+.propertyCycler {
+  position: relative;
+  height: 1.3em;
+  margin: 0 0 2.25rem;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(36px, 9vw, 56px);
+  font-weight: 500;
+  letter-spacing: -0.3px;
+  color: var(--olive);
+  overflow: hidden;
+}
+
+.propertyName {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: none;
+}
+
+.letters {
+  white-space: nowrap;
+}
+
+/* Per-letter cascade adapted from Tobias Ahlin's ml12 moving-letters demo.
+   Two stacked animations: letterEnter slides each letter in from the right
+   with easeOutExpo, letterExit slides it out to the left with easeInExpo.
+   CyclingProperty sets --enter-delay and --exit-delay inline per letter to
+   produce the staggered cascade. */
+.letter {
+  display: inline-block;
+  line-height: 1em;
+  opacity: 0;
+  animation:
+    letterEnter 900ms cubic-bezier(0.19, 1, 0.22, 1) forwards,
+    letterExit 800ms cubic-bezier(0.95, 0.05, 0.795, 0.035) forwards;
+  animation-delay: var(--enter-delay, 0ms), var(--exit-delay, 0ms);
+}
+
+.space {
+  display: inline-block;
+}
+
+@keyframes letterEnter {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes letterExit {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .letter {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* "or" rule between the email form and the OAuth button. */
+.loginOr {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0 1rem;
+  color: var(--gray);
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: var(--track-button);
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.loginOr::before,
+.loginOr::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Inline error string under the OAuth button. The Alert primitive is
+   used for server-emitted errors above the form; this line carries
+   client-side validation messages (e.g. rate-limited). */
+.loginError {
+  margin-top: 1rem;
+  font-size: 13px;
+  color: var(--accent-error);
+  font-style: italic;
+  min-height: 18px;
+  text-align: center;
+}
+
+/* "Check your inbox" success state. */
+.loginSent {
+  text-align: center;
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--gray);
+  line-height: 1.6;
+  padding: 0.5rem 0;
+}
+
+.loginSent p {
+  margin: 0 0 1.5rem;
+}
+
+.loginSent strong {
+  color: var(--olive);
+  font-weight: 600;
+}
+
+.loginReset {
+  background: none;
+  border: none;
+  color: var(--tan-deep);
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.loginReset:hover {
+  color: var(--olive);
+}
+
+.loginFoot {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--gray);
+  line-height: 1.6;
+}
+
+.loginFoot a {
+  color: var(--tan-deep);
+  text-decoration: none;
+}
+
+.loginFoot a:hover {
+  text-decoration: underline;
+}
+
+.shake {
+  animation: shake 0.4s ease-out;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-8px);
+  }
+  40% {
+    transform: translateX(8px);
+  }
+  60% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+@media (max-width: 480px) {
+  .loginCard {
+    padding: 2.5rem 1.75rem 2rem;
+  }
+  .loginWordmark {
+    font-size: 26px;
+  }
+}

@@ -1,0 +1,19 @@
+.rule {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: var(--space-6) 0;
+}
+
+.accent {
+  border: none;
+  width: 50px;
+  height: 1px;
+  background: var(--tan);
+  margin: var(--space-6) auto;
+  display: block;
+}
+
+.thick {
+  height: 2px;
+  background: var(--tan);
+}

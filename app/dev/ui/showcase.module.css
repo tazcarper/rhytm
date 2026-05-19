@@ -1,0 +1,88 @@
+.header {
+  text-align: center;
+  padding: var(--space-16) 0 var(--space-10);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--space-12);
+}
+
+.header > * + * {
+  margin-top: var(--space-3);
+}
+
+.subtitle {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: var(--text-body-lg);
+  color: var(--gray);
+  max-width: var(--content-prose);
+  margin: var(--space-4) auto 0;
+  line-height: var(--leading-snug);
+}
+
+.subtitle code {
+  font-family: var(--sans);
+  font-style: normal;
+  font-size: 0.9em;
+  color: var(--olive);
+  background: rgba(63, 74, 33, 0.06);
+  padding: 2px 6px;
+  border-radius: var(--radius-sharp);
+}
+
+.section {
+  margin-bottom: var(--space-16);
+}
+
+.sectionHead {
+  margin-bottom: var(--space-8);
+}
+
+.sectionHead > :first-child {
+  margin-bottom: var(--space-2);
+}
+
+.sectionBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-5);
+}
+
+.cardGrid p {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-micro);
+  color: var(--gray);
+}
+
+/* Subhead label between subsections in a section body. */
+:global(.subhead-spacer) {
+  margin-top: var(--space-4);
+}
+
+/* Wraps the dark PageShell so it doesn't take over the whole page. */
+.darkPreview {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.darkPreview > * {
+  min-height: 360px;
+}
+
+.modalCard {
+  max-width: 420px;
+  text-align: center;
+}

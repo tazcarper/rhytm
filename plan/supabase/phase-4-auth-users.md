@@ -1,5 +1,14 @@
 # Phase 4 — Auth and Users
 
+> ⚠️ **Schema refactored 2026-05-18.** The original `members` table described in this plan was split into `people` + `memberships` + `membership_people` (junction). See migration `20260518232029_split_members_into_people_memberships.sql` for the canonical schema. The rewrite supports household sharing (multiple people on one membership) in addition to the cross-property model. Sections below referring to "the `members` table" are historical; the role/auth/invite-flow conceptual model is unchanged.
+>
+> Concretely: the old `members` row carried both person identity (email, name, phone, auth link) and membership state (member_number, tier, dues, status). Those are split:
+> - **`people`** — the human (email UNIQUE, name, phone, `user_id` to `auth.users` UNIQUE — one auth user = one person).
+> - **`memberships`** — the account at a property (member_number UNIQUE within property, tier, dues, status).
+> - **`membership_people`** — the junction (role: `primary` / `spouse` / `dependent` / `authorized`, status). Partial unique index enforces one active primary per membership.
+>
+> The `/auth/callback` flow now finds ONE pending `people` row by email and links it; cross-property visibility comes from N junction rows on that single person.
+
 ## Prerequisites
 
 - Phase 1 complete (`properties` seeded)
@@ -8,7 +17,7 @@
 
 ## What This Phase Builds
 
-`partner_organizations`, `members`
+`partner_organizations`, `people`, `memberships`, `membership_people` (after the 2026-05-18 split — originally `members`).
 
 Plus: the `app_metadata` role contract for every user type, the member invite flow, and the JWT claim helper functions used by RLS in every phase.
 
@@ -218,8 +227,12 @@ CREATE TABLE members (
   id          uuid    PRIMARY KEY DEFAULT gen_random_uuid(),
   property_id uuid    NOT NULL REFERENCES properties(id),
 
-  -- Supabase Auth link (null until the member accepts their invite)
-  user_id     uuid    UNIQUE REFERENCES auth.users(id),
+  -- Supabase Auth link (null until the member accepts their invite).
+  -- NOT UNIQUE — one auth user maps to N members rows under the
+  -- cross-property model (see "Cross-property membership" below).
+  -- Performance comes from the partial index further down, not from a
+  -- unique constraint.
+  user_id     uuid    REFERENCES auth.users(id),
 
   -- Identity (seeded from Excel roster)
   member_number text  NOT NULL,

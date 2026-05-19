@@ -1,0 +1,77 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-family: var(--sans);
+  font-size: 9.5px;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: var(--radius-sharp);
+  white-space: nowrap;
+  border: 1px solid transparent;
+  line-height: 1.4;
+}
+
+.pill {
+  border-radius: var(--radius-pill);
+  padding: 5px 14px;
+  font-size: 10px;
+  letter-spacing: var(--track-button);
+}
+
+/* Status — adventure & booking states */
+.open {
+  background: rgba(63, 110, 50, 0.12);
+  color: #2d5520;
+}
+.filling {
+  background: rgba(184, 130, 30, 0.14);
+  color: #8c5e0f;
+}
+.waitlist {
+  background: rgba(184, 100, 30, 0.14);
+  color: #8c4a0f;
+}
+.full {
+  background: rgba(140, 50, 50, 0.1);
+  color: var(--accent-error);
+}
+.past {
+  background: rgba(107, 101, 87, 0.12);
+  color: var(--gray);
+}
+.draft {
+  background: rgba(154, 129, 89, 0.12);
+  color: var(--tan-deep);
+}
+
+/* Membership tiers (from reference portal mock) */
+.tierFounder {
+  background: rgba(110, 70, 130, 0.12);
+  color: #5a3d6e;
+  border-color: rgba(110, 70, 130, 0.3);
+}
+.tierCharter {
+  background: rgba(50, 90, 140, 0.1);
+  color: #2f5482;
+  border-color: rgba(50, 90, 140, 0.3);
+}
+.tierMember {
+  background: rgba(63, 74, 33, 0.1);
+  color: var(--olive-deep);
+  border-color: rgba(63, 74, 33, 0.3);
+}
+.tierLegacy {
+  background: rgba(154, 129, 89, 0.12);
+  color: var(--tan-deep);
+  border-color: rgba(154, 129, 89, 0.3);
+}
+
+/* Neutral / generic */
+.neutral {
+  background: rgba(63, 74, 33, 0.06);
+  color: var(--olive);
+  border-color: var(--border);
+}

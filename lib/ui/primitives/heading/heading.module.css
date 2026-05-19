@@ -1,0 +1,49 @@
+.heading {
+  font-family: var(--serif);
+  color: var(--olive);
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: var(--track-display);
+  line-height: var(--leading-tight);
+}
+
+.heading em {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--tan-deep);
+}
+
+.display {
+  font-size: var(--text-display);
+  line-height: 1.05;
+}
+.h1 {
+  font-size: var(--text-h1);
+}
+.h2 {
+  font-size: var(--text-h2);
+}
+.h3 {
+  font-size: var(--text-h3);
+}
+.h4 {
+  font-size: var(--text-h4);
+}
+
+/* The 36px tan rule underneath section titles, taken from the reference. */
+.underline::after {
+  content: "";
+  display: block;
+  width: 36px;
+  height: 2px;
+  background: var(--tan);
+  margin-top: 0.625rem;
+}
+
+.center {
+  text-align: center;
+}
+.center.underline::after {
+  margin-left: auto;
+  margin-right: auto;
+}

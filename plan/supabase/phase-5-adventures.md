@@ -1,9 +1,11 @@
 # Phase 5 — Member Adventures
 
+> ⚠️ **Updated 2026-05-18 to match the people/memberships schema split.** RSVPs now reference `memberships.id` (the account that owns the RSVP) plus `created_by_person_id` (audit — which spouse made it). Member-facing RLS traverses `people → membership_people → memberships`. See migration `20260518232029_split_members_into_people_memberships.sql` for the actual schema.
+
 ## Prerequisites
 
 - Phase 1 complete (`properties`)
-- Phase 4 complete (`members`)
+- Phase 4 complete (`people`, `memberships`, `membership_people`)
 - `handle_updated_at()` trigger function created (Phase 1)
 - Helper functions `auth_role()`, `is_admin()`, `auth_property_id()` created (Phase 4). No `auth_member_id()` — members can hold memberships at multiple properties, so the "current member" is derived from `members` joined on `user_id = auth.uid()`, not from a JWT claim.
 
@@ -26,6 +28,12 @@ Plus: a capacity enforcement trigger that prevents race conditions when multiple
 **Member-facing access follows cross-property memberships (Phase 4).** A member who holds memberships at HSB and Packsaddle can see and RSVP to adventures at *either* property. RLS does not read a single `property_id` claim from the JWT (members don't carry one); instead, every member-facing policy joins `members` on `user_id = auth.uid()` and accepts rows whose `property_id` matches any of the user's active memberships. The "active" filter (`members.status = 'active'`) lives in the policy itself, so lapsed/suspended members are excluded automatically.
 
 **Member updates go through Server Actions, not RLS.** Mirroring the Phase 4 decision on `members`: there is no `FOR UPDATE` policy for members on `member_adventure_rsvps`. Cancellations (and any future member-initiated edits) call a Server Action that uses the service role and validates the column allowlist — typically only allowing `status = 'cancelled'`. RLS is row-level and would otherwise let a browser-side `update()` change `guest_count`, `member_id`, or `deposit_payment_intent_id`.
+
+**Pricing is per-party with an optional per-guest add-on.** A member RSVP'ing alone pays `price`. A member with additional guests pays `price + (guest_count - 1) × guest_price`. `guest_price` is nullable — null means "no extra charge for guests" (the flat `price` covers the whole party). This lets each adventure pick its own pricing model: pure flat, per-extra-guest add-on, or anywhere in between. The arithmetic lives in the Server Action that creates Stripe payment intents (Phase 5 → App 6) — never in the DB.
+
+**Guest count is capped per RSVP, not just in aggregate.** `max_capacity` caps the total people across the whole adventure. `max_guests_per_rsvp` caps the value any single RSVP can set on its `guest_count` — so one member cannot consume the entire capacity by booking with `guest_count = max_capacity`. The capacity trigger enforces both bounds. Note the naming subtlety: `guest_count` includes the member themselves (a solo member's `guest_count` is `1`), and `max_guests_per_rsvp` is the cap on that same value (a `max_guests_per_rsvp` of `4` means up to 3 additional guests + the member).
+
+**Manual sold-out is an explicit staff override, not a status value.** The capacity-based `sync_adventure_sold_out` trigger flips `status` between `published` and `sold_out` based on `confirmed_count >= max_capacity`. That auto-sync alone cannot model the 3rd-party-operator case — e.g., the outfitter tells Rhythm "we're full at 18, not the 20 in our system." A separate `is_manually_sold_out boolean` flag captures that intent: when set by staff, the capacity trigger rejects new confirmed RSVPs (forcing them to waitlist) and the auto-sync triggers skip status updates so a single cancellation cannot quietly re-open booking. `status` remains capacity-driven; `is_manually_sold_out` is staff-driven; the member portal derives "show waitlist UX" from `status = 'sold_out' OR is_manually_sold_out = true`.
 
 ---
 
@@ -60,19 +68,40 @@ CREATE TABLE member_adventures (
   description  text,
   start_date   date   NOT NULL,
   end_date     date   NOT NULL,
-  max_capacity integer NOT NULL CHECK (max_capacity > 0),
 
-  -- Pricing (pending Q14: deposit vs. full payment)
+  -- Capacity
+  max_capacity         integer NOT NULL CHECK (max_capacity > 0),
+  max_guests_per_rsvp  integer NOT NULL CHECK (max_guests_per_rsvp > 0),
+
+  -- Pricing (pending Q14: deposit vs. full payment).
+  -- price = what a solo member pays (guest_count = 1).
+  -- guest_price = additional fee for each guest beyond the member.
+  --   NULL means no extra charge per guest (flat price covers the party).
+  -- Total charged at RSVP time = price + (guest_count - 1) * COALESCE(guest_price, 0)
   price           numeric(10,2) NOT NULL CHECK (price >= 0),
+  guest_price     numeric(10,2) CHECK (guest_price IS NULL OR guest_price >= 0),
   deposit_amount  numeric(10,2),  -- null = full payment upfront
 
+  -- Visible status. Auto-managed by the capacity-based triggers.
   status  adventure_status_enum NOT NULL DEFAULT 'draft',
+
+  -- Staff override. When true, the capacity trigger rejects new confirmed
+  -- RSVPs (forcing waitlist) and the auto-sync triggers skip updating
+  -- `status`. Independent of `status` so the operator-side "we're full"
+  -- case (3rd-party event capped below max_capacity) cannot be undone by
+  -- a single RSVP cancellation. Member portal treats either
+  -- `status = 'sold_out'` or `is_manually_sold_out = true` as sold-out.
+  is_manually_sold_out boolean NOT NULL DEFAULT false,
+
   details jsonb NOT NULL DEFAULT '{}'::jsonb,
 
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
 
-  CONSTRAINT end_after_start CHECK (end_date >= start_date)
+  CONSTRAINT end_after_start CHECK (end_date >= start_date),
+  -- Per-RSVP cap can't exceed the whole adventure
+  CONSTRAINT guests_per_rsvp_within_capacity
+    CHECK (max_guests_per_rsvp <= max_capacity)
 );
 
 CREATE INDEX idx_adventures_property_status
@@ -157,27 +186,48 @@ CREATE TRIGGER member_adventure_rsvps_updated_at
 
 ### Step 4 — Trigger: capacity enforcement
 
-Locks the parent `member_adventures` row (`FOR UPDATE`) before counting confirmed RSVPs. This serializes concurrent RSVP inserts and prevents two guests from both "seeing room" before either commits.
+Locks the parent `member_adventures` row (`FOR UPDATE`) before checking against its current state. Three guardrails fire here:
+
+1. **Per-RSVP guest cap.** Any non-cancelled RSVP must satisfy `guest_count <= max_guests_per_rsvp`. Applied to waitlisted rows too — a waitlisted RSVP that exceeds the cap would become invalid the moment it's promoted, so reject up front.
+2. **Manual sold-out.** When `is_manually_sold_out = true`, confirmed RSVPs are rejected outright. The application must route to `waitlisted` instead.
+3. **Total capacity.** A confirmed RSVP must keep `SUM(guest_count) <= max_capacity`. The row lock serializes concurrent inserts and prevents two members from both "seeing room" before either commits.
 
 ```sql
 CREATE OR REPLACE FUNCTION check_adventure_capacity()
 RETURNS TRIGGER AS $$
 DECLARE
-  v_max_capacity   integer;
-  v_confirmed_count integer;
+  v_max_capacity         integer;
+  v_max_guests_per_rsvp  integer;
+  v_is_manually_sold_out boolean;
+  v_confirmed_count      integer;
 BEGIN
-  -- Only enforce for confirmed RSVPs (waitlisted and cancelled don't consume capacity)
-  IF NEW.status != 'confirmed' THEN
-    RETURN NEW;
-  END IF;
-
-  -- Lock the adventure row to serialize concurrent RSVPs
-  SELECT max_capacity INTO v_max_capacity
+  -- Lock the adventure row. Always run — every code path below needs
+  -- the current state, and the lock serializes concurrent RSVPs.
+  SELECT max_capacity, max_guests_per_rsvp, is_manually_sold_out
+    INTO v_max_capacity, v_max_guests_per_rsvp, v_is_manually_sold_out
   FROM member_adventures
   WHERE id = NEW.adventure_id
   FOR UPDATE;
 
-  -- Count current confirmed guest slots (sum of guest_count, not just row count)
+  -- (1) Per-RSVP guest cap — enforce for everything except cancellations.
+  IF NEW.status != 'cancelled' AND NEW.guest_count > v_max_guests_per_rsvp THEN
+    RAISE EXCEPTION
+      'guest_count % exceeds max_guests_per_rsvp % for this adventure',
+      NEW.guest_count, v_max_guests_per_rsvp;
+  END IF;
+
+  -- Waitlisted and cancelled don't consume capacity — done.
+  IF NEW.status != 'confirmed' THEN
+    RETURN NEW;
+  END IF;
+
+  -- (2) Manual sold-out blocks all new confirmed RSVPs.
+  IF v_is_manually_sold_out THEN
+    RAISE EXCEPTION
+      'adventure is marked sold-out by staff; new RSVPs must be waitlisted';
+  END IF;
+
+  -- (3) Total capacity (sum of guest_count, not row count).
   SELECT COALESCE(SUM(guest_count), 0) INTO v_confirmed_count
   FROM member_adventure_rsvps
   WHERE adventure_id = NEW.adventure_id
@@ -207,11 +257,20 @@ When a new RSVP brings confirmed guests to exactly `max_capacity`, flip the adve
 CREATE OR REPLACE FUNCTION sync_adventure_sold_out()
 RETURNS TRIGGER AS $$
 DECLARE
-  v_max_capacity    integer;
-  v_confirmed_count integer;
+  v_max_capacity         integer;
+  v_is_manually_sold_out boolean;
+  v_confirmed_count      integer;
 BEGIN
-  SELECT max_capacity INTO v_max_capacity
+  SELECT max_capacity, is_manually_sold_out
+    INTO v_max_capacity, v_is_manually_sold_out
   FROM member_adventures WHERE id = NEW.adventure_id;
+
+  -- Staff override wins. Auto-sync never overwrites a manually-set status —
+  -- this is the whole point of the manual flag: a single cancellation
+  -- must not silently re-open booking when the operator said "we're full."
+  IF v_is_manually_sold_out THEN
+    RETURN NEW;
+  END IF;
 
   SELECT COALESCE(SUM(guest_count), 0) INTO v_confirmed_count
   FROM member_adventure_rsvps
@@ -248,6 +307,12 @@ DECLARE
   v_confirmed_count integer;
 BEGIN
   IF NEW.max_capacity IS NOT DISTINCT FROM OLD.max_capacity THEN
+    RETURN NEW;
+  END IF;
+
+  -- Staff override wins — capacity changes don't reshape status while
+  -- the adventure is manually locked.
+  IF NEW.is_manually_sold_out THEN
     RETURN NEW;
   END IF;
 
@@ -351,13 +416,16 @@ CREATE POLICY "rsvps: staff update"
 
 Waitlist promotion is application logic, not a database constraint. When a confirmed RSVP is cancelled:
 
-1. The member sets their RSVP `status = 'cancelled'` (via RLS-allowed UPDATE or Server Action)
-2. The `sync_adventure_sold_out` trigger fires and may re-open the adventure to `published`
-3. An Inngest event fires (`rsvp.cancelled`) triggered by a Supabase Database Webhook on `member_adventure_rsvps`
+1. The member sets their RSVP `status = 'cancelled'` (via the cancellation Server Action — there is no member UPDATE policy).
+2. The `sync_adventure_sold_out` trigger fires and may re-open the adventure to `published` (unless `is_manually_sold_out = true`, in which case it skips).
+3. An Inngest event fires (`rsvp.cancelled`) triggered by a Supabase Database Webhook on `member_adventure_rsvps`.
 4. The Inngest function:
-   a. Queries the next waitlisted RSVP (`ORDER BY created_at ASC`)
-   b. Promotes it to `confirmed` (the capacity trigger re-validates — safe because the prior cancellation freed the slot)
-   c. Sends the waitlisted member a "your spot is confirmed" email via Resend
+   a. Re-reads the parent adventure. If `is_manually_sold_out = true`, **abort the promotion** — staff have explicitly blocked new confirmations even though capacity arithmetically allows one. The waitlist stays in place; the freed slot is not handed out.
+   b. Otherwise, query the next waitlisted RSVP (`ORDER BY created_at ASC`).
+   c. Promote it to `confirmed`. The capacity trigger re-validates (safe — the prior cancellation freed the slot, and the manual-sold-out check inside the trigger acts as a belt-and-braces second line of defense if staff flipped the flag between webhook fire and Inngest pickup).
+   d. Send the promoted member a "your spot is confirmed" email via Resend.
+
+When staff later toggle `is_manually_sold_out = false`, the waitlist does not auto-drain. Staff manually run an admin action ("promote next from waitlist") or the next RSVP cancellation re-fires the flow. This matches the original product intent: manual sold-out is an explicit human gate.
 
 **Supabase Database Webhook** — Configure in the Supabase dashboard to fire an HTTP POST to the Inngest endpoint when `member_adventure_rsvps.status` changes to `cancelled`. This keeps Inngest as the event router without polling.
 
@@ -394,4 +462,6 @@ Until Q14 is answered, build only the deposit path. The balance payment workflow
 
 **`start_date` and `end_date` are `date`, not `timestamptz`.** An adventure is defined as "the day(s) the event happens," interpreted in the property's timezone. This is sufficient for the multi-day adventures planned here (e.g., "Friday–Sunday weekend"). If an adventure ever needs to be time-precise (e.g., "Saturday 8:00 AM – 4:00 PM"), upgrade to `timestamptz` and add a `property_id`-derived timezone reference like the `bookings` slot validator.
 
-**Pricing semantics — `price` is per-RSVP, not per-person.** A member RSVPing with `guest_count = 4` pays one `price`, not `price × 4`. This matches typical "join the trip" adventure pricing where a single fee covers the member + their party. If a future product decision changes this (per-person pricing for some adventure types), introduce a `price_mode` column or split into a separate adventure type — do not silently overload `price`. This decision is partly bound to Q14 (deposit vs full payment) and should be confirmed alongside it.
+**Pricing semantics — `price` covers the solo member, `guest_price` is the per-extra-guest add-on.** A member RSVP'ing alone (`guest_count = 1`) pays `price`. Each additional guest adds `guest_price` to the total: `price + (guest_count - 1) * COALESCE(guest_price, 0)`. `guest_price` is nullable to support "flat fee covers the party" adventures (treat null as zero). All arithmetic lives in the RSVP Server Action when it creates the Stripe payment intent — not in the DB. Adventure authors choose the model per adventure: flat (guest_price null) or marginal (guest_price set). If a future requirement needs a fundamentally different shape (e.g., per-person pricing with no base fee), introduce a `price_mode` column rather than overloading `price` / `guest_price`. This decision is partly bound to Q14 (deposit vs full payment) and should be confirmed alongside it.
+
+**Manual sold-out is set by staff, not by triggers.** Staff toggle `is_manually_sold_out = true` via the admin UI (or directly in Supabase Studio). The capacity check trigger then rejects new confirmed RSVPs, and both auto-sync triggers (`sync_adventure_sold_out`, `resync_adventure_sold_out_on_capacity_change`) skip status updates so the visible `status` stays whatever it was at the moment the flag was set. The member portal must compute the effective sold-out state as `status = 'sold_out' OR is_manually_sold_out = true` — relying on `status` alone will miss the manual case. When staff toggle the flag back to `false`, the next RSVP write naturally re-syncs `status` from current capacity via `sync_adventure_sold_out` (which runs on every RSVP insert/update). If there are no RSVP writes after the unflip, the status may stay stale until one arrives — acceptable, because no member-visible state is wrong (status = sold_out + manual=false still reads as sold-out to the application, and the next RSVP attempt will trigger the resync).

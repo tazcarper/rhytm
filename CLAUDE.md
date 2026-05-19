@@ -110,3 +110,43 @@ High-level modules depend on abstractions, not on concrete implementations. Serv
 - **RLS on every table.** No public reads/writes without a policy.
 - **Double-booking prevention is a database constraint**, not application logic.
 - **Never open connections per request** — use Supabase's transaction pooler (port 6543) in serverless.
+
+## Architecture Decisions
+
+Deliberate, non-obvious choices. Each one captures *why* it's the way it is so future readers — including future Claude sessions — don't undo it by accident.
+
+### Strict portal allowlists; admins do not enter `/member` or `/partner`
+
+The middleware allowlist is one-role-per-portal:
+
+- `/admin` → all five staff roles
+- `/member` → `member` only
+- `/partner` → `partner` only
+
+Admins are NOT in the `/member` or `/partner` allowlists. This is intentional.
+
+**Why:** Each portal queries data scoped to `auth.uid()`. An admin landing on `/member` would render "no memberships" because they don't have a `people` row — useful only as confusion. Making the page detect role and branch into "admin preview" mode mixes two UIs in one component (separation-of-concerns smell). The role-per-portal model keeps each portal a clean, single-purpose surface that's easy to RLS-audit and reason about.
+
+**How admins WILL see member-side data** (planned for App 3 — Admin Portal):
+
+A "preview as <member>" view *inside* `/admin`, NOT a side door to `/member`. Reuses the `/member` React components but fetches data by `member_id` via the admin's broader RLS scope. Admin stays signed in as themselves; no impersonation, no token-swap. Read-only by nature — admin actions on behalf of a member go through admin-portal write paths that explicitly attribute (e.g. `created_by_admin_id` on bookings) rather than masquerading as the member.
+
+Full impersonation (admin signs in literally as the member) is deferred indefinitely. Revisit only if a specific bug-reproduction or interaction-debug need can't be served by read-only preview.
+
+## RLS Rules (read this before writing any policy)
+
+These rules exist because we hit every one of them as a real bug during Phase 4. They are not theoretical.
+
+1. **Use the Supabase Auth & Access Architect agent for any non-trivial RLS work.** Located at `./agents/supabase_auth_rls_agent.md`. Especially for policies that span multiple tables or introduce new helper functions.
+
+2. **For cross-table member access, use `SECURITY DEFINER` selector functions — never inline EXISTS / IN subqueries in policy USING clauses.** Inline cross-table subqueries create policy dependency cycles. PostgreSQL detects these structurally at plan time (not runtime) and fails the query with "infinite recursion detected in policy for relation X." This fires even when the cyclic branch would short-circuit on `auth_role()` for the actual user. The canonical Supabase pattern is a `SECURITY DEFINER STABLE` function that returns the set of IDs the caller can see; the policy then does `id IN (SELECT my_helper())`. The function is opaque to the planner, the cycle dependency arrow disappears, and RLS evaluation completes cleanly. Examples in `supabase/migrations/20260518235335_rls_helpers_for_member_access.sql`.
+
+3. **Wrap `auth.uid()` and `auth.jwt()` in `(SELECT …)` inside every policy.** This forces an InitPlan — the function is evaluated once per query instead of once per row. The Phase 4 helpers already do this; new policies must follow the pattern.
+
+4. **`SECURITY DEFINER` functions always `SET search_path = public`** and have a clear comment about what they bypass and why. They're powerful and easy to misuse.
+
+5. **Before applying any new migration that touches RLS, audit the policy dependency graph.** For each policy USING clause, list which other tables it references. For each of those tables, list which policies they have and what they reference. If any policy on table A references table B AND any policy on table B references table A (directly or transitively), you have a cycle — fix with SECURITY DEFINER selector functions.
+
+6. **Every new RLS policy needs an explicit manual test** — run the actual query as the actual role against the live DB. Migration apply succeeding is not proof the policy works; RLS errors only surface at SELECT/INSERT/UPDATE time.
+
+7. **`FORCE ROW LEVEL SECURITY` is not applied to any project table.** This means service-role and SECURITY DEFINER functions bypass RLS as expected. If you ever add `FORCE`, every existing SECURITY DEFINER helper needs review.
