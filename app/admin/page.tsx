@@ -1,5 +1,6 @@
+import { signOut } from "@/lib/auth/actions";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { Card, Eyebrow, Heading, PageShell } from "@/lib/ui";
+import { Button, Card, Eyebrow, Heading, PageShell } from "@/lib/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -19,29 +20,33 @@ export default async function AdminHome() {
 
   return (
     <PageShell width="narrow">
-      <Eyebrow as="div" style={{ marginBottom: "0.5rem" }}>
+      <Eyebrow as="div" className="mb-2">
         Staff
       </Eyebrow>
       <Heading level={1} size="h2" underline>
         Admin Portal
       </Heading>
-      <p style={{ color: "var(--gray)", marginTop: "1rem" }}>
-        Signed in as <strong>{user?.email}</strong>.
-      </p>
-      <Card padding="loose" style={{ marginTop: "1.5rem" }}>
-        <Eyebrow as="div" style={{ marginBottom: "0.75rem" }}>
+      <div className="flex items-center justify-between flex-wrap gap-4 mt-4">
+        <p className="text-gray m-0">
+          Signed in as <strong>{user?.email}</strong>.
+        </p>
+        <form action={signOut}>
+          <Button type="submit" variant="secondary" size="sm">
+            Sign out
+          </Button>
+        </form>
+      </div>
+      <Card padding="loose" className="mt-6">
+        <Eyebrow as="div" className="mb-3">
           Session claims
         </Eyebrow>
-        <ul style={{ margin: 0, paddingLeft: "1.25rem", color: "var(--olive)" }}>
+        <ul className="m-0 pl-5 text-olive">
           <li>
-            role:{" "}
-            <code style={{ fontFamily: "ui-monospace, Menlo, monospace" }}>
-              {(meta.role as string | undefined) ?? "—"}
-            </code>
+            role: <code className="font-mono">{(meta.role as string | undefined) ?? "—"}</code>
           </li>
           <li>
             property_id:{" "}
-            <code style={{ fontFamily: "ui-monospace, Menlo, monospace" }}>
+            <code className="font-mono">
               {(meta.property_id as string | undefined) ?? "—"}
             </code>
           </li>

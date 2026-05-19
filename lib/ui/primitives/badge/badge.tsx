@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from "react";
+import type { HTMLAttributes, Ref } from "react";
 import { cn } from "../../utils/cn";
 import s from "./badge.module.css";
 
@@ -16,12 +16,14 @@ export type BadgeVariant =
   | "tierLegacy";
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
+  ref?: Ref<HTMLSpanElement>;
   variant?: BadgeVariant;
   /** Pill shape (rounded full) — used for tier indicators. */
   pill?: boolean;
 }
 
 export function Badge({
+  ref,
   variant = "neutral",
   pill = false,
   className,
@@ -30,6 +32,7 @@ export function Badge({
 }: BadgeProps) {
   return (
     <span
+      ref={ref}
       className={cn(s.badge, s[variant], pill && s.pill, className)}
       {...rest}
     >

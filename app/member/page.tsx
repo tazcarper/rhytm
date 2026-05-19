@@ -1,7 +1,9 @@
+import { signOut } from "@/lib/auth/actions";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
   Alert,
   Badge,
+  Button,
   Card,
   Eyebrow,
   Heading,
@@ -49,30 +51,29 @@ export default async function MemberHome() {
 
   return (
     <PageShell width="narrow">
-      <Eyebrow as="div" style={{ marginBottom: "0.5rem" }}>
+      <Eyebrow as="div" className="mb-2">
         Member
       </Eyebrow>
       <Heading level={1} size="h1" underline>
         Welcome <em>back</em>
       </Heading>
-      <p
-        style={{
-          color: "var(--gray)",
-          marginTop: "1rem",
-          fontFamily: "var(--serif)",
-          fontStyle: "italic",
-          fontSize: 18,
-        }}
-      >
-        Signed in as <strong style={{ color: "var(--olive)" }}>{user?.email}</strong>{" "}
-        &middot; role:{" "}
-        <code style={{ fontFamily: "ui-monospace, Menlo, monospace", fontStyle: "normal", fontSize: "0.85em" }}>
-          {(user?.app_metadata?.role as string | undefined) ?? "—"}
-        </code>
-      </p>
+      <div className="flex items-center justify-between flex-wrap gap-4 mt-4">
+        <p className="text-gray m-0 font-serif italic text-[18px]">
+          Signed in as <strong className="text-olive">{user?.email}</strong>{" "}
+          &middot; role:{" "}
+          <code className="font-mono not-italic text-[0.85em]">
+            {(user?.app_metadata?.role as string | undefined) ?? "—"}
+          </code>
+        </p>
+        <form action={signOut}>
+          <Button type="submit" variant="secondary" size="sm">
+            Sign out
+          </Button>
+        </form>
+      </div>
 
-      <div style={{ marginTop: "3rem" }}>
-        <Eyebrow as="div" style={{ marginBottom: "0.5rem" }}>
+      <div className="mt-12">
+        <Eyebrow as="div" className="mb-2">
           Your memberships
         </Eyebrow>
         <Heading level={2} size="h3" underline>
@@ -81,7 +82,7 @@ export default async function MemberHome() {
       </div>
 
       {error && (
-        <div style={{ marginTop: "1.5rem" }}>
+        <div className="mt-6">
           <Alert variant="error" title="Could not load memberships">
             {error.message}
           </Alert>
@@ -89,27 +90,13 @@ export default async function MemberHome() {
       )}
 
       {mine && mine.length === 0 && (
-        <p
-          style={{
-            color: "var(--gray)",
-            fontFamily: "var(--serif)",
-            fontStyle: "italic",
-            marginTop: "1.5rem",
-          }}
-        >
+        <p className="text-gray font-serif italic mt-6">
           No memberships are linked to this account yet.
         </p>
       )}
 
       {mine && mine.length > 0 && (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "1rem",
-            marginTop: "1.5rem",
-          }}
-        >
+        <div className="flex flex-col gap-4 mt-6">
           {mine.map((row) => {
             const membership = pickOne(row.memberships);
             if (!membership) return null;
@@ -124,16 +111,7 @@ export default async function MemberHome() {
 
             return (
               <Card key={row.id} padding="loose">
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "baseline",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    gap: "0.5rem",
-                    marginBottom: "0.5rem",
-                  }}
-                >
+                <div className="flex items-baseline justify-between flex-wrap gap-2 mb-2">
                   <Heading level={3} size="h3">
                     {property?.name ?? "—"}
                   </Heading>
@@ -143,53 +121,33 @@ export default async function MemberHome() {
                     </Badge>
                   )}
                 </div>
-                <div
-                  style={{
-                    fontFamily: "var(--sans)",
-                    fontSize: 13,
-                    color: "var(--gray)",
-                    letterSpacing: "0.5px",
-                  }}
-                >
-                  Member <code style={{ fontFamily: "ui-monospace, Menlo, monospace", color: "var(--olive)" }}>#{membership.member_number}</code>
+                <div className="font-sans text-[13px] text-gray tracking-[0.5px]">
+                  Member{" "}
+                  <code className="font-mono text-olive">
+                    #{membership.member_number}
+                  </code>
                   {" · "}
                   {membership.status}
                   {" · "}
-                  your role: <em style={{ color: "var(--tan-deep)" }}>{row.role}</em>
+                  your role: <em className="text-tan-deep">{row.role}</em>
                 </div>
 
                 {otherHousehold.length > 0 && (
-                  <div
-                    style={{
-                      marginTop: "1.25rem",
-                      paddingTop: "1.25rem",
-                      borderTop: "1px solid var(--border)",
-                    }}
-                  >
-                    <Eyebrow as="div" style={{ marginBottom: "0.5rem" }}>
+                  <div className="mt-5 pt-5 border-t border-rule">
+                    <Eyebrow as="div" className="mb-2">
                       Also on this membership
                     </Eyebrow>
-                    <ul
-                      style={{
-                        margin: 0,
-                        paddingLeft: "1.25rem",
-                        fontSize: 14,
-                        color: "var(--olive)",
-                      }}
-                    >
+                    <ul className="m-0 pl-5 text-[14px] text-olive">
                       {otherHousehold.map((j) => {
                         const p = pickOne(j.people);
                         if (!p) return null;
                         return (
                           <li key={j.role + p.email}>
                             {p.first_name} {p.last_name}{" "}
-                            <code style={{ fontFamily: "ui-monospace, Menlo, monospace", color: "var(--gray)", fontSize: "0.85em" }}>
+                            <code className="font-mono text-gray text-[0.85em]">
                               ({p.email})
                             </code>{" "}
-                            &middot;{" "}
-                            <em style={{ color: "var(--tan-deep)" }}>
-                              {j.role}
-                            </em>
+                            &middot; <em className="text-tan-deep">{j.role}</em>
                           </li>
                         );
                       })}
@@ -197,15 +155,7 @@ export default async function MemberHome() {
                   </div>
                 )}
                 {otherHousehold.length === 0 && (
-                  <p
-                    style={{
-                      marginTop: "1rem",
-                      fontFamily: "var(--serif)",
-                      fontStyle: "italic",
-                      fontSize: 14,
-                      color: "var(--gray)",
-                    }}
-                  >
+                  <p className="mt-4 font-serif italic text-[14px] text-gray">
                     You are the only person on this membership.
                   </p>
                 )}

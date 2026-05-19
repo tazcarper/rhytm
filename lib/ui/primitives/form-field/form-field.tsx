@@ -1,8 +1,9 @@
-import { useId, type ReactNode } from "react";
+import { useId, type ReactNode, type Ref } from "react";
 import { cn } from "../../utils/cn";
 import s from "./form-field.module.css";
 
 export interface FormFieldProps {
+  ref?: Ref<HTMLDivElement>;
   label: ReactNode;
   /** Renders the input element. Receives an id to wire <label htmlFor>
       and the appropriate aria-describedby for helper / error text. */
@@ -24,6 +25,7 @@ export interface FormFieldProps {
 // render-prop pattern keeps a11y wiring (id + aria-describedby) inside
 // the primitive without forcing the caller to use a specific input type.
 export function FormField({
+  ref,
   label,
   children,
   helper,
@@ -40,7 +42,7 @@ export function FormField({
     [errorId, helperId].filter(Boolean).join(" ") || undefined;
 
   return (
-    <div className={cn(s.field, className)}>
+    <div ref={ref} className={cn(s.field, className)}>
       <label htmlFor={controlId} className={s.label}>
         {label}
         {required && (

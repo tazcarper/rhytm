@@ -1,0 +1,21 @@
+.text {
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  color: var(--olive);
+  line-height: var(--leading-body);
+  margin: 0;
+}
+
+.lead {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: var(--text-body-lg);
+  color: var(--gray);
+  line-height: 1.5;
+}
+
+.caption {
+  font-size: var(--text-micro);
+  color: var(--gray);
+  line-height: 1.5;
+}

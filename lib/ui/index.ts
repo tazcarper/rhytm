@@ -15,13 +15,21 @@ export type {
 } from "./primitives/button";
 
 export { Card } from "./primitives/card";
-export type { CardProps } from "./primitives/card";
+export type {
+  CardProps,
+  CardElevation,
+  CardPadding,
+} from "./primitives/card";
 
 export { Divider } from "./primitives/divider";
-export type { DividerProps } from "./primitives/divider";
+export type { DividerProps, DividerVariant } from "./primitives/divider";
 
 export { Eyebrow } from "./primitives/eyebrow";
-export type { EyebrowProps } from "./primitives/eyebrow";
+export type {
+  EyebrowProps,
+  EyebrowVariant,
+  EyebrowTag,
+} from "./primitives/eyebrow";
 
 export { FormField } from "./primitives/form-field";
 export type { FormFieldProps } from "./primitives/form-field";
@@ -37,7 +45,18 @@ export { Input } from "./primitives/input";
 export type { InputProps } from "./primitives/input";
 
 export { PageShell } from "./primitives/page-shell";
-export type { PageShellProps } from "./primitives/page-shell";
+export type {
+  PageShellProps,
+  PageShellTag,
+  PageShellWidth,
+} from "./primitives/page-shell";
+
+export { Text } from "./primitives/text";
+export type {
+  TextProps,
+  TextVariant,
+  TextTag,
+} from "./primitives/text";
 
 export { Textarea } from "./primitives/textarea";
 export type { TextareaProps } from "./primitives/textarea";

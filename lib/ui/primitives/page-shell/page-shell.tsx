@@ -1,39 +1,69 @@
-import { createElement, type HTMLAttributes } from "react";
+import { createElement, type HTMLAttributes, type Ref } from "react";
 import { cn } from "../../utils/cn";
 import s from "./page-shell.module.css";
 
-type ShellTag = "main" | "div" | "section" | "article";
+export type PageShellTag = "main" | "div" | "section" | "article";
+export type PageShellWidth = "narrow" | "wide" | "prose";
 
-export interface PageShellProps extends HTMLAttributes<HTMLDivElement> {
-  /** Max content width preset. */
-  width?: "narrow" | "wide" | "prose";
-  /** Render a full-bleed dark olive background (login / 404 surface). */
-  dark?: boolean;
-  /** Render the subtle dot grid over a dark background. */
-  dotGrid?: boolean;
-  center?: boolean;
+type PageShellBase = HTMLAttributes<HTMLElement> & {
+  ref?: Ref<HTMLElement>;
   /** Semantic element. Defaults to <main> for top-of-page wrappers;
-      override to "div" or "section" when nesting (e.g. inside another
-      PageShell as a preview / demo region). */
-  as?: ShellTag;
-}
+      override to "div" / "section" when nesting (e.g. inside another
+      PageShell as a preview region). */
+  as?: PageShellTag;
+};
 
-// Layout primitive. "Light" mode renders a centered max-width column
-// for normal content. "Dark" mode renders a full-bleed olive
-// background with a centered child — used for login, 404, anywhere
-// the user is outside an authenticated portal.
-export function PageShell({
-  width = "wide",
-  dark = false,
-  dotGrid = false,
-  center = false,
-  as = "main",
-  className,
-  children,
-  ...rest
-}: PageShellProps) {
-  const className_ = dark
-    ? cn(s.dark, dotGrid && s.dotGrid, className)
-    : cn(s.shell, s[width], center && s.center, className);
-  return createElement(as, { className: className_, ...rest }, children);
+type LightShellProps = PageShellBase & {
+  dark?: false;
+  /** Max content width preset. */
+  width?: PageShellWidth;
+  center?: boolean;
+};
+
+type DarkShellProps = PageShellBase & {
+  /** Full-bleed dark olive background (login / 404 / unauthorized). */
+  dark: true;
+  /** Render a subtle dot grid over the dark surface. */
+  dotGrid?: boolean;
+};
+
+export type PageShellProps = LightShellProps | DarkShellProps;
+
+// Layout primitive. The two modes are intentionally exclusive:
+// `width` / `center` apply only to the light surface, `dotGrid` only
+// to the dark surface. The discriminated union makes mismatched props
+// a type error rather than a silent no-op.
+export function PageShell(props: PageShellProps) {
+  if (props.dark) {
+    const { ref, as = "main", dark: _dark, dotGrid, className, children, ...rest } =
+      props;
+    return createElement(
+      as,
+      {
+        ref,
+        className: cn(s.dark, dotGrid && s.dotGrid, className),
+        ...rest,
+      },
+      children,
+    );
+  }
+
+  const {
+    ref,
+    as = "main",
+    width = "wide",
+    center = false,
+    className,
+    children,
+    ...rest
+  } = props;
+  return createElement(
+    as,
+    {
+      ref,
+      className: cn(s.shell, s[width], center && s.center, className),
+      ...rest,
+    },
+    children,
+  );
 }

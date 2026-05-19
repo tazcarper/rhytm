@@ -7,6 +7,7 @@ import {
   Eyebrow,
   Heading,
   PageShell,
+  Text,
 } from "@/lib/ui";
 
 export const dynamic = "force-dynamic";
@@ -35,53 +36,35 @@ export default async function AuthCodeErrorPage({
       <Card
         elevation="lift"
         padding="loose"
-        style={{ maxWidth: 480, width: "100%", textAlign: "center" }}
+        className="max-w-[480px] w-full text-center"
       >
-        <Eyebrow variant="crest" as="div" style={{ marginBottom: "1.5rem" }}>
+        <Eyebrow variant="crest" as="div" className="mb-6">
           Link Expired
         </Eyebrow>
         <Heading level={1} size="h2" center>
           That link <em>didn&rsquo;t work</em>
         </Heading>
-        <p
-          style={{
-            fontFamily: "var(--serif)",
-            fontStyle: "italic",
-            fontSize: 17,
-            color: "var(--gray)",
-            margin: "1rem 0 0",
-            lineHeight: 1.5,
-          }}
-        >
+        <Text variant="lead" className="mt-4 mb-0">
           Magic links are single-use and expire after a short period.
-        </p>
+        </Text>
         <Divider variant="accent" />
-        <p
-          style={{
-            fontSize: 14,
-            color: "var(--olive)",
-            lineHeight: 1.6,
-            marginBottom: "1.5rem",
-          }}
-        >
+        <Text className="mb-6">
           If you recently clicked an older email, request a fresh sign-in
           link and try again.
-        </p>
+        </Text>
 
         {(label || reason) && (
-          <div style={{ textAlign: "left", marginBottom: "1.5rem" }}>
+          <div className="text-left mb-6">
             <Alert variant="error" title="Technical detail">
               {label && (
-                <p style={{ margin: 0 }}>
+                <p className="m-0">
                   <strong>Stage:</strong> {label}
                 </p>
               )}
               {reason && (
-                <p style={{ margin: "0.25rem 0 0" }}>
+                <p className="mt-1 mb-0">
                   <strong>Reason:</strong>{" "}
-                  <code style={{ fontFamily: "ui-monospace, Menlo, monospace" }}>
-                    {reason}
-                  </code>
+                  <code className="font-mono">{reason}</code>
                 </p>
               )}
             </Alert>
