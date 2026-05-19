@@ -1,7 +1,11 @@
+@import "tailwindcss";
+
 /* Brand tokens — ported from the HSB members portal reference at
    docs/reference/Members' Entrance · Horseshoe Bay Sporting Club.html.
    These are the shared palette / shadow / type aliases used across
-   all portals. Component-scoped styles live in .module.css files. */
+   all portals. Component-scoped styles live in .module.css files
+   during migration; new code should reach for Tailwind utilities
+   keyed off the @theme inline block below. */
 :root {
   /* Palette */
   --olive: #3f4a21;
@@ -82,6 +86,88 @@
   --content-max: 1180px;
   --content-narrow: 720px;
   --content-prose: 620px;
+}
+
+/* Tailwind theme bridge. Maps the brand tokens above into Tailwind's
+   v4 theme namespaces so utilities like `bg-olive`, `text-tan-deep`,
+   `font-serif`, `tracking-eyebrow`, `rounded-card`, `shadow-soft`,
+   `max-w-content`, `duration-base` work without arbitrary-value
+   escapes. `inline` tells Tailwind to emit `background-color:
+   var(--olive)` directly instead of re-declaring intermediate
+   variables on :root — the brand vars above are the single source
+   of truth. Defaults in any namespace we don't touch (color reds,
+   `text-xs`, `rounded-md`, etc.) are preserved.
+   See docs/tailwind-migration.md for the var → utility map. */
+@theme inline {
+  /* Palette */
+  --color-olive: var(--olive);
+  --color-olive-deep: var(--olive-deep);
+  --color-olive-darker: var(--olive-darker);
+  --color-tan: var(--tan);
+  --color-tan-deep: var(--tan-deep);
+  --color-cream: var(--cream);
+  --color-paper: var(--paper);
+  --color-paper-warm: var(--paper-warm);
+  --color-gray: var(--gray);
+  --color-gray-light: var(--gray-light);
+
+  /* Rules / dividers — semi-transparent olive */
+  --color-rule: var(--border);
+  --color-rule-strong: var(--border-strong);
+
+  /* Semantic accents */
+  --color-accent-error: var(--accent-error);
+  --color-accent-warn: var(--accent-warn);
+  --color-accent-info: var(--accent-info);
+  --color-accent-success: var(--accent-success);
+
+  /* Typography — font families override Tailwind's --font-sans /
+     --font-serif defaults so utilities inherit the brand stack. */
+  --font-sans: var(--sans);
+  --font-serif: var(--serif);
+
+  /* Type scale */
+  --text-eyebrow: var(--text-eyebrow);
+  --text-micro: var(--text-micro);
+  --text-body: var(--text-body);
+  --text-body-lg: var(--text-body-lg);
+  --text-h4: var(--text-h4);
+  --text-h3: var(--text-h3);
+  --text-h2: var(--text-h2);
+  --text-h1: var(--text-h1);
+  --text-display: var(--text-display);
+
+  /* Line heights */
+  --leading-tight: var(--leading-tight);
+  --leading-snug: var(--leading-snug);
+  --leading-body: var(--leading-body);
+
+  /* Letter spacing — brand uses pixel values, not em */
+  --tracking-eyebrow: var(--track-eyebrow);
+  --tracking-button: var(--track-button);
+  --tracking-label: var(--track-label);
+  --tracking-display: var(--track-display);
+
+  /* Radii */
+  --radius-sharp: var(--radius-sharp);
+  --radius-card: var(--radius-card);
+  --radius-pill: var(--radius-pill);
+
+  /* Elevation */
+  --shadow-soft: var(--shadow-soft);
+  --shadow-lift: var(--shadow-lift);
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-base: 240ms;
+  --duration-slow: 360ms;
+
+  /* Layout maxes — `max-w-content`, `max-w-narrow`, `max-w-prose`.
+     Note: v4 ships `max-w-prose` already (65ch); brand prose is 620px
+     and we want consumers to think in brand widths, so we override. */
+  --container-content: var(--content-max);
+  --container-narrow: var(--content-narrow);
+  --container-prose: var(--content-prose);
 }
 
 *,
