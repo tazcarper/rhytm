@@ -18,35 +18,32 @@ export default async function PartnerHome() {
 
   return (
     <PageShell width="narrow">
-      <Eyebrow as="div" style={{ marginBottom: "0.5rem" }}>
+      <Eyebrow as="div" className="mb-2">
         Partner
       </Eyebrow>
       <Heading level={1} size="h2" underline>
         Partner Portal
       </Heading>
-      <p style={{ color: "var(--gray)", marginTop: "1rem" }}>
+      <p className="text-gray mt-4">
         Signed in as <strong>{user?.email}</strong>.
       </p>
-      <Card padding="loose" style={{ marginTop: "1.5rem" }}>
-        <Eyebrow as="div" style={{ marginBottom: "0.75rem" }}>
+      <Card padding="loose" className="mt-6">
+        <Eyebrow as="div" className="mb-3">
           Session claims
         </Eyebrow>
-        <ul style={{ margin: 0, paddingLeft: "1.25rem", color: "var(--olive)" }}>
+        <ul className="m-0 pl-5 text-olive">
           <li>
-            role:{" "}
-            <code style={{ fontFamily: "ui-monospace, Menlo, monospace" }}>
-              {(meta.role as string | undefined) ?? "—"}
-            </code>
+            role: <code className="font-mono">{(meta.role as string | undefined) ?? "—"}</code>
           </li>
           <li>
             partner_org_id:{" "}
-            <code style={{ fontFamily: "ui-monospace, Menlo, monospace" }}>
+            <code className="font-mono">
               {(meta.partner_org_id as string | undefined) ?? "—"}
             </code>
           </li>
           <li>
             property_id:{" "}
-            <code style={{ fontFamily: "ui-monospace, Menlo, monospace" }}>
+            <code className="font-mono">
               {(meta.property_id as string | undefined) ?? "—"}
             </code>
           </li>

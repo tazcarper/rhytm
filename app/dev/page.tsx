@@ -116,11 +116,11 @@ export default async function DevDashboard({
         </Alert>
       )}
 
-      <Card warm padding="loose" className={s.note} style={{ marginBottom: "2rem" }}>
-        <Eyebrow as="div" style={{ marginBottom: "0.75rem" }}>
+      <Card warm padding="loose" className={`${s.note} mb-8`}>
+        <Eyebrow as="div" className="mb-3">
           Schema model
         </Eyebrow>
-        <p style={{ marginTop: 0 }}>
+        <p className="mt-0">
           A <code>people</code> row is a human (email + auth account). A{" "}
           <code>memberships</code> row is a club account (member number,
           tier, dues) scoped to one property. A{" "}
@@ -130,7 +130,7 @@ export default async function DevDashboard({
           multiple authorized people (household). One person can be on
           multiple memberships (cross-property).
         </p>
-        <Eyebrow as="div" style={{ marginTop: "1.5rem", marginBottom: "0.5rem" }}>
+        <Eyebrow as="div" className="mt-6 mb-2">
           Recommended workflow
         </Eyebrow>
         <ol>
@@ -166,7 +166,7 @@ export default async function DevDashboard({
         <Card padding="loose">
           {user ? (
             <div className={s.sessionRow}>
-              <p style={{ margin: 0 }}>
+              <p className="m-0">
                 Signed in as <strong>{user.email}</strong>{" "}
                 <code>({user.id})</code>
               </p>
@@ -189,7 +189,7 @@ export default async function DevDashboard({
             </div>
           ) : (
             <div className={s.sessionRow}>
-              <p style={{ margin: 0, color: "var(--gray)" }}>
+              <p className="m-0 text-gray">
                 No Supabase session. Generate a link below to sign in.
               </p>
               <div className={s.actions}>
@@ -581,7 +581,7 @@ function DevSection({
   children: React.ReactNode;
 }) {
   return (
-    <section style={{ marginBottom: "3rem" }}>
+    <section className="mb-12">
       <div className={s.sectionTitle}>
         <Eyebrow as="div">{eyebrow}</Eyebrow>
         <Heading level={2} size="h3" underline>

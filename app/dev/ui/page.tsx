@@ -197,7 +197,7 @@ export default function UIShowcase() {
               <Heading level={2} size="h2" center>
                 Login, 404, <em>callbacks</em>
               </Heading>
-              <p style={{ marginTop: "1rem" }}>
+              <p className="mt-4">
                 Full-bleed olive with a centered ivory card. Same wrapper
                 across every "unauthenticated" surface.
               </p>
@@ -239,13 +239,7 @@ function Dot() {
   return (
     <span
       aria-hidden="true"
-      style={{
-        width: 8,
-        height: 8,
-        borderRadius: "50%",
-        background: "currentColor",
-        display: "inline-block",
-      }}
+      className="inline-block w-2 h-2 rounded-full bg-current"
     />
   );
 }

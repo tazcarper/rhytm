@@ -9,36 +9,20 @@ export default function UnauthorizedPage() {
       <Card
         elevation="lift"
         padding="loose"
-        style={{ maxWidth: 480, width: "100%", textAlign: "center" }}
+        className="max-w-[480px] w-full text-center"
       >
-        <Eyebrow variant="crest" as="div" style={{ marginBottom: "1.5rem" }}>
+        <Eyebrow variant="crest" as="div" className="mb-6">
           Access Restricted
         </Eyebrow>
         <Heading level={1} size="h2" center>
           A different <em>portal</em>
         </Heading>
-        <p
-          style={{
-            fontFamily: "var(--serif)",
-            fontStyle: "italic",
-            fontSize: 17,
-            color: "var(--gray)",
-            margin: "1rem 0 0",
-            lineHeight: 1.5,
-          }}
-        >
+        <p className="font-serif italic text-body-lg text-gray mt-4 mb-0 leading-[1.5]">
           You&rsquo;re signed in, but this area is reserved for a different
           role.
         </p>
         <Divider variant="accent" />
-        <p
-          style={{
-            fontSize: 14,
-            color: "var(--olive)",
-            lineHeight: 1.6,
-            marginBottom: "1.5rem",
-          }}
-        >
+        <p className="text-[14px] text-olive leading-body mb-6">
           If you believe this is wrong, contact your Rhythm Outdoors
           administrator. Otherwise, head back to your own front gate.
         </p>

@@ -36,27 +36,17 @@ export default async function DevLoginPage({
       <Card
         elevation="lift"
         padding="loose"
-        style={{ maxWidth: 420, width: "100%", textAlign: "center" }}
+        className="max-w-[420px] w-full text-center"
       >
-        <Eyebrow variant="crest" as="div" style={{ marginBottom: "1.5rem" }}>
+        <Eyebrow variant="crest" as="div" className="mb-6">
           Internal Tool
         </Eyebrow>
-        <Heading level={1} size="h2" style={{ marginBottom: "0.5rem" }}>
+        <Heading level={1} size="h2" className="mb-2">
           Developer <em>Dashboard</em>
         </Heading>
-        <p
-          style={{
-            fontFamily: "var(--serif)",
-            fontStyle: "italic",
-            color: "var(--gray)",
-            margin: "0 0 2rem",
-          }}
-        >
+        <p className="font-serif italic text-gray mt-0 mb-8">
           Restricted. Enter the password configured in{" "}
-          <code style={{ fontFamily: "var(--sans)", fontStyle: "normal" }}>
-            DEV_DASHBOARD_PASSWORD
-          </code>
-          .
+          <code className="font-sans not-italic">DEV_DASHBOARD_PASSWORD</code>.
         </p>
 
         {errorMessage && (
@@ -65,7 +55,7 @@ export default async function DevLoginPage({
           </Alert>
         )}
 
-        <form action={authenticate} style={{ textAlign: "left" }}>
+        <form action={authenticate} className="text-left">
           <FormField label="Password">
             {(p) => (
               <Input
