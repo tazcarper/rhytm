@@ -103,6 +103,55 @@ High-level modules depend on abstractions, not on concrete implementations. Serv
 - **No hidden side effects.** A function that queries the database should not also write to it unless that is its stated, singular job.
 - **Strategy for variation.** When behavior varies by portal type (public / member / partner) or property (HBSC / Hog Heaven / Packsaddle), reach for a strategy or configuration map — not `if (portal === 'member')` chains scattered through shared code.
 
+## Project Structure
+
+Two top-level trees own application code, with a clear boundary between them. `app/` is reserved for Next.js routing artifacts — nothing else.
+
+```
+app/<route>/                Routing artifacts ONLY — page.tsx, route.ts, layout.tsx.
+                            No components, no business logic, no services.
+                            Pages are orchestrators: fetch via service, compose
+                            from src/components, render. Thin.
+
+src/                        Domain code.
+├── components/
+│   ├── <scope>/            Route- or feature-scoped components (e.g. members, admin).
+│   └── shared/             Cross-cutting components used by multiple scopes.
+├── services/
+│   └── <scope>/            Domain logic: queries, mutations, business rules.
+│                           Takes injected clients (SupabaseClient, etc.).
+│                           Returns clean domain types — never raw PostgREST shapes.
+├── hooks/<scope>/          React hooks (when needed).
+├── constants/<scope>/      Constants / enums / config maps (when needed).
+└── types/                  Shared TS types (when not co-located with their owner).
+
+lib/                        Framework / infrastructure adapters.
+├── supabase/               Supabase client factories (browser, server, service).
+├── auth/                   Generic auth glue (server actions like signOut).
+├── ui/                     Design system primitives (Button, Card, Alert, …).
+└── dev/                    Internal dev tooling.
+```
+
+### Where does this code go? — heuristic
+
+- **It renders JSX:** `src/components/<scope>/`. Route-specific or feature-specific scope, never `shared/` unless it's actually reused across routes.
+- **It does a query, mutation, or business calculation:** `src/services/<scope>/`. Always takes its dependencies as parameters (Dependency Inversion).
+- **It's a Supabase client, an auth helper, a CSS primitive, or some framework adapter the rest of the app depends on:** `lib/`. The boundary is "I'm part of the infrastructure," not "I am the product."
+- **It's a Next.js routing primitive** (`page.tsx`, `route.ts`, `layout.tsx`, `error.tsx`, `not-found.tsx`, `middleware.ts`): `app/<route>/`. These are routing artifacts, not domain code — keep them thin.
+
+### Path aliases
+
+`tsconfig.json` defines `@/* → ./*`. Use absolute imports everywhere outside of same-directory files:
+
+```ts
+import { MemberHeader } from "@/src/components/members/member-header";
+import { getMyMemberships } from "@/src/services/members/memberships";
+import { Button } from "@/lib/ui";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+```
+
+Avoid `../../../` relative paths — they break refactors silently.
+
 ## Key Rules
 
 - **Database is the source of truth.** Bookings, members, pricing, and bids live in Supabase. HubSpot is downstream.
