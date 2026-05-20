@@ -1,0 +1,80 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  padding: 3rem 2rem 2.5rem;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--paper);
+  box-shadow: var(--shadow-soft);
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base),
+    border-color var(--transition-base);
+  text-decoration: none;
+  color: inherit;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lift);
+  border-color: rgba(184, 156, 115, 0.4);
+}
+
+.ordinal {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: var(--tan-deep);
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+}
+
+.name {
+  font-family: var(--serif);
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--olive);
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+  margin: 0 0 0.5rem;
+}
+
+.locale {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--gray);
+  margin: 0 0 1.5rem;
+}
+
+.rule {
+  width: 36px;
+  height: 1px;
+  background: var(--tan);
+  margin: 0 auto 1.5rem;
+}
+
+.tagline {
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--olive);
+  margin: 0 0 2rem;
+  flex: 1;
+}
+
+.cta {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--tan-deep);
+  transition: color var(--transition-fast);
+}
+
+.card:hover .cta {
+  color: var(--olive);
+}

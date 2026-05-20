@@ -1,24 +1,15 @@
 import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getPublicProperties } from "@/src/services/public/properties";
+import { propertyOrdinal } from "@/src/constants/public/property-copy";
 import { Alert, Button } from "@/lib/ui";
 import s from "./home.module.css";
 
-// Public umbrella landing for Rhythm Outdoors. Editorial / private-club
-// aesthetic — see plan/design-system/overview.md for the design
-// language and the reference HTML in docs/reference/. The hero,
-// manifesto pullquote, properties grid, "how it works" step strip,
-// and final CTA are all scene compositions; visual primitives come
-// from @/lib/ui where they exist (Button, Alert), but this page owns
-// its own typographic chrome — the home page is the brand surface and
-// has more bespoke needs than a generic primitive can carry.
-//
-// Rendered dynamically because it reads the live properties list. The
-// list also doubles as the App-1 scaffold smoke test — if these three
-// names render, every piece of the Next.js + Supabase wiring works.
 export const dynamic = "force-dynamic";
 
-// Per-property locale + tagline copy. Lives next to the page since it
-// is presentation-only — actual venue data is in `public.properties`.
+// Umbrella-landing tagline + sign-in href per property. Editorial
+// voice is distinct from the booking-funnel copy in
+// src/constants/public/property-copy.ts — keep them separate.
 const PROPERTY_COPY: Record<
   string,
   { locale: string; tagline: string; href: string }
@@ -45,11 +36,7 @@ const PROPERTY_COPY: Record<
 
 export default async function Home() {
   const supabase = await createServerSupabaseClient();
-
-  const { data: properties, error } = await supabase
-    .from("properties")
-    .select("id, name, slug, timezone")
-    .order("name");
+  const { data: properties, error } = await getPublicProperties(supabase);
 
   return (
     <main>
@@ -146,7 +133,7 @@ export default async function Home() {
                   href={copy.href}
                   className={s.propertyCard}
                 >
-                  <div className={s.propertyOrdinal}>No. {romanize(i + 1)}</div>
+                  <div className={s.propertyOrdinal}>No. {propertyOrdinal(i)}</div>
                   <h3 className={s.propertyName}>{p.name}</h3>
                   <p className={s.propertyLocale}>{copy.locale}</p>
                   <div className={s.propertyRule} />
@@ -258,9 +245,3 @@ function Step({
   );
 }
 
-// Roman numeral helper for the property card ordinal. Capped at the
-// handful we currently need (three properties) — no need to handle the
-// general case here.
-function romanize(n: number): string {
-  return ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"][n - 1] ?? String(n);
-}

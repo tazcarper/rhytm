@@ -1,0 +1,43 @@
+.header {
+  border-bottom: 1px solid var(--border);
+  background: var(--paper);
+}
+
+.inner {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 1.25rem 2rem;
+  display: flex;
+  align-items: center;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand:hover .wordmark {
+  color: var(--tan-deep);
+}
+
+.eyebrow {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: var(--gray);
+  font-weight: 500;
+}
+
+.wordmark {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--olive);
+  letter-spacing: -0.3px;
+  transition: color var(--transition-fast);
+}
