@@ -1,0 +1,38 @@
+.back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: -1rem;
+  padding: 0.35rem 0;
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--gray);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.back:hover {
+  color: var(--olive);
+}
+
+.back:focus-visible {
+  outline: 2px solid var(--olive);
+  outline-offset: 4px;
+}
+
+.arrow {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--tan-deep);
+  transition: transform var(--transition-fast);
+}
+
+.back:hover .arrow {
+  transform: translateX(-3px);
+}

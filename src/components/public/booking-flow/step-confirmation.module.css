@@ -1,0 +1,51 @@
+.box {
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-card);
+  padding: 2.5rem 2rem;
+  text-align: center;
+  background: var(--paper-warm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.eyebrow {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--tan-deep);
+  margin: 0;
+}
+
+.title {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--olive);
+  margin: 0;
+}
+
+.subtitle {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--gray);
+  margin: 0;
+}
+
+.divider {
+  width: 36px;
+  height: 1px;
+  background: var(--tan);
+  margin: 1.25rem 0;
+}
+
+.hint {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+  margin: 0;
+}

@@ -23,6 +23,7 @@ export interface BookingFlowState {
   // structurally comparable across renders.
   date?: string;
   slotStart?: string;
+  durationHours?: number;
   instructorId?: string | null;
   guest?: Partial<GuestInfo>;
 }

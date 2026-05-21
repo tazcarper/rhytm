@@ -14,6 +14,9 @@ export type {
   ButtonSize,
 } from "./primitives/button";
 
+export { Calendar } from "./primitives/calendar";
+export type { CalendarProps } from "./primitives/calendar";
+
 export { Card } from "./primitives/card";
 export type {
   CardProps,

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getPublicPropertyBySlug } from "@/src/services/public/properties";
-import { Alert, Eyebrow, Heading, PageShell } from "@/lib/ui";
+import { Alert, Eyebrow, Heading } from "@/lib/ui";
 import {
   PROPERTY_COPY,
   PROPERTY_COPY_FALLBACK,
@@ -10,11 +10,16 @@ import {
   BOOKING_RESET_PARAM,
   BOOKING_RESET_VALUE,
 } from "@/src/components/public/booking-flow/booking-flow-types";
+import { BookingTypePicker } from "@/src/components/public/booking-flow/booking-type-picker";
+import {
+  StepPage,
+  StepPageHead,
+} from "@/src/components/public/booking-flow/step-page";
 import s from "./property.module.css";
 
 export const dynamic = "force-dynamic";
 
-export default async function BookingPropertyLandingPage({
+export default async function BookingTypePage({
   params,
   searchParams,
 }: {
@@ -35,7 +40,10 @@ export default async function BookingPropertyLandingPage({
   const wasReset = search[BOOKING_RESET_PARAM] === BOOKING_RESET_VALUE;
 
   return (
-    <PageShell width="narrow" className={s.shell}>
+    <StepPage
+      width="wide"
+      back={{ href: "/book", label: "Pick another property" }}
+    >
       {wasReset && (
         <Alert variant="info" title="Let's start over">
           Your previous booking progress was cleared. Pick up from here
@@ -43,7 +51,7 @@ export default async function BookingPropertyLandingPage({
         </Alert>
       )}
 
-      <header className={s.head}>
+      <StepPageHead>
         <Eyebrow variant="crest" as="div">
           {copy.locale}
         </Eyebrow>
@@ -51,17 +59,10 @@ export default async function BookingPropertyLandingPage({
           {property.name}
         </Heading>
         <p className={s.deck}>{copy.tagline}</p>
-      </header>
+        <p className={s.prompt}>What kind of visit are you planning?</p>
+      </StepPageHead>
 
-      <div className={s.placeholder}>
-        <p className={s.placeholderLead}>
-          The booking-type selector lands here in sub-phase 2.2.
-        </p>
-        <p className={s.placeholderHint}>
-          Property: <code>{property.slug}</code> &middot; Timezone:{" "}
-          <code>{property.timezone}</code>
-        </p>
-      </div>
-    </PageShell>
+      <BookingTypePicker />
+    </StepPage>
   );
 }

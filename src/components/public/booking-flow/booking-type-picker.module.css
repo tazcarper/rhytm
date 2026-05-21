@@ -1,0 +1,135 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 3rem 1.75rem 2.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--paper);
+  box-shadow: var(--shadow-soft);
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base),
+    border-color var(--transition-base);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lift);
+  border-color: rgba(184, 156, 115, 0.4);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--olive);
+  outline-offset: 3px;
+}
+
+.card[data-selected] {
+  border-color: var(--tan-deep);
+  background: var(--paper-warm);
+  box-shadow: var(--shadow-lift);
+}
+
+.ordinal {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: var(--tan-deep);
+  margin-bottom: 1.25rem;
+  text-transform: uppercase;
+}
+
+.title {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--olive);
+  letter-spacing: -0.3px;
+  line-height: 1.15;
+  margin: 0 0 0.25rem;
+}
+
+.duration {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--gray);
+  margin: 0 0 1.25rem;
+}
+
+.rule {
+  width: 36px;
+  height: 1px;
+  background: var(--tan);
+  margin: 0 auto 1.25rem;
+}
+
+.description {
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--olive);
+  margin: 0 0 1.25rem;
+  max-width: 28ch;
+}
+
+.bullets {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-family: var(--sans);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--gray);
+  flex: 1;
+}
+
+.bullets li::before {
+  content: "—";
+  color: var(--tan-deep);
+  margin-right: 0.4rem;
+}
+
+.notice {
+  font-family: var(--sans);
+  font-style: italic;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--gray);
+  background: rgba(184, 156, 115, 0.12);
+  border-left: 2px solid var(--tan-deep);
+  padding: 0.6rem 0.75rem;
+  margin: 0 0 1.5rem;
+  text-align: left;
+  border-radius: 0 var(--radius-sharp) var(--radius-sharp) 0;
+}
+
+.cta {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--tan-deep);
+  transition: color var(--transition-fast);
+  margin-top: auto;
+}
+
+.card:hover .cta,
+.card[data-selected] .cta {
+  color: var(--olive);
+}

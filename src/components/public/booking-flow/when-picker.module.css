@@ -1,0 +1,113 @@
+/* ---- two-column layout ---- */
+
+.layout {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2.5rem;
+  align-items: flex-start;
+}
+
+@media (max-width: 720px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.colLabel {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--tan-deep);
+  margin: 0;
+}
+
+.tzNote {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--gray);
+  margin: -0.25rem 0 0;
+}
+
+/* ---- slot grid ---- */
+
+.empty {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--gray);
+  margin: 0;
+  padding: 0.5rem 0;
+}
+
+.slotGrid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.slotBtn {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  color: var(--olive);
+  font-family: var(--serif);
+  font-size: 16px;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.slotBtn:hover {
+  border-color: rgba(184, 156, 115, 0.5);
+  background: var(--paper-warm);
+}
+
+.slotBtn:focus-visible {
+  outline: 2px solid var(--olive);
+  outline-offset: 2px;
+}
+
+.slotBtn[data-selected] {
+  background: var(--olive);
+  border-color: var(--olive);
+  color: var(--paper);
+}
+
+.slotBtn[data-selected]:hover {
+  background: var(--olive-deep);
+}
+
+/* ---- footer ---- */
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-top: 0.5rem;
+}
+
+.footerHint {
+  font-family: var(--sans);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--gray);
+  margin: 0;
+}

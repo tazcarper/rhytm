@@ -1,0 +1,183 @@
+.root {
+  --rdp-cell-size: 38px;
+  display: inline-block;
+  padding: 1rem;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  font-family: var(--sans);
+  color: var(--olive);
+}
+
+.months {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.month {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  column-gap: 0.5rem;
+  row-gap: 0.5rem;
+}
+
+/* ---- nav buttons (navLayout="around" renders these as siblings of caption) ---- */
+
+.navBtn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  color: var(--olive);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.navBtn:hover {
+  background: var(--paper-warm);
+  border-color: var(--border);
+}
+
+.navBtn:focus-visible {
+  outline: 2px solid var(--olive);
+  outline-offset: 2px;
+}
+
+.navBtn:disabled {
+  color: var(--gray-light);
+  cursor: not-allowed;
+  background: transparent;
+  border-color: transparent;
+}
+
+.chevron {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+/* ---- caption ---- */
+
+.caption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+}
+
+.captionLabel {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 17px;
+  color: var(--olive);
+  letter-spacing: -0.2px;
+}
+
+/* ---- grid: span all three columns under the nav row ---- */
+
+.grid {
+  grid-column: 1 / -1;
+  border-collapse: collapse;
+}
+
+.weekdays {
+  display: flex;
+}
+
+.weekday {
+  width: var(--rdp-cell-size);
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--gray);
+}
+
+.week {
+  display: flex;
+  width: 100%;
+}
+
+.day {
+  width: var(--rdp-cell-size);
+  height: var(--rdp-cell-size);
+  padding: 0;
+  position: relative;
+  text-align: center;
+}
+
+.dayBtn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  color: var(--olive);
+  font-family: var(--sans);
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.dayBtn:hover:not(:disabled) {
+  background: var(--paper-warm);
+}
+
+.dayBtn:focus-visible {
+  outline: 2px solid var(--olive);
+  outline-offset: 1px;
+}
+
+/* ---- day-state modifiers (added on top of .day / .dayBtn) ---- */
+
+.today .dayBtn {
+  color: var(--tan-deep);
+  font-weight: 600;
+}
+
+.outside .dayBtn {
+  color: var(--gray-light);
+}
+
+.disabled .dayBtn {
+  color: var(--gray-light);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.disabled .dayBtn:hover {
+  background: transparent;
+}
+
+.selected .dayBtn {
+  background: var(--olive);
+  color: var(--paper);
+  border-color: var(--olive);
+}
+
+.selected .dayBtn:hover {
+  background: var(--olive-deep);
+}
+
+.hidden {
+  visibility: hidden;
+}

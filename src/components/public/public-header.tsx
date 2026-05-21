@@ -7,7 +7,7 @@ export function PublicHeader() {
     <header className={s.header}>
       <div className={s.inner}>
         <Link
-          href="/book"
+          href="/"
           className={s.brand}
           aria-label="Rhythm Outdoors — start a booking"
         >
