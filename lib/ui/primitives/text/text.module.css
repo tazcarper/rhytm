@@ -9,9 +9,10 @@
 .lead {
   font-family: var(--serif);
   font-style: italic;
-  font-size: var(--text-body-lg);
+  font-size: 18px;
   color: var(--gray);
   line-height: 1.5;
+  letter-spacing: 0.005em;
 }
 
 .caption {

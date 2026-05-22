@@ -39,8 +39,8 @@ export default async function BidPage({
 }: {
   params: Promise<{ slug: string; code: string }>;
 }) {
-  const raw = await params;
-  const parsed = parseBidUrlParams(raw);
+  const routeParams = await params;
+  const parsed = parseBidUrlParams(routeParams);
   if (!parsed) notFound();
 
   const detail = await getBidDetail(parsed.slug, parsed.code);
@@ -258,10 +258,10 @@ function DisciplineSection({ detail }: { detail: BidDetail }) {
   }
 
   const addOnsByService = new Map<string, typeof addOns>();
-  for (const ao of addOns) {
-    const bucket = addOnsByService.get(ao.serviceId);
-    if (bucket) bucket.push(ao);
-    else addOnsByService.set(ao.serviceId, [ao]);
+  for (const addOn of addOns) {
+    const bucket = addOnsByService.get(addOn.serviceId);
+    if (bucket) bucket.push(addOn);
+    else addOnsByService.set(addOn.serviceId, [addOn]);
   }
 
   return (
@@ -272,20 +272,20 @@ function DisciplineSection({ detail }: { detail: BidDetail }) {
         </Heading>
       </div>
       <ul className={s.disciplineList}>
-        {disciplines.map((d) => {
-          const ownAddOns = addOnsByService.get(d.id) ?? [];
+        {disciplines.map((discipline) => {
+          const ownAddOns = addOnsByService.get(discipline.id) ?? [];
           return (
-            <li key={d.id} className={s.disciplineCard}>
-              <p className={s.disciplineName}>{d.name}</p>
-              {d.description && (
-                <p className={s.disciplineDesc}>{d.description}</p>
+            <li key={discipline.id} className={s.disciplineCard}>
+              <p className={s.disciplineName}>{discipline.name}</p>
+              {discipline.description && (
+                <p className={s.disciplineDesc}>{discipline.description}</p>
               )}
               {ownAddOns.length > 0 && (
                 <ul className={s.addOnList}>
-                  {ownAddOns.map((ao) => (
-                    <li key={ao.id} className={s.addOnRow}>
-                      <span>{ao.name}</span>
-                      <span className={s.addOnQty}>× {ao.quantity}</span>
+                  {ownAddOns.map((addOn) => (
+                    <li key={addOn.id} className={s.addOnRow}>
+                      <span>{addOn.name}</span>
+                      <span className={s.addOnQty}>× {addOn.quantity}</span>
                     </li>
                   ))}
                 </ul>

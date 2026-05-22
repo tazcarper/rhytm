@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { Alert, Button, Eyebrow, Heading, PageShell } from "@/lib/ui";
+import { Alert, Button, Heading, PageShell } from "@/lib/ui";
+import { AdminBreadcrumb } from "@/src/components/admin/admin-breadcrumb";
 import {
   getAdminBidsList,
   type AdminBidListFilters,
@@ -10,7 +11,7 @@ import {
 import { getPublicProperties } from "@/src/services/public/properties";
 import { BidFilters } from "@/src/components/admin/bid-filters";
 import { BidListTable } from "@/src/components/admin/bid-list-table";
-import s from "@/src/components/admin/bid-list.module.css";
+import s from "@/src/components/admin/queue-list.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -23,25 +24,25 @@ function first(value: string | string[] | undefined): string | undefined {
   return value;
 }
 
-function isBidStatus(v: string | undefined): v is AdminBidStatus {
-  return !!v && (ADMIN_BID_STATUSES as ReadonlyArray<string>).includes(v);
+function isBidStatus(value: string | undefined): value is AdminBidStatus {
+  return !!value && (ADMIN_BID_STATUSES as ReadonlyArray<string>).includes(value);
 }
 
-function parseFilters(raw: RawSearchParams): AdminBidListFilters {
-  const statusRaw = first(raw.status);
-  const propertyId = first(raw.propertyId) || undefined;
-  const from = first(raw.from) || undefined;
-  const to = first(raw.to) || undefined;
-  const q = first(raw.q)?.trim() || undefined;
-  const pageRaw = first(raw.page);
-  const page = pageRaw ? Math.max(0, parseInt(pageRaw, 10) || 0) : 0;
+function parseFilters(params: RawSearchParams): AdminBidListFilters {
+  const statusValue = first(params.status);
+  const propertyId = first(params.propertyId) || undefined;
+  const from = first(params.from) || undefined;
+  const to = first(params.to) || undefined;
+  const searchTerm = first(params.q)?.trim() || undefined;
+  const pageValue = first(params.page);
+  const page = pageValue ? Math.max(0, parseInt(pageValue, 10) || 0) : 0;
 
   return {
-    status: isBidStatus(statusRaw) ? statusRaw : undefined,
+    status: isBidStatus(statusValue) ? statusValue : undefined,
     propertyId,
     from,
     to,
-    q,
+    q: searchTerm,
     page,
   };
 }
@@ -50,15 +51,15 @@ function buildPageHref(
   filters: AdminBidListFilters,
   nextPage: number,
 ): string {
-  const params = new URLSearchParams();
-  if (filters.status) params.set("status", filters.status);
-  if (filters.propertyId) params.set("propertyId", filters.propertyId);
-  if (filters.from) params.set("from", filters.from);
-  if (filters.to) params.set("to", filters.to);
-  if (filters.q) params.set("q", filters.q);
-  if (nextPage > 0) params.set("page", String(nextPage));
-  const qs = params.toString();
-  return qs ? `${BASE_PATH}?${qs}` : BASE_PATH;
+  const queryParams = new URLSearchParams();
+  if (filters.status) queryParams.set("status", filters.status);
+  if (filters.propertyId) queryParams.set("propertyId", filters.propertyId);
+  if (filters.from) queryParams.set("from", filters.from);
+  if (filters.to) queryParams.set("to", filters.to);
+  if (filters.q) queryParams.set("q", filters.q);
+  if (nextPage > 0) queryParams.set("page", String(nextPage));
+  const queryString = queryParams.toString();
+  return queryString ? `${BASE_PATH}?${queryString}` : BASE_PATH;
 }
 
 export default async function AdminBidsList({
@@ -66,8 +67,8 @@ export default async function AdminBidsList({
 }: {
   searchParams: Promise<RawSearchParams>;
 }) {
-  const raw = await searchParams;
-  const filters = parseFilters(raw);
+  const params = await searchParams;
+  const filters = parseFilters(params);
 
   const supabase = await createServerSupabaseClient();
 
@@ -91,9 +92,12 @@ export default async function AdminBidsList({
 
   return (
     <PageShell width="xl">
-      <Eyebrow as="div" className="mb-2">
-        Admin / Bids
-      </Eyebrow>
+      <AdminBreadcrumb
+        segments={[
+          { label: "Admin", href: "/admin" },
+          { label: "Bids" },
+        ]}
+      />
       <Heading level={1} size="h2" underline>
         Bid Review Queue
       </Heading>

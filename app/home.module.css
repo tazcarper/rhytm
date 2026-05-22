@@ -8,11 +8,10 @@
 
 .hero {
   position: relative;
-  min-height: 88vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 8rem 2rem 6rem;
+  padding: 4rem 2rem 3rem;
   background:
     radial-gradient(
       ellipse 80% 60% at 50% 0%,
@@ -40,19 +39,17 @@
 
 .heroInner {
   position: relative;
-  max-width: 920px;
   margin: 0 auto;
 }
 
 .heroEstablished {
   display: inline-block;
   font-family: var(--serif);
-  font-size: var(--text-eyebrow);
+  font-size: 12px;
   letter-spacing: 4px;
   text-transform: uppercase;
   color: var(--tan-deep);
   font-weight: 500;
-  margin-bottom: 2.5rem;
 }
 
 .heroEstablished::before,
@@ -70,7 +67,7 @@
   font-weight: 600;
   letter-spacing: -1px;
   margin: 0 auto 1.5rem;
-  max-width: 18ch;
+
 }
 
 .heroTitle em {
@@ -86,7 +83,7 @@
   line-height: 1.5;
   color: var(--gray);
   margin: 0 auto 3rem;
-  max-width: 36ch;
+
 }
 
 .heroActions {

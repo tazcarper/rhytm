@@ -1,0 +1,31 @@
+.crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px;
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: var(--tan-deep);
+}
+
+.link {
+  color: var(--tan-deep);
+  text-decoration: none;
+}
+
+.link:hover {
+  color: var(--olive);
+  text-decoration: underline;
+}
+
+.sep {
+  color: var(--tan);
+  opacity: 0.6;
+}
+
+.current {
+  color: var(--olive);
+  font-weight: 700;
+}

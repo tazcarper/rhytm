@@ -29,9 +29,9 @@ export function AdminNav({ email, role, pendingBidCount }: AdminNavProps) {
       href: "/admin/bids",
       badgeCount: pendingBidCount > 0 ? pendingBidCount : undefined,
     },
-    { label: "Bookings", href: "/admin/bookings", disabled: true },
+    { label: "Bookings", href: "/admin/bookings" },
     { label: "Members", href: "/admin/members", disabled: true },
-    { label: "Properties", href: "/admin/properties", disabled: true },
+    { label: "Properties", href: "/admin/properties" },
   ];
 
   const isActive = (href: string) =>

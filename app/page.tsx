@@ -7,31 +7,13 @@ import s from "./home.module.css";
 
 export const dynamic = "force-dynamic";
 
-// Umbrella-landing tagline + sign-in href per property. Editorial
-// voice is distinct from the booking-funnel copy in
-// src/constants/public/property-copy.ts — keep them separate.
-const PROPERTY_COPY: Record<
-  string,
-  { locale: string; tagline: string; href: string }
-> = {
-  "horseshoe-bay": {
-    locale: "Texas Hill Country",
-    tagline:
-      "A members-only sporting club on the lake — clays, helice, instruction, and the quiet kind of hospitality.",
-    href: "/login",
-  },
-  "hog-heaven": {
-    locale: "Driftwood, Texas",
-    tagline:
-      "Wing-shooting and wedding weekends on six hundred acres, paired with Camp Lucy when the occasion asks for it.",
-    href: "/login",
-  },
-  "packsaddle": {
-    locale: "Llano County",
-    tagline:
-      "Precision rifle, suppressed and unhurried — coaching for marksmen who want range time without a crowd.",
-    href: "/login",
-  },
+// Locale + sign-in href per property. Tagline now lives in the DB
+// (properties.tagline, admin-editable at /admin/properties); locale
+// is a stable geographic label kept in code.
+const PROPERTY_COPY: Record<string, { locale: string; href: string }> = {
+  "horseshoe-bay": { locale: "Texas Hill Country", href: "/login" },
+  "hog-heaven": { locale: "Driftwood, Texas", href: "/login" },
+  "packsaddle": { locale: "Llano County", href: "/login" },
 };
 
 export default async function Home() {
@@ -45,7 +27,7 @@ export default async function Home() {
         <div className={s.heroInner}>
           <span className={s.heroEstablished}>Est. 2026</span>
           <h1 className={s.heroTitle}>
-            Three properties. <em>One way</em> to book them.
+            Three properties. <br/><em>One way</em> to book them.
           </h1>
           <p className={s.heroLead}>
             We connect people to themselves, to each other, and to the
@@ -59,7 +41,7 @@ export default async function Home() {
               <Link href="/book">Book an experience</Link>
             </Button>
           </div>
-          <div className={s.heroMeta}>
+          {/* <div className={s.heroMeta}>
             <div>
               <strong>Horseshoe Bay</strong>
               Hill Country
@@ -72,7 +54,7 @@ export default async function Home() {
               <strong>Packsaddle</strong>
               Llano County
             </div>
-          </div>
+          </div> */}
         </div>
       </section>
 
@@ -103,7 +85,7 @@ export default async function Home() {
               margin: 0,
             }}
           >
-            Different country. <em style={{ fontStyle: "italic", color: "var(--tan-deep)", fontWeight: 500 }}>Same standard.</em>
+            Different experiences. <em style={{ fontStyle: "italic", color: "var(--tan-deep)", fontWeight: 500 }}>Same standards.</em>
           </h2>
           <p className={s.sectionDeck}>
             Each property keeps its own character — and shares the same
@@ -124,7 +106,6 @@ export default async function Home() {
             {properties.map((p, i) => {
               const copy = PROPERTY_COPY[p.slug] ?? {
                 locale: "—",
-                tagline: "",
                 href: "/login",
               };
               return (
@@ -137,7 +118,9 @@ export default async function Home() {
                   <h3 className={s.propertyName}>{p.name}</h3>
                   <p className={s.propertyLocale}>{copy.locale}</p>
                   <div className={s.propertyRule} />
-                  <p className={s.propertyTagline}>{copy.tagline}</p>
+                  {p.tagline && (
+                    <p className={s.propertyTagline}>{p.tagline}</p>
+                  )}
                   <span className={s.propertyCta}>Members&rsquo; Entrance &rarr;</span>
                 </Link>
               );

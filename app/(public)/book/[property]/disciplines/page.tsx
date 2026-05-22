@@ -4,7 +4,7 @@ import { getPublicPropertyBySlug } from "@/src/services/public/properties";
 import { getPublicServicesForProperty } from "@/src/services/public/services";
 import { getSlotsForProperty } from "@/src/services/public/slots";
 import { getPublicPricingForProperty } from "@/src/services/public/pricing";
-import { Alert, Eyebrow, Heading } from "@/lib/ui";
+import { Alert, Eyebrow, Heading, Text } from "@/lib/ui";
 import { BookingFlowGuard } from "@/src/components/public/booking-flow/booking-flow-guard";
 import { BookingBuilder } from "@/src/components/public/booking-flow/booking-builder";
 import {
@@ -43,11 +43,12 @@ export default async function DisciplinesPage({
   return (
     <StepPage width="wide">
       <StepPageHead>
-        <Eyebrow variant="crest" as="div">
-          Step Two
-        </Eyebrow>
+        <Eyebrow as="div">Step Two</Eyebrow>
+        <Text variant="lead" as="p">
+          Build your booking at
+        </Text>
         <Heading level={1} size="h1">
-          Build your booking
+          {property.name}
         </Heading>
       </StepPageHead>
 

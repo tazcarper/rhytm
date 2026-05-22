@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { Eyebrow, Heading, PageShell } from "@/lib/ui";
+import { Heading, PageShell } from "@/lib/ui";
 import { getAdminBidDetail } from "@/src/services/admin/get-bid-detail";
+import { AdminBreadcrumb } from "@/src/components/admin/admin-breadcrumb";
 import { BidStatusBadge } from "@/src/components/admin/bid-status-badge";
 import { BidEditorForm } from "@/src/components/admin/bid-editor-form";
 import s from "@/src/components/admin/bid-detail.module.css";
@@ -24,15 +24,19 @@ export default async function AdminBidEdit({
 
   return (
     <PageShell width="xl">
-      <Link href={`/admin/bids/${detail.bid.id}`} className={s.backLink}>
-        ← Back to bid
-      </Link>
-
       <div className={s.header}>
         <div>
-          <Eyebrow as="div" className="mb-2">
-            Admin / Bid / Edit
-          </Eyebrow>
+          <AdminBreadcrumb
+            segments={[
+              { label: "Admin", href: "/admin" },
+              { label: "Bids", href: "/admin/bids" },
+              {
+                label: detail.booking.guestName,
+                href: `/admin/bids/${detail.bid.id}`,
+              },
+              { label: "Edit" },
+            ]}
+          />
           <div className={s.titleRow}>
             <Heading level={1} size="h2" underline>
               {detail.booking.guestName}

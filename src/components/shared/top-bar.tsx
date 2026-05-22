@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { signOut } from "@/lib/auth/actions";
+import { hasAdminAccess } from "@/lib/auth/portal";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentViewer } from "@/src/services/shared/viewer";
 import s from "./top-bar.module.css";
@@ -26,29 +27,39 @@ export async function TopBar() {
   const supabase = await createServerSupabaseClient();
   const viewer = await getCurrentViewer(supabase);
   const onLoginPage = pathname === "/login";
+  const showAdminLink = viewer !== null && hasAdminAccess(viewer.role);
 
   return (
     <div className={s.bar}>
       <div className={s.inner}>
-        {viewer ? (
-          <>
-            <p className={s.greeting}>
-              Hello, <strong>{viewer.displayName}</strong>
-            </p>
-            <span className={s.divider} aria-hidden="true" />
-            <form action={signOut} className={s.signOutForm}>
-              <button type="submit" className={s.signOutBtn}>
-                Sign out
-              </button>
-            </form>
-          </>
-        ) : (
-          !onLoginPage && (
-            <Link href="/login" className={s.signInLink}>
-              Sign in
+        <div className={s.left}>
+          {showAdminLink && (
+            <Link href="/admin" className={s.adminLink}>
+              Admin
             </Link>
-          )
-        )}
+          )}
+        </div>
+        <div className={s.right}>
+          {viewer ? (
+            <>
+              <p className={s.greeting}>
+                Hello, <strong>{viewer.displayName}</strong>
+              </p>
+              <span className={s.divider} aria-hidden="true" />
+              <form action={signOut} className={s.signOutForm}>
+                <button type="submit" className={s.signOutBtn}>
+                  Sign out
+                </button>
+              </form>
+            </>
+          ) : (
+            !onLoginPage && (
+              <Link href="/login" className={s.signInLink}>
+                Sign in
+              </Link>
+            )
+          )}
+        </div>
       </div>
     </div>
   );

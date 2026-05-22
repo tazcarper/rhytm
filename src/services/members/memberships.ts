@@ -30,9 +30,9 @@ export interface GetMyMembershipsResult {
 // PostgREST embeds come back as a single object or a one-element array
 // depending on the FK shape. Normalize to "one object or null" so the
 // rest of the service doesn't branch on it.
-function pickOne<T>(v: T | T[] | null | undefined): T | null {
-  if (!v) return null;
-  return Array.isArray(v) ? v[0] ?? null : v;
+function pickOne<T>(value: T | T[] | null | undefined): T | null {
+  if (!value) return null;
+  return Array.isArray(value) ? value[0] ?? null : value;
 }
 
 // Fetches every active membership the signed-in person is on, with the
@@ -61,33 +61,34 @@ export async function getMyMemberships(
   }
 
   const normalized: MembershipForMember[] = (data ?? []).flatMap((row) => {
-    const m = pickOne(row.memberships);
-    if (!m) return [];
-    const property = pickOne(m.properties);
+    const membership = pickOne(row.memberships);
+    if (!membership) return [];
+    const property = pickOne(membership.properties);
 
-    const household: HouseholdMember[] = (m.membership_people ?? [])
-      .filter((j) => j.status === "active")
-      .map((j): HouseholdMember | null => {
-        const p = pickOne(j.people);
-        if (!p) return null;
+    const household: HouseholdMember[] = (membership.membership_people ?? [])
+      .filter((junction) => junction.status === "active")
+      .map((junction): HouseholdMember | null => {
+        const person = pickOne(junction.people);
+        if (!person) return null;
         return {
-          email: p.email,
-          firstName: p.first_name,
-          lastName: p.last_name,
-          role: j.role,
+          email: person.email,
+          firstName: person.first_name,
+          lastName: person.last_name,
+          role: junction.role,
         };
       })
       .filter(
-        (h): h is HouseholdMember =>
-          h !== null && h.email !== currentUserEmail,
+        (householdMember): householdMember is HouseholdMember =>
+          householdMember !== null &&
+          householdMember.email !== currentUserEmail,
       );
 
     return [
       {
         id: row.id,
-        memberNumber: m.member_number,
-        membershipTier: m.membership_tier,
-        status: m.status,
+        memberNumber: membership.member_number,
+        membershipTier: membership.membership_tier,
+        status: membership.status,
         myRole: row.role,
         property: property
           ? { name: property.name, slug: property.slug }

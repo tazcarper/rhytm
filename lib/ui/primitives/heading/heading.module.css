@@ -15,10 +15,13 @@
 
 .display {
   font-size: var(--text-display);
-  line-height: 1.05;
+  line-height: var(--leading-display);
+  letter-spacing: -0.03em;
 }
 .h1 {
   font-size: var(--text-h1);
+  line-height: var(--leading-display);
+  letter-spacing: -0.02em;
 }
 .h2 {
   font-size: var(--text-h2);

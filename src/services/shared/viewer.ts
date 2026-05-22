@@ -2,11 +2,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 // What the TopBar (and any other site-wide chrome) needs to know about
 // whoever's looking at the page right now. Intentionally tiny: a name to
-// greet and an email to fall back on. Other surfaces that need richer
-// identity data should make their own scoped query.
+// greet, an email to fall back on, and the role claim used to decide
+// whether to surface admin/portal shortcuts. Other surfaces that need
+// richer identity data should make their own scoped query.
 export interface Viewer {
   email: string;
   displayName: string;
+  role: string | null;
 }
 
 // Resolves the current viewer from a server-side Supabase client.
@@ -32,9 +34,12 @@ export async function getCurrentViewer(
 
   const firstName = person?.first_name?.trim() || null;
   const fallback = user.email.split("@")[0] ?? user.email;
+  const roleClaim = user.app_metadata?.role;
+  const role = typeof roleClaim === "string" ? roleClaim : null;
 
   return {
     email: user.email,
     displayName: firstName ?? fallback,
+    role,
   };
 }

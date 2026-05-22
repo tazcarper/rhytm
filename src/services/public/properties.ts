@@ -9,6 +9,7 @@ export interface PublicProperty {
   slug: string;
   timezone: string;
   bookingHorizonDays: number;
+  tagline: string | null;
 }
 
 type PublicPropertyRow = {
@@ -17,9 +18,10 @@ type PublicPropertyRow = {
   slug: string;
   timezone: string;
   booking_horizon_days: number;
+  tagline: string | null;
 };
 
-const SELECT_COLUMNS = "id, name, slug, timezone, booking_horizon_days";
+const SELECT_COLUMNS = "id, name, slug, timezone, booking_horizon_days, tagline";
 
 function rowToProperty(row: PublicPropertyRow): PublicProperty {
   return {
@@ -28,6 +30,7 @@ function rowToProperty(row: PublicPropertyRow): PublicProperty {
     slug: row.slug,
     timezone: row.timezone,
     bookingHorizonDays: row.booking_horizon_days,
+    tagline: row.tagline,
   };
 }
 

@@ -184,6 +184,31 @@ Verification log row in `docs/manual-testing.md` matching the App 2 precedent.
 
 ---
 
+## Sub-phase 3.11 — Service & Add-on Catalog (`/admin/properties/[id]/catalog`)
+
+**Goal.** Admin-editable CRUD for the per-property service and add-on catalog. Today these tables (`services`, `add_ons`, `service_add_ons`) are seeded via SQL migrations only; this surface unblocks the client filling in their own catalog without engineering involvement and closes Q4 (full discipline catalog) as a hard blocker.
+
+**Why this lives under properties:** `services.property_id` and `add_ons.property_id` scope every row to a single property; a service can only attach to an add-on that shares its property (enforced by the `service_add_ons_same_property` trigger). The natural UI hierarchy follows: pick a property → manage its services → manage its add-ons → wire add-ons to services. Reached from a "Manage catalog →" link on each card in `/admin/properties`.
+
+What this builds:
+
+- `app/admin/properties/[id]/catalog/page.tsx` — server page scoped to one property. Two columns: Services on the left, Add-ons on the right. A third section below shows the junction (which add-ons attach to which services).
+- **Services list/edit/create** — name, description (markdown supported via `<MarkdownProse>` in the read view, plain textarea in the editor), `is_active`, `display_order`. Inline create + edit + deactivate; **no hard delete** — Phase 2's `booking_disciplines.service_id REFERENCES services(id)` is `ON DELETE RESTRICT` (no clause = default), so any historical booking pins the row. Soft-deactivate via `is_active = false` is the documented path; admin UI hides the Delete verb entirely.
+- **Add-ons list/edit/create** — name, description (markdown), `price` (numeric USD), `is_active`, `display_order`. Same soft-delete rule applies — `booking_add_ons.add_on_id` references `add_ons(id)`.
+- **Service ↔ add-on wiring** — junction editor (`service_add_ons`). Display as a matrix or as per-service checkbox lists of available add-ons; insert/delete junction rows is unblocked since `service_add_ons` has no inbound FKs and CASCADEs cleanly. Same-property invariant is enforced by the trigger — UI surfaces the error inline if it ever fires.
+- **Display order drag-handle** — both services and add-ons render in `display_order ASC, name ASC`. Reorder via up/down arrow buttons (simplest) or HTML5 drag/drop (nicer). Updates write `display_order` in batch.
+- Service layer: `src/services/admin/catalog.ts` exports `getPropertyCatalog(supabase, propertyId)` returning `{ services, addOns, links }`, plus targeted writers `createService` / `updateService` / `deactivateService`, `createAddOn` / `updateAddOn` / `deactivateAddOn`, `setServiceAddOnLinks(serviceId, addOnIds[])` (idempotent — diffs current vs. requested, INSERTs the new, DELETEs the dropped). Zod schemas at the module boundary.
+- Server Actions: thin wrappers at `app/admin/properties/[id]/catalog/actions.ts`. Each `revalidatePath('/admin/properties/[id]/catalog')` on success; also `revalidatePath('/book/[propertySlug]')` so the public funnel picks up the new catalog on next visit.
+- **Booking-funnel reuse confirmed** — App 2's `getPublicServices` / `getPublicAddOns` already read these tables filtered by `is_active`, so the moment admin saves a new service or activates one, the funnel sees it. No new public-side wiring required.
+
+**Open product question to resolve at build time:** when an admin deactivates a service that's currently referenced by an *active* booking (`bookings.status IN pending_review/awaiting_guest/signed/deposit_paid`), should the deactivate succeed silently (booking keeps its snapshot, customer sees the historical name) or warn the admin first? Plan default: warn with a count ("3 active bookings still reference this service — deactivate anyway?"), since silent deactivation is a foot-gun for ops.
+
+**RLS today.** Phase 1's `services: admin write` + `add_ons: admin write` policies cover super_admin/admin globally. Property managers currently have no write policy on these tables — keep it that way for 3.11 (they read via the same auth-aware client, no edit UI rendered for them). Promote to property_manager write later if scope expands.
+
+**SOLID notes.** Catalog reads are one service function returning the typed `PropertyCatalog` shape; writes are six small functions, each doing one thing (create/update/deactivate × services/add-ons) + one junction setter. No fat "save the entire catalog" mega-action — that pattern hides which row changed and bloats the diff surface for revalidation.
+
+---
+
 ## What this phase explicitly does NOT do
 
 - **Stripe payment flow.** The bid's `quote_amount` + `deposit_amount` are authored here, but actually charging the deposit is App 6.
@@ -204,4 +229,6 @@ Sub-phases 3.1 → 3.2 → 3.3 → 3.4 → 3.5 form the minimum viable cut to un
 
 3.9 (property settings) is independent — could land anywhere.
 
-3.10 (test pack) is the App 2.10 analog — runs end-to-end before App 3 flips to ✅.
+3.11 (catalog editor) is **client-blocking** — unblocks Q4 (full discipline catalog) by letting the client populate their own services + add-ons instead of waiting on us to seed from a spreadsheet. Should land before any public-launch readiness review.
+
+3.10 (test pack) is the App 2.10 analog — runs end-to-end before App 3 flips to ✅. Note: 3.10 should be expanded to cover 3.11's CRUD paths once that surface lands.

@@ -206,10 +206,10 @@ function GoogleMark() {
 }
 
 // Map Supabase's raw error strings to copy that matches the rest of
-// the page. Anything unmapped falls through as the raw message so we
-// don't accidentally swallow useful information.
-function mapErrorMessage(raw: string): string {
-  const lower = raw.toLowerCase();
+// the page. Anything unmapped falls through as the original message so
+// we don't accidentally swallow useful information.
+function mapErrorMessage(supabaseErrorMessage: string): string {
+  const lower = supabaseErrorMessage.toLowerCase();
   if (
     lower.includes("user not found") ||
     lower.includes("signups not allowed") ||
@@ -230,5 +230,5 @@ function mapErrorMessage(raw: string): string {
   if (lower.includes("invalid") && lower.includes("email")) {
     return "That email address doesn’t look right.";
   }
-  return `Sign-in failed: ${raw}`;
+  return `Sign-in failed: ${supabaseErrorMessage}`;
 }

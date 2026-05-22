@@ -21,8 +21,8 @@ interface FaqDraft {
   answer: string;
 }
 
-function moneyToString(n: number | null): string {
-  return n === null ? "" : String(n);
+function moneyToString(amount: number | null): string {
+  return amount === null ? "" : String(amount);
 }
 
 export function BidEditorForm({ detail }: BidEditorFormProps) {
@@ -43,26 +43,35 @@ export function BidEditorForm({ detail }: BidEditorFormProps) {
   const [staffNotes, setStaffNotes] = useState(detail.bid.staffNotes ?? "");
 
   const [gearList, setGearList] = useState<GearDraft[]>(
-    detail.bid.gearList.map((g) => ({
-      name: g.name,
-      description: g.description ?? "",
+    detail.bid.gearList.map((gearItem) => ({
+      name: gearItem.name,
+      description: gearItem.description ?? "",
     })),
   );
   const [faq, setFaq] = useState<FaqDraft[]>(
-    detail.bid.faq.map((f) => ({ question: f.question, answer: f.answer })),
+    detail.bid.faq.map((faqItem) => ({
+      question: faqItem.question,
+      answer: faqItem.answer,
+    })),
   );
 
-  const updateGear = (i: number, patch: Partial<GearDraft>) =>
-    setGearList((prev) => prev.map((g, idx) => (idx === i ? { ...g, ...patch } : g)));
-  const removeGear = (i: number) =>
-    setGearList((prev) => prev.filter((_, idx) => idx !== i));
+  const updateGear = (index: number, patch: Partial<GearDraft>) =>
+    setGearList((prev) =>
+      prev.map((gear, idx) => (idx === index ? { ...gear, ...patch } : gear)),
+    );
+  const removeGear = (index: number) =>
+    setGearList((prev) => prev.filter((_, idx) => idx !== index));
   const addGear = () =>
     setGearList((prev) => [...prev, { name: "", description: "" }]);
 
-  const updateFaq = (i: number, patch: Partial<FaqDraft>) =>
-    setFaq((prev) => prev.map((f, idx) => (idx === i ? { ...f, ...patch } : f)));
-  const removeFaq = (i: number) =>
-    setFaq((prev) => prev.filter((_, idx) => idx !== i));
+  const updateFaq = (index: number, patch: Partial<FaqDraft>) =>
+    setFaq((prev) =>
+      prev.map((faqItem, idx) =>
+        idx === index ? { ...faqItem, ...patch } : faqItem,
+      ),
+    );
+  const removeFaq = (index: number) =>
+    setFaq((prev) => prev.filter((_, idx) => idx !== index));
   const addFaq = () =>
     setFaq((prev) => [...prev, { question: "", answer: "" }]);
 
@@ -80,16 +89,16 @@ export function BidEditorForm({ detail }: BidEditorFormProps) {
         scheduleNotes: scheduleNotes.trim() || null,
         staffNotes: staffNotes.trim() || null,
         gearList: gearList
-          .filter((g) => g.name.trim())
-          .map((g) => ({
-            name: g.name.trim(),
-            description: g.description.trim() || undefined,
+          .filter((gearItem) => gearItem.name.trim())
+          .map((gearItem) => ({
+            name: gearItem.name.trim(),
+            description: gearItem.description.trim() || undefined,
           })),
         faq: faq
-          .filter((f) => f.question.trim() && f.answer.trim())
-          .map((f) => ({
-            question: f.question.trim(),
-            answer: f.answer.trim(),
+          .filter((faqItem) => faqItem.question.trim() && faqItem.answer.trim())
+          .map((faqItem) => ({
+            question: faqItem.question.trim(),
+            answer: faqItem.answer.trim(),
           })),
       });
 
@@ -190,20 +199,22 @@ export function BidEditorForm({ detail }: BidEditorFormProps) {
           {gearList.length === 0 && (
             <p className={s.emptyRepeater}>No gear items yet.</p>
           )}
-          {gearList.map((g, i) => (
-            <div key={i} className={s.repeaterItem}>
+          {gearList.map((gear, index) => (
+            <div key={index} className={s.repeaterItem}>
               <div className={s.repeaterFields}>
                 <input
                   type="text"
-                  value={g.name}
-                  onChange={(e) => updateGear(i, { name: e.target.value })}
+                  value={gear.name}
+                  onChange={(e) => updateGear(index, { name: e.target.value })}
                   className={s.input}
                   placeholder="Item name (e.g. Eye + ear protection)"
                   maxLength={200}
                 />
                 <textarea
-                  value={g.description}
-                  onChange={(e) => updateGear(i, { description: e.target.value })}
+                  value={gear.description}
+                  onChange={(e) =>
+                    updateGear(index, { description: e.target.value })
+                  }
                   className={s.textarea}
                   placeholder="Description (optional, markdown supported)"
                   maxLength={500}
@@ -212,7 +223,7 @@ export function BidEditorForm({ detail }: BidEditorFormProps) {
               </div>
               <button
                 type="button"
-                onClick={() => removeGear(i)}
+                onClick={() => removeGear(index)}
                 className={s.removeBtn}
               >
                 Remove
@@ -233,20 +244,22 @@ export function BidEditorForm({ detail }: BidEditorFormProps) {
           {faq.length === 0 && (
             <p className={s.emptyRepeater}>No FAQ items yet.</p>
           )}
-          {faq.map((f, i) => (
-            <div key={i} className={s.repeaterItem}>
+          {faq.map((faqItem, index) => (
+            <div key={index} className={s.repeaterItem}>
               <div className={s.repeaterFields}>
                 <input
                   type="text"
-                  value={f.question}
-                  onChange={(e) => updateFaq(i, { question: e.target.value })}
+                  value={faqItem.question}
+                  onChange={(e) =>
+                    updateFaq(index, { question: e.target.value })
+                  }
                   className={s.input}
                   placeholder="Question"
                   maxLength={500}
                 />
                 <textarea
-                  value={f.answer}
-                  onChange={(e) => updateFaq(i, { answer: e.target.value })}
+                  value={faqItem.answer}
+                  onChange={(e) => updateFaq(index, { answer: e.target.value })}
                   className={s.textarea}
                   placeholder="Answer (markdown supported)"
                   maxLength={2000}
@@ -254,7 +267,7 @@ export function BidEditorForm({ detail }: BidEditorFormProps) {
               </div>
               <button
                 type="button"
-                onClick={() => removeFaq(i)}
+                onClick={() => removeFaq(index)}
                 className={s.removeBtn}
               >
                 Remove

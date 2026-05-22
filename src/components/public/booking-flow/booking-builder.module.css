@@ -31,6 +31,11 @@
   margin-top: 0.25rem;
 }
 
+/* On step 1 only Next is rendered — keep it pinned to the right. */
+.stepNav[data-align="end"] {
+  justify-content: flex-end;
+}
+
 .summaryColumn {
   /* `position: sticky` on the BookingSummary box itself only works if its
      direct grid-item parent doesn't introduce its own scroll context — this

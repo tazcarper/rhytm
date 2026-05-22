@@ -5,11 +5,11 @@ import {
   Button,
   Card,
   Divider,
-  Eyebrow,
   Heading,
   PageShell,
   Text,
 } from "@/lib/ui";
+import { AdminBreadcrumb } from "@/src/components/admin/admin-breadcrumb";
 import {
   formatDateLongTz,
   formatMoney,
@@ -73,15 +73,15 @@ export default async function AdminBidDetail({
 
   return (
     <PageShell width="xl">
-      <Link href="/admin/bids" className={s.backLink}>
-        ← Back to queue
-      </Link>
-
       <div className={s.header}>
         <div>
-          <Eyebrow as="div" className="mb-2">
-            Admin / Bid
-          </Eyebrow>
+          <AdminBreadcrumb
+            segments={[
+              { label: "Admin", href: "/admin" },
+              { label: "Bids", href: "/admin/bids" },
+              { label: booking.guestName },
+            ]}
+          />
           <div className={s.titleRow}>
             <Heading level={1} size="h2" underline>
               {booking.guestName}

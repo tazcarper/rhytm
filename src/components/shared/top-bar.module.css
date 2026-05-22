@@ -4,14 +4,35 @@
 }
 
 .inner {
-  max-width: var(--content-max);
   margin: 0 auto;
   padding: 0.5rem 2rem;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   gap: 0.75rem;
   min-height: 36px;
+}
+
+.left,
+.right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.adminLink {
+  font-family: var(--sans);
+  font-size: 13px;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--olive);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.adminLink:hover {
+  color: var(--tan-deep);
 }
 
 .greeting {

@@ -1,9 +1,12 @@
 .root {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 1rem;
   width: 100%;
   max-width: 360px;
+
+  /* Thumb diameter — referenced by the constrained thumb-travel calc below. */
+  --thumb-size: 38px;
 }
 
 .btn {
@@ -67,7 +70,11 @@
   left: 0;
   top: 50%;
   height: 4px;
-  width: var(--pct, 0%);
+  /* Fill spans from the left edge to the thumb's constrained center. */
+  width: calc(
+    (var(--thumb-size) / 2) +
+    (100% - var(--thumb-size)) * var(--pct, 0) / 100
+  );
   background: var(--olive);
   border-radius: 2px;
   transform: translateY(-50%);
@@ -81,19 +88,25 @@
 .thumb {
   position: absolute;
   top: 50%;
-  left: var(--pct, 0%);
+  /* Constrain thumb-center to travel between [thumb/2, 100% - thumb/2] so the
+     circle stays fully inside the track and never overlaps the ± buttons. */
+  left: calc(
+    (var(--thumb-size) / 2) +
+    (100% - var(--thumb-size)) * var(--pct, 0) / 100
+  );
   transform: translate(-50%, -50%);
-  width: 38px;
-  height: 38px;
+  width: var(--thumb-size);
+  height: var(--thumb-size);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   background: var(--olive);
   color: var(--paper);
-  font-family: var(--serif);
-  font-size: 16px;
+  font-family: var(--sans);
+  font-size: 24px;
   font-weight: 600;
+  line-height: 1;
   box-shadow: var(--shadow-soft);
   pointer-events: none;
   transition:

@@ -75,18 +75,20 @@ export interface AdminBidDetail {
   instructor: { id: string; name: string } | null;
 }
 
-function parseGearList(raw: unknown): AdminBidGearItem[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.flatMap((item): AdminBidGearItem[] => {
+function parseGearList(gearListJson: unknown): AdminBidGearItem[] {
+  if (!Array.isArray(gearListJson)) return [];
+  return gearListJson.flatMap((item): AdminBidGearItem[] => {
     if (typeof item === "string") return [{ name: item }];
     if (item && typeof item === "object" && "name" in item) {
-      const obj = item as { name: unknown; description?: unknown };
-      if (typeof obj.name !== "string") return [];
+      const candidate = item as { name: unknown; description?: unknown };
+      if (typeof candidate.name !== "string") return [];
       return [
         {
-          name: obj.name,
+          name: candidate.name,
           description:
-            typeof obj.description === "string" ? obj.description : undefined,
+            typeof candidate.description === "string"
+              ? candidate.description
+              : undefined,
         },
       ];
     }
@@ -94,15 +96,18 @@ function parseGearList(raw: unknown): AdminBidGearItem[] {
   });
 }
 
-function parseFaq(raw: unknown): AdminBidFaqItem[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.flatMap((item): AdminBidFaqItem[] => {
+function parseFaq(faqJson: unknown): AdminBidFaqItem[] {
+  if (!Array.isArray(faqJson)) return [];
+  return faqJson.flatMap((item): AdminBidFaqItem[] => {
     if (!item || typeof item !== "object") return [];
-    const obj = item as { question?: unknown; answer?: unknown };
-    if (typeof obj.question !== "string" || typeof obj.answer !== "string") {
+    const candidate = item as { question?: unknown; answer?: unknown };
+    if (
+      typeof candidate.question !== "string" ||
+      typeof candidate.answer !== "string"
+    ) {
       return [];
     }
-    return [{ question: obj.question, answer: obj.answer }];
+    return [{ question: candidate.question, answer: candidate.answer }];
   });
 }
 
@@ -209,18 +214,18 @@ export async function getAdminBidDetail(
 
   const booking = data.bookings;
   const disciplines: AdminBidDiscipline[] = (booking.booking_disciplines ?? [])
-    .map((r) => r.services)
-    .filter((sv): sv is NonNullable<typeof sv> => sv !== null);
+    .map((row) => row.services)
+    .filter((service): service is NonNullable<typeof service> => service !== null);
 
   const addOns: AdminBidAddOn[] = (booking.booking_add_ons ?? [])
-    .filter((r) => r.add_ons !== null)
-    .map((r) => ({
-      id: r.id,
-      serviceId: r.service_id,
-      addOnId: r.add_on_id,
-      name: r.add_ons!.name,
-      quantity: r.quantity,
-      unitPrice: toNumber(r.unit_price_at_booking) ?? 0,
+    .filter((row) => row.add_ons !== null)
+    .map((row) => ({
+      id: row.id,
+      serviceId: row.service_id,
+      addOnId: row.add_on_id,
+      name: row.add_ons!.name,
+      quantity: row.quantity,
+      unitPrice: toNumber(row.unit_price_at_booking) ?? 0,
     }));
 
   return {

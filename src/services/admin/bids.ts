@@ -95,7 +95,7 @@ export async function getAdminBidsList(
   const rangeFrom = page * pageSize;
   const rangeTo = rangeFrom + pageSize - 1;
 
-  let q = supabase
+  let query = supabase
     .from("bids")
     .select(
       `
@@ -114,51 +114,51 @@ export async function getAdminBidsList(
     .range(rangeFrom, rangeTo);
 
   if (filters.status) {
-    q = q.eq("status", filters.status);
+    query = query.eq("status", filters.status);
   }
   if (filters.propertyId) {
-    q = q.eq("bookings.property_id", filters.propertyId);
+    query = query.eq("bookings.property_id", filters.propertyId);
   }
   if (filters.from) {
-    q = q.gte("bookings.start_time", `${filters.from}T00:00:00Z`);
+    query = query.gte("bookings.start_time", `${filters.from}T00:00:00Z`);
   }
   if (filters.to) {
-    q = q.lte("bookings.start_time", `${filters.to}T23:59:59Z`);
+    query = query.lte("bookings.start_time", `${filters.to}T23:59:59Z`);
   }
   if (filters.q) {
-    const safe = filters.q.replace(/[%(),]/g, "").trim();
-    if (safe) {
-      q = q.or(
-        `guest_name.ilike.%${safe}%,guest_email.ilike.%${safe}%`,
+    const safeSearchTerm = filters.q.replace(/[%(),]/g, "").trim();
+    if (safeSearchTerm) {
+      query = query.or(
+        `guest_name.ilike.%${safeSearchTerm}%,guest_email.ilike.%${safeSearchTerm}%`,
         { referencedTable: "bookings" },
       );
     }
   }
 
-  const { data, count, error } = await q;
+  const { data, count, error } = await query;
   if (error) {
     throw new Error(`Admin bids list failed: ${error.message}`);
   }
 
   const rows = ((data ?? []) as unknown as BidsRow[]).map(
-    (r): AdminBidListRow => ({
-      id: r.id,
-      slug: r.slug,
-      status: r.status,
-      createdAt: r.created_at,
-      bookingId: r.booking_id,
-      bookingType: r.bookings.booking_type,
-      startTime: r.bookings.start_time,
-      durationHours: r.bookings.duration_hours,
-      guestName: r.bookings.guest_name,
-      guestEmail: r.bookings.guest_email,
-      guestCount: r.bookings.guest_count,
-      propertyId: r.bookings.property_id,
-      propertyName: r.bookings.properties.name,
-      propertySlug: r.bookings.properties.slug,
-      propertyTimezone: r.bookings.properties.timezone,
-      estimatedPrice: r.bookings.estimated_price,
-      confirmedPrice: r.bookings.confirmed_price,
+    (row): AdminBidListRow => ({
+      id: row.id,
+      slug: row.slug,
+      status: row.status,
+      createdAt: row.created_at,
+      bookingId: row.booking_id,
+      bookingType: row.bookings.booking_type,
+      startTime: row.bookings.start_time,
+      durationHours: row.bookings.duration_hours,
+      guestName: row.bookings.guest_name,
+      guestEmail: row.bookings.guest_email,
+      guestCount: row.bookings.guest_count,
+      propertyId: row.bookings.property_id,
+      propertyName: row.bookings.properties.name,
+      propertySlug: row.bookings.properties.slug,
+      propertyTimezone: row.bookings.properties.timezone,
+      estimatedPrice: row.bookings.estimated_price,
+      confirmedPrice: row.bookings.confirmed_price,
     }),
   );
 

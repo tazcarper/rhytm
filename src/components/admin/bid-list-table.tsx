@@ -6,7 +6,7 @@ import {
 import type { AdminBidListRow } from "@/src/services/admin/bids";
 import { BidStatusBadge } from "./bid-status-badge";
 import { PropertyPill } from "./property-pill";
-import s from "./bid-list.module.css";
+import s from "./queue-list.module.css";
 
 const BOOKING_TYPE_LABEL: Record<AdminBidListRow["bookingType"], string> = {
   plan_a_visit: "Plan a Visit",
@@ -15,15 +15,15 @@ const BOOKING_TYPE_LABEL: Record<AdminBidListRow["bookingType"], string> = {
 };
 
 function formatRelative(iso: string): string {
-  const ms = Date.now() - new Date(iso).getTime();
-  const s = Math.floor(ms / 1000);
-  if (s < 60) return `${s}s ago`;
-  const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  const d = Math.floor(h / 24);
-  return `${d}d ago`;
+  const elapsedMs = Date.now() - new Date(iso).getTime();
+  const seconds = Math.floor(elapsedMs / 1000);
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }
 
 export function BidListTable({ rows }: { rows: ReadonlyArray<AdminBidListRow> }) {

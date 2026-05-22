@@ -201,7 +201,6 @@ export function BookingBuilder({
 
   const nextLabel = subStep === 3 ? "Continue →" : "Next →";
   const nextDisabled = !stepValid[subStep - 1];
-  const backDisabled = subStep === 1;
 
   return (
     <>
@@ -421,15 +420,16 @@ export function BookingBuilder({
           )}
 
           {/* ===== Bottom nav ===== */}
-          <div className={s.stepNav}>
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={handleBack}
-              disabled={backDisabled}
-            >
-              ← Back
-            </Button>
+          <div className={s.stepNav} data-align={subStep === 1 ? "end" : undefined}>
+            {subStep > 1 && (
+              <Button
+                variant="secondary"
+                size="md"
+                onClick={handleBack}
+              >
+                ← Back
+              </Button>
+            )}
             <Button
               variant="primary"
               size="md"
@@ -456,13 +456,13 @@ function startOfDay(d: Date): Date {
 }
 
 function dateToISO(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function dateFromISO(iso: string): Date {
-  const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y, m - 1, d);
+  const [year, month, day] = iso.split("-").map(Number);
+  return new Date(year, month - 1, day);
 }

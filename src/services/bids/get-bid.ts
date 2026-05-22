@@ -99,18 +99,20 @@ export interface BidDetail {
 // admin UI lands the column may hold whatever the seed scripts put in.
 // Anything that doesn't shape-match is dropped silently rather than
 // crashing the bid page.
-function parseGearList(raw: unknown): BidGearItem[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.flatMap((item): BidGearItem[] => {
+function parseGearList(gearListJson: unknown): BidGearItem[] {
+  if (!Array.isArray(gearListJson)) return [];
+  return gearListJson.flatMap((item): BidGearItem[] => {
     if (typeof item === "string") return [{ name: item }];
     if (item && typeof item === "object" && "name" in item) {
-      const obj = item as { name: unknown; description?: unknown };
-      if (typeof obj.name !== "string") return [];
+      const candidate = item as { name: unknown; description?: unknown };
+      if (typeof candidate.name !== "string") return [];
       return [
         {
-          name: obj.name,
+          name: candidate.name,
           description:
-            typeof obj.description === "string" ? obj.description : undefined,
+            typeof candidate.description === "string"
+              ? candidate.description
+              : undefined,
         },
       ];
     }
@@ -118,15 +120,18 @@ function parseGearList(raw: unknown): BidGearItem[] {
   });
 }
 
-function parseFaq(raw: unknown): BidFaqItem[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.flatMap((item): BidFaqItem[] => {
+function parseFaq(faqJson: unknown): BidFaqItem[] {
+  if (!Array.isArray(faqJson)) return [];
+  return faqJson.flatMap((item): BidFaqItem[] => {
     if (!item || typeof item !== "object") return [];
-    const obj = item as { question?: unknown; answer?: unknown };
-    if (typeof obj.question !== "string" || typeof obj.answer !== "string") {
+    const candidate = item as { question?: unknown; answer?: unknown };
+    if (
+      typeof candidate.question !== "string" ||
+      typeof candidate.answer !== "string"
+    ) {
       return [];
     }
-    return [{ question: obj.question, answer: obj.answer }];
+    return [{ question: candidate.question, answer: candidate.answer }];
   });
 }
 
@@ -155,6 +160,7 @@ type PropertyRow = {
   slug: string;
   timezone: string;
   booking_horizon_days: number;
+  tagline: string | null;
 };
 
 type BookingJoinedRow = {
@@ -231,7 +237,7 @@ export async function getBidDetail(
       estimated_price,
       confirmed_price,
       deposit_amount,
-      properties ( id, name, slug, timezone, booking_horizon_days ),
+      properties ( id, name, slug, timezone, booking_horizon_days, tagline ),
       instructors ( id, name ),
       booking_disciplines ( services ( id, name, description ) ),
       booking_add_ons (
@@ -257,7 +263,7 @@ export async function getBidDetail(
 
   const disciplines: BidDiscipline[] = (bookingRow.booking_disciplines ?? [])
     .map((row) => row.services)
-    .filter((s): s is NonNullable<typeof s> => s !== null);
+    .filter((service): service is NonNullable<typeof service> => service !== null);
 
   const addOns: BidAddOn[] = (bookingRow.booking_add_ons ?? [])
     .filter((row) => row.add_ons !== null)
@@ -304,6 +310,7 @@ export async function getBidDetail(
       slug: bookingRow.properties.slug,
       timezone: bookingRow.properties.timezone,
       bookingHorizonDays: bookingRow.properties.booking_horizon_days,
+      tagline: bookingRow.properties.tagline ?? null,
     },
     disciplines,
     addOns,

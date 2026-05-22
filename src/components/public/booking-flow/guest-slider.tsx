@@ -38,7 +38,7 @@ export function GuestSlider({
   return (
     <div
       className={s.root}
-      style={{ "--pct": `${pct}%` } as CSSProperties}
+      style={{ "--pct": pct } as CSSProperties}
     >
       <button
         type="button"

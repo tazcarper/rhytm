@@ -8,7 +8,7 @@ const gearItemSchema = z.object({
     .trim()
     .max(500)
     .optional()
-    .transform((v) => (v ? v : undefined)),
+    .transform((description) => (description ? description : undefined)),
 });
 
 const faqItemSchema = z.object({
@@ -18,12 +18,13 @@ const faqItemSchema = z.object({
 
 const moneyField = z
   .union([z.string(), z.null(), z.undefined()])
-  .transform((v) => {
-    if (v === null || v === undefined || v === "") return null;
-    const n = parseFloat(v);
-    return Number.isFinite(n) ? n : null;
+  .transform((moneyInput) => {
+    if (moneyInput === null || moneyInput === undefined || moneyInput === "")
+      return null;
+    const parsed = parseFloat(moneyInput);
+    return Number.isFinite(parsed) ? parsed : null;
   })
-  .refine((n) => n === null || n >= 0, "Must be ≥ 0");
+  .refine((amount) => amount === null || amount >= 0, "Must be ≥ 0");
 
 export const UpdateAdminBidInputSchema = z.object({
   bidId: z.string().uuid(),
@@ -70,10 +71,15 @@ export async function updateAdminBid(
       schedule_notes: input.scheduleNotes ?? null,
       quote_note: input.quoteNote ?? null,
       staff_notes: input.staffNotes ?? null,
-      gear_list: input.gearList.map((g) =>
-        g.description ? { name: g.name, description: g.description } : { name: g.name },
+      gear_list: input.gearList.map((gearItem) =>
+        gearItem.description
+          ? { name: gearItem.name, description: gearItem.description }
+          : { name: gearItem.name },
       ),
-      faq: input.faq.map((f) => ({ question: f.question, answer: f.answer })),
+      faq: input.faq.map((faqItem) => ({
+        question: faqItem.question,
+        answer: faqItem.answer,
+      })),
     })
     .eq("id", input.bidId);
 

@@ -11,7 +11,7 @@ import {
 } from "@/src/services/admin/bids";
 import { bidStatusLabel } from "./bid-status-badge";
 import type { PublicProperty } from "@/src/services/public/properties";
-import s from "./bid-list.module.css";
+import s from "./queue-list.module.css";
 
 interface BidFiltersProps {
   current: AdminBidListFilters;
@@ -24,14 +24,14 @@ function buildStatusHref(
   current: AdminBidListFilters,
   next: AdminBidStatus | undefined,
 ): string {
-  const params = new URLSearchParams();
-  if (next) params.set("status", next);
-  if (current.propertyId) params.set("propertyId", current.propertyId);
-  if (current.from) params.set("from", current.from);
-  if (current.to) params.set("to", current.to);
-  if (current.q) params.set("q", current.q);
-  const qs = params.toString();
-  return qs ? `${basePath}?${qs}` : basePath;
+  const queryParams = new URLSearchParams();
+  if (next) queryParams.set("status", next);
+  if (current.propertyId) queryParams.set("propertyId", current.propertyId);
+  if (current.from) queryParams.set("from", current.from);
+  if (current.to) queryParams.set("to", current.to);
+  if (current.q) queryParams.set("q", current.q);
+  const queryString = queryParams.toString();
+  return queryString ? `${basePath}?${queryString}` : basePath;
 }
 
 export function BidFilters({ current, properties, basePath }: BidFiltersProps) {
@@ -42,14 +42,14 @@ export function BidFilters({ current, properties, basePath }: BidFiltersProps) {
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const params = new URLSearchParams();
+    const queryParams = new URLSearchParams();
     for (const [key, value] of formData.entries()) {
-      const v = String(value).trim();
-      if (v) params.set(key, v);
+      const trimmed = String(value).trim();
+      if (trimmed) queryParams.set(key, trimmed);
     }
-    const qs = params.toString();
+    const queryString = queryParams.toString();
     startTransition(() => {
-      router.push(qs ? `${basePath}?${qs}` : basePath);
+      router.push(queryString ? `${basePath}?${queryString}` : basePath);
     });
   };
 
@@ -101,9 +101,9 @@ export function BidFilters({ current, properties, basePath }: BidFiltersProps) {
             className={s.select}
           >
             <option value="">All properties</option>
-            {properties.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
+            {properties.map((property) => (
+              <option key={property.id} value={property.id}>
+                {property.name}
               </option>
             ))}
           </select>

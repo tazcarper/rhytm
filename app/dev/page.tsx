@@ -539,16 +539,16 @@ export default async function DevDashboard({
                     </td>
                     <td>{j.role}</td>
                     <td>
-                      <code className={s.code}>{fmt(person?.invited_at)}</code>
+                      <code className={s.code}>{formatTimestamp(person?.invited_at)}</code>
                     </td>
                     <td>
                       <code className={s.code}>
-                        {fmt(person?.invite_accepted_at)}
+                        {formatTimestamp(person?.invite_accepted_at)}
                       </code>
                     </td>
                     <td>
                       <code className={s.code}>
-                        {fmt(person?.invite_expires_at)}
+                        {formatTimestamp(person?.invite_expires_at)}
                       </code>
                     </td>
                   </tr>
@@ -594,11 +594,11 @@ function DevSection({
   );
 }
 
-function fmt(v: string | null | undefined): string {
-  if (!v) return "—";
+function formatTimestamp(value: string | null | undefined): string {
+  if (!value) return "—";
   try {
-    return new Date(v).toISOString().replace("T", " ").slice(0, 19);
+    return new Date(value).toISOString().replace("T", " ").slice(0, 19);
   } catch {
-    return v;
+    return value;
   }
 }

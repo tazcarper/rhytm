@@ -15,8 +15,8 @@ import {
 // to the type system and would crash at `.trim()` if a File were ever
 // sent. This narrows safely and trims in one step.
 function field(formData: FormData, name: string): string {
-  const v = formData.get(name);
-  return typeof v === "string" ? v.trim() : "";
+  const value = formData.get(name);
+  return typeof value === "string" ? value.trim() : "";
 }
 
 // Multi-valued form fields (checkbox groups, <select multiple>). Drops
@@ -24,9 +24,9 @@ function field(formData: FormData, name: string): string {
 function fieldList(formData: FormData, name: string): string[] {
   return formData
     .getAll(name)
-    .filter((v): v is string => typeof v === "string")
-    .map((v) => v.trim())
-    .filter((v) => v.length > 0);
+    .filter((value): value is string => typeof value === "string")
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0);
 }
 
 type AdminClient = ReturnType<typeof createServiceRoleClient>;
@@ -37,7 +37,7 @@ async function findAuthUserByEmail(admin: AdminClient, email: string) {
     perPage: 200,
   });
   if (error) throw new Error(error.message);
-  return data?.users.find((u) => u.email?.toLowerCase() === email) ?? null;
+  return data?.users.find((user) => user.email?.toLowerCase() === email) ?? null;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -45,8 +45,8 @@ async function findAuthUserByEmail(admin: AdminClient, email: string) {
 // ─────────────────────────────────────────────────────────────
 
 export async function authenticate(formData: FormData) {
-  const raw = formData.get("password");
-  const password = typeof raw === "string" ? raw : "";
+  const passwordField = formData.get("password");
+  const password = typeof passwordField === "string" ? passwordField : "";
   if (password.length === 0) {
     redirect("/dev/login?error=missing");
   }
@@ -141,8 +141,8 @@ export async function createTestMember(formData: FormData) {
   }
 
   // Step 3: junction — primary role on every new membership.
-  const junctionRows = (memberships ?? []).map((m) => ({
-    membership_id: m.id,
+  const junctionRows = (memberships ?? []).map((membership) => ({
+    membership_id: membership.id,
     person_id: person!.id,
     role: "primary" as const,
     status: "active" as const,
@@ -160,7 +160,7 @@ export async function createTestMember(formData: FormData) {
       .delete()
       .in(
         "id",
-        (memberships ?? []).map((m) => m.id),
+        (memberships ?? []).map((membership) => membership.id),
       );
     await admin.from("people").delete().eq("id", person!.id);
     redirect(`/dev?error=${encodeURIComponent(junctionError.message)}`);
@@ -310,8 +310,8 @@ export async function generateMagicLink(formData: FormData) {
   let existing;
   try {
     existing = await findAuthUserByEmail(admin, email);
-  } catch (e) {
-    redirect(`/dev?error=${encodeURIComponent((e as Error).message)}`);
+  } catch (error) {
+    redirect(`/dev?error=${encodeURIComponent((error as Error).message)}`);
   }
   const linkType: "invite" | "magiclink" = existing ? "magiclink" : "invite";
 
@@ -408,8 +408,8 @@ export async function stampRole(formData: FormData) {
   let user;
   try {
     user = await findAuthUserByEmail(admin, email);
-  } catch (e) {
-    redirect(`/dev?error=${encodeURIComponent((e as Error).message)}`);
+  } catch (error) {
+    redirect(`/dev?error=${encodeURIComponent((error as Error).message)}`);
   }
   if (!user) {
     redirect(`/dev?error=no+auth+user+for+${encodeURIComponent(email)}`);
@@ -473,7 +473,7 @@ export async function resetTestUser(formData: FormData) {
       .eq("role", "primary");
 
     const primaryMembershipIds = (primaryMemberships ?? []).map(
-      (r) => r.membership_id,
+      (row) => row.membership_id,
     );
 
     // Drop memberships where they were primary (cascades junction).
@@ -507,8 +507,8 @@ export async function resetTestUser(formData: FormData) {
   let user;
   try {
     user = await findAuthUserByEmail(admin, email);
-  } catch (e) {
-    redirect(`/dev?error=${encodeURIComponent((e as Error).message)}`);
+  } catch (error) {
+    redirect(`/dev?error=${encodeURIComponent((error as Error).message)}`);
   }
   if (user) {
     const { error: delUserError } = await admin.auth.admin.deleteUser(user.id);
