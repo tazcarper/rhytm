@@ -1,0 +1,160 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sectionTitle {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+@media (max-width: 600px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+
+.input,
+.textarea {
+  padding: var(--space-2) var(--space-3);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  color: var(--olive);
+  width: 100%;
+}
+
+.textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.input:focus,
+.textarea:focus {
+  outline: 2px solid var(--olive);
+  outline-offset: 1px;
+}
+
+.help {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+}
+
+.repeaterList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.repeaterItem {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  align-items: start;
+}
+
+.repeaterFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.removeBtn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+  cursor: pointer;
+}
+
+.removeBtn:hover {
+  color: var(--accent-error);
+  border-color: var(--accent-error);
+}
+
+.addBtn {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-card);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--olive);
+  cursor: pointer;
+}
+
+.addBtn:hover {
+  background: var(--paper-warm);
+  border-style: solid;
+}
+
+.emptyRepeater {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray-light);
+  font-style: italic;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  margin-top: var(--space-4);
+  position: sticky;
+  bottom: var(--space-3);
+  background: var(--paper-warm);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.dirty {
+  color: var(--accent-warn);
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  font-style: italic;
+}

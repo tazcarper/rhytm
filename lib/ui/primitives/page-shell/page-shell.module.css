@@ -10,6 +10,9 @@
 .wide {
   max-width: var(--content-max);
 }
+.xl {
+  max-width: var(--content-xl);
+}
 .prose {
   max-width: var(--content-prose);
 }

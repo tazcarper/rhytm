@@ -82,6 +82,7 @@ export interface BidDetail {
     scheduleNotes: string | null;
     gearList: BidGearItem[];
     faq: BidFaqItem[];
+    quoteNote: string | null;
     expiresAt: string | null;
     signedAt: string | null;
     createdAt: string;
@@ -142,6 +143,7 @@ type RpcBidRow = {
   schedule_notes: string | null;
   gear_list: unknown;
   faq: unknown;
+  quote_note: string | null;
   expires_at: string | null;
   signed_at: string | null;
   created_at: string;
@@ -276,6 +278,7 @@ export async function getBidDetail(
       scheduleNotes: bidRow.schedule_notes,
       gearList: parseGearList(bidRow.gear_list),
       faq: parseFaq(bidRow.faq),
+      quoteNote: bidRow.quote_note ?? null,
       expiresAt: bidRow.expires_at,
       signedAt: bidRow.signed_at,
       createdAt: bidRow.created_at,

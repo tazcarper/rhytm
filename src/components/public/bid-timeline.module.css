@@ -1,0 +1,114 @@
+/* Horizontal bid progress bar — visual twin of the booking funnel's
+   StepProgress (src/components/public/booking-flow/step-progress.module.css).
+   Presentational only: no buttons, no interactivity. */
+
+.bar {
+  padding: var(--space-2) 0 var(--space-4);
+  margin: var(--space-6) 0 var(--space-2);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0 1rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  position: relative;
+}
+
+/* Track line behind every dot. Anchored to dot centers via offsets
+   matching the dot radius (18px). */
+.list::before {
+  content: "";
+  position: absolute;
+  top: 17px;
+  left: calc(1rem + 18px);
+  right: calc(1rem + 18px);
+  height: 2px;
+  background: var(--border);
+  z-index: 0;
+}
+
+/* Filled portion of the track, sized by --progress (0–1). */
+.list::after {
+  content: "";
+  position: absolute;
+  top: 17px;
+  left: calc(1rem + 18px);
+  width: calc(var(--progress, 0) * (100% - 2rem - 36px));
+  height: 2px;
+  background: var(--olive);
+  z-index: 0;
+  transition: width var(--transition-base);
+}
+
+.item {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.dot {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--paper);
+  color: var(--gray);
+  font-family: var(--serif);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.dot[data-state="pending"] {
+  background: var(--paper);
+  color: var(--gray);
+  border-color: var(--border);
+}
+
+.dot[data-state="current"] {
+  background: var(--paper);
+  color: var(--olive);
+  border-color: var(--olive);
+  border-width: 2px;
+  box-shadow: 0 0 0 5px rgba(86, 88, 50, 0.14);
+}
+
+.dot[data-state="complete"] {
+  background: var(--olive);
+  color: var(--paper);
+  border-color: var(--olive);
+}
+
+.label {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--gray);
+  text-align: center;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.label[data-state="current"],
+.label[data-state="complete"] {
+  color: var(--olive);
+}
+
+@media (max-width: 480px) {
+  .label {
+    white-space: normal;
+    max-width: 9ch;
+  }
+}

@@ -13,6 +13,8 @@ import {
   formatMoney,
   formatSlotLabelTz,
 } from "@/src/services/public/format";
+import { MarkdownProse } from "@/src/components/shared/markdown";
+import { BidTimeline } from "@/src/components/public/bid-timeline";
 import s from "./bid-page.module.css";
 
 // Public bid page. Outside the booking funnel — does NOT mount
@@ -47,6 +49,9 @@ export default async function BidPage({
   return (
     <main className={s.wrap}>
       <BidHero detail={detail} />
+      {showsTimeline(detail.bid.status) && (
+        <BidTimeline status={detail.bid.status} />
+      )}
       <StatusBanner status={detail.bid.status} detail={detail} />
 
       {isActiveBid(detail.bid.status) && (
@@ -80,6 +85,12 @@ function isActiveBid(status: BidStatus): boolean {
   return (
     status === "confirmed" || status === "signed" || status === "paid"
   );
+}
+
+// Timeline shows for every non-terminal status. denied/expired are off-path
+// — no progression to track.
+function showsTimeline(status: BidStatus): boolean {
+  return status !== "denied" && status !== "expired";
 }
 
 function statusBadge(status: BidStatus): {
@@ -307,7 +318,9 @@ function GearList({ detail }: { detail: BidDetail }) {
             <li key={`${item.name}-${idx}`} className={s.gearItem}>
               <span className={s.gearItemName}>{item.name}</span>
               {item.description && (
-                <div className={s.gearItemDesc}>{item.description}</div>
+                <div className={s.gearItemDesc}>
+                  <MarkdownProse small>{item.description}</MarkdownProse>
+                </div>
               )}
             </li>
           ))}
@@ -353,12 +366,9 @@ function ScheduleSection({ detail }: { detail: BidDetail }) {
         )}
       </div>
       {bid.scheduleNotes && (
-        <p
-          className={s.empty}
-          style={{ marginTop: "var(--space-3)", fontStyle: "normal" }}
-        >
-          {bid.scheduleNotes}
-        </p>
+        <div style={{ marginTop: "var(--space-3)" }}>
+          <MarkdownProse>{bid.scheduleNotes}</MarkdownProse>
+        </div>
       )}
     </section>
   );
@@ -383,7 +393,9 @@ function FaqSection({ detail }: { detail: BidDetail }) {
           {items.map((item, idx) => (
             <details key={`${item.question}-${idx}`} className={s.faqItem}>
               <summary className={s.faqQuestion}>{item.question}</summary>
-              <p className={s.faqAnswer}>{item.answer}</p>
+              <div className={s.faqAnswer}>
+                <MarkdownProse small>{item.answer}</MarkdownProse>
+              </div>
             </details>
           ))}
         </div>
@@ -446,6 +458,7 @@ function DepositSlot({
 }) {
   const done = status === "paid";
   const deposit = detail.booking.depositAmount;
+  const quoteNote = detail.bid.quoteNote;
 
   return (
     <section className={`${s.slot} ${done ? s.slotDone : ""}`}>
@@ -462,6 +475,11 @@ function DepositSlot({
           ? "Thanks — we'll see you at the property."
           : "Card or bank transfer. The balance settles at the property."}
       </p>
+      {quoteNote && (
+        <div style={{ marginTop: "var(--space-2)" }}>
+          <MarkdownProse small>{quoteNote}</MarkdownProse>
+        </div>
+      )}
       <p className={s.slotMeta}>App 6 · Stripe deposit embed</p>
     </section>
   );

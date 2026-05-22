@@ -1,0 +1,161 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.headCount {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+}
+
+.grid {
+  position: relative;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  /* height set inline via --grid-height */
+  height: var(--grid-height, 0);
+  overflow: hidden;
+}
+
+.hourLabel {
+  position: absolute;
+  left: 0;
+  width: 56px;
+  padding-right: var(--space-2);
+  text-align: right;
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gray);
+  line-height: 1;
+  /* top set inline via --top */
+  top: var(--top, 0);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.hourLine {
+  position: absolute;
+  left: 56px;
+  right: 0;
+  height: 0;
+  border-top: 1px dashed var(--border);
+  top: var(--top, 0);
+}
+
+.nowLine {
+  position: absolute;
+  left: 56px;
+  right: 0;
+  height: 0;
+  border-top: 2px solid #dc2626;
+  top: var(--top, 0);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.nowLine::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #dc2626;
+}
+
+.block {
+  position: absolute;
+  left: calc(56px + 4px);
+  right: var(--space-2);
+  top: var(--top, 0);
+  height: var(--block-height, 56px);
+  border-radius: var(--radius-card);
+  padding: var(--space-2) var(--space-3);
+  text-decoration: none;
+  color: var(--olive);
+  font-family: var(--sans);
+  overflow: hidden;
+  transition: transform var(--motion-fast) ease, filter var(--motion-fast) ease;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 2;
+}
+
+.block:hover {
+  filter: brightness(0.97);
+  transform: translateX(-1px);
+}
+
+/* Property color variants — match the PropertyPill palette */
+.block_hsb {
+  background: rgba(63, 110, 50, 0.16);
+  border-left: 4px solid #3f6e32;
+}
+.block_hog {
+  background: rgba(184, 130, 30, 0.16);
+  border-left: 4px solid #b88240;
+}
+.block_pack {
+  background: rgba(50, 90, 140, 0.14);
+  border-left: 4px solid #325a8c;
+}
+.block_neutral {
+  background: var(--paper-warm);
+  border-left: 4px solid var(--border-strong);
+}
+
+.blockTime {
+  font-size: var(--text-eyebrow);
+  letter-spacing: 0.06em;
+  color: var(--gray);
+  text-transform: uppercase;
+}
+
+.blockGuest {
+  font-size: var(--text-body);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.blockMeta {
+  font-size: var(--text-micro);
+  color: var(--gray);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* When the block is short (< 2h) we hide the meta line so the guest
+   name doesn't collide with the bottom edge. */
+.block.short .blockMeta {
+  display: none;
+}
+
+.empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-style: italic;
+  color: var(--gray-light);
+  font-size: var(--text-micro);
+  pointer-events: none;
+}

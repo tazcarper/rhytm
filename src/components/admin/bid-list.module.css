@@ -1,0 +1,253 @@
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--paper-warm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  margin-top: var(--space-6);
+}
+
+.statusPills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.searching {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+  border: 1px dashed var(--border-strong);
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+  font-style: italic;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--olive);
+  text-decoration: none;
+  transition: background var(--motion-fast) ease;
+}
+
+.pill:hover {
+  background: var(--paper-warm);
+}
+
+.pillActive {
+  background: var(--olive);
+  color: var(--paper);
+  border-color: var(--olive);
+}
+
+.pillActive:hover {
+  background: var(--olive);
+}
+
+.pillCount {
+  font-size: var(--text-micro);
+  opacity: 0.7;
+}
+
+.advanced {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-3);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 160px;
+}
+
+.fieldLabel {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+
+.input,
+.select {
+  padding: var(--space-2) var(--space-3);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  color: var(--olive);
+}
+
+.input:focus,
+.select:focus {
+  outline: 2px solid var(--olive);
+  outline-offset: 1px;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.summary {
+  margin-top: var(--space-4);
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+}
+
+.tableWrap {
+  margin-top: var(--space-3);
+  overflow-x: auto;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  vertical-align: top;
+}
+
+.table th {
+  background: var(--paper-warm);
+  color: var(--gray);
+  font-weight: 500;
+  font-size: var(--text-eyebrow);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+
+.table tbody tr {
+  border-top: 1px solid var(--border);
+  transition: background var(--motion-fast) ease;
+}
+
+.table tbody tr:nth-child(even) {
+  background: var(--paper-warm);
+}
+
+.table tbody tr:hover {
+  background: var(--cream);
+}
+
+.guest {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.guestName {
+  color: var(--olive);
+  font-weight: 500;
+}
+
+.guestEmail {
+  color: var(--gray);
+  font-size: var(--text-micro);
+}
+
+.when {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.whenDate {
+  color: var(--olive);
+}
+
+.whenTime {
+  color: var(--gray);
+  font-size: var(--text-micro);
+}
+
+.bookingType {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bookingTypeLabel {
+  color: var(--olive);
+  font-weight: 500;
+}
+
+.bookingTypeMeta {
+  color: var(--gray);
+  font-size: var(--text-micro);
+}
+
+.createdAt {
+  color: var(--gray);
+  font-size: var(--text-micro);
+  white-space: nowrap;
+}
+
+.viewLink {
+  color: var(--olive);
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 3px;
+  font-size: var(--text-micro);
+}
+
+.viewLink:hover {
+  text-decoration-color: var(--olive);
+}
+
+.empty {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--gray);
+}
+
+.pagination {
+  margin-top: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.pageInfo {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+}
+
+.pageButtons {
+  display: flex;
+  gap: var(--space-2);
+}

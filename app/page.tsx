@@ -56,7 +56,7 @@ export default async function Home() {
               <Link href="/login">Members&rsquo; Entrance</Link>
             </Button>
             <Button asChild variant="secondary" size="lg">
-              <Link href="#properties">Visit a property</Link>
+              <Link href="/book">Book an experience</Link>
             </Button>
           </div>
           <div className={s.heroMeta}>

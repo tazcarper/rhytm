@@ -1,0 +1,70 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  border: 1px solid;
+  white-space: nowrap;
+  line-height: 1.35;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: var(--space-2);
+}
+
+/* Horseshoe Bay — brand olive */
+.hsb {
+  background: rgba(63, 110, 50, 0.12);
+  color: #2d5520;
+  border-color: rgba(63, 110, 50, 0.3);
+}
+.hsb .dot {
+  background: #3f6e32;
+}
+
+/* Hog Heaven — tan / wheat */
+.hog {
+  background: rgba(184, 130, 30, 0.14);
+  color: #8c5e0f;
+  border-color: rgba(184, 130, 30, 0.3);
+}
+.hog .dot {
+  background: #b88240;
+}
+
+/* Packsaddle Precision — cool slate blue */
+.pack {
+  background: rgba(50, 90, 140, 0.1);
+  color: #2f5482;
+  border-color: rgba(50, 90, 140, 0.3);
+}
+.pack .dot {
+  background: #325a8c;
+}
+
+/* Fallback for unknown / future properties */
+.neutral {
+  background: var(--paper-warm);
+  color: var(--gray);
+  border-color: var(--border);
+}
+.neutral .dot {
+  background: var(--gray-light);
+}
+
+/* "Borderless" variant — when the pill sits on the colored column header. */
+.bare {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: var(--text-eyebrow);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}

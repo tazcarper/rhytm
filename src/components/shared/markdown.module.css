@@ -1,0 +1,116 @@
+.prose {
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  color: var(--olive);
+  line-height: var(--leading-normal, 1.55);
+}
+
+.prose > *:first-child {
+  margin-top: 0;
+}
+
+.prose > *:last-child {
+  margin-bottom: 0;
+}
+
+.prose p {
+  margin: 0 0 var(--space-2);
+}
+
+.prose strong {
+  color: var(--olive-deep);
+  font-weight: 600;
+}
+
+.prose em {
+  font-style: italic;
+}
+
+.prose a {
+  color: var(--accent-info);
+  text-decoration: underline;
+  text-decoration-color: rgba(47, 84, 130, 0.4);
+  text-underline-offset: 2px;
+}
+
+.prose a:hover {
+  text-decoration-color: var(--accent-info);
+}
+
+.prose ul,
+.prose ol {
+  margin: 0 0 var(--space-2);
+  padding-left: var(--space-5);
+}
+
+.prose li {
+  margin-bottom: var(--space-1);
+}
+
+.prose code {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.9em;
+  background: var(--paper-warm);
+  padding: 1px var(--space-1);
+  border-radius: 3px;
+}
+
+.prose pre {
+  background: var(--paper-warm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+  overflow-x: auto;
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-micro);
+}
+
+.prose pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.prose blockquote {
+  margin: 0 0 var(--space-2);
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--border-strong);
+  color: var(--gray);
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  font-family: var(--sans);
+  margin: var(--space-3) 0 var(--space-2);
+  color: var(--olive-deep);
+}
+
+.prose h1 {
+  font-size: var(--text-h4);
+}
+.prose h2 {
+  font-size: var(--text-body-lg);
+}
+.prose h3 {
+  font-size: var(--text-body);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: var(--space-3) 0;
+}
+
+/* Small variant — tighter line-height + smaller text, used inside list items */
+.proseSmall {
+  font-size: var(--text-micro);
+  line-height: 1.5;
+  color: var(--gray);
+}
+
+.proseSmall p {
+  margin: 0 0 var(--space-1);
+}

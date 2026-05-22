@@ -35,8 +35,14 @@ function matchPortalPrefix(pathname: string): string | null {
 // `proxy` (the prior `middleware.ts` is deprecated). The runtime
 // expects either a default export or a function named `proxy`.
 export async function proxy(request: NextRequest) {
+  // Server Components have no native way to read the current pathname.
+  // Forward it on the request so layouts/components can branch on route
+  // (e.g. the site-wide TopBar suppresses itself under /admin and /dev).
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", request.nextUrl.pathname);
+
   const response = NextResponse.next({
-    request: { headers: request.headers },
+    request: { headers: requestHeaders },
   });
 
   const supabase = createServerClient(

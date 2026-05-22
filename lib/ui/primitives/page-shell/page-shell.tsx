@@ -3,7 +3,7 @@ import { cn } from "../../utils/cn";
 import s from "./page-shell.module.css";
 
 export type PageShellTag = "main" | "div" | "section" | "article";
-export type PageShellWidth = "narrow" | "wide" | "prose";
+export type PageShellWidth = "narrow" | "wide" | "xl" | "prose";
 
 type PageShellBase = HTMLAttributes<HTMLElement> & {
   ref?: Ref<HTMLElement>;

@@ -1,0 +1,93 @@
+.row {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--paper-warm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.dialogTitle {
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  color: var(--olive);
+  margin: 0;
+  font-weight: 500;
+}
+
+.dialogBody {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+  margin: 0;
+}
+
+.textarea {
+  padding: var(--space-2) var(--space-3);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  color: var(--olive);
+  min-height: 80px;
+  resize: vertical;
+}
+
+.textarea:focus {
+  outline: 2px solid var(--olive);
+  outline-offset: 1px;
+}
+
+.dialogActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.urlPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--paper-warm);
+  border: 1px solid var(--accent-success);
+  border-radius: var(--radius-card);
+}
+
+.urlPanelTitle {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-success);
+  margin: 0;
+}
+
+.urlBox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-micro);
+  color: var(--olive);
+  word-break: break-all;
+}
+
+.urlWarning {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--accent-warn);
+  font-style: italic;
+  margin: 0;
+}
