@@ -51,7 +51,7 @@ Installed skills are tracked in `skills-lock.json`. Use them with `/skill <name>
 
 ## Next.js Documentation
 
-The full Next.js 16 docs are bundled locally in `node_modules/next/dist/docs/`. Reference them directly — no web lookup needed.
+The full Next.js 16 docs are bundled locally in `node_modules/next/dist/docs/`. Reference them directly when making any Next.js / React updates — no web lookup needed.
 
 ```
 node_modules/next/dist/docs/
@@ -159,6 +159,57 @@ Avoid `../../../` relative paths — they break refactors silently.
 - **RLS on every table.** No public reads/writes without a policy.
 - **Double-booking prevention is a database constraint**, not application logic.
 - **Never open connections per request** — use Supabase's transaction pooler (port 6543) in serverless.
+
+## Client State Rules
+
+These are constraints on how React Context / form / funnel state is shaped. They exist because each one cost us a real bug.
+
+### Display defaults must be persisted to state, not applied at the read site
+
+If a UI component renders a default value for a state field — e.g., a stepper that shows "1 guest" before the user taps it — that default belongs in the state's **initial value** (provider `useState`, Zustand `create`, etc.), not in a `state.x ?? default` fallback at the read site.
+
+**The rule:** `state.x ?? default` is a code smell unless `x` is **genuinely sometimes absent** (e.g., an `instructorId` that only applies to one booking type). If a field always has a sensible default, set it in the state's initial value and read directly.
+
+**Why this matters:** when two consumers reach for `?? default` versus checking `!== undefined`, they disagree about whether the field is "set." The disagreement surfaces as a redirect loop or a missing-data crash far from either consumer.
+
+**Concrete past bug:** `<BookingBuilder>` rendered "1 guest" via `state.guestCount ?? 1` while the `/details` `<BookingFlowGuard requires={["guestCount"]}>` checked `!== undefined`. Users who accepted the default were silently bounced back to the property picker on every funnel pass. Fix: provider's `INITIAL_STATE` now contains `{ guestCount: 1, disciplineSelections: [] }`; readers use `state.guestCount` and `state.disciplineSelections` directly.
+
+### Funnel state shape: mark always-defaulted fields as required
+
+The corollary to the rule above. In a state interface where some fields have provider-set defaults and others are progressively populated, mark the defaulted fields as **required** (non-optional) and the rest optional:
+
+```ts
+interface BookingFlowState {
+  // ---- always defaulted (set in provider INITIAL_STATE) ----
+  guestCount: number;
+  disciplineSelections: ReadonlyArray<DisciplineSelection>;
+
+  // ---- progressively set ----
+  bookingType?: BookingType;
+  date?: string;
+  // ...
+}
+```
+
+The compiler then refuses `state.guestCount ?? 1`. Drift between "display says default" and "state says undefined" becomes structurally impossible.
+
+### Submit / commit boundaries narrow via a type guard, not non-null assertions
+
+When a piece of state is "ready to submit" (all required fields present), express that as a separate type plus a guard function:
+
+```ts
+interface SubmittableBookingState extends BookingFlowState {
+  bookingType: BookingType;
+  date: string;
+  slotStart: string;
+  durationHours: number;
+  guest: GuestInfo;
+}
+
+function isSubmittable(state: BookingFlowState): state is SubmittableBookingState { ... }
+```
+
+Submit handlers narrow once with `isSubmittable(nextState)` and then read fields without `!` assertions. The check lives in one place; one update covers every consumer.
 
 ## Architecture Decisions
 

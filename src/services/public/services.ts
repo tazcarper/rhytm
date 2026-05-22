@@ -82,8 +82,8 @@ export async function getPublicServicesForProperty(
         name: a.name,
         description: a.description,
         // Postgres numeric arrives as a string over the wire; normalize to number
-        // for downstream pricing math. App 6 will be stricter — for App 2 the
-        // estimate is "starting from" anyway.
+        // for downstream pricing math. App 6 will be stricter — App 2's estimate
+        // is a placeholder until Q5 confirms the pricing formula.
         price: typeof a.price === "string" ? parseFloat(a.price) : a.price,
       })),
   }));

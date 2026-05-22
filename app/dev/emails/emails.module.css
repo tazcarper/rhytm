@@ -1,0 +1,195 @@
+/* Internal /dev/emails — review surface for the App 2.9 email shim.
+   Drop with the rest of /dev pre-launch. */
+
+.header {
+  text-align: center;
+  padding: var(--space-12) 0 var(--space-8);
+  margin-bottom: var(--space-8);
+  border-bottom: 1px solid var(--border);
+}
+
+.header > * + * {
+  margin-top: var(--space-3);
+}
+
+.headerSubtitle {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: var(--text-body-lg);
+  color: var(--gray);
+  max-width: var(--content-prose);
+  margin: var(--space-4) auto 0;
+}
+
+.headerSubtitle code {
+  font-family: var(--sans);
+  font-style: normal;
+  font-size: 0.9em;
+  color: var(--olive);
+  background: rgba(63, 74, 33, 0.06);
+  padding: 2px 6px;
+  border-radius: var(--radius-sharp);
+}
+
+/* Two-column master-detail. Below 720px the list stacks above the
+   detail panel so the iframe still gets the full viewport width. */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+}
+
+@media (min-width: 980px) {
+  .layout {
+    grid-template-columns: minmax(260px, 320px) 1fr;
+    align-items: start;
+  }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: var(--space-1);
+}
+
+/* Below the two-column breakpoint the list stacks above the detail
+   panel — keep it scrollable via the page itself rather than trapping
+   touch scroll inside a nested 360px box. */
+@media (max-width: 979px) {
+  .list {
+    max-height: none;
+    overflow-y: visible;
+  }
+}
+
+.listItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--paper);
+  color: var(--olive);
+  text-decoration: none;
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.listItem:hover {
+  border-color: var(--tan-deep);
+  background: var(--paper-warm);
+}
+
+.listItem:focus-visible {
+  outline: 2px solid var(--olive);
+  outline-offset: 2px;
+}
+
+.listItemActive {
+  border-color: var(--olive);
+  background: var(--paper-warm);
+  box-shadow: 0 0 0 2px rgba(63, 74, 33, 0.12);
+}
+
+.listItemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.listSubject {
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.listMeta {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.metaGrid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+}
+
+.metaLabel {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--gray);
+  align-self: center;
+}
+
+.metaValue {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  color: var(--olive);
+  word-break: break-word;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.92em;
+  color: var(--gray);
+}
+
+.previewCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.iframe {
+  width: 100%;
+  /* Tall enough to show a full confirmation email without scrolling on
+     desktop; on mobile the inner content scrolls. */
+  height: clamp(420px, 70vh, 720px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sharp);
+  background: white;
+}
+
+.pre {
+  background: var(--paper-warm);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sharp);
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: var(--olive);
+  line-height: 1.5;
+  margin: var(--space-2) 0 0;
+  max-height: 280px;
+}

@@ -1,0 +1,376 @@
+/* Mobile-first bid page layout.
+   The bid is the brand moment the guest opens on their phone at a hotel —
+   single column, generous spacing, editorial type. Desktop just gives the
+   single column more breathing room; no two-column shifts. */
+
+.wrap {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) var(--space-12);
+  font-family: var(--sans);
+  color: var(--olive-deep);
+}
+
+@media (min-width: 720px) {
+  .wrap {
+    padding: var(--space-10) var(--space-6) var(--space-16);
+  }
+}
+
+/* Hero */
+
+.hero {
+  text-align: center;
+  margin-bottom: var(--space-8);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border);
+}
+
+.heroEyebrow {
+  margin-bottom: var(--space-3);
+}
+
+.heroTitle {
+  margin: 0 0 var(--space-3);
+}
+
+.heroWhen {
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  color: var(--gray);
+  margin: 0 0 var(--space-4);
+  letter-spacing: 0.01em;
+}
+
+.heroStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Status banners (alerts above the body) */
+
+.banner {
+  margin-bottom: var(--space-6);
+}
+
+/* Sections */
+
+.section {
+  margin: var(--space-8) 0;
+}
+
+.section:first-of-type {
+  margin-top: 0;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.sectionTitle {
+  margin: 0;
+}
+
+.sectionEyebrow {
+  font-family: var(--sans);
+  text-transform: uppercase;
+  letter-spacing: var(--track-label);
+  font-size: var(--text-eyebrow);
+  color: var(--tan-deep);
+  font-weight: 600;
+}
+
+/* Guest summary — name + meta */
+
+.guest {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--paper-warm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+@media (min-width: 540px) {
+  .guest {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.guestLabel {
+  font-size: var(--text-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: var(--track-label);
+  color: var(--gray);
+  margin: 0 0 2px;
+  font-weight: 600;
+}
+
+.guestValue {
+  margin: 0;
+  font-size: var(--text-body);
+  color: var(--olive-deep);
+}
+
+/* Disciplines list */
+
+.disciplineList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.disciplineCard {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--paper);
+}
+
+.disciplineName {
+  font-family: var(--serif);
+  font-size: var(--text-h4);
+  margin: 0 0 var(--space-1);
+  color: var(--olive-deep);
+}
+
+.disciplineDesc {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--gray);
+}
+
+/* Add-ons (rendered under the appropriate discipline or in a flat list) */
+
+.addOnList {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.addOnRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+  font-size: var(--text-small);
+  color: var(--gray);
+  border-top: 1px dashed var(--border);
+  padding-top: var(--space-2);
+}
+
+.addOnRow:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.addOnQty {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Gear list */
+
+.gearList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.gearItem {
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.gearItem:last-child {
+  border-bottom: none;
+}
+
+.gearItemName {
+  font-weight: 600;
+  color: var(--olive-deep);
+}
+
+.gearItemDesc {
+  font-size: var(--text-small);
+  color: var(--gray);
+  margin-top: 2px;
+}
+
+/* Schedule */
+
+.scheduleGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+@media (min-width: 540px) {
+  .scheduleGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.scheduleCell {
+  padding: var(--space-3) var(--space-4);
+  background: var(--paper-warm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.scheduleLabel {
+  font-size: var(--text-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: var(--track-label);
+  color: var(--gray);
+  margin: 0 0 var(--space-1);
+  font-weight: 600;
+}
+
+.scheduleValue {
+  margin: 0;
+  font-size: var(--text-body);
+  color: var(--olive-deep);
+  font-family: var(--serif);
+}
+
+/* FAQ accordion (native <details>) */
+
+.faqList {
+  border-top: 1px solid var(--border);
+}
+
+.faqItem {
+  border-bottom: 1px solid var(--border);
+  padding: var(--space-3) 0;
+}
+
+.faqQuestion {
+  cursor: pointer;
+  font-family: var(--serif);
+  font-size: var(--text-h4);
+  color: var(--olive-deep);
+  list-style: none;
+  position: relative;
+  padding-right: var(--space-6);
+}
+
+.faqQuestion::-webkit-details-marker {
+  display: none;
+}
+
+.faqQuestion::after {
+  content: "+";
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-family: var(--sans);
+  font-size: var(--text-h3);
+  color: var(--tan-deep);
+  line-height: 1;
+  transition: transform var(--transition-fast);
+}
+
+.faqItem[open] .faqQuestion::after {
+  content: "−";
+}
+
+.faqAnswer {
+  margin: var(--space-3) 0 0;
+  color: var(--gray);
+  line-height: 1.6;
+}
+
+/* Placeholder slots for App 6 (deposit) + App 7 (signature) + map.
+   Dashed border + tan accent makes them visually distinct from settled
+   bid content. When the real embed lands the slot replaces these styles
+   wholesale — they are not load-bearing. */
+
+.slot {
+  margin: var(--space-8) 0;
+  padding: var(--space-5) var(--space-4);
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--radius-card);
+  background: var(--paper-warm);
+  text-align: center;
+}
+
+.slotDone {
+  border-style: solid;
+  border-color: rgba(63, 110, 50, 0.4);
+  background: rgba(63, 110, 50, 0.06);
+}
+
+.slotEyebrow {
+  font-size: var(--text-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: var(--track-label);
+  font-weight: 600;
+  color: var(--tan-deep);
+  margin: 0 0 var(--space-2);
+}
+
+.slotDone .slotEyebrow {
+  color: #2d5520;
+}
+
+.slotTitle {
+  font-family: var(--serif);
+  font-size: var(--text-h3);
+  margin: 0 0 var(--space-2);
+  color: var(--olive-deep);
+}
+
+.slotBody {
+  margin: 0 auto;
+  max-width: 480px;
+  color: var(--gray);
+  font-size: var(--text-small);
+  line-height: 1.6;
+}
+
+.slotMeta {
+  margin-top: var(--space-3);
+  font-size: var(--text-micro);
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: var(--track-label);
+}
+
+/* Contact footer */
+
+.footer {
+  margin-top: var(--space-12);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: var(--text-small);
+  color: var(--gray);
+  line-height: 1.6;
+}
+
+.footerLine {
+  margin: 0 0 var(--space-1);
+}
+
+.empty {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--gray);
+  font-style: italic;
+}

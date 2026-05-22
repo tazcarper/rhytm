@@ -1,0 +1,136 @@
+.bar {
+  padding: 0.5rem 0 1rem;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0 1rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  position: relative;
+}
+
+/* Track line that runs behind every dot. Anchored to the dot centers
+   via fixed left/right offsets matching the dot radius (18px). */
+.list::before {
+  content: "";
+  position: absolute;
+  top: 17px;
+  left: calc(1rem + 18px);
+  right: calc(1rem + 18px);
+  height: 2px;
+  background: var(--border);
+  z-index: 0;
+}
+
+/* Filled portion of the track. Width is a fraction (0–1) of the same
+   span via --progress. Smooth fill across step changes. */
+.list::after {
+  content: "";
+  position: absolute;
+  top: 17px;
+  left: calc(1rem + 18px);
+  width: calc(var(--progress, 0) * (100% - 2rem - 36px));
+  height: 2px;
+  background: var(--olive);
+  z-index: 0;
+  transition: width var(--transition-base);
+}
+
+.item {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dotBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.dotBtn:disabled {
+  cursor: default;
+}
+
+.dotBtn:focus-visible {
+  outline: 2px solid var(--olive);
+  outline-offset: 4px;
+  border-radius: 999px;
+}
+
+.dot {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--paper);
+  color: var(--gray);
+  font-family: var(--serif);
+  font-size: 15px;
+  font-weight: 600;
+  transition:
+    background var(--transition-base),
+    color var(--transition-base),
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+/* Pending — outline only, muted text. Explicit so the styling is intentional
+   and survives future state additions. */
+.dotBtn[data-state="pending"] .dot {
+  background: var(--paper);
+  color: var(--gray);
+  border-color: var(--border);
+}
+
+/* Current — outlined in olive with an olive numeral and soft halo. Reads as
+   "you are here" without being indistinguishable from completed steps. */
+.dotBtn[data-state="current"] .dot {
+  background: var(--paper);
+  color: var(--olive);
+  border-color: var(--olive);
+  border-width: 2px;
+  box-shadow: 0 0 0 5px rgba(86, 88, 50, 0.14);
+}
+
+/* Complete — solid olive fill with paper-colored glyph. */
+.dotBtn[data-state="complete"] .dot {
+  background: var(--olive);
+  color: var(--paper);
+  border-color: var(--olive);
+}
+
+.dotBtn:not(:disabled):hover .dot {
+  border-color: var(--tan-deep);
+}
+
+.label {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--gray);
+  white-space: nowrap;
+  transition: color var(--transition-base);
+}
+
+.dotBtn[data-state="current"] .label,
+.dotBtn[data-state="complete"] .label {
+  color: var(--olive);
+}

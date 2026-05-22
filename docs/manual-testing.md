@@ -10,8 +10,11 @@ Every scenario assumes the **`/dev` dashboard** at `http://localhost:3000/dev` i
 |---|---|---|---|
 | 2026-05-18 | A, B, B2, C, D, E | ✅ All passed | First full end-to-end verification against live Supabase after Phase 4 schema refactor (split `members` → `people` + `memberships` + `membership_people`) and RLS cycle hotfixes. Auth gate is now considered production-ready for member sign-in. |
 | 2026-05-18 | F | ⏳ Pending | New scenario for the production `/login` page (App 4 first slice). To be run once the Supabase email template fix is confirmed; until then, exercise via the `/dev` magic-link generator as documented in the scenario prereq. |
+| 2026-05-21 | P1, P2, P3, P4, P5, P7, P8, P9, P10, P11, P12, P-status | ✅ All passed | Executed 2026-05-21 against live Supabase + local dev server. P6 skipped (DB-layer constraint coverage). P10b deferred to pre-launch polish gate (real-inbox preview belongs with App 8's Resend transport work). P4 surfaced a known UX gap (live availability filter on the slot picker — already tracked in TRACKER's Deferred Improvements under "promote service-role public reads to SECURITY DEFINER RPCs"; not a bug, planned pre-launch). P-status workflow-guard trigger re-enabled cleanly (`tgenabled = 'O'`). |
 
-Re-run all scenarios before any future change that touches: `/auth/callback`, `middleware.ts`, the people / memberships / membership_people / member_adventure_rsvps schema, or any RLS policy on those tables.
+Re-run **A–F** before any future change that touches: `/auth/callback`, `middleware.ts`, the people / memberships / membership_people / member_adventure_rsvps schema, or any RLS policy on those tables.
+
+Re-run **P1–P12 + P-status** before any future change that touches: `create_public_booking()` PL/pgSQL function, `src/services/bookings/create-public-booking.ts`, the booking-flow components (`<BookingTypePicker>`, `<BookingBuilder>`, `<BookingSummary>`, `<DetailsForm>`), the bid page (`app/(public)/bids/[slug]/[code]/page.tsx`), `src/services/bids/get-bid.ts`, `src/services/bids/bid-url.ts`, the booking-flow provider/guard, the email shim (`src/services/notifications/send-email.ts`), any RLS policy on `bookings` / `booking_disciplines` / `booking_add_ons` / `bids`, or any of Phase 2's BEFORE triggers / exclusion constraint.
 
 ---
 
@@ -175,11 +178,303 @@ Verifies the `property_id` claim propagates from `app_metadata` to the admin por
 
 ---
 
+## App 2 — Public Booking Flow
+
+The "P" series. Covers the public funnel (`/book` → property picker → `/book/[property]` → `/book/[property]/disciplines` → `/book/[property]/details` → `/bids/[slug]/[code]`), Phase 2's BEFORE triggers + instructor exclusion constraint, Phase 3's bid page + access-code gate, and the App 2.9 confirmation-email shim. Every constraint Phase 2 added gets hit by at least one scenario.
+
+The funnel is anonymous — no `/dev` sign-in required for the happy paths. Supabase Studio (or `psql`) is required for the verification queries and for the SQL UPDATEs in P-status.
+
+### App 2 prerequisites (do once per test session)
+
+- [ ] `npm run dev` is running and the homepage at `http://localhost:3000/` lists three properties.
+- [ ] `NEXT_PUBLIC_SITE_URL` is set in `.env.local` (or absent — defaults to `http://localhost:3000`). The confirmation email's `bidUrl` is built from this.
+- [ ] Placeholder seeds are present: `services` + `add_ons` + `service_add_ons` (migration `20260520120000_*`), `time_slots` + `instructors` (migration `20260520130100_*`), `pricing_rules` (migration `20260520140000_*`). Confirm with:
+  ```sql
+  SELECT COUNT(*) FROM services WHERE description LIKE 'PLACEHOLDER%';   -- expect ≥10
+  SELECT COUNT(*) FROM time_slots;                                       -- expect 84 (3 properties × 7 days × 4 slots)
+  SELECT COUNT(*) FROM instructors WHERE name LIKE 'PLACEHOLDER%';       -- expect 7
+  ```
+- [ ] `dev_email_outbox` table exists (migration `20260521080000_*`):
+  ```sql
+  SELECT to_regclass('public.dev_email_outbox');   -- expect 'dev_email_outbox', not NULL
+  ```
+- [ ] Two browser profiles (or a regular window + an incognito) available for P5 (race condition).
+
+### App 2 cleanup helper
+
+Bookings can't be reset via `/dev` today — that admin surface lands in App 3. For now, use a fresh plus-aliased email per scenario (e.g. `you+p1@example.com`, `you+p2@example.com`) and clean up at the end of the session:
+
+```sql
+-- Sweep test bookings + their cascaded bids + booking_disciplines + booking_add_ons.
+-- `bookings` cascades to all child rows in Phase 2's schema.
+DELETE FROM bookings
+WHERE guest_email LIKE 'you+%@example.com';
+
+-- Sweep test email-shim rows.
+DELETE FROM dev_email_outbox
+WHERE to_email LIKE 'you+%@example.com';
+```
+
+`properties.max_concurrent_groups` is seeded at `1` for all three properties (Q2 will tune). That means **any** second concurrent booking at the same property + date + slot trips the capacity trigger — P4 needs only two attempts at the same slot, not three.
+
+---
+
+### P1 — Happy path: Plan a Visit
+
+Confirms the most common funnel: anon guest, multi-discipline + add-on, plan_a_visit duration defaults, booking + bid + email shim row all created in one transaction.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Open `http://localhost:3000/` | Property picker lists Horseshoe Bay, Hog Heaven, Packsaddle with brand cards |
+| 2 | Click **Horseshoe Bay Sporting Club** | Lands on `/book/horseshoe-bay`. Three booking-type cards visible. URL has no query params |
+| 3 | Click **Plan a Visit** | Routes to `/book/horseshoe-bay/disciplines`. The `<BookingBuilder>` renders: discipline list, guest stepper (showing 1), calendar + slot grid, sticky "Estimate Total" footer |
+| 4 | Click **Sporting Clays** card. Toggle **Drink Cart** add-on with quantity 2 | Card expands; add-on toggles on with `+`/`−` stepper at 2; Estimate Total updates |
+| 5 | Step guest count to 4 | "4 guests". Estimate Total recomputes (tier hit: `1–4` rate × 4 = $600) |
+| 6 | Click tomorrow's date on the calendar | Slot grid populates with 9 AM / 11 AM / 1 PM / 3 PM |
+| 7 | Click **9 AM** | Slot tile highlights. Continue button enables |
+| 8 | Click **Continue** | Routes to `/book/horseshoe-bay/details`. Right-rail summary shows: Plan a Visit, Sporting Clays, Drink Cart × 2, 4 guests, tomorrow's date, 9 AM CT, Estimate Total |
+| 9 | Fill name `Test P1`, email `you+p1@example.com`, phone `5125550100`, leave notes empty. Click **Submit booking →** | Button shows "Submitting…"; ~1s later browser redirects to `/bids/<slug>/<code>` |
+| 10 | Inspect the bid page | Hero shows "Horseshoe Bay Sporting Club" + tomorrow's date long form + "9 AM CT". Status banner reads "Your bid is being prepared." Body is hidden (pending_review). Footer renders |
+| 11 | In Supabase Studio, run: `SELECT b.guest_name, b.guest_count, b.start_time, b.capacity_reserved, bd.service_id, COUNT(*) FROM bookings b JOIN booking_disciplines bd ON bd.booking_id = b.id WHERE b.guest_email = 'you+p1@example.com' GROUP BY b.id, bd.service_id;` | One row: guest_name `Test P1`, guest_count `4`, start_time tomorrow 9 AM Chicago, capacity_reserved `1`, one booking_disciplines row for Sporting Clays |
+| 12 | Run: `SELECT add_on_id, quantity, unit_price_at_booking FROM booking_add_ons ba JOIN bookings b ON b.id = ba.booking_id WHERE b.guest_email = 'you+p1@example.com';` | One row: quantity `2`, unit_price_at_booking matches the seeded add-on price ($50.00 for Drink Cart) — NOT zero, NOT NULL, NOT a tampered payload value |
+| 13 | Run: `SELECT slug, status, access_code_hash IS NOT NULL FROM bids WHERE booking_id IN (SELECT id FROM bookings WHERE guest_email = 'you+p1@example.com');` | One row: slug matches the URL segment, status `pending_review`, hash is NOT NULL |
+| 14 | Run: `SELECT to_email, subject, template_name, payload->>'bidUrl', length(body_html), length(body_text) FROM dev_email_outbox WHERE to_email = 'you+p1@example.com' ORDER BY created_at DESC LIMIT 1;` | One row: subject "We're preparing your bid for Horseshoe Bay Sporting Club", template_name `guest_booking_confirmation`, bidUrl is an **absolute** URL beginning with `http://localhost:3000/bids/...`, body_html length > 1000, body_text length > 100 |
+
+**Pass criteria:** every row above matches. The "absolute URL in payload bidUrl" check is load-bearing — App 8 emails depend on it; a relative URL would silently break links sent over real email.
+
+---
+
+### P2 — Happy path: Private Lesson
+
+Confirms the private_lesson branch: instructor auto-assignment, 1-hour default duration, the bid page surfaces the assigned instructor.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | `/book` → **Packsaddle Precision** → **Private Lesson** | `<BookingBuilder>` renders. Single-select on disciplines (clicking a second one replaces the first, not adds) |
+| 2 | Click **Precision Rifle**. Guest count 1. Pick tomorrow 11 AM. Continue | Estimate Total shows $200 (private_lesson seeded rate × 1 hour) |
+| 3 | Submit with name `Test P2`, email `you+p2@example.com`, phone `5125550101` | Redirects to `/bids/<slug>/<code>` |
+| 4 | `SELECT instructor_id, duration_hours FROM bookings WHERE guest_email = 'you+p2@example.com';` | instructor_id is NOT NULL (auto-assigned — should be `PLACEHOLDER Jordan Vance` at Packsaddle), duration_hours `1` |
+| 5 | `SELECT name FROM instructors WHERE id = <instructor_id from step 4>;` | Returns one of the seeded Packsaddle instructor names. |
+| 6 | Re-inspect the bid page (still `pending_review` so the body is hidden — that's fine). Force `confirmed` for the visual check: `UPDATE bids SET status = 'confirmed' WHERE booking_id = (SELECT id FROM bookings WHERE guest_email = 'you+p2@example.com');` | (See P-status for the safer ALTER TABLE DISABLE TRIGGER workflow if the workflow-guard trigger blocks the UPDATE — at `pending_review → confirmed` it doesn't, so this should succeed directly) |
+| 7 | Reload the bid page | Body section is now visible. Instructor row reads "Instructor: PLACEHOLDER [name]" |
+
+**Pass criteria:** instructor auto-assignment writes a real `instructor_id` (not NULL); the bid page surfaces it after `confirmed`.
+
+---
+
+### P3 — Happy path: Host an Occasion
+
+Confirms exclusive-use copy + the capacity trigger reserves the full property (`capacity_reserved` = `max_concurrent_groups`).
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | `/book` → **Hog Heaven Sporting Club** → **Host an Occasion** | Notice on the type card: "exclusive use — your booking blocks all other guests at this property during your window." |
+| 2 | Builder renders. **Disciplines section is hidden** (host bookings don't surface guest-driven discipline selection). Guest count 12. Pick tomorrow 1 PM. Continue | Estimate Total shows "Team-quoted" (the team_quoted pricing model — no number; copy explicitly says quote will follow) |
+| 3 | Submit with name `Test P3`, email `you+p3@example.com`, phone `5125550102` | Redirects to bid page |
+| 4 | `SELECT capacity_reserved, booking_type FROM bookings WHERE guest_email = 'you+p3@example.com';` | capacity_reserved `1` (matches Hog Heaven's `max_concurrent_groups`), booking_type `host_an_occasion` |
+| 5 | `SELECT COUNT(*) FROM booking_disciplines WHERE booking_id = (SELECT id FROM bookings WHERE guest_email = 'you+p3@example.com');` | `0` rows (host bookings don't carry disciplines) |
+
+**Pass criteria:** capacity_reserved equals the property's `max_concurrent_groups`, no discipline rows.
+
+---
+
+### P4 — Property capacity rejection
+
+Two Plan-a-Visit bookings at the same property + date + slot — second submission must surface the friendly capacity error, not a 500.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Run P1 happy path through step 9 (booking + bid created at HSB tomorrow 9 AM with `you+p4a@example.com`) | First booking succeeds, bid page renders |
+| 2 | New browser tab. Walk the funnel again: HSB → Plan a Visit → any discipline → 1 guest → **tomorrow 9 AM** (the slot that's now full) → details → submit with `you+p4b@example.com` | Submit button shows "Submitting…", then the form re-renders with a red `<Alert>` above the fields: "That slot just filled — pick another time." Form fields stay populated; bid page does NOT load |
+| 3 | `SELECT COUNT(*) FROM bookings WHERE start_time = (SELECT start_time FROM bookings WHERE guest_email = 'you+p4a@example.com');` | `1` row — the second attempt was rejected at the DB layer (Phase 2's `bookings_03_check_property_capacity` trigger) |
+| 4 | `SELECT COUNT(*) FROM dev_email_outbox WHERE to_email = 'you+p4b@example.com';` | `0` rows — `after()` only fires when the RPC returns successfully, so no outbox row was written for the rejected attempt |
+
+**Pass criteria:** form shows the friendly capacity copy (NOT a Sentry-style stack trace or generic "Something went wrong"); the DB has only one booking; no spurious email row.
+
+---
+
+### P5 — Instructor exclusion rejection (race condition)
+
+Two private_lesson submissions for the same property + date + slot — Phase 2's tstzrange exclusion constraint ensures only one wins. The other must surface the friendly instructor-unavailable error.
+
+This scenario requires two browser profiles or two devices submitting near-simultaneously. The exclusion constraint catches the race regardless of timing; the test is whether the UI surfaces the right error.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Browser A: walk to `/book/packsaddle/details` with private_lesson + Precision Rifle + tomorrow 11 AM. Fill `Test P5a` / `you+p5a@example.com`. **Don't submit yet.** | Submit button enabled |
+| 2 | Browser B (incognito): repeat with `Test P5b` / `you+p5b@example.com`. Same property + slot. **Don't submit yet.** | Submit button enabled |
+| 3 | Click **Submit booking →** in both browsers within ~1 second of each other | One browser lands on `/bids/<slug>/<code>`. The other re-renders the form with an `<Alert>`: "That instructor is no longer available — pick another time." |
+| 4 | `SELECT guest_email, instructor_id FROM bookings WHERE start_time = (the slot's timestamptz) AND booking_type = 'private_lesson';` | Exactly **one** row — only one of the two attempts wrote to the DB. The other was rejected by Phase 2's exclusion constraint (errcode `23P01`) |
+
+**Pass criteria:** the loser sees the friendly "instructor not available" copy (not "slot just filled" — that's P4's copy; the error mapping is `23P01 → instructor_unavailable`, which is what `create-public-booking.ts` translates).
+
+If both browsers land on bid pages, the exclusion constraint isn't firing — that's a real bug, file it.
+
+---
+
+### P6 — Discipline/add-on mismatch (tampered request)
+
+The form prevents picking a mismatched combo, so this scenario uses a `curl` POST against the Server Action endpoint to confirm the **server-side** Phase 2 trigger (`booking_add_ons_check_discipline`, deferred-constraint) catches a tampered submission.
+
+Server Actions in Next.js 16 are POST endpoints reachable at the route they're declared in. Since the action is wired through React's RPC layer, hitting it via raw curl requires the action ID + the React Server Action protocol — too brittle to script in this doc.
+
+**Practical alternative:** patch a single value in `details-form.tsx` temporarily to force a known-bad payload. Or skip this scenario in the manual pack and rely on Phase 2's migration tests (which already exercise the trigger) for coverage.
+
+Recommend: skip in manual; confirm via the migration's existing unit test when the next admin tool surfaces a way to construct cross-property add-on payloads.
+
+If you do run it: 
+- Edit `src/components/public/booking-flow/details-form.tsx` `handleSubmit` to swap one `addOnId` for an add-on UUID that's seeded to a DIFFERENT property (e.g. a Packsaddle Target Package while booking HSB).
+- Submit.
+- Expect the form to show `<Alert>`: "Booking details don't match our rules. Please review and try again." (error code `23503` FK or `23514` CHECK in `create-public-booking.ts`'s `mapPgError`).
+- Revert the test patch.
+
+**Pass criteria:** the alert shows; no booking row is created. Skipping is acceptable for routine re-runs.
+
+---
+
+### P7 — Bid URL correctness
+
+Confirms `buildBidUrl()` / `parseBidUrlParams()` / `validate_bid_access_code()` round-trip correctly and 404s without leaking slug existence.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | From P1's success, copy the bid URL: `http://localhost:3000/bids/<slug>/<code>` | URL captured |
+| 2 | Open `http://localhost:3000/bids/<slug>/<code>` in a fresh incognito tab | Bid page renders (same as P1 step 10) |
+| 3 | Open `http://localhost:3000/bids/<slug>` (no code segment) | 404 page (not 401, not "Bid not found", not an error stack) |
+| 4 | Open `http://localhost:3000/bids/<slug>/xxxx` (wrong code) | 404 page |
+| 5 | Open `http://localhost:3000/bids/this-slug-does-not-exist/<code>` (unknown slug, real code) | 404 page |
+
+**Pass criteria:** rows 3–5 all 404. Any non-404 response leaks slug existence (the design intent is "without the code, the bid is not findable, period").
+
+---
+
+### P8 — RLS: anon cannot read another bid
+
+A cross-bid attempt. Verifies the access-code gate is doing real work (not just URL pattern-matching).
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | From P1 (you+p1@…), capture slug A + code A | URLs captured |
+| 2 | From P2 (you+p2@…), capture slug B + code B | URLs captured |
+| 3 | Open `http://localhost:3000/bids/<slug-A>/<code-B>` | 404 page — slug A exists, code B doesn't validate against slug A's `access_code_hash` |
+| 4 | Open `http://localhost:3000/bids/<slug-B>/<code-A>` | 404 page — symmetric check |
+
+**Pass criteria:** both 404. If either bid page renders, the bcrypt hash compare in `validate_bid_access_code()` is broken (or there's a hash-key collision — extraordinarily unlikely with bcrypt + 32-byte codes, file an incident).
+
+---
+
+### P9 — RLS: anon cannot list bids
+
+Direct API smoke — confirms that `bids` has no anon SELECT policy. The bid page reads via service-role for this reason.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | `curl 'https://<project-ref>.supabase.co/rest/v1/bids?select=*' -H "apikey: <NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY>"` | Returns `[]` (empty array). No rows leak through |
+| 2 | Same with `bookings`, `booking_disciplines`, `booking_add_ons`: replace `bids` in the URL | `[]` for every table |
+| 3 | `curl 'https://<project-ref>.supabase.co/rest/v1/dev_email_outbox?select=*' -H "apikey: <NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY>"` | `[]` (the email-shim table is RLS-enabled with no policies — same defense pattern as `processed_webhooks`) |
+
+**Pass criteria:** every query returns an empty array. If `bookings` ever leaks rows here, anon clients could enumerate guest_email + phone — that's a PII breach, drop everything and patch immediately.
+
+---
+
+### P10 — Email shim wrote payload
+
+Already partially covered in P1 step 14. Promoting to a standalone scenario so the visual review is explicit.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Run P1 through completion if not already done | `dev_email_outbox` has the row |
+| 2 | Visit `/dev/emails`. Enter `DEV_DASHBOARD_PASSWORD` if prompted | Outbox lists P1's row at the top of the list. The right panel shows metadata (Subject, To, From, Template, Source, Sent) + the rendered HTML in a sandboxed iframe + the raw template props |
+| 3 | Inspect the iframe content visually | Email title "We're preparing your bid." renders in serif. Guest name + property name + "tomorrow's date · 9 AM CT" line displays. Button "View your bid" is clickable and points at the bid URL. Bare-URL fallback paragraph below the button shows the same URL |
+| 4 | Click the "View your bid" button inside the iframe | Browser navigates to the bid URL (opens in a new tab if the iframe sandbox blocks navigation in the current frame — that's expected) |
+| 5 | Resize the browser to <980px wide | Layout stacks: list on top, detail panel below. List is page-scrollable (no nested 360px scroll trap). Iframe stays visible |
+
+**Pass criteria:** every row matches. Step 4 specifically — the bidUrl in the email must navigate to the SAME bid URL the funnel redirected to. If clicking the button 404s, the email's URL construction (`buildAbsoluteBidUrl(getSiteOrigin(), slug, code)`) is broken.
+
+### P10b — Real-inbox preview (optional polish gate)
+
+Pre-launch sanity check before App 8 swaps the transport to Resend. Skip on routine re-runs; run before flipping App 2 to ✅.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | On `/dev/emails`, right-click the iframe → "View frame source" (Chrome) or copy `body_html` from `SELECT body_html FROM dev_email_outbox ORDER BY created_at DESC LIMIT 1;` | HTML captured |
+| 2 | Paste into Gmail compose body. Send to yourself | Email arrives |
+| 3 | Open on Gmail web, Gmail iOS, Apple Mail iOS, Outlook web, Outlook desktop if available | Layout holds. Button is tappable on mobile. Apple Mail dark mode renders sensibly (this is the highest-risk failure mode) |
+| 4 | (Optional) Paste into Litmus or Email on Acid for a multi-client preview | No critical layout breaks across Gmail / Outlook 2016+ / Apple Mail / Yahoo |
+
+**Pass criteria:** the email is readable in every major client. If Outlook desktop strips the button or Apple Mail dark mode inverts text into invisibility, the inline styles need a hardening pass before App 8 (or App 8 picks up the fixes). Document findings — don't block 2.10 sign-off unless a client is catastrophically broken.
+
+---
+
+### P11 — Back navigation preserves state
+
+Confirms the `<BookingFlowProvider>` keeps in-progress funnel state across client-side route changes (the layout never remounts between funnel steps).
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | `/book` → Hog Heaven → Plan a Visit → pick Wing Shooting + Drink Cart at quantity 3, guests 6, tomorrow 3 PM → Continue | Lands on `/book/hog-heaven/details` with the summary rail showing all selections |
+| 2 | Click the browser's **Back** button once | Returns to `/book/hog-heaven/disciplines`. Wing Shooting is still expanded + selected. Drink Cart is still on at quantity 3. Guest count still shows 6. Calendar still shows tomorrow selected. 3 PM slot still highlighted |
+| 3 | Click **Back** again | Returns to `/book/hog-heaven`. The Plan a Visit card has the highlighted/selected state (via `data-selected`) — visible as a thicker border or accent color |
+| 4 | Click **Plan a Visit** again | Routes forward to `/book/hog-heaven/disciplines`. **All prior selections still present.** Continue button enabled |
+| 5 | Click **Continue** → fill the form → submit | Booking succeeds end-to-end |
+
+**Pass criteria:** zero state loss across back-and-forward. If guests resets to 1 or disciplines un-select on back-nav, the provider has remounted (the layout was force-rendered or React's identity changed). That's a regression in `<BookingFlowProvider>` or in how `app/(public)/book/[property]/layout.tsx` mounts it.
+
+---
+
+### P12 — Refresh resets to step 1
+
+Confirms the deliberate-tradeoff state model: back-nav preserves, refresh resets. Anon guests don't get cookie/localStorage persistence (per `plan/app/app-2-public-booking.md` decision 6).
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | `/book` → Horseshoe Bay → Plan a Visit → pick anything → reach `/book/horseshoe-bay/disciplines` mid-funnel | Funnel state populated |
+| 2 | Press F5 / Cmd-R (refresh) | Browser redirects to `/book/horseshoe-bay?reset=1`. The property page renders with an `<Alert>` banner: "Let's start over — your prior selections cleared on refresh." (or similar; check the exact copy in `<BookingFlowGuard>`) |
+| 3 | Click any booking type | Funnel begins fresh — no prior selections leaked through |
+| 4 | Navigate directly to `/book/horseshoe-bay/details` from a new browser tab (no funnel history) | Same redirect to `/book/horseshoe-bay?reset=1` — the guard requires `bookingType + date + slotStart + guest` and none are set in a fresh tab |
+
+**Pass criteria:** every row matches. If refresh keeps state, someone added cookie/localStorage persistence — revert that change, it was an explicit no.
+
+---
+
+### P-status — Bid status branch coverage
+
+Walks the bid page through every status. Already exercised during 2.7/2.8 dev; formalize as a re-runnable scenario.
+
+The `bids_sync_booking_status` trigger enforces a **forward-only** status workflow: `pending_review → confirmed → signed → paid`, plus the `denied`/`expired` terminal branches. Manual SQL UPDATEs from a later state to an earlier state (e.g. `paid → denied`) RAISE — that's correct application behavior, not a bug. To walk all branches in one session, disable the trigger first:
+
+```sql
+-- Temporarily skip the workflow guard for testing
+ALTER TABLE bids DISABLE TRIGGER bids_sync_booking_status;
+```
+
+**Re-enable when done:**
+```sql
+ALTER TABLE bids ENABLE TRIGGER bids_sync_booking_status;
+```
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Run P1 to create a bid. Note the slug | Bid page at `pending_review` — hero + status banner; body hidden |
+| 2 | `ALTER TABLE bids DISABLE TRIGGER bids_sync_booking_status;` | Trigger off |
+| 3 | `UPDATE bids SET status = 'confirmed' WHERE slug = '<slug>';`. Reload bid page | Body renders: guest summary, disciplines + add-ons, gear list (or empty state), schedule, FAQ (or empty), map placeholder, signature slot (active), deposit slot (active). Confirmed price line if `confirmed_price` is set; "—" otherwise |
+| 4 | `UPDATE bids SET status = 'signed' WHERE slug = '<slug>';`. Reload | Signature slot now shows "Signed ✓" with the timestamp; deposit slot still active |
+| 5 | `UPDATE bids SET status = 'paid' WHERE slug = '<slug>';`. Reload | Both slots show "done" / completed copy. Hero adds "We'll see you on <date>" |
+| 6 | `UPDATE bids SET status = 'denied' WHERE slug = '<slug>';`. Reload | Body hidden. Status banner: "This bid is no longer active — contact us to rebook." No embeds |
+| 7 | `UPDATE bids SET status = 'expired' WHERE slug = '<slug>';`. Reload | Same shape as `denied` (terminal-inactive branch) |
+| 8 | `ALTER TABLE bids ENABLE TRIGGER bids_sync_booking_status;` | Trigger back on. Forgetting this leaves the workflow guard off — re-enable before any other test session |
+
+**Pass criteria:** each status renders the right shape per `app/(public)/bids/[slug]/[code]/page.tsx`'s `isActiveBid(status)` predicate. If `signed` doesn't show the "Signed ✓" affordance, the signature slot's status branch is broken.
+
+---
+
 ## Cleanup
 
 After a testing session, for every plus-aliased email used:
 
-- [ ] `/dev` → Reset test user
+- [ ] `/dev` → Reset test user (auth scenarios)
+- [ ] For App 2 scenarios, run the SQL cleanup helper in the "App 2 cleanup helper" section above (clears `bookings`, cascaded children, and `dev_email_outbox` rows)
+- [ ] If P-status was run, confirm `ALTER TABLE bids ENABLE TRIGGER bids_sync_booking_status;` was executed — a left-disabled workflow guard silently allows invalid status transitions on future bookings
 
 Verify Recent member rows is back to whatever it was before the session started (or empty).
 

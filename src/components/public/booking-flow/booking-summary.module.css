@@ -1,0 +1,213 @@
+.box {
+  position: sticky;
+  top: 2rem;
+  padding: 1.75rem 1.5rem;
+  border: 1px solid var(--tan-deep);
+  border-radius: var(--radius-card);
+  background: var(--paper-warm);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+@media (max-width: 720px) {
+  .box {
+    position: static;
+    top: auto;
+  }
+}
+
+.eyebrow {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--tan-deep);
+  margin: 0;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.sectionLabel {
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--gray);
+  margin: 0;
+}
+
+.fact {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--olive);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.factSub {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--gray);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.listItem {
+  font-family: var(--serif);
+  font-size: 14px;
+  color: var(--olive);
+  line-height: 1.3;
+}
+
+.listItem::before {
+  content: "— ";
+  color: var(--tan-deep);
+}
+
+/* ---- add-on rows with X button ---- */
+
+.addOnLine {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.addOnText {
+  font-family: var(--serif);
+  font-size: 14px;
+  color: var(--olive);
+  line-height: 1.3;
+}
+
+.addOnQty {
+  font-style: italic;
+  color: var(--gray);
+}
+
+.addOnAmount {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--olive);
+}
+
+.removeBtn {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--gray);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.removeBtn:hover {
+  background: var(--accent-error, #b04040);
+  color: var(--paper);
+  border-color: var(--accent-error, #b04040);
+}
+
+.removeBtn:focus-visible {
+  outline: 2px solid var(--olive);
+  outline-offset: 2px;
+}
+
+/* ---- per-guest fee row (no X button, included in base experience) ---- */
+
+.feeLine {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.feeText {
+  font-family: var(--serif);
+  font-size: 14px;
+  color: var(--olive);
+  line-height: 1.3;
+}
+
+.feeAmount {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--olive);
+}
+
+/* ---- divider + total ---- */
+
+.divider {
+  height: 1px;
+  background: var(--tan);
+  margin: 0.25rem 0;
+}
+
+.total {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.totalLabel {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--tan-deep);
+  margin: 0;
+}
+
+.totalAmount {
+  font-family: var(--serif);
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--olive);
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.totalNote {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--gray);
+  margin: 0.2rem 0 0;
+}
+
+.cta {
+  width: 100%;
+  margin-top: 0.25rem;
+}

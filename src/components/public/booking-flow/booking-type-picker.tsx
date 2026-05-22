@@ -18,14 +18,14 @@ export function BookingTypePicker() {
     // Switching to a different type invalidates any prior discipline selections —
     // catalog scope and single/multi-select rules differ per type.
     if (state.bookingType && state.bookingType !== type) {
-      setState({ bookingType: type, disciplineSelections: undefined });
+      setState({ bookingType: type, disciplineSelections: [] });
     } else {
       setState({ bookingType: type });
     }
-    // Host an Occasion takes the property exclusively — no guest-driven
-    // discipline selection (Q4 may revise this). Route past /disciplines.
-    const nextStep = type === "host_an_occasion" ? "when" : "disciplines";
-    router.push(`/book/${propertySlug}/${nextStep}`);
+    // All three booking types route through /disciplines now — the page
+    // hides the discipline picker section for host_an_occasion since
+    // exclusive-use bookings don't surface guest-driven discipline picks.
+    router.push(`/book/${propertySlug}/disciplines`);
   }
 
   return (
