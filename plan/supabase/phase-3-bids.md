@@ -39,9 +39,12 @@ CREATE TYPE bid_status_enum AS ENUM (
   'denied',          -- staff rejected, booking slot released
   'signed',          -- waiver signed via Dropbox Sign
   'paid',            -- deposit received via Stripe
-  'expired'          -- confirmed/signed but guest did not complete within expires_at
+  'expired',         -- confirmed/signed but guest did not complete within expires_at
+  'refunded'         -- App 6 — admin Refund flipped a paid bid; booking goes to 'cancelled'
 );
 ```
+
+**App 6 (2026-05-23) added `'refunded'`** via `20260523120000_app_6_bid_enum_refunded.sql`. Postgres forbids referencing a newly-added enum value in the same transaction that adds it, which is why the App 6 deposit migration is split: enum bump first, columns + trigger second.
 
 ### Step 2 — Slug generation function
 
@@ -237,7 +240,17 @@ BEGIN
     WHEN 'paid' THEN
       UPDATE bookings
       SET status = 'deposit_paid', updated_at = now()
-      WHERE id = NEW.booking_id AND status = 'signed';
+      WHERE id = NEW.booking_id AND status IN ('awaiting_guest', 'signed');
+      -- App 6 relaxed source state from 'signed' → ('awaiting_guest', 'signed'):
+      -- deposit can clear before signature. Either ordering reaches deposit_paid.
+
+    WHEN 'refunded' THEN
+      -- App 6: admin Refund flips a paid bid to refunded; booking goes to
+      -- cancelled (slot releases). Post-event refunds intentionally blocked
+      -- (no match on 'fulfilled') — those are a Stripe-dashboard-only path.
+      UPDATE bookings
+      SET status = 'cancelled', updated_at = now()
+      WHERE id = NEW.booking_id AND status = 'deposit_paid';
 
     WHEN 'expired' THEN
       UPDATE bookings
@@ -456,10 +469,16 @@ CREATE POLICY "bids: staff update"
 5. The `sync_booking_from_bid` trigger fires and sets `bookings.status = 'signed'`
 6. Inngest continues the post-sign workflow (Stripe payment step)
 
-**Stripe flow.** The bid page embeds a Stripe Payment Element for the deposit. On payment success:
-1. Stripe fires a webhook (`payment_intent.succeeded`)
-2. Webhook handler opens a single transaction and inside it: sets `bookings.deposit_payment_intent_id`, then sets `bids.status = 'paid'`. **Both writes are atomic — if the handler crashes after one but before the other, neither commits.** The sync trigger then fires inside the same transaction and sets `bookings.status = 'deposit_paid'`, but only because the `deposit_payment_intent_id` write that preceded it is also in the transaction. Order matters: set the payment intent ID *before* the bid status, so that any code reading `bookings` after `deposit_paid` is guaranteed to see the intent ID.
-3. Inngest fires the confirmation workflow (HubSpot deal update, confirmation email) — keyed off the Inngest event emitted from the route handler after the transaction commits, not directly off Stripe.
+**Stripe flow.** *Revised in App 6 (2026-05-23, Pattern A).* The bid page embeds `<PaymentElement>` from `react-stripe-js`, backed by a raw `paymentIntents.create()` call (NOT a Checkout Session — `react-stripe-js` has no React bindings for `ui_mode: 'custom'`). See `plan/app/app-6-stripe-deposit.md` for the full design. Summary:
+1. Server Action `createDepositSession` creates a PaymentIntent and writes `pi.id` to `bookings.deposit_payment_intent_id` (UNIQUE partial index, Phase 2). Idempotency key includes the amount so amount-drift after staff edit gets a fresh PI.
+2. The browser mounts `<Elements>` + `<PaymentElement>` with the PI's `client_secret`. Guest confirms via `stripe.confirmPayment()`.
+3. Stripe fires `payment_intent.succeeded`. The webhook handler claims the event in `processed_webhooks` (Phase 6 pattern), then writes `bids.status='paid', paid_at=now()`. The `sync_booking_from_bid` trigger fans the bid change out to `bookings.status='deposit_paid'`. (The `deposit_payment_intent_id` was already set during the Server Action — the webhook doesn't re-write it.)
+4. A branded receipt email fires via the existing `EmailService` interface (LoggingEmailService → `dev_email_outbox` today; ResendEmailService in App 8). Stripe's auto-receipt is intentionally suppressed (no `receipt_email` on PI create).
+5. Inngest fires the confirmation workflow (HubSpot deal update, etc.) — keyed off the Inngest event emitted from the route handler after the writes commit, not directly off Stripe.
+
+**Trigger relaxation (App 6).** `sync_booking_from_bid` now permits `bid.status='paid'` from `booking.status IN ('awaiting_guest', 'signed')`. Originally only `'signed'` was allowed, which transitively required Dropbox Sign (App 7) before any deposit could clear. The two steps are now independent — pay-before-sign and sign-before-pay both reach `deposit_paid`. The bid is "fully finalized" (UI rule) when `paid_at IS NOT NULL AND signed_at IS NOT NULL`.
+
+**Refund flow (App 6).** Admin Refund flips `bid.status='paid' → 'refunded'` in the same UPDATE that writes `refund_payment_intent_id` + `refund_amount`. The trigger maps `'refunded'` to `booking.status='cancelled'` (only from `deposit_paid`; post-event refunds are intentionally a Stripe-dashboard-only path).
 
 **Webhook idempotency contract.** All webhook handlers in Phase 6 must use the `processed_webhooks` table to dedupe. The Stripe webhook in particular should set the payment-intent-id and bid-status mutations in the same transaction as the `processed_webhooks` insert — so a retry that races the original sees the dedupe row and skips, instead of writing the same state twice and tripping the `UNIQUE INDEX idx_bookings_deposit_intent`.
 

@@ -15,6 +15,7 @@ import {
 } from "@/src/services/public/format";
 import { MarkdownProse } from "@/src/components/shared/markdown";
 import { BidTimeline } from "@/src/components/public/bid-timeline";
+import { DepositPaymentForm } from "@/src/components/public/deposit-payment-form";
 import s from "./bid-page.module.css";
 
 // Public bid page. Outside the booking funnel — does NOT mount
@@ -50,7 +51,10 @@ export default async function BidPage({
     <main className={s.wrap}>
       <BidHero detail={detail} />
       {showsTimeline(detail.bid.status) && (
-        <BidTimeline status={detail.bid.status} />
+        <BidTimeline
+          status={detail.bid.status}
+          signedAt={detail.bid.signedAt}
+        />
       )}
       <StatusBanner status={detail.bid.status} detail={detail} />
 
@@ -63,7 +67,11 @@ export default async function BidPage({
           <FaqSection detail={detail} />
           <MapSlot detail={detail} />
           <SignatureSlot status={detail.bid.status} detail={detail} />
-          <DepositSlot status={detail.bid.status} detail={detail} />
+          <DepositSlot
+            status={detail.bid.status}
+            detail={detail}
+            accessCode={parsed.code}
+          />
         </>
       )}
 
@@ -76,21 +84,23 @@ export default async function BidPage({
 // Status helpers
 // ============================================================
 
-// pending_review and denied/expired show only the hero + status banner.
-// The other three (confirmed / signed / paid) render the full bid body
-// including signature + deposit slots — signed/paid show those slots in
-// a "done" state rather than hiding them, so the guest can see the
-// trail of what they've completed.
+// pending_review and denied/expired/refunded show only the hero + status
+// banner. The other three (confirmed / signed / paid) render the full
+// bid body including signature + deposit slots — signed/paid show those
+// slots in a "done" state rather than hiding them, so the guest can see
+// the trail of what they've completed.
 function isActiveBid(status: BidStatus): boolean {
   return (
     status === "confirmed" || status === "signed" || status === "paid"
   );
 }
 
-// Timeline shows for every non-terminal status. denied/expired are off-path
-// — no progression to track.
+// Timeline shows for every non-terminal status. denied/expired/refunded
+// are off-path — no progression to track.
 function showsTimeline(status: BidStatus): boolean {
-  return status !== "denied" && status !== "expired";
+  return (
+    status !== "denied" && status !== "expired" && status !== "refunded"
+  );
 }
 
 function statusBadge(status: BidStatus): {
@@ -110,6 +120,8 @@ function statusBadge(status: BidStatus): {
       return { variant: "past", label: "Closed" };
     case "expired":
       return { variant: "past", label: "Expired" };
+    case "refunded":
+      return { variant: "past", label: "Refunded" };
   }
 }
 
@@ -177,7 +189,7 @@ function StatusBanner({
           This bid has expired and can no longer be confirmed online. We hold each
   date open for a limited window so other guests have a fair shot at the
   same slot — once that window closes, the bid releases automatically.
-                <br/>   <br/>                                                                                                                                                                                                                                                                            
+                <br/>   <br/>
   The good news: nothing is lost. Reach out and we&rsquo;ll check
   availability for your original date (or something close to it) and send
   you a fresh bid to sign.
@@ -186,16 +198,39 @@ function StatusBanner({
     );
   }
 
+  if (status === "refunded") {
+    return (
+      <div className={s.banner}>
+        <Alert variant="warn" title="This bid has been refunded">
+          Your deposit was returned and this booking has been cancelled.
+          Reach out if you&rsquo;d like to plan something else &mdash; we&rsquo;ll
+          send a fresh bid.
+        </Alert>
+      </div>
+    );
+  }
+
   if (status === "paid") {
+    const finalized = detail.bid.signedAt !== null;
     const dateLong = formatDateLongTz(
       detail.booking.startTime,
       detail.property.timezone,
     );
+    if (finalized) {
+      return (
+        <div className={s.banner}>
+          <Alert variant="success" title={`We'll see you on ${dateLong}.`}>
+            Your deposit is in and your waiver is signed. Save this page —
+            everything you need is here.
+          </Alert>
+        </div>
+      );
+    }
     return (
       <div className={s.banner}>
-        <Alert variant="success" title={`We'll see you on ${dateLong}.`}>
-          Your deposit is in and your waiver is signed. Save this page —
-          everything you need is here.
+        <Alert variant="success" title="Deposit received">
+          Thanks &mdash; we&rsquo;ve got your deposit. One more step: sign your
+          waiver above before {dateLong}.
         </Alert>
       </div>
     );
@@ -431,7 +466,13 @@ function SignatureSlot({
   status: BidStatus;
   detail: BidDetail;
 }) {
-  const done = status === "signed" || status === "paid";
+  // After App 6, sign and pay are independent — `paid` no longer
+  // implies signed. The only reliable signal that the waiver is on
+  // file is `bid.signed_at`, stamped by App 7 (Dropbox Sign webhook).
+  // `status === "signed"` is also a done state but is now an
+  // intermediate one (pay-pending); we treat it as signed for slot UI.
+  const done = detail.bid.signedAt !== null || status === "signed";
+  const payDoneButNotSigned = status === "paid" && !done;
 
   return (
     <section className={`${s.slot} ${done ? s.slotDone : ""}`}>
@@ -440,9 +481,11 @@ function SignatureSlot({
         {done ? "Waiver signed" : "Sign your waiver"}
       </p>
       <p className={s.slotBody}>
-        {done && detail.bid.signedAt
+        {done
           ? "Thanks — your waiver is on file."
-          : "Once you sign, we'll unlock the deposit step below."}
+          : payDoneButNotSigned
+            ? "Your deposit is in — one last step left. Sign your waiver to lock the booking."
+            : "You can sign before or after paying — both are required to finalize."}
       </p>
       <p className={s.slotMeta}>App 7 · Dropbox Sign embed</p>
     </section>
@@ -452,35 +495,74 @@ function SignatureSlot({
 function DepositSlot({
   status,
   detail,
+  accessCode,
 }: {
   status: BidStatus;
   detail: BidDetail;
+  accessCode: string;
 }) {
   const done = status === "paid";
   const deposit = detail.booking.depositAmount;
   const quoteNote = detail.bid.quoteNote;
 
+  if (done) {
+    return (
+      <section className={`${s.slot} ${s.slotDone}`}>
+        <p className={s.slotEyebrow}>Paid ✓</p>
+        <p className={s.slotTitle}>Deposit received</p>
+        <p className={s.slotBody}>
+          Thanks &mdash; we&rsquo;ll see you at the property.
+        </p>
+        {quoteNote && (
+          <div style={{ marginTop: "var(--space-2)" }}>
+            <MarkdownProse small>{quoteNote}</MarkdownProse>
+          </div>
+        )}
+      </section>
+    );
+  }
+
+  // status is 'confirmed' or 'signed' (page only renders DepositSlot
+  // for active bids). Two sub-cases: deposit_amount set → mount the
+  // live <PaymentElement> form; null/0 → "we'll set the amount soon"
+  // placeholder so staff can confirm before pricing the bid.
+  if (deposit === null || deposit <= 0) {
+    return (
+      <section className={s.slot}>
+        <p className={s.slotEyebrow}>Step 2</p>
+        <p className={s.slotTitle}>Deposit pending</p>
+        <p className={s.slotBody}>
+          The team is finalizing your quote &mdash; we&rsquo;ll email you the
+          deposit details as soon as it&rsquo;s set.
+        </p>
+        {quoteNote && (
+          <div style={{ marginTop: "var(--space-2)" }}>
+            <MarkdownProse small>{quoteNote}</MarkdownProse>
+          </div>
+        )}
+      </section>
+    );
+  }
+
   return (
-    <section className={`${s.slot} ${done ? s.slotDone : ""}`}>
-      <p className={s.slotEyebrow}>{done ? "Paid ✓" : "Step 2"}</p>
-      <p className={s.slotTitle}>
-        {done
-          ? "Deposit received"
-          : deposit !== null
-            ? `Pay your $${formatMoney(deposit)} deposit`
-            : "Pay your deposit"}
-      </p>
+    <section className={s.slot}>
+      <p className={s.slotEyebrow}>Step 2</p>
+      <p className={s.slotTitle}>Pay your ${formatMoney(deposit)} deposit</p>
       <p className={s.slotBody}>
-        {done
-          ? "Thanks — we'll see you at the property."
-          : "Card or bank transfer. The balance settles at the property."}
+        Card or bank transfer. The balance settles at the property.
       </p>
       {quoteNote && (
         <div style={{ marginTop: "var(--space-2)" }}>
           <MarkdownProse small>{quoteNote}</MarkdownProse>
         </div>
       )}
-      <p className={s.slotMeta}>App 6 · Stripe deposit embed</p>
+      <div style={{ marginTop: "var(--space-3)" }}>
+        <DepositPaymentForm
+          bidSlug={detail.bid.slug}
+          bidAccessCode={accessCode}
+          amount={deposit}
+        />
+      </div>
     </section>
   );
 }

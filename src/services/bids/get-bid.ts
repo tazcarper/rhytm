@@ -25,7 +25,8 @@ export type BidStatus =
   | "denied"
   | "signed"
   | "paid"
-  | "expired";
+  | "expired"
+  | "refunded";
 
 export interface BidGearItem {
   name: string;
@@ -85,6 +86,7 @@ export interface BidDetail {
     quoteNote: string | null;
     expiresAt: string | null;
     signedAt: string | null;
+    paidAt: string | null;
     createdAt: string;
   };
   booking: BidBooking;
@@ -151,6 +153,7 @@ type RpcBidRow = {
   quote_note: string | null;
   expires_at: string | null;
   signed_at: string | null;
+  paid_at: string | null;
   created_at: string;
 };
 
@@ -287,6 +290,7 @@ export async function getBidDetail(
       quoteNote: bidRow.quote_note ?? null,
       expiresAt: bidRow.expires_at,
       signedAt: bidRow.signed_at,
+      paidAt: bidRow.paid_at,
       createdAt: bidRow.created_at,
     },
     booking: {

@@ -7,14 +7,20 @@ import s from "./bid-timeline.module.css";
 // the public surface reads as one product. Presentational only — no
 // click-to-jump; the bid status comes from the DB.
 //
-// Two step sets keyed off the bid status:
-//   pending_review → Submitted ✓, Under review (current), Confirmed
-//   confirmed      → Sign waiver (current), Pay deposit, All set
-//   signed         → Sign waiver ✓, Pay deposit (current), All set
-//   paid           → Sign waiver ✓, Pay deposit ✓, All set ✓
+// After App 6 the bid status is no longer a strict linear sequence —
+// signing and paying are independent events. The timeline reads two
+// signals: whether the signature step is done, and whether the payment
+// step is done. Either step can be "current" while the other is
+// pending; both being complete is the "All set" terminal.
 //
-// denied / expired are off-path; the bid page does not render this
-// component for those statuses.
+// Step sets:
+//   pending_review → Submitted ✓, Under review (current), Confirmed
+//   active path    → Sign waiver, Pay deposit, All set
+//                    (sign / pay current/complete state driven by status
+//                     + signedAt — see buildSteps below)
+//
+// denied / expired / refunded are off-path; the bid page does not render
+// this component for those statuses.
 
 type DotState = "complete" | "current" | "pending";
 
@@ -25,9 +31,13 @@ interface BidTimelineStep {
 
 interface BidTimelineProps {
   status: BidStatus;
+  signedAt: string | null;
 }
 
-function buildSteps(status: BidStatus): BidTimelineStep[] {
+function buildSteps(
+  status: BidStatus,
+  signedAt: string | null,
+): BidTimelineStep[] {
   if (status === "pending_review") {
     return [
       { label: "Submitted", state: "complete" },
@@ -36,10 +46,15 @@ function buildSteps(status: BidStatus): BidTimelineStep[] {
     ];
   }
 
-  // Active path — confirmed / signed / paid share a step set; only the
-  // current/complete split changes.
-  const signedDone = status === "signed" || status === "paid";
+  // Active path — sign + pay are independent signals after App 6.
+  //   signed = bid.status==='signed' OR bids.signed_at IS NOT NULL
+  //     (the second arm covers "paid first, signed later" — App 7 stamps
+  //      signed_at without changing status away from 'paid')
+  //   paid   = bid.status==='paid'
+  // The "All set" terminal is reached only when BOTH are done.
+  const signedDone = status === "signed" || signedAt !== null;
   const paidDone = status === "paid";
+  const finalized = signedDone && paidDone;
 
   return [
     {
@@ -48,17 +63,17 @@ function buildSteps(status: BidStatus): BidTimelineStep[] {
     },
     {
       label: "Pay your deposit",
-      state: paidDone ? "complete" : signedDone ? "current" : "pending",
+      state: paidDone ? "complete" : "current",
     },
     {
       label: "All set",
-      state: paidDone ? "complete" : "pending",
+      state: finalized ? "complete" : "pending",
     },
   ];
 }
 
-export function BidTimeline({ status }: BidTimelineProps) {
-  const steps = buildSteps(status);
+export function BidTimeline({ status, signedAt }: BidTimelineProps) {
+  const steps = buildSteps(status, signedAt);
   // Track-fill fraction: 0 → 1 across (steps.length - 1) segments. The
   // current step counts as half-filled so the line reaches its dot but
   // not past it.

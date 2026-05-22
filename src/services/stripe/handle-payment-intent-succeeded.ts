@@ -1,0 +1,189 @@
+import { createElement } from "react";
+import { after } from "next/server";
+import type Stripe from "stripe";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  DEFAULT_FROM_EMAIL,
+  getEmailService,
+} from "@/src/services/notifications/send-email";
+import { DepositReceipt } from "@/src/components/email/templates/deposit-receipt";
+import {
+  formatDateLongTz,
+  formatMoney,
+  formatSlotLabelTz,
+} from "@/src/services/public/format";
+
+// Webhook handler for payment_intent.succeeded — the moment a deposit
+// clears Stripe. Flips bids.status='paid' (the trigger fans out to
+// bookings.status='deposit_paid') and stamps bids.paid_at. Sends a
+// branded receipt via the existing EmailService (LoggingEmailService
+// writes to dev_email_outbox today; App 8 swaps in Resend).
+//
+// SOLID: receives supabase + event; no I/O it didn't ask for. The
+// route handler is responsible for signature verification and
+// processed_webhooks claim before calling here.
+//
+// The receipt send goes through `after()` from `next/server` so it
+// runs post-response. Stripe needs us to return 200 quickly (its
+// retry policy starts at 5s); rendering + sending the email is on
+// the order of 100-500ms and doesn't need to block.
+
+export interface HandlePaymentIntentSucceededContext {
+  supabase: SupabaseClient;
+  event: Stripe.Event;
+}
+
+export async function handlePaymentIntentSucceeded(
+  ctx: HandlePaymentIntentSucceededContext,
+): Promise<void> {
+  const { supabase, event } = ctx;
+  const pi = event.data.object as Stripe.PaymentIntent;
+
+  const bidId = pi.metadata?.bid_id;
+  const bookingId = pi.metadata?.booking_id;
+  if (!bidId || !bookingId) {
+    // Not a deposit PI we created — could be a future feature or a
+    // misrouted event. Skip without erroring; the route handler still
+    // returns 200 so Stripe stops retrying.
+    console.warn("[stripe webhook] payment_intent.succeeded missing metadata", {
+      piId: pi.id,
+      eventId: event.id,
+    });
+    return;
+  }
+
+  // 1. Flip the bid. The WHERE clause refuses to act on a bid that's
+  //    already paid (duplicate event that beat the processed_webhooks
+  //    claim — rare but defended) or in a non-payable terminal state
+  //    (refunded/denied/expired, which would mean staff acted between
+  //    PI charge and webhook arrival).
+  const { data: updatedBid, error: updateErr } = await supabase
+    .from("bids")
+    .update({
+      status: "paid",
+      paid_at: new Date().toISOString(),
+    })
+    .eq("id", bidId)
+    .in("status", ["confirmed", "signed"])
+    .select("id, slug, signed_at")
+    .maybeSingle();
+
+  if (updateErr) {
+    // Hard DB failure. Don't suppress — let the route handler return
+    // 500 so Stripe retries. The processed_webhooks claim row is
+    // already in place; Stripe's retry will see it and skip, so this
+    // event is effectively dropped after the first failure. Surface
+    // to Sentry in App 10.
+    throw new Error(
+      `[stripe webhook] bid update failed: ${updateErr.message}`,
+    );
+  }
+
+  if (!updatedBid) {
+    // 0 rows matched. Either already paid (duplicate event) or status
+    // moved to refunded/denied/expired since the PI was created. Log
+    // for visibility; don't send a receipt for a bid that's no longer
+    // in a payable state.
+    console.warn(
+      "[stripe webhook] payment_intent.succeeded but bid not in payable state",
+      { bidId, piId: pi.id, eventId: event.id },
+    );
+    return;
+  }
+
+  // 1b. Idempotent fallback write of bookings.deposit_payment_intent_id.
+  //     The Server Action that created the PI already wrote this column
+  //     in the normal path. But if its DB write failed (PI in Stripe,
+  //     column NULL on booking), the admin refund flow (App 6.6) would
+  //     have no way to look up the PI. The IS NULL guard makes this a
+  //     no-op in the normal case; we only fill the gap when needed.
+  await supabase
+    .from("bookings")
+    .update({ deposit_payment_intent_id: pi.id })
+    .eq("id", bookingId)
+    .is("deposit_payment_intent_id", null);
+
+  // 2. Fetch receipt data. Single query — we only need a few columns
+  //    and the property name for the body copy.
+  const { data: receipt, error: receiptErr } = await supabase
+    .from("bookings")
+    .select(
+      `
+      id, guest_name, guest_email, start_time, deposit_amount,
+      properties ( name, timezone )
+    `,
+    )
+    .eq("id", bookingId)
+    .single<ReceiptRow>();
+
+  if (receiptErr || !receipt || !receipt.properties) {
+    // The bid is paid (DB-of-record agrees); the receipt is best-effort.
+    // Log + return; staff can resend manually if needed.
+    console.warn(
+      "[stripe webhook] receipt data fetch failed; bid still marked paid",
+      {
+        bidId,
+        bookingId,
+        receiptErr: receiptErr?.message,
+      },
+    );
+    return;
+  }
+
+  // 3. Queue the receipt send post-response.
+  const propertyName = receipt.properties.name;
+  const timezone = receipt.properties.timezone;
+  const dateLong = formatDateLongTz(receipt.start_time, timezone);
+  const timeLabel = `${formatSlotLabelTz(receipt.start_time, timezone)} CT`;
+  const depositFormatted = formatMoney(toNumber(receipt.deposit_amount) ?? 0);
+  const waiverSigned = updatedBid.signed_at !== null;
+
+  const props = {
+    guestName: receipt.guest_name,
+    propertyName,
+    dateLong,
+    timeLabel,
+    depositAmount: depositFormatted,
+    waiverSigned,
+  };
+
+  after(async () => {
+    try {
+      const result = await getEmailService().send({
+        to: receipt.guest_email,
+        from: DEFAULT_FROM_EMAIL,
+        subject: waiverSigned
+          ? `Deposit received — see you on ${dateLong}`
+          : "Deposit received — one more step",
+        template: {
+          name: "deposit_receipt",
+          element: createElement(DepositReceipt, props),
+          props,
+        },
+        source: "stripe_webhook",
+      });
+      if (!result.ok) {
+        console.error(
+          "[stripe webhook] receipt send failed",
+          { bidId, error: result.error },
+        );
+      }
+    } catch (err) {
+      console.error("[stripe webhook] receipt send threw", { bidId, err });
+    }
+  });
+}
+
+type ReceiptRow = {
+  id: string;
+  guest_name: string;
+  guest_email: string;
+  start_time: string;
+  deposit_amount: string | number | null;
+  properties: { name: string; timezone: string } | null;
+};
+
+function toNumber(value: string | number | null): number | null {
+  if (value === null) return null;
+  return typeof value === "string" ? parseFloat(value) : value;
+}

@@ -15,6 +15,8 @@
     "@paper-design/shaders-react": "^0.0.76",
     "@radix-ui/react-slot": "^1.2.4",
     "@react-email/render": "^2.0.8",
+    "@stripe/react-stripe-js": "^6.4.0",
+    "@stripe/stripe-js": "^9.6.0",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.58.0",
     "@tailwindcss/postcss": "^4.3.0",
@@ -24,6 +26,7 @@
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
+    "stripe": "^22.1.1",
     "tailwind-variants": "^3.2.2",
     "tailwindcss": "^4.3.0",
     "zod": "^4.4.3"

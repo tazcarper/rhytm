@@ -29,7 +29,7 @@ Three deliverables, all funneled through the existing bid lifecycle:
 
 | # | Decision | Choice |
 |---|---|---|
-| 1 | Payment surface | **Embedded Payment Element** — backed by Checkout Sessions API with `ui_mode: 'custom'` per Stripe best practice. |
+| 1 | Payment surface | **Embedded Payment Element backed by PaymentIntent.** *Decided during build (2026-05-22):* the original plan said `ui_mode: 'custom'` Checkout Session, but `react-stripe-js` v6 has no React bindings for that mode (only `<EmbeddedCheckout>` for `ui_mode='embedded'` and `<Elements>` + `<PaymentElement>` for raw PaymentIntents). PaymentIntent is the more idiomatic React fit and reuses `bookings.deposit_payment_intent_id` (already on the table from Phase 2). Webhook event becomes `payment_intent.succeeded`. The migration that added `bookings.deposit_checkout_session_id` is reverted by `20260523130000_app_6_drop_unused_checkout_session_column.sql`. |
 | 2 | Sign-before-pay enforcement | **Relaxed.** Trigger + UI allow paying from `confirmed` or `signed`. Signing remains an independent step (App 7 wires it). |
 | 3 | Refund handling | **Forward-only + admin manual refund button.** No cancel-driven automation in App 6. |
 | 4 | Paid timestamp | **`bids.paid_at`** column. Parallels `bids.signed_at` and the rest of the lifecycle stamps. |
@@ -50,16 +50,12 @@ Three deliverables, all funneled through the existing bid lifecycle:
 -- 1. bids.paid_at — stable timestamp parallel to signed_at / cancelled_at.
 ALTER TABLE bids ADD COLUMN paid_at timestamptz;
 
--- 2. bookings.deposit_checkout_session_id — idempotency anchor for the
---    Checkout Session (with ui_mode='custom'). Distinct from
---    deposit_payment_intent_id, which is set post-success from
---    session.payment_intent. UNIQUE partial index mirrors the existing
---    deposit_payment_intent_id pattern (Phase 2).
-ALTER TABLE bookings ADD COLUMN deposit_checkout_session_id text;
-
-CREATE UNIQUE INDEX idx_bookings_deposit_session
-  ON bookings (deposit_checkout_session_id)
-  WHERE deposit_checkout_session_id IS NOT NULL;
+-- 2. bookings.deposit_checkout_session_id was added here originally but
+--    DROPPED by 20260523130000 after the Pattern A pivot. Pattern A uses
+--    raw PaymentIntents, so the existing bookings.deposit_payment_intent_id
+--    column (Phase 2) is the only idempotency anchor needed. This block
+--    is retained in the plan for the trigger-relaxation context below
+--    but should be omitted when the migration is re-applied from scratch.
 
 -- 3. Extend bid_status_enum with 'refunded'. Set by the admin refund
 --    flow in the same DB transaction that writes refund_payment_intent_id.
@@ -133,7 +129,7 @@ $$ LANGUAGE plpgsql;
 --    No additional index needed.
 ```
 
-**Why a separate `deposit_checkout_session_id` column rather than reusing `deposit_payment_intent_id`:** A Checkout Session ID (`cs_...`) and a PaymentIntent ID (`pi_...`) are different objects in Stripe. The session is created first (pre-payment) and its embedded PI doesn't exist until the customer confirms. Stuffing both into one column overloads its semantics and breaks the existing UNIQUE partial index assumption that the value is a PI ID. Two columns = two clean idempotency anchors.
+**Historical: `deposit_checkout_session_id` was added then dropped.** The original plan separated the pre-payment Checkout Session ID (`cs_…`) from the post-success PaymentIntent ID (`pi_…`). Pattern A collapses both into a single anchor — the PaymentIntent ID is meaningful at creation time (returned by `paymentIntents.create`) AND at success time (the `pi_…` referenced in the webhook). One column, one semantic.
 
 **The trigger relaxation is a workflow change, not just a permissions change.** Document it in `plan/supabase/phase-7-rls.md` (or wherever the bid status machine lives) as part of this migration's PR.
 
@@ -206,9 +202,9 @@ lib/stripe/
   publishable-key.ts                            tiny helper that throws if NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is unset (caught at build, not at first paint)
 
 src/services/stripe/
-  create-deposit-session.ts                     idempotent Checkout Session creation
-  handle-checkout-completed.ts                  webhook event → bids.status='paid' + paid_at
-  types.ts                                      DepositSession, DepositConfirmation shared shapes
+  create-deposit-session.ts                     idempotent PaymentIntent creation (domain term "session"; impl is PI)
+  handle-payment-intent-succeeded.ts            webhook event → bids.status='paid' + paid_at
+  types.ts                                      shared shapes (created when 6.5 lands)
 
 src/services/admin/
   refund-deposit.ts                             admin-triggered refund (flips bid.status → refunded)
@@ -313,17 +309,17 @@ export async function createDepositSession(
 ): Promise<DepositSession> { ... }
 ```
 
-Behavior:
+Behavior (Pattern A — PaymentIntent, decided 2026-05-22):
 
-1. Validate bid via `validate_bid_access_code(slug, code)` (same RPC the page uses). 404 if no match — never expose existence.
-2. Reject if `bid.status NOT IN ('confirmed', 'signed')`. The route handler maps this to a user-friendly 4xx.
-3. Reject if `bid.status='paid'` already (separate explicit case — different copy: "already paid").
-4. If `bookings.deposit_checkout_session_id` is set, retrieve the session from Stripe. If `session.status='open'` and not expired, return its `client_secret`. Otherwise (expired / completed-but-not-webhooked-yet) fall through to step 5.
-5. Create a new Checkout Session via `stripe.checkout.sessions.create({ ui_mode: 'custom', mode: 'payment', amount, currency, metadata: { bid_id, booking_id }, ...})` using `Stripe-Idempotency-Key: deposit-${bid.id}-v1` to dedupe retries within Stripe's 24h cache. Critically, NO `payment_method_types` per stripe-best-practices — let dynamic payment methods choose. Also omit `receipt_email` — we own the receipt (see 6.5).
-6. UPDATE `bookings.deposit_checkout_session_id = session.id` (write-once; UNIQUE index guards against double-create races).
-7. Return `{ clientSecret, sessionId, amount, currency }`.
+1. Validate bid via `validate_bid_access_code(slug, code)`. Return `bid_not_found` if no match — never expose existence.
+2. Bid status gate. `paid` / `refunded` → `already_paid`. `pending_review` / `denied` / `expired` → `bid_not_payable` with a status-specific message. `confirmed` / `signed` → proceed.
+3. Fetch `bookings.deposit_amount` + `bookings.deposit_payment_intent_id`. If `deposit_amount` is null/0, return `no_deposit_amount`.
+4. If `deposit_payment_intent_id` is set, retrieve the PI from Stripe. If `pi.amount === expected_cents` AND `pi.status ∈ {requires_payment_method, requires_confirmation, requires_action, processing}`, return its `client_secret`. Otherwise fall through — stale PIs (amount drift after staff edit, or terminal state) auto-cancel in Stripe's 24h window; we don't bother explicitly canceling.
+5. Create a new PaymentIntent via `stripe.paymentIntents.create({ amount, currency: 'usd', metadata: { bid_id, booking_id }, description })`, idempotency key `deposit-${bid.id}-amt-${cents}-v1`. The amount is embedded so amount-drift gets a fresh key (else Stripe's idempotency cache would return the stale PI). NO `payment_method_types` per stripe-best-practices — dynamic methods on apiVersion ≥ 2023-08-16. NO `receipt_email` — branded receipt fires from the webhook (6.5).
+6. UPDATE `bookings.deposit_payment_intent_id = pi.id`. UNIQUE partial index (Phase 2) is the safety net.
+7. Return `{ clientSecret, paymentIntentId, amount, currency }`.
 
-The session metadata carries `bid_id` and `booking_id` — the webhook consumes these to avoid a session→booking lookup.
+The PI metadata carries `bid_id` and `booking_id` — the webhook consumes these to skip a session→booking lookup.
 
 `app/(public)/bids/[slug]/[code]/deposit-actions.ts` is the thin Server Action wrapper. It builds the context (service-role Supabase, Stripe client) and calls the service. Per CLAUDE.md "One action, one purpose" — no email, no logging side effects beyond what the service does.
 
@@ -392,10 +388,12 @@ export async function POST(req: Request) {
   if (!claim) return new Response("already processed", { status: 200 });
 
   try {
-    if (event.type === "checkout.session.completed") {
-      await handleCheckoutCompleted({ supabase, stripe, event });
+    if (event.type === "payment_intent.succeeded") {
+      await handlePaymentIntentSucceeded({ supabase, stripe, event });
     }
     // Future event types added here, each delegating to its own handler.
+    // Examples to consider later: payment_intent.payment_failed (record
+    // failure metric), charge.refunded (cross-check admin refund flow).
     return new Response("ok", { status: 200 });
   } catch (err) {
     // Best-effort: leave the claim row in place so Stripe retries don't
@@ -412,12 +410,12 @@ export async function POST(req: Request) {
 export const dynamic = "force-dynamic";
 ```
 
-`src/services/stripe/handle-checkout-completed.ts`:
+`src/services/stripe/handle-payment-intent-succeeded.ts` (renamed from handle-checkout-completed during the Pattern A pivot):
 
-- Reads `event.data.object` as `Stripe.Checkout.Session`.
-- Validates `session.metadata.bid_id` is present; if not, log + bail (not our event).
-- UPDATE `bookings SET deposit_payment_intent_id = session.payment_intent` WHERE id = session.metadata.booking_id AND status IN ('awaiting_guest', 'signed').
-- UPDATE `bids SET status='paid', paid_at=now()` WHERE id = session.metadata.bid_id AND status IN ('confirmed', 'signed'). The trigger fans out to bookings.
+- Reads `event.data.object` as `Stripe.PaymentIntent`.
+- Validates `pi.metadata.bid_id` is present; if not, log + bail (not our event).
+- The PI id is already on `bookings.deposit_payment_intent_id` from the Server Action — no extra write needed for that column.
+- UPDATE `bids SET status='paid', paid_at=now()` WHERE id = pi.metadata.bid_id AND status IN ('confirmed', 'signed'). The trigger fans out to bookings.
 - If either UPDATE writes 0 rows: log a warning (could be a duplicate event Stripe sent twice but with a different id — rare; the metadata gate would catch most cases).
 - **Send the branded receipt** via the existing `EmailService` interface (`src/services/notifications/send-email.ts`): `await getEmailService().send({ to: booking.guest_email, template: 'deposit-receipt', data: {...} })`. Wrap the send in a try/catch — receipt-send failure must NOT roll back the payment record. Log to Sentry, return 200. The receipt is best-effort; staff can re-send via App 8's outbox tooling. Use `after()` from `next/server` so the response returns before the email send awaits, matching the `create-public-booking.ts` pattern.
 
@@ -470,10 +468,10 @@ In the same style as App 2.10 / App 3.10.
 |---|---|---|
 | S1 | Bid in `confirmed`: deposit form renders. Use Stripe test card `4242 4242 4242 4242`. | `bid.status='paid'`, `bid.paid_at` set, `booking.status='deposit_paid'`, `booking.deposit_payment_intent_id` set. Bid page shows Paid ✓ + "still need to sign" banner (signed_at null). |
 | S2 | Same as S1 but bid is `signed` going in. | `bid.status='paid'`, `signed_at` preserved. Bid page shows "All set" terminal banner (both signed + paid). |
-| S3 | Click Pay, dismiss, click Pay again — same session. | `bookings.deposit_checkout_session_id` does not change between clicks; Stripe shows one Checkout Session not two. |
+| S3 | Click Pay, dismiss, click Pay again — same PI reused. | `bookings.deposit_payment_intent_id` does not change between clicks; Stripe shows one PaymentIntent not two. |
 | S4 | Bid is `pending_review`. | Server Action returns "Bid not yet confirmed" error; no session created. |
 | S5 | Bid already `paid`. | Pay button doesn't render; status shows Paid ✓. |
-| S6 | Stripe test card `4000 0000 0000 9995` (insufficient funds). | Form shows error inline; bid status unchanged; no session_id in DB written. |
+| S6 | Stripe test card `4000 0000 0000 9995` (insufficient funds). | Form shows error inline; bid status unchanged. PI lands in `requires_payment_method` — retry uses the same PI. |
 | S7 | 3DS test card `4000 0027 6000 3184`. | 3DS modal appears; on accept, payment completes; same outcome as S1. |
 | S8 | Webhook signature fails (forge a request without `Stripe-Signature`). | Route returns 400. No DB write, no email. |
 | S9 | Webhook fires twice with same event ID (replay). | Second call returns 200 "already processed". `bid.paid_at` unchanged. No duplicate receipt email. |
