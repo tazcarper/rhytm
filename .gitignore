@@ -19,3 +19,4 @@ next-env.d.ts
 # Vercel
 .vercel
 
+.claude/skills/react-best-practices
