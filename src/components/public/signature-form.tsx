@@ -2,10 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import HelloSign from "hellosign-embedded";
+import type HelloSignType from "hellosign-embedded";
 import { Alert, Button } from "@/lib/ui";
 import { getSignUrlAction } from "@/app/(public)/bids/[slug]/[code]/signature-actions";
 import s from "./signature-form.module.css";
+
+// hellosign-embedded has import-time side effects that touch `window`
+// (loads its stylesheet via SCSS, which expects a browser). Importing
+// it at module top crashes the bid page's SSR render with
+// "ReferenceError: window is not defined". Workaround: dynamic-import
+// it inside the effect (browser-only) and keep just the type at the
+// top for typecheck purposes.
 
 // Inline waiver signing surface: Dropbox Sign's embedded JS SDK
 // mounts an iframe inside the existing SignatureSlot card. The flow:
@@ -43,7 +50,7 @@ export function SignatureForm({
 }: SignatureFormProps) {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const clientRef = useRef<HelloSign | null>(null);
+  const clientRef = useRef<HelloSignType | null>(null);
   const [session, setSession] = useState<SessionState>({ kind: "loading" });
   const [pollingExhausted, setPollingExhausted] = useState(false);
   const [fetchToken, setFetchToken] = useState(0);
@@ -67,7 +74,9 @@ export function SignatureForm({
   }, [bidSlug, bidAccessCode, fetchToken]);
 
   // Step 2: mount HelloSign once we have a URL + container ref. Re-run
-  // when the signUrl changes (rare: retry path).
+  // when the signUrl changes (rare: retry path). Dynamic import keeps
+  // the hellosign-embedded module out of the SSR bundle (it touches
+  // `window` at import time).
   useEffect(() => {
     if (session.kind !== "ready") return;
     if (!containerRef.current) return;
@@ -79,43 +88,60 @@ export function SignatureForm({
       return;
     }
 
-    const client = new HelloSign({
-      clientId: CLIENT_ID,
-      // skipDomainVerification: true is required when the app's URL
-      // isn't whitelisted in Dropbox Sign's API app settings. Safe to
-      // leave on during dev; tighten in prod by adding the deploy
-      // domain to the API app's allowed domains.
-      skipDomainVerification:
-        process.env.NODE_ENV !== "production",
-    });
-    clientRef.current = client;
+    let cancelled = false;
+    let cleanupClient: HelloSignType | null = null;
 
-    client.on("sign", () => {
-      setSession({ kind: "signed" });
-    });
-    client.on("decline", () => {
-      setSession({ kind: "declined" });
-    });
-    client.on("error", (data) => {
-      console.error("[signature-form] HelloSign error", data);
-      setSession({
-        kind: "error",
-        message: "Something went wrong. Please refresh and try again.",
+    (async () => {
+      const HelloSignMod = await import("hellosign-embedded");
+      if (cancelled) return;
+      if (!containerRef.current) return;
+
+      const HelloSign = HelloSignMod.default;
+      const client = new HelloSign({
+        clientId: CLIENT_ID,
+        // skipDomainVerification: true is required when the app's URL
+        // isn't whitelisted in Dropbox Sign's API app settings. Safe to
+        // leave on during dev; tighten in prod by adding the deploy
+        // domain to the API app's allowed domains.
+        skipDomainVerification:
+          process.env.NODE_ENV !== "production",
       });
-    });
+      clientRef.current = client;
+      cleanupClient = client;
 
-    client.open(session.signUrl, {
-      container: containerRef.current,
-      // Customer is opting into signing; cancel returns them to the
-      // bid page (form unmounts when they refresh).
-      allowCancel: false,
-    });
+      client.on("sign", () => {
+        setSession({ kind: "signed" });
+      });
+      client.on("decline", () => {
+        setSession({ kind: "declined" });
+      });
+      client.on("error", (data) => {
+        console.error("[signature-form] HelloSign error", data);
+        setSession({
+          kind: "error",
+          message: "Something went wrong. Please refresh and try again.",
+        });
+      });
+
+      // `session` here is captured at effect time — TS narrowed it to
+      // `ready` via the early return above. Re-check before opening
+      // in case React's strict-mode double-fire happened to flip it.
+      if (session.kind === "ready") {
+        client.open(session.signUrl, {
+          container: containerRef.current,
+          // Customer is opting into signing; cancel returns them to
+          // the bid page (form unmounts when they refresh).
+          allowCancel: false,
+        });
+      }
+    })();
 
     return () => {
+      cancelled = true;
       // Clean up the iframe + listeners on unmount or before the
       // next mount (avoids leaked event handlers).
       try {
-        client.close();
+        cleanupClient?.close();
       } catch {
         // ignore: close() throws if already closed
       }
