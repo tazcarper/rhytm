@@ -52,7 +52,10 @@ export async function createSignatureEnvelope(
 
   const apiKey = process.env.DROPBOX_SIGN_API_KEY;
   const templateId = process.env.DROPBOX_SIGN_TEMPLATE_ID;
-  const clientId = process.env.DROPBOX_SIGN_CLIENT_ID;
+  // Single source for the client ID — public by design (it's exposed
+  // to the browser bundle for the hellosign-embedded SDK). Same value
+  // works server-side; no need for a parallel non-public env var.
+  const clientId = process.env.NEXT_PUBLIC_DROPBOX_SIGN_CLIENT_ID;
 
   if (!apiKey || !templateId || !clientId) {
     return {

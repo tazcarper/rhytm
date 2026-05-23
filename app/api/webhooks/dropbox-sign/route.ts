@@ -29,10 +29,17 @@ export const runtime = "nodejs";
 const ACK_BODY = "Hello API Event Received";
 
 export async function POST(req: Request): Promise<Response> {
-  const webhookSecret = process.env.DROPBOX_SIGN_WEBHOOK_SECRET;
+  // Dropbox Sign signs webhook callbacks with the account API key by
+  // default. Paid plans MAY surface a distinct "Callback Signing Key"
+  // — if so, set `DROPBOX_SIGN_WEBHOOK_SECRET` and it takes precedence.
+  // For free / typical setups, having `DROPBOX_SIGN_API_KEY` set is
+  // enough; this fallback chain handles both.
+  const webhookSecret =
+    process.env.DROPBOX_SIGN_WEBHOOK_SECRET ??
+    process.env.DROPBOX_SIGN_API_KEY;
   if (!webhookSecret) {
     console.error(
-      "[dropbox-sign webhook] DROPBOX_SIGN_WEBHOOK_SECRET is not set; webhook is dormant",
+      "[dropbox-sign webhook] neither DROPBOX_SIGN_WEBHOOK_SECRET nor DROPBOX_SIGN_API_KEY is set; webhook is dormant",
     );
     return new Response("webhook not configured", { status: 503 });
   }
