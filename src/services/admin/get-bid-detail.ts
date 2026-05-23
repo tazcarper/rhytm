@@ -46,6 +46,11 @@ export interface AdminBidDetail {
     signedAt: string | null;
     paidAt: string | null;
     cancelledAt: string | null;
+    // App 7 — Dropbox Sign envelope reference, null until confirmed
+    // bids run through createSignatureEnvelope. Admin Lifecycle card
+    // surfaces this; once signed_at is set, the admin can link to
+    // the signed PDF via Dropbox Sign's API.
+    dropboxSignEnvelopeId: string | null;
     createdAt: string;
     updatedAt: string;
   };
@@ -140,6 +145,7 @@ type AdminBidJoinedRow = {
   signed_at: string | null;
   paid_at: string | null;
   cancelled_at: string | null;
+  dropbox_sign_envelope_id: string | null;
   created_at: string;
   updated_at: string;
   bookings: {
@@ -197,6 +203,7 @@ export async function getAdminBidDetail(
       schedule_notes, gear_list, faq,
       quote_note, staff_notes, denial_reason, refund_amount, refund_payment_intent_id,
       expires_at, signed_at, paid_at, cancelled_at,
+      dropbox_sign_envelope_id,
       created_at, updated_at,
       bookings (
         id, booking_type, start_time, end_time, duration_hours,
@@ -256,6 +263,7 @@ export async function getAdminBidDetail(
       signedAt: data.signed_at,
       paidAt: data.paid_at,
       cancelledAt: data.cancelled_at,
+      dropboxSignEnvelopeId: data.dropbox_sign_envelope_id,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
     },

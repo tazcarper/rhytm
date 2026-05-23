@@ -16,6 +16,7 @@ import {
 import { MarkdownProse } from "@/src/components/shared/markdown";
 import { BidTimeline } from "@/src/components/public/bid-timeline";
 import { DepositPaymentForm } from "@/src/components/public/deposit-payment-form";
+import { SignatureForm } from "@/src/components/public/signature-form";
 import s from "./bid-page.module.css";
 
 // Public bid page. Outside the booking funnel — does NOT mount
@@ -66,7 +67,11 @@ export default async function BidPage({
           <ScheduleSection detail={detail} />
           <FaqSection detail={detail} />
           <MapSlot detail={detail} />
-          <SignatureSlot status={detail.bid.status} detail={detail} />
+          <SignatureSlot
+            status={detail.bid.status}
+            detail={detail}
+            accessCode={parsed.code}
+          />
           <DepositSlot
             status={detail.bid.status}
             detail={detail}
@@ -465,9 +470,11 @@ function MapSlot({ detail }: { detail: BidDetail }) {
 function SignatureSlot({
   status,
   detail,
+  accessCode,
 }: {
   status: BidStatus;
   detail: BidDetail;
+  accessCode: string;
 }) {
   // After App 6, sign and pay are independent — `paid` no longer
   // implies signed. The only reliable signal that the waiver is on
@@ -476,6 +483,8 @@ function SignatureSlot({
   // intermediate one (pay-pending); we treat it as signed for slot UI.
   const done = detail.bid.signedAt !== null || status === "signed";
   const payDoneButNotSigned = status === "paid" && !done;
+  const envelopeReady =
+    !done && detail.bid.dropboxSignEnvelopeId !== null;
 
   return (
     <section className={`${s.slot} ${done ? s.slotDone : ""}`}>
@@ -490,7 +499,19 @@ function SignatureSlot({
             ? "Your deposit is in — one last step left. Sign your waiver to lock the booking."
             : "You can sign before or after paying — both are required to finalize."}
       </p>
-      <p className={s.slotMeta}>App 7 · Dropbox Sign embed</p>
+      {envelopeReady && (
+        <div style={{ marginTop: "var(--space-3)" }}>
+          <SignatureForm
+            bidSlug={detail.bid.slug}
+            bidAccessCode={accessCode}
+          />
+        </div>
+      )}
+      {!done && !envelopeReady && (
+        <p className={s.slotMeta}>
+          Waiver is being prepared. Refresh in a moment.
+        </p>
+      )}
     </section>
   );
 }

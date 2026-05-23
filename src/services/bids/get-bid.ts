@@ -95,6 +95,11 @@ export interface BidDetail {
     expiresAt: string | null;
     signedAt: string | null;
     paidAt: string | null;
+    // App 7 — if non-null, the bid has an embedded sign envelope
+    // ready. The bid page mounts the SignatureForm when this is set
+    // AND signedAt is null. Renders the "Signed ✓" affordance when
+    // signedAt is set (regardless of this column).
+    dropboxSignEnvelopeId: string | null;
     createdAt: string;
   };
   booking: BidBooking;
@@ -162,6 +167,7 @@ type RpcBidRow = {
   expires_at: string | null;
   signed_at: string | null;
   paid_at: string | null;
+  dropbox_sign_envelope_id: string | null;
   created_at: string;
 };
 
@@ -301,6 +307,7 @@ export async function getBidDetail(
       expiresAt: bidRow.expires_at,
       signedAt: bidRow.signed_at,
       paidAt: bidRow.paid_at,
+      dropboxSignEnvelopeId: bidRow.dropbox_sign_envelope_id,
       createdAt: bidRow.created_at,
     },
     booking: {

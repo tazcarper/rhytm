@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@dropbox/sign": "^1.11.0",
     "@paper-design/shaders-react": "^0.0.76",
     "@radix-ui/react-slot": "^1.2.4",
     "@react-email/render": "^2.0.8",
@@ -20,6 +21,7 @@
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.58.0",
     "@tailwindcss/postcss": "^4.3.0",
+    "hellosign-embedded": "^2.12.3",
     "next": "^16.2.6",
     "react": "^19.0.0",
     "react-day-picker": "^10.0.1",
@@ -32,6 +34,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/hellosign-embedded": "^2.0.6",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

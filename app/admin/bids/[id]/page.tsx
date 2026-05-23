@@ -324,6 +324,17 @@ export default async function AdminBidDetail({
               )}
             </dd>
 
+            <dt className={s.kvKey}>Waiver envelope</dt>
+            <dd className={s.kvValue}>
+              {bid.dropboxSignEnvelopeId ? (
+                <code style={{ fontSize: "var(--text-micro)" }}>
+                  {bid.dropboxSignEnvelopeId}
+                </code>
+              ) : (
+                <span className={s.empty}>—</span>
+              )}
+            </dd>
+
             <dt className={s.kvKey}>Cancelled</dt>
             <dd className={s.kvValue}>
               {bid.cancelledAt ? (

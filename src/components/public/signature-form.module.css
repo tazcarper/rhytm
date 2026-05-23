@@ -1,0 +1,95 @@
+.signerMount {
+  min-height: 500px;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.signerMount :global(iframe) {
+  width: 100%;
+  min-height: 500px;
+  border: 0;
+}
+
+.skeleton {
+  min-height: 500px;
+  border-radius: var(--radius-card);
+  background: linear-gradient(
+    90deg,
+    var(--color-paper-soft) 0%,
+    var(--color-paper) 50%,
+    var(--color-paper-soft) 100%
+  );
+  background-size: 200% 100%;
+  animation: signerShimmer 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background: var(--color-paper-soft);
+  }
+}
+
+@keyframes signerShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.errorBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.actionRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.successWrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-success-soft, var(--color-paper-soft));
+  border-radius: var(--radius-card);
+  text-align: center;
+}
+
+.successTitle {
+  font-family: var(--font-serif);
+  font-size: var(--text-h3);
+  color: var(--color-ink);
+}
+
+.successCopy {
+  font-size: var(--text-body);
+  color: var(--color-ink-soft);
+  line-height: var(--leading-relaxed);
+}
+
+.spinner {
+  margin: var(--space-2) auto 0;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--color-ink-soft);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: signerSpin 0.9s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+
+@keyframes signerSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}

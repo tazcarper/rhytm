@@ -1,6 +1,9 @@
 import { randomBytes } from "node:crypto";
+import { after } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildBidUrl, buildAbsoluteBidUrl } from "@/src/services/bids/bid-url";
+import { createServiceRoleClient } from "@/lib/supabase/service";
+import { createSignatureEnvelope } from "@/src/services/dropbox-sign/create-envelope";
 
 export interface TransitionResult {
   ok: boolean;
@@ -31,6 +34,34 @@ export async function confirmBid(
   if (error) {
     return { ok: false, error: friendlyTransitionError(error.message) };
   }
+
+  // App 7: kick off envelope creation post-response. Failures here
+  // (Dropbox Sign disabled, API error, etc.) do NOT roll back the
+  // confirmation — the bid is still confirmed in our DB; the
+  // signature flow is best-effort. Admin can retry manually if it
+  // doesn't show up. Uses service-role since the cookie-scoped admin
+  // client isn't reachable from `after()` (no per-request context).
+  after(async () => {
+    const result = await createSignatureEnvelope({
+      supabase: createServiceRoleClient(),
+      bidId,
+    });
+    if (!result.ok) {
+      if (result.reason === "disabled") {
+        // Expected during scaffolding / pre-activation. Quiet log.
+        console.info(
+          "[transition-bid/confirm] Dropbox Sign disabled, skipping envelope",
+          { bidId },
+        );
+      } else {
+        console.error(
+          "[transition-bid/confirm] envelope creation failed",
+          { bidId, reason: result.reason, message: result.message },
+        );
+      }
+    }
+  });
+
   return { ok: true };
 }
 
