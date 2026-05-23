@@ -1,12 +1,17 @@
 import { notFound } from "next/navigation";
 import { Alert, Badge, Eyebrow, Heading } from "@/lib/ui";
 import type { BadgeVariant } from "@/lib/ui";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
   getBidDetail,
   type BidDetail,
   type BidStatus,
 } from "@/src/services/bids/get-bid";
 import { parseBidUrlParams } from "@/src/services/bids/bid-url";
+import {
+  applyBidPreview,
+  isValidPreviewState,
+} from "@/src/services/bids/preview";
 import { BOOKING_TYPE_META } from "@/src/constants/public/booking-types";
 import {
   formatDateLongTz,
@@ -17,7 +22,24 @@ import { MarkdownProse } from "@/src/components/shared/markdown";
 import { BidTimeline } from "@/src/components/public/bid-timeline";
 import { DepositPaymentForm } from "@/src/components/public/deposit-payment-form";
 import { SignatureForm } from "@/src/components/public/signature-form";
+import { BidPreviewToolbar } from "@/src/components/admin/bid-preview-toolbar";
 import s from "./bid-page.module.css";
+
+const ADMIN_ROLES = new Set([
+  "super_admin",
+  "admin",
+  "property_manager",
+]);
+
+async function isAdminViewer(): Promise<boolean> {
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return false;
+  const role = user.app_metadata?.role as string | undefined;
+  return role !== undefined && ADMIN_ROLES.has(role);
+}
 
 // Public bid page. Outside the booking funnel — does NOT mount
 // BookingFlowProvider; reads everything from Postgres via the bid slug
@@ -38,18 +60,31 @@ export const dynamic = "force-dynamic";
 
 export default async function BidPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string; code: string }>;
+  searchParams: Promise<{ preview?: string }>;
 }) {
   const routeParams = await params;
   const parsed = parseBidUrlParams(routeParams);
   if (!parsed) notFound();
 
-  const detail = await getBidDetail(parsed.slug, parsed.code);
-  if (!detail) notFound();
+  const rawDetail = await getBidDetail(parsed.slug, parsed.code);
+  if (!rawDetail) notFound();
+
+  // Admin-only state preview. Anonymous viewers and non-admin
+  // members see the real DB state; admins can use ?preview=<state>
+  // to inspect alternative renders without touching data.
+  const adminViewer = await isAdminViewer();
+  const search = await searchParams;
+  const detail =
+    adminViewer && isValidPreviewState(search.preview)
+      ? applyBidPreview(rawDetail, search.preview)
+      : rawDetail;
 
   return (
     <main className={s.wrap}>
+      {adminViewer && <BidPreviewToolbar />}
       <BidHero detail={detail} />
       {showsTimeline(detail.bid.status) && (
         <BidTimeline

@@ -73,10 +73,10 @@
 }
 
 .spinner {
-  margin: var(--space-2) auto 0;
-  width: 24px;
-  height: 24px;
-  border: 2px solid var(--color-ink-soft);
+  margin: var(--space-3) auto 0;
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-ink-soft);
   border-top-color: transparent;
   border-radius: 50%;
   animation: signerSpin 0.9s linear infinite;
