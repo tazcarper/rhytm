@@ -50,9 +50,9 @@ export function SignatureForm({
   bidAccessCode,
 }: SignatureFormProps) {
   const router = useRouter();
-  const containerRef = useRef<HTMLDivElement | null>(null);
   const clientRef = useRef<HelloSignType | null>(null);
   const [session, setSession] = useState<SessionState>({ kind: "loading" });
+  const [isOpening, setIsOpening] = useState(false);
   const [pollingExhausted, setPollingExhausted] = useState(false);
   const [fetchToken, setFetchToken] = useState(0);
 
@@ -86,13 +86,16 @@ export function SignatureForm({
     };
   }, [bidSlug, bidAccessCode, fetchToken]);
 
-  // Step 2: mount HelloSign once we have a URL + container ref. Re-run
-  // when the signUrl changes (rare: retry path). Dynamic import keeps
-  // the hellosign-embedded module out of the SSR bundle (it touches
-  // `window` at import time).
-  useEffect(() => {
+  // Step 2: open the Dropbox Sign modal on click. We instantiate the
+  // SDK + open the iframe in modal mode (no `container` option) so the
+  // signing form opens as a full-screen overlay with a backdrop — much
+  // more readable than the inline 500px-tall iframe we had before.
+  //
+  // Dynamic-imports the SDK so it stays out of the SSR bundle (it
+  // touches `window` at import time). One client per click; cleanup
+  // on unmount via clientRef.
+  const openSigner = async () => {
     if (session.kind !== "ready") return;
-    if (!containerRef.current) return;
     if (!CLIENT_ID) {
       setSession({
         kind: "error",
@@ -100,16 +103,20 @@ export function SignatureForm({
       });
       return;
     }
+    if (isOpening) return;
 
-    let cancelled = false;
-    let cleanupClient: HelloSignType | null = null;
-
-    (async () => {
+    setIsOpening(true);
+    try {
       const HelloSignMod = await import("hellosign-embedded");
-      if (cancelled) return;
-      if (!containerRef.current) return;
-
       const HelloSign = HelloSignMod.default;
+
+      // Tear down any prior client first so listeners don't double-fire.
+      try {
+        clientRef.current?.close();
+      } catch {
+        // ignore — close() throws if already closed
+      }
+
       const client = new HelloSign({
         clientId: CLIENT_ID,
         // skipDomainVerification: true is required when the app's URL
@@ -120,7 +127,6 @@ export function SignatureForm({
           process.env.NODE_ENV !== "production",
       });
       clientRef.current = client;
-      cleanupClient = client;
 
       client.on("sign", () => {
         setSession({ kind: "signed" });
@@ -135,32 +141,37 @@ export function SignatureForm({
           message: "Something went wrong. Please refresh and try again.",
         });
       });
+      client.on("close", () => {
+        // Modal closed without signing → keep showing the open button
+        // so the customer can retry. `setIsOpening` flips back to false
+        // here too.
+        setIsOpening(false);
+      });
 
-      // `session` here is captured at effect time — TS narrowed it to
-      // `ready` via the early return above. Re-check before opening
-      // in case React's strict-mode double-fire happened to flip it.
-      if (session.kind === "ready") {
-        client.open(session.signUrl, {
-          container: containerRef.current,
-          // Customer is opting into signing; cancel returns them to
-          // the bid page (form unmounts when they refresh).
-          allowCancel: false,
-        });
-      }
-    })();
+      // No `container` option = modal mode. The SDK overlays the page
+      // with a backdrop and renders the iframe full-screen-ish.
+      client.open(session.signUrl);
+    } catch (err) {
+      console.error("[signature-form] failed to open signer", err);
+      setSession({
+        kind: "error",
+        message: "Couldn't open the signing form. Try again.",
+      });
+      setIsOpening(false);
+    }
+  };
 
+  // Cleanup on unmount: close any open modal + drop the client ref.
+  useEffect(() => {
     return () => {
-      cancelled = true;
-      // Clean up the iframe + listeners on unmount or before the
-      // next mount (avoids leaked event handlers).
       try {
-        cleanupClient?.close();
+        clientRef.current?.close();
       } catch {
-        // ignore: close() throws if already closed
+        // ignore
       }
       clientRef.current = null;
     };
-  }, [session]);
+  }, []);
 
   // Step 3: post-sign polling — same shape as deposit-payment-form's
   // success-then-refresh loop. Webhook stamps signed_at; we wait for
@@ -232,7 +243,23 @@ export function SignatureForm({
     );
   }
 
-  // session.kind === 'ready' — render the container. The actual
-  // iframe is mounted into it by HelloSign.open() in the effect above.
-  return <div ref={containerRef} className={s.signerMount} />;
+  // session.kind === 'ready' — show the open button. The iframe is
+  // launched in modal mode (no container) when the user clicks; see
+  // openSigner above.
+  return (
+    <div className={s.openWrap}>
+      <Button
+        type="button"
+        variant="primary"
+        onClick={openSigner}
+        loading={isOpening}
+        disabled={isOpening}
+      >
+        {isOpening ? "Opening…" : "Sign your waiver →"}
+      </Button>
+      <p className={s.openHint}>
+        Opens in a full-screen window so you can sign comfortably.
+      </p>
+    </div>
+  );
 }
