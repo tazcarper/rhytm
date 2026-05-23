@@ -10,11 +10,13 @@ import type { SlotsByDayOfWeek } from "@/src/services/public/slots";
 // Sits between the server page (which has no access to context) and
 // <BookingBuilder> (which needs one resolved PricingModel).
 export function BookingBuilderTypeGate({
+  propertyId,
   services,
   slotsByDayOfWeek,
   pricingByType,
   bookingHorizonDays,
 }: {
+  propertyId: string;
   services: ReadonlyArray<PublicService>;
   slotsByDayOfWeek: SlotsByDayOfWeek;
   pricingByType: PricingByBookingType;
@@ -26,6 +28,7 @@ export function BookingBuilderTypeGate({
 
   return (
     <BookingBuilder
+      propertyId={propertyId}
       services={services}
       slotsByDayOfWeek={slotsByDayOfWeek}
       pricing={pricing}

@@ -1,15 +1,16 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { formatSlotLabel } from "./format";
+import type { BookingType } from "@/src/components/public/booking-flow/booking-flow-types";
 
 // `time_slots` has a public-read RLS policy on `is_active = true`, so the
 // cookie-aware server client suffices.
 //
-// SCOPE NOTE (2.4): this service only returns the configured slot starts
-// for the given day. It does NOT cross-check against existing `bookings`
-// (no anon SELECT policy on bookings — would require service-role or a
-// SECURITY DEFINER RPC) or assign instructors. The plan calls for both;
-// they're deferred to a 2.4.x polish pass. The 2.6 create-booking action
-// surfaces conflicts via Phase 2 triggers either way.
+// `getSlotsForProperty` returns the CONFIGURED slot starts per day-of-week —
+// the static skeleton of the calendar. It does not know what's booked.
+// Live availability (which of those slots are already reserved on a SPECIFIC
+// date) comes from `getSlotAvailabilityForDate`, which calls the
+// `get_slot_availability` SECURITY DEFINER RPC — `bookings` has no anon
+// SELECT policy, so the cross-check has to run inside the database.
 
 export interface AvailableSlot {
   slotStart: string; // "HH:MM:SS"
@@ -50,4 +51,39 @@ export async function getSlotsForProperty(
 export function dayOfWeekFromISO(dateISO: string): number {
   const [y, m, d] = dateISO.split("-").map(Number);
   return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+}
+
+// slotStart ("HH:MM:SS") → whether a new booking can still be placed there
+// on the queried date. Slots absent from the map should be treated as
+// available (fail-open) — the Phase 2 insert triggers are the real guard.
+export type SlotAvailability = Record<string, boolean>;
+
+// Live cross-check of a single date's slots against existing bookings via the
+// `get_slot_availability` RPC. `durationHours` and `bookingType` shape the
+// overlap window and the prospective capacity the same way the create path
+// does, so the preview matches what the insert triggers will allow.
+export async function getSlotAvailabilityForDate(
+  supabase: SupabaseClient,
+  args: {
+    propertyId: string;
+    dateISO: string;
+    bookingType: BookingType;
+    durationHours: number;
+  },
+): Promise<{ data: SlotAvailability | null; error: { message: string } | null }> {
+  const { data, error } = await supabase.rpc("get_slot_availability", {
+    p_property_id: args.propertyId,
+    p_date: args.dateISO,
+    p_booking_type: args.bookingType,
+    p_duration_hours: args.durationHours,
+  });
+
+  if (error) return { data: null, error: { message: error.message } };
+
+  const rows = (data ?? []) as Array<{ slot_start: string; is_available: boolean }>;
+  const availability: SlotAvailability = {};
+  for (const row of rows) {
+    availability[row.slot_start] = row.is_available;
+  }
+  return { data: availability, error: null };
 }

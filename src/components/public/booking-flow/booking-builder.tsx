@@ -17,13 +17,16 @@ import {
 import {
   dayOfWeekFromISO,
   type AvailableSlot,
+  type SlotAvailability,
   type SlotsByDayOfWeek,
 } from "@/src/services/public/slots";
 import type { PublicService } from "@/src/services/public/services";
+import { getSlotAvailabilityAction } from "@/app/(public)/book/[property]/disciplines/availability-action";
 import type { DisciplineSelection } from "./booking-flow-types";
 import s from "./booking-builder.module.css";
 
 interface BookingBuilderProps {
+  propertyId: string;
   services: ReadonlyArray<PublicService>;
   slotsByDayOfWeek: SlotsByDayOfWeek;
   pricing: PricingModel | null;
@@ -32,13 +35,14 @@ interface BookingBuilderProps {
 
 type SubStep = 1 | 2 | 3;
 
-// LIVE-AVAILABILITY NOTE: today's slot list is loaded once on page mount and
-// doesn't refilter as the user changes disciplines/add-ons/guests. The
-// `bookings` table is empty during App 2 placeholder mode and has no anon
-// SELECT RLS — a future Server Action (or SECURITY DEFINER RPC) would
-// refetch slotsByDayOfWeek with conflict filtering.
+// LIVE AVAILABILITY: `slotsByDayOfWeek` is the static skeleton (which slot
+// times exist on each weekday). When the guest picks a date we fetch the
+// live availability for that specific date via `getSlotAvailabilityAction`
+// (SECURITY DEFINER RPC over `bookings`, which the anon funnel can't read
+// directly) and grey out slots that are already reserved.
 
 export function BookingBuilder({
+  propertyId,
   services,
   slotsByDayOfWeek,
   pricing,
@@ -48,6 +52,11 @@ export function BookingBuilder({
   const { property: propertySlug } = useParams<{ property: string }>();
   const { state, setState } = useBookingFlow();
   const [subStep, setSubStep] = useState<SubStep>(1);
+  // Live per-slot availability for the currently selected date. `null` means
+  // "not loaded yet / failed" → readers fail open and treat every slot as
+  // bookable, leaving the Phase 2 insert triggers as the final guard.
+  const [availability, setAvailability] = useState<SlotAvailability | null>(null);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
 
   if (!state.bookingType) return null;
   const bookingType = state.bookingType;
@@ -134,6 +143,53 @@ export function BookingBuilder({
   const slotsForDate: ReadonlyArray<AvailableSlot> =
     dayOfWeek !== null ? slotsByDayOfWeek[dayOfWeek] ?? [] : [];
 
+  // Prospective duration for the availability query — the same value
+  // handleSlotPick writes to state, so the overlap window we preview matches
+  // the booking we'd create.
+  const prospectiveDuration = meta.defaultDurationHours;
+
+  // Fetch live availability whenever the selected date (or the booking shape
+  // that defines the overlap window) changes. A stale-guard flag drops
+  // out-of-order responses if the guest clicks dates quickly.
+  const selectedDateISO = state.date;
+  useEffect(() => {
+    if (selectedDateISO === undefined) {
+      setAvailability(null);
+      setAvailabilityLoading(false);
+      return;
+    }
+    let active = true;
+    setAvailabilityLoading(true);
+    getSlotAvailabilityAction({
+      propertyId,
+      dateISO: selectedDateISO,
+      bookingType,
+      durationHours: prospectiveDuration,
+    })
+      .then((result) => {
+        if (!active) return;
+        setAvailability(result);
+      })
+      .finally(() => {
+        if (active) setAvailabilityLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [propertyId, selectedDateISO, bookingType, prospectiveDuration]);
+
+  // If the slot the guest already picked is now reserved, drop it so they
+  // can't advance with a dead selection.
+  useEffect(() => {
+    if (
+      state.slotStart !== undefined &&
+      availability !== null &&
+      availability[state.slotStart] === false
+    ) {
+      setState({ slotStart: undefined });
+    }
+  }, [availability, state.slotStart, setState]);
+
   function handleDateSelect(date: Date | undefined) {
     if (!date) {
       setState({ date: undefined, slotStart: undefined });
@@ -142,7 +198,14 @@ export function BookingBuilder({
     setState({ date: dateToISO(date), slotStart: undefined });
   }
 
+  // Slots absent from the map (or before it loads) fail open as available.
+  function isSlotAvailable(slot: AvailableSlot): boolean {
+    if (availability === null) return true;
+    return availability[slot.slotStart] !== false;
+  }
+
   function handleSlotPick(slot: AvailableSlot) {
+    if (!isSlotAvailable(slot)) return;
     setState({
       slotStart: slot.slotStart,
       durationHours: meta.defaultDurationHours,
@@ -394,18 +457,38 @@ export function BookingBuilder({
                   {selectedDate && slotsForDate.length === 0 && (
                     <p className={s.slotEmpty}>No times available on this day.</p>
                   )}
+                  {selectedDate &&
+                    slotsForDate.length > 0 &&
+                    availability !== null &&
+                    slotsForDate.every((slot) => !isSlotAvailable(slot)) && (
+                      <p className={s.slotEmpty}>
+                        Every time on this day is reserved — please choose
+                        another date.
+                      </p>
+                    )}
                   {selectedDate && slotsForDate.length > 0 && (
-                    <ul className={s.slotGrid}>
+                    <ul
+                      className={s.slotGrid}
+                      aria-busy={availabilityLoading || undefined}
+                    >
                       {slotsForDate.map((slot) => {
                         const selected = state.slotStart === slot.slotStart;
+                        const available = isSlotAvailable(slot);
                         return (
                           <li key={slot.slotStart}>
                             <button
                               type="button"
                               className={s.slotBtn}
                               data-selected={selected || undefined}
+                              data-unavailable={!available || undefined}
                               onClick={() => handleSlotPick(slot)}
+                              disabled={!available}
                               aria-pressed={selected}
+                              aria-label={
+                                available
+                                  ? slot.label
+                                  : `${slot.label} — reserved`
+                              }
                             >
                               {slot.label}
                             </button>

@@ -412,3 +412,21 @@
 .slotBtn[data-selected]:hover {
   background: var(--olive-deep);
 }
+
+/* Reserved / unavailable: greyed out and non-interactive. Overrides the
+   hover rule above so a disabled slot never lifts on pointer-over. */
+.slotBtn[data-unavailable],
+.slotBtn[data-unavailable]:hover {
+  background: var(--paper-warm);
+  border-color: var(--border);
+  color: var(--gray);
+  cursor: not-allowed;
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+/* Whole grid dims slightly while live availability is being fetched. */
+.slotGrid[aria-busy="true"] {
+  opacity: 0.6;
+  transition: opacity var(--transition-fast);
+}

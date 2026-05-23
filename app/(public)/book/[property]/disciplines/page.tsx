@@ -59,6 +59,7 @@ export default async function DisciplinesPage({
           </Alert>
         ) : (
           <BookingBuilderTypeGate
+            propertyId={property.id}
             services={services ?? []}
             slotsByDayOfWeek={slotsByDayOfWeek ?? {}}
             pricingByType={pricingByType ?? {}}
