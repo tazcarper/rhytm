@@ -11,10 +11,13 @@ Every scenario assumes the **`/dev` dashboard** at `http://localhost:3000/dev` i
 | 2026-05-18 | A, B, B2, C, D, E | ✅ All passed | First full end-to-end verification against live Supabase after Phase 4 schema refactor (split `members` → `people` + `memberships` + `membership_people`) and RLS cycle hotfixes. Auth gate is now considered production-ready for member sign-in. |
 | 2026-05-18 | F | ⏳ Pending | New scenario for the production `/login` page (App 4 first slice). To be run once the Supabase email template fix is confirmed; until then, exercise via the `/dev` magic-link generator as documented in the scenario prereq. |
 | 2026-05-21 | P1, P2, P3, P4, P5, P7, P8, P9, P10, P11, P12, P-status | ✅ All passed | Executed 2026-05-21 against live Supabase + local dev server. P6 skipped (DB-layer constraint coverage). P10b deferred to pre-launch polish gate (real-inbox preview belongs with App 8's Resend transport work). P4 surfaced a known UX gap (live availability filter on the slot picker — already tracked in TRACKER's Deferred Improvements under "promote service-role public reads to SECURITY DEFINER RPCs"; not a bug, planned pre-launch). P-status workflow-guard trigger re-enabled cleanly (`tgenabled = 'O'`). |
+| 2026-05-23 | S1, S2, S3, S4, S5, S11, S14 | ✅ All passed | First end-to-end verification of the App 6 Stripe deposit flow against `stripe listen` locally AND the production webhook endpoint on `rhytm-one.vercel.app`. Surfaced one Vercel-only issue during setup (env var `STRIPE_WEBHOOK_SECRET` mismatch — the dashboard endpoint's signing secret differs from the `stripe listen` ephemeral one; once synced + redeployed, S1 + S11 passed against prod). S6, S7, S8, S9, S10, S12, S13, S15 not yet formally re-run in this session — covered by dev-time validation during the build, formal re-run recommended before any change touching `app/api/webhooks/stripe/` or `src/services/stripe/`. |
 
 Re-run **A–F** before any future change that touches: `/auth/callback`, `middleware.ts`, the people / memberships / membership_people / member_adventure_rsvps schema, or any RLS policy on those tables.
 
 Re-run **P1–P12 + P-status** before any future change that touches: `create_public_booking()` PL/pgSQL function, `src/services/bookings/create-public-booking.ts`, the booking-flow components (`<BookingTypePicker>`, `<BookingBuilder>`, `<BookingSummary>`, `<DetailsForm>`), the bid page (`app/(public)/bids/[slug]/[code]/page.tsx`), `src/services/bids/get-bid.ts`, `src/services/bids/bid-url.ts`, the booking-flow provider/guard, the email shim (`src/services/notifications/send-email.ts`), any RLS policy on `bookings` / `booking_disciplines` / `booking_add_ons` / `bids`, or any of Phase 2's BEFORE triggers / exclusion constraint.
+
+Re-run **S1–S15** before any future change that touches: `app/api/webhooks/stripe/route.ts`, anything under `src/services/stripe/`, `src/services/admin/refund-deposit.ts`, `src/components/public/deposit-payment-form.tsx`, `src/components/admin/refund-deposit-button.tsx`, `src/components/admin/payment-status-badge.tsx`, `lib/stripe/*`, the `sync_booking_from_bid` trigger function, or any of the App 6 migrations (`20260523120000`, `20260523120100`, `20260523130000`, `20260524120000`).
 
 ---
 
@@ -468,13 +471,311 @@ ALTER TABLE bids ENABLE TRIGGER bids_sync_booking_status;
 
 ---
 
+## App 6 — Stripe Deposit Collection
+
+The "S" series. Covers the entire Stripe deposit flow: PaymentIntent creation (App 6.3), `<PaymentElement>` UI + AmountPicker (6.4 + Path A), webhook handler (6.5), admin manual refund (6.6), and the workflow finalization rules + status color/badge taxonomy that depend on them.
+
+The pattern is: pick (or create) a `confirmed` bid → pay → verify bid + booking + receipt → optionally refund. Most scenarios assume the previous P-series happy path (P1/P2) has already been run to create test bids.
+
+Re-run **S1–S15** before any future change that touches: `app/api/webhooks/stripe/route.ts`, anything under `src/services/stripe/`, `src/components/public/deposit-payment-form.tsx`, `src/components/admin/refund-deposit-button.tsx`, `src/components/admin/payment-status-badge.tsx`, the `sync_booking_from_bid` trigger, or any of the App 6 migrations (`20260523120000`, `20260523120100`, `20260523130000`, `20260524120000`).
+
+### App 6 prerequisites (do once per test session)
+
+- [ ] All four App 6 migrations applied to whichever Supabase project your dev server is pointed at. Verify with:
+  ```sql
+  SELECT column_name FROM information_schema.columns
+  WHERE table_name = 'bookings'
+    AND column_name IN ('amount_paid', 'deposit_payment_intent_id');
+  -- expect 2 rows.
+
+  SELECT unnest(enum_range(NULL::bid_status_enum));
+  -- expect 7 values including 'refunded'.
+  ```
+- [ ] Env vars in `.env.local`:
+  - `STRIPE_SECRET_KEY` (test-mode `sk_test_…` or restricted `rk_test_…`)
+  - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (test-mode `pk_test_…`)
+  - `STRIPE_WEBHOOK_SECRET` — see next item
+- [ ] **Webhook forwarding:** in a second terminal, run `stripe listen --forward-to localhost:3000/api/webhooks/stripe`. The first line of output prints a `whsec_…` value — that's your `STRIPE_WEBHOOK_SECRET` for `.env.local`. Restart `npm run dev` after pasting. Keep `stripe listen` running for the entire session — without it, webhooks queue server-side but never reach localhost.
+- [ ] **For production (Vercel) tests:** an endpoint is configured in Stripe Dashboard → Developers → Webhooks pointing at `https://<your-domain>/api/webhooks/stripe`, subscribed to at least `payment_intent.succeeded`. Its signing secret is set as `STRIPE_WEBHOOK_SECRET` in the Vercel project's Production env, and the project has been redeployed since that env var was last changed.
+- [ ] A handful of test bids in `confirmed` status. Quickest way: run P1 (Plan a Visit) → in `/admin/bids/[id]/edit` set Confirmed quote (e.g. `400.00`) + Deposit (e.g. `100.00`) → save → click Confirm. Path A's AmountPicker only renders when the effective quote (`confirmed_price ?? estimated_price`) is meaningfully greater than the deposit. Repeat for `you+s1@example.com`, `you+s2@example.com`, … so each scenario uses a fresh bid.
+
+### App 6 cleanup helper
+
+There's no admin "un-pay" flow. To reset a paid bid for re-testing the flow on it, briefly disable the workflow guard and rewrite manually:
+
+```sql
+ALTER TABLE bids DISABLE TRIGGER bids_sync_booking_status;
+
+UPDATE bookings SET
+  status = 'pending_review',
+  amount_paid = 0,
+  deposit_payment_intent_id = NULL,
+  updated_at = now()
+WHERE guest_email = 'you+s1@example.com';
+
+UPDATE bids SET
+  status = 'pending_review',
+  paid_at = NULL,
+  refund_payment_intent_id = NULL,
+  refund_amount = NULL
+WHERE booking_id IN (SELECT id FROM bookings WHERE guest_email = 'you+s1@example.com');
+
+ALTER TABLE bids ENABLE TRIGGER bids_sync_booking_status;
+```
+
+**Re-enable the trigger before the next scenario.** Leaving it disabled silently breaks the forward-only workflow guard.
+
+For full session cleanup (delete the bid/booking entirely), use the App 2 cleanup helper above — it cascades through `booking_disciplines`, `booking_add_ons`, `bids`, and `dev_email_outbox`. `processed_webhooks` rows survive (acceptable — they're keyed by Stripe event id, not booking).
+
+### Stripe test cards used below
+
+- `4242 4242 4242 4242` — always succeeds. Use for happy paths.
+- `4000 0000 0000 9995` — insufficient funds (declined at confirm). Use for failure paths.
+- `4000 0027 6000 3184` — requires 3DS challenge. Use to verify the in-browser modal.
+
+Any future expiry (e.g. `12 / 30`), any CVC (e.g. `123`), any ZIP (e.g. `12345`).
+
+---
+
+### S1 — Pay the deposit (variable amount, default)
+
+Confirms the basic Path A happy path on a confirmed bid with deposit + larger quote: AmountPicker visible, default to deposit, pay deposit only, webhook updates bid.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Open the customer-facing bid URL for a fresh `confirmed` bid (deposit `$100`, quote `$400`) | Hero shows property name + date. Deposit slot renders the AmountPicker: input pre-filled `100.00`, **Deposit $100.00** button highlighted, **Full $400.00** button secondary. Below: PaymentElement loads with multiple payment-method options |
+| 2 | Without changing the amount, type `4242 4242 4242 4242`, `12/30`, `123`, ZIP `12345`. Click **Pay $100.00** | Button shows "Processing…" then "Payment received — finalizing your bid…". Within 30s the page auto-refreshes to the Paid ✓ state. Status banner reads "Deposit received — one more step: sign your waiver…" (signed_at is null) |
+| 3 | In `stripe listen` terminal | Logs `payment_intent.succeeded` then `200 OK` for `localhost:3000/api/webhooks/stripe` |
+| 4 | `SELECT b.status AS bid_status, b.paid_at, bk.status AS booking_status, bk.amount_paid, bk.deposit_payment_intent_id FROM bids b JOIN bookings bk ON bk.id = b.booking_id WHERE bk.guest_email = 'you+s1@example.com';` | `bid_status=paid`, `paid_at` populated, `booking_status=deposit_paid`, `amount_paid=100.00`, `deposit_payment_intent_id` starts with `pi_` and matches the Stripe Dashboard |
+| 5 | `SELECT id, event_type, processed_at FROM processed_webhooks WHERE source='stripe' ORDER BY processed_at DESC LIMIT 1;` | One row, `event_type=payment_intent.succeeded`, processed_at within seconds of step 2 |
+| 6 | `SELECT subject, template_name FROM dev_email_outbox WHERE template_name='deposit_receipt' ORDER BY created_at DESC LIMIT 1;` | Subject: **"Deposit received — one more step"** |
+| 7 | Open `/admin/bids/[id]` for this bid | Status badge shows **Paid** (green) and the **Deposit paid** payment badge (amber) next to it. Pricing card: Amount paid `$100.00 · ✓ Deposit paid`. "Balance due at property: $300.00" row appears. Refund button is visible in the actions area |
+
+**Pass criteria:** bid + booking flip atomically, amount_paid reflects what was sent to Stripe, receipt subject matches the "deposit only" branch, admin Pricing card shows balance-due.
+
+---
+
+### S2 — Pay the full quote
+
+Confirms Path A's "Full" quick-fill path: amount = effective quote, "Paid in full" branding throughout.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Fresh confirmed bid for `you+s2@example.com` (deposit `$100`, quote `$400`). Open bid URL | AmountPicker visible |
+| 2 | Click **Full $400.00**. Wait for the loading overlay ("Updating to $400.00…") to clear | "Deposit · $400.00" header line updates. Pay button label updates to **Pay $400.00**. PaymentElement remounts (card field is empty — expected) |
+| 3 | Pay with `4242…`, future expiry, any CVC/ZIP. Submit | Auto-refresh to Paid ✓ within 30s. Bid page: **"$400.00 received"** (no "of $Y" suffix). Body: **"Thanks — your booking is paid in full. We'll see you at the property."** |
+| 4 | SQL: `bid_status=paid`, `amount_paid=400.00`, `booking.status=deposit_paid` | Confirmed |
+| 5 | `dev_email_outbox` top row subject | **"Payment received — one more step"** (waiver still unsigned, but full payment — different subject from S1) |
+| 6 | `/admin/bids/[id]` for this bid | Status badges: **Paid** (green) + **Paid in full** (purple). Pricing card: Amount paid `$400.00 · ✓ Paid in full`. **No "Balance due at property" row** (none owed). |
+
+**Pass criteria:** AmountPicker quick-fill works, full-payment subject branches correctly, "Paid in full" badge appears (purple), balance-due row hidden.
+
+---
+
+### S3 — Pay a partial amount (between deposit and quote)
+
+Confirms the typed-amount path + partial payment classification.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Fresh confirmed bid for `you+s3@example.com` (deposit `$100`, quote `$400`). Open bid URL | AmountPicker visible |
+| 2 | Click in the AmountPicker input → clear → type `250` → Tab out (or click elsewhere). Wait for overlay to clear | Input reads `250.00`. Both quick-fill buttons go secondary (neither matches). Pay button: **Pay $250.00** |
+| 3 | Pay with `4242…`. Submit | Auto-refresh. Bid page: **"$250.00 received of $400.00"**. Body: "Thanks — the remaining $150.00 settles at the property." |
+| 4 | SQL: `amount_paid=250.00` | Confirmed |
+| 5 | `dev_email_outbox` top row subject | **"Deposit received — one more step"** (not "Payment received" — only the *full quote* triggers that subject) |
+| 6 | `/admin/bids/[id]` for this bid | Badges: **Paid** + **Partial payment** (amber). Pricing card: Amount paid `$250.00 · ✓ Partial payment`. Balance due at property: `$150.00` |
+
+**Pass criteria:** typed amount commits, partial classification renders correctly, balance-due math matches.
+
+---
+
+### S4 — AmountPicker locks once card data is entered
+
+Regression guard against the "PaymentElement.onChange fires on mount" bug (fixed by checking `event.empty`).
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Fresh confirmed bid (`you+s4@…`), deposit + quote like above. Open bid URL | AmountPicker visible, editable. PaymentElement loads |
+| 2 | Click Deposit → Full → type `200` → blur — all without entering any card data | AmountPicker stays editable through every change. No lock. Hint reads "Pay at least the $100 deposit, up to the $400 quote…" |
+| 3 | Click in the PaymentElement card-number field but **don't type** | AmountPicker still editable |
+| 4 | Type a single digit (e.g. `4`) in the card-number field | **AmountPicker input + both quick-fill buttons become disabled (greyed).** Hint changes to: **"Amount is locked once you start entering card details. Refresh the page to change it."** |
+| 5 | Backspace the card field back to empty | AmountPicker stays locked (one-way; refresh-to-change is the documented escape) |
+| 6 | Refresh the page | AmountPicker editable again; PaymentElement empty |
+
+**Pass criteria:** AmountPicker does not lock prematurely on mount; it locks only after actual card input.
+
+---
+
+### S5 — Idempotent re-click reuses the same PaymentIntent
+
+Confirms the Server Action checks `bookings.deposit_payment_intent_id` and reuses a reusable PI with matching amount.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Fresh confirmed bid (`you+s5@…`). Open bid URL | AmountPicker visible. PaymentElement loads → `bookings.deposit_payment_intent_id` is now set to a `pi_…` |
+| 2 | `SELECT deposit_payment_intent_id FROM bookings WHERE guest_email = 'you+s5@example.com';` | Returns a `pi_…` value; note it |
+| 3 | Refresh the bid page in the same browser. Don't change the amount | Same PaymentElement loads; the PI ID in DB is **unchanged** (verified by re-running the SQL from step 2) |
+| 4 | In the Stripe Dashboard → Payments | Only **one** PaymentIntent exists for this booking, in `requires_payment_method` state |
+| 5 | Click **Full $400.00** in the AmountPicker | Loading overlay shown. New PI created for $400. SQL in step 2 now returns a **different** `pi_…` (overwrite). The old $100 PI is still in Stripe (it will auto-cancel in 24h) |
+
+**Pass criteria:** same-amount reload reuses the existing PI; amount change creates a fresh PI and overwrites the column.
+
+---
+
+### S6 — Bid not yet confirmed → form rejects payment
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Run P1 to create a `pending_review` bid for `you+s6@example.com`. **Do not confirm** | Bid status is `pending_review` |
+| 2 | Open the bid URL | Body is hidden (`isActiveBid` predicate returns false for `pending_review`). No DepositSlot rendered. Banner: "Your bid is being prepared" |
+| 3 | (Optional defensive check) Open browser dev tools → Network → call `createDepositSessionAction` directly via the React DevTools "Components" tab if you want to simulate a bypass | Returns `{ ok: false, reason: 'bid_not_payable', message: 'This bid is still being reviewed…' }` |
+
+**Pass criteria:** page-level gate prevents form mount; Server Action defends with a clear error reason even if reached directly.
+
+---
+
+### S7 — Bid already paid → form not re-renderable
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Reuse the S1 bid (now `paid`). Open its bid URL again | DepositSlot renders the **Paid ✓** state, not the AmountPicker. No re-payment path |
+| 2 | (Optional) Try calling `createDepositSessionAction` directly | Returns `{ ok: false, reason: 'already_paid', message: 'This bid has already been paid.' }` |
+
+**Pass criteria:** UI doesn't offer to re-pay; Server Action defends if called.
+
+---
+
+### S8 — Webhook signature verification failure (security guard)
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Send a forged POST to the webhook (or omit the signature header): `curl -X POST http://localhost:3000/api/webhooks/stripe -H 'Content-Type: application/json' -d '{}'` | HTTP **400** response, body `"missing signature"` |
+| 2 | Same but with a bogus signature header: `-H 'stripe-signature: t=1,v1=bogus'` | HTTP **400**, body `"invalid signature"` |
+| 3 | `SELECT COUNT(*) FROM processed_webhooks WHERE id LIKE 'evt_forged%';` | `0` rows (no claim row created — signature verification gates the claim) |
+| 4 | `npm run dev` terminal | Logs `[stripe webhook] signature verification failed { message: '...' }` |
+
+**Pass criteria:** unsigned/forged requests are rejected before any DB write.
+
+---
+
+### S9 — Webhook replay is idempotent
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | After S1's successful payment, `SELECT * FROM processed_webhooks WHERE source='stripe' ORDER BY processed_at DESC LIMIT 1;` — note the event id | One row with `event_type='payment_intent.succeeded'` |
+| 2 | Stripe Dashboard → Developers → Events → click the same event → click **Resend** (top right) | `stripe listen` terminal: logs `200 OK` |
+| 3 | Re-run the SQL from step 1 | Still **one** row (no duplicate; the PK collision on `(id, source, event_type)` short-circuited) |
+| 4 | SQL: `SELECT paid_at FROM bids WHERE booking_id = (SELECT id FROM bookings WHERE guest_email='you+s1@example.com');` | `paid_at` unchanged from the original payment timestamp (the UPDATE in the handler has a `status IN ('confirmed', 'signed')` filter — re-running it against a `paid` bid is a 0-row no-op) |
+| 5 | `SELECT created_at FROM dev_email_outbox WHERE template_name='deposit_receipt' AND to_email='you+s1@example.com' ORDER BY created_at DESC;` | Still one row (no duplicate receipt). The handler bails before queuing the email when the bid UPDATE matched 0 rows |
+
+**Pass criteria:** replays return 200 quickly, no duplicate state mutations, no duplicate emails.
+
+---
+
+### S10 — Receipt subject branches correctly
+
+This is a meta-scenario consolidating receipt-copy outputs from S1, S2, S3:
+
+| Payment | `signed_at` | Expected subject |
+|---|---|---|
+| Deposit only ($100 of $400) | `null` (S1) | "Deposit received — one more step" |
+| Full quote ($400 of $400) | `null` (S2) | "Payment received — one more step" |
+| Partial ($250 of $400) | `null` (S3) | "Deposit received — one more step" |
+| Deposit only | not null (would need App 7 to set, or manual SQL) | "Deposit received — see you on `<date>`" |
+| Full quote | not null | "Payment received — see you on `<date>`" |
+
+**Pass criteria:** the four canonical paths produce four distinct subject lines (or two with `<date>` substituted for "one more step" depending on signed status).
+
+---
+
+### S11 — Admin full refund
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Open `/admin/bids/[id]` for the S1 bid (status `paid`, amount_paid `$100`) | "Refund deposit" button visible in the actions area |
+| 2 | Click **Refund deposit**. Dialog opens with amount pre-filled `$100.00`, reason textarea empty | Hint reads "Defaults to the full amount paid ($100.00). Edit for a partial refund." |
+| 3 | Add reason `"Test full refund — S11"`. Leave amount at $100.00. Click **Refund $100.00** | Button shows "Refunding…" → success card "Refund issued. $100.00 refunded. Stripe reference: `re_…`" |
+| 4 | Click **Done** | Page refreshes. Status badge changes from **Paid** to **Refunded** (tan). PaymentStatusBadge (Deposit paid) is gone. Refund button is gone. Pricing card adds: "Refund: $100.00" |
+| 5 | SQL: `SELECT b.status, b.refund_amount, b.refund_payment_intent_id, bk.status AS booking_status FROM bids b JOIN bookings bk ON bk.id=b.booking_id WHERE bk.guest_email='you+s1@example.com';` | `bid.status=refunded`, `refund_amount=100.00`, `refund_payment_intent_id='re_…'`, `booking_status=cancelled` |
+| 6 | Stripe Dashboard → Payments → click the PI from S1 | A `re_…` refund event is recorded, full amount, matching reason metadata. PI status reads "Partially refunded" or "Refunded" (depending on fraction; for $100 of $100 → Refunded) |
+| 7 | `SELECT staff_notes FROM bids WHERE booking_id = (SELECT id FROM bookings WHERE guest_email='you+s1@example.com');` | Includes a markdown block: `**Refund $100.00** (re_...) — <timestamp>\n\nTest full refund — S11` (appended to whatever was there) |
+
+**Pass criteria:** Stripe-side refund succeeds; bid + booking statuses sync via the trigger; staff_notes appended; UI gates the button correctly post-refund.
+
+---
+
+### S12 — Admin partial refund still flips to refunded
+
+Confirms Path A's design choice: any refund (partial or full) moves the bid to `refunded` (booking to `cancelled`). Partial-refund-without-cancel is not currently supported.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Fresh paid bid (`you+s12@…`, paid full $400) | Status `paid`, amount_paid `400.00` |
+| 2 | `/admin/bids/[id]` → Refund deposit. Dialog defaults to `$400.00` | Hint references full amount paid |
+| 3 | Try entering `$500` → Refund $500.00 | Client-side validation error: **"Refund can't exceed the amount paid ($400.00)"**. No request sent |
+| 4 | Enter `$100`. Reason `"Partial refund — S12"`. Refund $100.00 | Success. Stripe refund recorded for $100 |
+| 5 | SQL post-refund | `bid.status=refunded` (not `partially_refunded` — Path A treats any refund as terminal). `refund_amount=100.00`. `booking_status=cancelled`. `amount_paid=400.00` (historical — unchanged) |
+
+**Pass criteria:** client-side cap matches `amount_paid`; partial-refund flips bid to `refunded`; `amount_paid` stays as historical truth.
+
+---
+
+### S13 — Refund cap = `amount_paid`, not `deposit_amount`
+
+Edge case that the Path A migration introduced: a customer who paid more than the deposit can be refunded up to the full amount paid.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Fresh paid bid with partial payment (`you+s13@…`, deposit $100, quote $400, paid $250) | Status `paid`, `amount_paid=250.00` |
+| 2 | Open Refund dialog | Default amount: **$250.00** (NOT $100). Hint: "Defaults to the full amount paid ($250.00)" |
+| 3 | Try $300 → "Refund can't exceed the amount paid ($250.00)" | Confirmed |
+| 4 | Refund $250 (full amount paid). SQL post-refund | `refund_amount=250.00`, `bid.status=refunded`, `booking_status=cancelled` |
+
+**Pass criteria:** refund cap respects what was actually paid, not the original deposit minimum.
+
+---
+
+### S14 — Trigger relaxation: confirmed → paid skips signed
+
+Validates the App 6 schema change to `sync_booking_from_bid` — the `paid` arm now accepts source `awaiting_guest` (not just `signed`), so customers can pay before signing.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Create a fresh `confirmed` bid (P1 + manual UPDATE to `confirmed` or via admin Confirm action) | `bid.status=confirmed`, `booking.status=awaiting_guest` |
+| 2 | `UPDATE bids SET status='paid' WHERE booking_id = (SELECT id FROM bookings WHERE guest_email='you+s14@example.com');` (no trigger disable) | Update succeeds. `bid.status=paid`. Trigger fires: `booking.status=deposit_paid` |
+| 3 | `UPDATE bids SET status='refunded' WHERE booking_id = (SELECT id FROM bookings WHERE guest_email='you+s14@example.com');` | Update succeeds. `bid.status=refunded`. Trigger fires: `booking.status=cancelled` |
+| 4 | Try to "refund" a non-paid bid: `UPDATE bids SET status='refunded' WHERE id = (SELECT id FROM bids WHERE status='pending_review' LIMIT 1);` | RAISES: `sync_booking_from_bid: bid X moved to refunded but its booking Y was not in the expected source state` (because `pending_review` → `cancelled` is not a valid transition) |
+
+**Pass criteria:** the new transitions (`confirmed → paid`, `paid → refunded`) work without trigger disable; invalid transitions still raise.
+
+---
+
+### S15 — Admin UI: badges + clickable rows
+
+Visual + interaction verification of the admin bids list (`/admin/bids`).
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Open `/admin/bids`. Filter by status `paid` | Each paid row shows the Status column with **Paid** (green) + the appropriate payment badge stacked below: **Paid in full** (purple) / **Deposit paid** (amber) / **Partial payment** (amber). Refunded rows show only **Refunded** (tan), no payment badge |
+| 2 | Hover any row | Background tints to cream; cursor changes to pointer |
+| 3 | Click anywhere on a row that isn't an `<a>` or `<button>` (e.g. the guest name cell, the date cell) | Navigates to `/admin/bids/[id]` for that bid |
+| 4 | Press Tab to focus a row (without clicking) | An olive focus ring appears around the row |
+| 5 | Press Enter while a row is focused | Same navigation |
+| 6 | Hover the property pill (a `<Link>` inside the row) and click | Goes to the property page, **not** the bid detail (inner-link takes precedence) |
+| 7 | Middle-click (or Cmd/Ctrl-click) the **View →** link in the last column | Opens the bid detail in a new tab (the View link is preserved specifically for this affordance) |
+
+**Pass criteria:** row click navigates correctly; inner links keep their own destinations; keyboard accessibility works; status + payment badges read at a glance with distinct colors.
+
+---
+
 ## Cleanup
 
 After a testing session, for every plus-aliased email used:
 
 - [ ] `/dev` → Reset test user (auth scenarios)
 - [ ] For App 2 scenarios, run the SQL cleanup helper in the "App 2 cleanup helper" section above (clears `bookings`, cascaded children, and `dev_email_outbox` rows)
-- [ ] If P-status was run, confirm `ALTER TABLE bids ENABLE TRIGGER bids_sync_booking_status;` was executed — a left-disabled workflow guard silently allows invalid status transitions on future bookings
+- [ ] If P-status or any App 6 scenario ran with the workflow guard disabled, confirm `ALTER TABLE bids ENABLE TRIGGER bids_sync_booking_status;` was executed — a left-disabled workflow guard silently allows invalid status transitions on future bookings
+- [ ] If App 6 scenarios created real (test-mode) Stripe PaymentIntents, no Stripe-side cleanup is required — test-mode PIs are sandboxed and auto-cancel after 24h. The `processed_webhooks` rows survive (acceptable — they're keyed by Stripe event id) and the weekly `pg_cron` job deletes them after 30 days
 
 Verify Recent member rows is back to whatever it was before the session started (or empty).
 
