@@ -31,6 +31,10 @@ export interface CreateDepositSessionContext {
   stripe: Stripe;
   bidSlug: string;
   bidAccessCode: string;
+  // Optional customer-chosen amount in dollars (Path A). Validated
+  // against [deposit_amount, confirmed_price]. If undefined, defaults
+  // to deposit_amount — the minimum.
+  amount?: number;
 }
 
 export type CreateDepositSessionResult =
@@ -38,7 +42,7 @@ export type CreateDepositSessionResult =
       ok: true;
       clientSecret: string;
       paymentIntentId: string;
-      amount: number; // dollars, display-ready (matches BidDetail.booking.depositAmount shape)
+      amount: number; // dollars, display-ready
       currency: "usd";
     }
   | {
@@ -48,6 +52,7 @@ export type CreateDepositSessionResult =
         | "bid_not_payable"
         | "already_paid"
         | "no_deposit_amount"
+        | "amount_invalid"
         | "stripe_error"
         | "db_error";
       message: string;
@@ -80,13 +85,15 @@ type ValidatedBidRow = {
 type BookingRow = {
   id: string;
   deposit_amount: string | number | null;
+  confirmed_price: string | number | null;
+  estimated_price: string | number | null;
   deposit_payment_intent_id: string | null;
 };
 
 export async function createDepositSession(
   ctx: CreateDepositSessionContext,
 ): Promise<CreateDepositSessionResult> {
-  const { supabase, stripe, bidSlug, bidAccessCode } = ctx;
+  const { supabase, stripe, bidSlug, bidAccessCode, amount: requestedAmount } = ctx;
 
   if (!bidSlug.trim() || !bidAccessCode.trim()) {
     return {
@@ -147,7 +154,7 @@ export async function createDepositSession(
   // 3. Booking columns we actually need.
   const { data: bookingData, error: bookingErr } = await supabase
     .from("bookings")
-    .select("id, deposit_amount, deposit_payment_intent_id")
+    .select("id, deposit_amount, confirmed_price, estimated_price, deposit_payment_intent_id")
     .eq("id", bid.booking_id)
     .single<BookingRow>();
 
@@ -173,7 +180,43 @@ export async function createDepositSession(
     };
   }
 
-  const expectedCents = Math.round(depositAmount * 100);
+  // Path A: customer can pay any amount in [deposit_amount, max].
+  // The max is the "effective quote" = confirmed_price ?? estimated_price.
+  // The bid editor lets staff leave Confirmed quote blank to keep the
+  // auto-estimate; the read layer honors that by coalescing here.
+  // Defensive: if the effective quote is lower than the deposit
+  // (data error), pin max to deposit so the form falls back to
+  // fixed-amount-at-deposit.
+  const effectiveQuote =
+    toNumber(bookingData.confirmed_price) ??
+    toNumber(bookingData.estimated_price);
+  const maxAmount =
+    effectiveQuote !== null && effectiveQuote >= depositAmount
+      ? effectiveQuote
+      : depositAmount;
+
+  // Default to the deposit (minimum) when no amount is explicitly
+  // chosen. Cent-precision: round before comparing to avoid floating
+  // point edges (e.g., 100.001 ≤ 100).
+  const chosenAmount =
+    requestedAmount === undefined ? depositAmount : requestedAmount;
+
+  if (
+    !Number.isFinite(chosenAmount) ||
+    chosenAmount + 1e-9 < depositAmount ||
+    chosenAmount > maxAmount + 1e-9
+  ) {
+    return {
+      ok: false,
+      reason: "amount_invalid",
+      message:
+        maxAmount > depositAmount
+          ? `Amount must be between $${depositAmount.toFixed(2)} and $${maxAmount.toFixed(2)}.`
+          : `Amount must be $${depositAmount.toFixed(2)}.`,
+    };
+  }
+
+  const expectedCents = Math.round(chosenAmount * 100);
 
   // 4. Reuse the existing PI if it still matches the current amount
   //    and is in a customer-confirmable state. If the amount drifted

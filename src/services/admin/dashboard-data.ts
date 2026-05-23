@@ -23,8 +23,10 @@ type DashboardBidRow = {
     guest_name: string;
     guest_email: string;
     guest_count: number;
-    estimated_price: number | null;
-    confirmed_price: number | null;
+    estimated_price: number | string | null;
+    confirmed_price: number | string | null;
+    deposit_amount: number | string | null;
+    amount_paid: number | string | null;
     property_id: string;
     properties: {
       name: string;
@@ -39,13 +41,20 @@ const SELECT = `
   bookings!inner (
     booking_type, start_time, duration_hours,
     guest_name, guest_email, guest_count,
-    estimated_price, confirmed_price,
+    estimated_price, confirmed_price, deposit_amount, amount_paid,
     property_id,
     properties!inner ( name, slug, timezone )
   )
 `;
 
+function toNumber(value: number | string | null | undefined): number | null {
+  if (value === null || value === undefined) return null;
+  return typeof value === "string" ? parseFloat(value) : value;
+}
+
 function toRow(r: DashboardBidRow): AdminBidListRow {
+  const estimated = toNumber(r.bookings.estimated_price);
+  const confirmed = toNumber(r.bookings.confirmed_price);
   return {
     id: r.id,
     slug: r.slug,
@@ -62,8 +71,11 @@ function toRow(r: DashboardBidRow): AdminBidListRow {
     propertyName: r.bookings.properties.name,
     propertySlug: r.bookings.properties.slug,
     propertyTimezone: r.bookings.properties.timezone,
-    estimatedPrice: r.bookings.estimated_price,
-    confirmedPrice: r.bookings.confirmed_price,
+    estimatedPrice: estimated,
+    confirmedPrice: confirmed,
+    effectiveQuote: confirmed ?? estimated,
+    depositAmount: toNumber(r.bookings.deposit_amount),
+    amountPaid: toNumber(r.bookings.amount_paid) ?? 0,
   };
 }
 

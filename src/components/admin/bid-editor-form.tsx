@@ -133,11 +133,16 @@ export function BidEditorForm({ detail }: BidEditorFormProps) {
               value={confirmedPrice}
               onChange={(e) => setConfirmedPrice(e.target.value)}
               className={s.input}
-              placeholder="0.00"
+              placeholder={
+                detail.booking.estimatedPrice !== null
+                  ? detail.booking.estimatedPrice.toFixed(2)
+                  : "0.00"
+              }
             />
             <span className={s.help}>
-              Shown to the guest on the bid page. Leave blank to keep the
-              auto-estimate.
+              {detail.booking.estimatedPrice !== null
+                ? `Shown to the guest on the bid page. Leave blank to keep the auto-estimate of $${detail.booking.estimatedPrice.toFixed(2)}.`
+                : "Shown to the guest on the bid page. Leave blank to keep the auto-estimate."}
             </span>
           </label>
 

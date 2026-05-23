@@ -6,7 +6,8 @@ export type AdminBidStatus =
   | "denied"
   | "signed"
   | "paid"
-  | "expired";
+  | "expired"
+  | "refunded";
 
 export type AdminBookingType =
   | "plan_a_visit"
@@ -18,6 +19,7 @@ export const ADMIN_BID_STATUSES: ReadonlyArray<AdminBidStatus> = [
   "confirmed",
   "signed",
   "paid",
+  "refunded",
   "denied",
   "expired",
 ];
@@ -50,6 +52,13 @@ export interface AdminBidListRow {
   propertyTimezone: string;
   estimatedPrice: number | null;
   confirmedPrice: number | null;
+  // App 6 Path A. effectiveQuote = confirmedPrice ?? estimatedPrice —
+  // used together with amountPaid + depositAmount to render the
+  // "Paid in full / Deposit paid / Partial payment" badge in the
+  // bids list.
+  effectiveQuote: number | null;
+  depositAmount: number | null;
+  amountPaid: number;
 }
 
 export interface AdminBidListResult {
@@ -75,8 +84,10 @@ type BidsRow = {
     guest_name: string;
     guest_email: string;
     guest_count: number;
-    estimated_price: number | null;
-    confirmed_price: number | null;
+    estimated_price: number | string | null;
+    confirmed_price: number | string | null;
+    deposit_amount: number | string | null;
+    amount_paid: number | string | null;
     property_id: string;
     properties: {
       name: string;
@@ -85,6 +96,11 @@ type BidsRow = {
     };
   };
 };
+
+function toNumber(value: number | string | null | undefined): number | null {
+  if (value === null || value === undefined) return null;
+  return typeof value === "string" ? parseFloat(value) : value;
+}
 
 export async function getAdminBidsList(
   supabase: SupabaseClient,
@@ -103,7 +119,7 @@ export async function getAdminBidsList(
       bookings!inner (
         booking_type, start_time, duration_hours,
         guest_name, guest_email, guest_count,
-        estimated_price, confirmed_price,
+        estimated_price, confirmed_price, deposit_amount, amount_paid,
         property_id,
         properties!inner ( name, slug, timezone )
       )
@@ -157,8 +173,13 @@ export async function getAdminBidsList(
       propertyName: row.bookings.properties.name,
       propertySlug: row.bookings.properties.slug,
       propertyTimezone: row.bookings.properties.timezone,
-      estimatedPrice: row.bookings.estimated_price,
-      confirmedPrice: row.bookings.confirmed_price,
+      estimatedPrice: toNumber(row.bookings.estimated_price),
+      confirmedPrice: toNumber(row.bookings.confirmed_price),
+      effectiveQuote:
+        toNumber(row.bookings.confirmed_price) ??
+        toNumber(row.bookings.estimated_price),
+      depositAmount: toNumber(row.bookings.deposit_amount),
+      amountPaid: toNumber(row.bookings.amount_paid) ?? 0,
     }),
   );
 

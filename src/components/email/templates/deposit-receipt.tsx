@@ -1,10 +1,10 @@
-// Deposit-receipt email template — App 6 webhook handler.
+// Payment-receipt email template — App 6 webhook handler.
 //
 // Fires when payment_intent.succeeded lands and the bid transitions to
-// 'paid'. Two copy branches based on whether the waiver was already
-// signed at the time of payment:
-//   - signed:    "All set — we'll see you on <date>"
-//   - unsigned:  "Deposit received — still need your waiver"
+// 'paid'. Two orthogonal copy axes (4 combinations total):
+//   - Waiver signed at time of payment? (yes/no)
+//   - Was the payment the full quote, or just the deposit / partial?
+//     (isFullPayment vs hasBalance)
 //
 // Same plain-React + inline-styles approach as guest-booking-confirmation.
 // Email clients don't honor <style> blocks or CSS modules; everything
@@ -22,7 +22,11 @@ export interface DepositReceiptProps {
   propertyName: string;
   dateLong: string; // e.g. "Saturday, May 23"
   timeLabel: string; // e.g. "9 AM CT"
-  depositAmount: string; // pre-formatted "500.00" — no $ prefix
+  amountPaid: string; // pre-formatted "500.00" — no $ prefix
+  depositAmount: string; // pre-formatted "100.00" — the required minimum
+  balanceDue: string; // pre-formatted "300.00" — remaining at-property
+  isFullPayment: boolean; // amountPaid covers the entire quote
+  hasBalance: boolean; // balanceDue > 0
   waiverSigned: boolean;
 }
 
@@ -43,16 +47,30 @@ export function DepositReceipt({
   propertyName,
   dateLong,
   timeLabel,
+  amountPaid,
   depositAmount,
+  balanceDue,
+  isFullPayment,
+  hasBalance,
   waiverSigned,
 }: DepositReceiptProps) {
-  const headline = waiverSigned
+  // Two-axis copy. The headline emphasizes payment + finalization
+  // status; the subhead breaks down what was paid vs. what's owed.
+  const headline = waiverSigned && !hasBalance
     ? `We'll see you on ${dateLong}.`
-    : "Deposit received.";
+    : isFullPayment
+      ? "Payment received."
+      : "Deposit received.";
 
-  const subhead = waiverSigned
-    ? "Your deposit is in and your waiver is signed. Everything is set."
-    : "Thanks for the deposit. One last step: sign your waiver on the bid page when you have a moment.";
+  const balanceLine = hasBalance
+    ? `The remaining $${balanceDue} settles at the property.`
+    : "Your booking is paid in full.";
+
+  const signLine = waiverSigned
+    ? "Your waiver is on file."
+    : "One last step: sign your waiver on the bid page when you have a moment.";
+
+  const subhead = `${balanceLine} ${signLine}`;
 
   return (
     <div
@@ -168,7 +186,7 @@ export function DepositReceipt({
                                   color: COLOR_INK,
                                 }}
                               >
-                                ${depositAmount}
+                                ${amountPaid}
                               </p>
                               <p
                                 style={{
@@ -177,8 +195,23 @@ export function DepositReceipt({
                                   color: COLOR_MUTED,
                                 }}
                               >
-                                Deposit toward your booking at{" "}
-                                <strong>{propertyName}</strong>.
+                                {isFullPayment
+                                  ? "Booking paid in full at "
+                                  : hasBalance
+                                    ? `Toward your booking at `
+                                    : `Deposit toward your booking at `}
+                                <strong>{propertyName}</strong>
+                                {hasBalance && (
+                                  <>
+                                    {" "}
+                                    &middot; ${balanceDue} due at the
+                                    property
+                                  </>
+                                )}
+                                {!hasBalance && !isFullPayment && depositAmount
+                                  ? ""
+                                  : ""}
+                                .
                               </p>
                             </td>
                           </tr>

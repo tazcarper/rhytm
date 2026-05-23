@@ -17,7 +17,12 @@ import {
 } from "@/src/services/public/format";
 import { getAdminBidDetail } from "@/src/services/admin/get-bid-detail";
 import { BidStatusBadge } from "@/src/components/admin/bid-status-badge";
+import {
+  PaymentStatusBadge,
+  paymentStatusLabel,
+} from "@/src/components/admin/payment-status-badge";
 import { BidActions } from "@/src/components/admin/bid-actions";
+import { RefundDepositButton } from "@/src/components/admin/refund-deposit-button";
 import { PropertyPill } from "@/src/components/admin/property-pill";
 import { MarkdownProse } from "@/src/components/shared/markdown";
 import s from "@/src/components/admin/bid-detail.module.css";
@@ -48,6 +53,7 @@ function formatMoneyOrDash(n: number | null): string {
   return n === null ? "—" : `$${formatMoney(n)}`;
 }
 
+
 export default async function AdminBidDetail({
   params,
 }: {
@@ -71,6 +77,7 @@ export default async function AdminBidDetail({
     addOnsByService.set(a.serviceId, list);
   }
 
+
   return (
     <PageShell width="xl">
       <div className={s.header}>
@@ -87,8 +94,18 @@ export default async function AdminBidDetail({
               {booking.guestName}
             </Heading>
             <BidStatusBadge status={bid.status} />
+            {bid.status === "paid" && (
+              <PaymentStatusBadge
+                amountPaid={booking.amountPaid}
+                depositAmount={booking.depositAmount}
+                effectiveQuote={booking.effectiveQuote}
+              />
+            )}
             <span className={s.slug}>{bid.slug}</span>
           </div>
+          <p className={s.bidId} title="Bid ID — click to select for copy">
+            ID {bid.id}
+          </p>
         </div>
 
         <div className={s.actions}>
@@ -96,6 +113,14 @@ export default async function AdminBidDetail({
             <Link href={`/admin/bids/${bid.id}/edit`}>Edit</Link>
           </Button>
           <BidActions bidId={bid.id} status={bid.status} />
+          {bid.status === "paid" &&
+            bid.refundPaymentIntentId === null &&
+            booking.amountPaid > 0 && (
+              <RefundDepositButton
+                bidId={bid.id}
+                amountPaid={booking.amountPaid}
+              />
+            )}
         </div>
       </div>
 
@@ -222,7 +247,11 @@ export default async function AdminBidDetail({
 
             <dt className={s.kvKey}>Confirmed quote</dt>
             <dd className={s.kvValue}>
-              {formatMoneyOrDash(booking.confirmedPrice)}
+              {booking.confirmedPrice !== null
+                ? `$${formatMoney(booking.confirmedPrice)}`
+                : booking.estimatedPrice !== null
+                  ? `$${formatMoney(booking.estimatedPrice)} (auto)`
+                  : "—"}
               {bid.quoteNote && (
                 <div style={{ marginTop: "var(--space-2)" }}>
                   <MarkdownProse small>{bid.quoteNote}</MarkdownProse>
@@ -230,10 +259,32 @@ export default async function AdminBidDetail({
               )}
             </dd>
 
-            <dt className={s.kvKey}>Deposit</dt>
+            <dt className={s.kvKey}>Deposit (min)</dt>
             <dd className={s.kvValue}>
               {formatMoneyOrDash(booking.depositAmount)}
             </dd>
+
+            <dt className={s.kvKey}>Amount paid</dt>
+            <dd className={s.kvValue}>
+              ${formatMoney(booking.amountPaid)}
+              {bid.paidAt && (
+                <span className={s.paidPill}>
+                  {" "}
+                  · ✓ {paymentStatusLabel(booking) ?? "Paid"}
+                </span>
+              )}
+            </dd>
+
+            {booking.effectiveQuote !== null &&
+              booking.amountPaid > 0 &&
+              booking.amountPaid + 0.005 < booking.effectiveQuote && (
+                <>
+                  <dt className={s.kvKey}>Balance due at property</dt>
+                  <dd className={s.kvValue}>
+                    ${formatMoney(booking.effectiveQuote - booking.amountPaid)}
+                  </dd>
+                </>
+              )}
 
             {bid.refundAmount !== null && (
               <>
@@ -254,6 +305,15 @@ export default async function AdminBidDetail({
 
             <dt className={s.kvKey}>Updated</dt>
             <dd className={s.kvValue}>{formatTimestamp(bid.updatedAt, tz)}</dd>
+
+            <dt className={s.kvKey}>Paid</dt>
+            <dd className={s.kvValue}>
+              {bid.paidAt ? (
+                formatTimestamp(bid.paidAt, tz)
+              ) : (
+                <span className={s.empty}>—</span>
+              )}
+            </dd>
 
             <dt className={s.kvKey}>Signed</dt>
             <dd className={s.kvValue}>

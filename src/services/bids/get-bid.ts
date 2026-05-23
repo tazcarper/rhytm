@@ -72,7 +72,15 @@ export interface BidBooking {
   guestNotes: string | null;
   estimatedPrice: number | null;
   confirmedPrice: number | null;
+  // The customer-facing "quote ceiling" used by the variable-amount
+  // payment flow. Coalesces confirmedPrice to estimatedPrice when the
+  // admin hasn't overridden the auto-estimate. Null only when both
+  // are null (rare — pricing rules failed AND no quote authored).
+  effectiveQuote: number | null;
   depositAmount: number | null;
+  // Actual amount paid via Stripe (App 6 Path A). Defaults to 0
+  // server-side, so 0 == "not paid yet." Always numeric.
+  amountPaid: number;
 }
 
 export interface BidDetail {
@@ -180,6 +188,7 @@ type BookingJoinedRow = {
   estimated_price: string | number | null;
   confirmed_price: string | number | null;
   deposit_amount: string | number | null;
+  amount_paid: string | number | null;
   properties: PropertyRow | null;
   instructors: { id: string; name: string } | null;
   booking_disciplines: Array<{
@@ -240,6 +249,7 @@ export async function getBidDetail(
       estimated_price,
       confirmed_price,
       deposit_amount,
+      amount_paid,
       properties ( id, name, slug, timezone, booking_horizon_days, tagline ),
       instructors ( id, name ),
       booking_disciplines ( services ( id, name, description ) ),
@@ -306,7 +316,11 @@ export async function getBidDetail(
       guestNotes: bookingRow.guest_notes,
       estimatedPrice: toNumber(bookingRow.estimated_price),
       confirmedPrice: toNumber(bookingRow.confirmed_price),
+      effectiveQuote:
+        toNumber(bookingRow.confirmed_price) ??
+        toNumber(bookingRow.estimated_price),
       depositAmount: toNumber(bookingRow.deposit_amount),
+      amountPaid: toNumber(bookingRow.amount_paid) ?? 0,
     },
     property: {
       id: bookingRow.properties.id,

@@ -91,17 +91,27 @@ export async function handlePaymentIntentSucceeded(
     return;
   }
 
-  // 1b. Idempotent fallback write of bookings.deposit_payment_intent_id.
-  //     The Server Action that created the PI already wrote this column
-  //     in the normal path. But if its DB write failed (PI in Stripe,
-  //     column NULL on booking), the admin refund flow (App 6.6) would
-  //     have no way to look up the PI. The IS NULL guard makes this a
-  //     no-op in the normal case; we only fill the gap when needed.
+  // 1b. Reconcile the booking with the PI that actually succeeded.
+  //     The webhook is the authoritative truth — overwrite both
+  //     columns unconditionally:
+  //       - deposit_payment_intent_id: in normal flow the Server
+  //         Action already wrote this, but if that write failed OR if
+  //         the column references a stale PI from an earlier amount
+  //         (Path A: amount changes create new PIs), the column may
+  //         reference the wrong PI. The PI that fired this webhook is
+  //         the one that got the money — make sure the column points
+  //         to it so the refund flow finds the right thing.
+  //       - amount_paid: Stripe's pi.amount is the source of truth
+  //         for what they paid. Always reflect it.
+  //     Single UPDATE keeps the writes atomic relative to each other.
+  const amountPaidDollars = pi.amount / 100;
   await supabase
     .from("bookings")
-    .update({ deposit_payment_intent_id: pi.id })
-    .eq("id", bookingId)
-    .is("deposit_payment_intent_id", null);
+    .update({
+      deposit_payment_intent_id: pi.id,
+      amount_paid: amountPaidDollars,
+    })
+    .eq("id", bookingId);
 
   // 2. Fetch receipt data. Single query — we only need a few columns
   //    and the property name for the body copy.
@@ -109,7 +119,8 @@ export async function handlePaymentIntentSucceeded(
     .from("bookings")
     .select(
       `
-      id, guest_name, guest_email, start_time, deposit_amount,
+      id, guest_name, guest_email, start_time,
+      deposit_amount, confirmed_price, estimated_price,
       properties ( name, timezone )
     `,
     )
@@ -135,26 +146,54 @@ export async function handlePaymentIntentSucceeded(
   const timezone = receipt.properties.timezone;
   const dateLong = formatDateLongTz(receipt.start_time, timezone);
   const timeLabel = `${formatSlotLabelTz(receipt.start_time, timezone)} CT`;
-  const depositFormatted = formatMoney(toNumber(receipt.deposit_amount) ?? 0);
+  const depositAmount = toNumber(receipt.deposit_amount) ?? 0;
+  // Coalesce: admin may have explicitly set confirmed_price OR left
+  // it blank to keep the auto-estimate (the bid editor's documented
+  // behavior). The receipt copy uses whichever applies.
+  const effectiveQuote =
+    toNumber(receipt.confirmed_price) ?? toNumber(receipt.estimated_price);
   const waiverSigned = updatedBid.signed_at !== null;
+
+  // Path A copy branching. "Full" = paid the entire effective quote
+  // (or, if no quote at all was set, exactly the deposit — the
+  // historical fixed-amount flow). "Partial" = paid more than the
+  // deposit but less than the quote. "Deposit-only" = paid exactly
+  // the deposit.
+  const isFullPayment =
+    effectiveQuote !== null
+      ? amountPaidDollars + 1e-9 >= effectiveQuote
+      : true; // no quote set → whatever was paid is the full thing
+  const balanceDue = effectiveQuote !== null
+    ? Math.max(0, effectiveQuote - amountPaidDollars)
+    : 0;
 
   const props = {
     guestName: receipt.guest_name,
     propertyName,
     dateLong,
     timeLabel,
-    depositAmount: depositFormatted,
+    amountPaid: formatMoney(amountPaidDollars),
+    depositAmount: formatMoney(depositAmount),
+    balanceDue: formatMoney(balanceDue),
+    isFullPayment,
+    hasBalance: balanceDue > 0,
     waiverSigned,
   };
+
+  const subject = isFullPayment
+    ? waiverSigned
+      ? `Payment received — see you on ${dateLong}`
+      : "Payment received — one more step"
+    : waiverSigned
+      ? `Deposit received — see you on ${dateLong}`
+      : "Deposit received — one more step";
 
   after(async () => {
     try {
       const result = await getEmailService().send({
         to: receipt.guest_email,
         from: DEFAULT_FROM_EMAIL,
-        subject: waiverSigned
-          ? `Deposit received — see you on ${dateLong}`
-          : "Deposit received — one more step",
+        subject,
         template: {
           name: "deposit_receipt",
           element: createElement(DepositReceipt, props),
@@ -180,6 +219,8 @@ type ReceiptRow = {
   guest_email: string;
   start_time: string;
   deposit_amount: string | number | null;
+  confirmed_price: string | number | null;
+  estimated_price: string | number | null;
   properties: { name: string; timezone: string } | null;
 };
 

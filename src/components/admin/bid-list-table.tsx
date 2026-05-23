@@ -1,10 +1,15 @@
+"use client";
+
+import type { MouseEvent, KeyboardEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   formatDateLongTz,
   formatSlotLabelTz,
 } from "@/src/services/public/format";
 import type { AdminBidListRow } from "@/src/services/admin/bids";
 import { BidStatusBadge } from "./bid-status-badge";
+import { PaymentStatusBadge } from "./payment-status-badge";
 import { PropertyPill } from "./property-pill";
 import s from "./queue-list.module.css";
 
@@ -27,12 +32,37 @@ function formatRelative(iso: string): string {
 }
 
 export function BidListTable({ rows }: { rows: ReadonlyArray<AdminBidListRow> }) {
+  const router = useRouter();
+
   if (rows.length === 0) {
     return (
       <div className={s.tableWrap}>
         <p className={s.empty}>No bids match these filters.</p>
       </div>
     );
+  }
+
+  // Row click navigates to the bid detail. We skip the navigation if
+  // the click landed on an inner link/button (e.g. the property pill
+  // or the View link) — those handle their own destinations and we
+  // don't want to double-fire. Keyboard accessibility via Enter/Space
+  // mirrors anchor behavior.
+  function handleRowClick(event: MouseEvent<HTMLTableRowElement>, href: string) {
+    const target = event.target as HTMLElement;
+    if (target.closest("a, button, input, select, textarea")) return;
+    router.push(href);
+  }
+
+  function handleRowKeyDown(
+    event: KeyboardEvent<HTMLTableRowElement>,
+    href: string,
+  ) {
+    if (event.key === "Enter" || event.key === " ") {
+      const target = event.target as HTMLElement;
+      if (target.closest("a, button, input, select, textarea")) return;
+      event.preventDefault();
+      router.push(href);
+    }
   }
 
   return (
@@ -55,8 +85,17 @@ export function BidListTable({ rows }: { rows: ReadonlyArray<AdminBidListRow> })
             const dateLabel = formatDateLongTz(row.startTime, tz);
             const timeLabel = formatSlotLabelTz(row.startTime, tz);
 
+            const href = `/admin/bids/${row.id}`;
             return (
-              <tr key={row.id}>
+              <tr
+                key={row.id}
+                className={s.clickableRow}
+                role="link"
+                tabIndex={0}
+                aria-label={`Open bid for ${row.guestName}`}
+                onClick={(e) => handleRowClick(e, href)}
+                onKeyDown={(e) => handleRowKeyDown(e, href)}
+              >
                 <td>
                   <div className={s.guest}>
                     <span className={s.guestName}>{row.guestName}</span>
@@ -85,7 +124,16 @@ export function BidListTable({ rows }: { rows: ReadonlyArray<AdminBidListRow> })
                   <PropertyPill name={row.propertyName} slug={row.propertySlug} />
                 </td>
                 <td>
-                  <BidStatusBadge status={row.status} />
+                  <div className={s.statusCell}>
+                    <BidStatusBadge status={row.status} />
+                    {row.status === "paid" && (
+                      <PaymentStatusBadge
+                        amountPaid={row.amountPaid}
+                        depositAmount={row.depositAmount}
+                        effectiveQuote={row.effectiveQuote}
+                      />
+                    )}
+                  </div>
                 </td>
                 <td className={s.createdAt}>{formatRelative(row.createdAt)}</td>
                 <td>

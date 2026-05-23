@@ -103,25 +103,28 @@ function showsTimeline(status: BidStatus): boolean {
   );
 }
 
+// Public-side palette mirrors the admin BidStatusBadge taxonomy so a
+// status reads the same color to staff and guests. See
+// src/components/admin/bid-status-badge.tsx for the full rationale.
 function statusBadge(status: BidStatus): {
   variant: BadgeVariant;
   label: string;
 } {
   switch (status) {
     case "pending_review":
-      return { variant: "draft", label: "In review" };
+      return { variant: "filling", label: "In review" };
     case "confirmed":
-      return { variant: "open", label: "Confirmed" };
+      return { variant: "tierCharter", label: "Confirmed" };
     case "signed":
-      return { variant: "filling", label: "Signed" };
+      return { variant: "tierMember", label: "Signed" };
     case "paid":
       return { variant: "open", label: "Booked" };
     case "denied":
-      return { variant: "past", label: "Closed" };
+      return { variant: "full", label: "Closed" };
     case "expired":
       return { variant: "past", label: "Expired" };
     case "refunded":
-      return { variant: "past", label: "Refunded" };
+      return { variant: "draft", label: "Refunded" };
   }
 }
 
@@ -505,13 +508,26 @@ function DepositSlot({
   const deposit = detail.booking.depositAmount;
   const quoteNote = detail.bid.quoteNote;
 
+  // "Effective quote" — admin's confirmed_price override OR the
+  // auto-estimate if blank (see BidBooking.effectiveQuote).
+  const quoted = detail.booking.effectiveQuote;
+  const amountPaid = detail.booking.amountPaid;
+
   if (done) {
+    const balanceDue =
+      quoted !== null ? Math.max(0, quoted - amountPaid) : 0;
+    const isFull = balanceDue < 0.005;
     return (
       <section className={`${s.slot} ${s.slotDone}`}>
         <p className={s.slotEyebrow}>Paid ✓</p>
-        <p className={s.slotTitle}>Deposit received</p>
+        <p className={s.slotTitle}>
+          ${formatMoney(amountPaid)} received
+          {quoted !== null && !isFull && ` of $${formatMoney(quoted)}`}
+        </p>
         <p className={s.slotBody}>
-          Thanks &mdash; we&rsquo;ll see you at the property.
+          {isFull
+            ? "Thanks — your booking is paid in full. We'll see you at the property."
+            : `Thanks — the remaining $${formatMoney(balanceDue)} settles at the property.`}
         </p>
         {quoteNote && (
           <div style={{ marginTop: "var(--space-2)" }}>
@@ -544,12 +560,20 @@ function DepositSlot({
     );
   }
 
+  const allowsVariableAmount = quoted !== null && quoted > deposit;
+
   return (
     <section className={s.slot}>
       <p className={s.slotEyebrow}>Step 2</p>
-      <p className={s.slotTitle}>Pay your ${formatMoney(deposit)} deposit</p>
+      <p className={s.slotTitle}>
+        {allowsVariableAmount
+          ? `Pay your deposit, the full $${formatMoney(quoted)}, or any amount in between`
+          : `Pay your $${formatMoney(deposit)} deposit`}
+      </p>
       <p className={s.slotBody}>
-        Card or bank transfer. The balance settles at the property.
+        {allowsVariableAmount
+          ? `Minimum $${formatMoney(deposit)} deposit · maximum $${formatMoney(quoted)} quote · remainder settles at the property.`
+          : "Card or bank transfer. The balance settles at the property."}
       </p>
       {quoteNote && (
         <div style={{ marginTop: "var(--space-2)" }}>
@@ -560,7 +584,8 @@ function DepositSlot({
         <DepositPaymentForm
           bidSlug={detail.bid.slug}
           bidAccessCode={accessCode}
-          amount={deposit}
+          depositAmount={deposit}
+          quotedAmount={quoted}
         />
       </div>
     </section>

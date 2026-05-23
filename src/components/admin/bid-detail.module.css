@@ -37,6 +37,20 @@
   border: 1px solid var(--border);
 }
 
+.bidId {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-micro);
+  color: var(--gray);
+  margin-top: var(--space-1);
+  user-select: all;
+}
+
+.paidPill {
+  font-size: var(--text-micro);
+  color: var(--ink-soft, var(--gray));
+  letter-spacing: var(--tracking-tight);
+}
+
 .actions {
   display: flex;
   gap: var(--space-2);

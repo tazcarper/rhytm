@@ -41,8 +41,10 @@ export interface AdminBidDetail {
     staffNotes: string | null;
     denialReason: string | null;
     refundAmount: number | null;
+    refundPaymentIntentId: string | null;
     expiresAt: string | null;
     signedAt: string | null;
+    paidAt: string | null;
     cancelledAt: string | null;
     createdAt: string;
     updatedAt: string;
@@ -62,7 +64,12 @@ export interface AdminBidDetail {
     capacityReserved: number;
     estimatedPrice: number | null;
     confirmedPrice: number | null;
+    // confirmedPrice ?? estimatedPrice — see BidBooking comment in get-bid.ts.
+    // Admin Pricing card uses this for "Balance due at property."
+    effectiveQuote: number | null;
     depositAmount: number | null;
+    amountPaid: number;
+    depositPaymentIntentId: string | null;
   };
   property: {
     id: string;
@@ -128,8 +135,10 @@ type AdminBidJoinedRow = {
   staff_notes: string | null;
   denial_reason: string | null;
   refund_amount: string | number | null;
+  refund_payment_intent_id: string | null;
   expires_at: string | null;
   signed_at: string | null;
+  paid_at: string | null;
   cancelled_at: string | null;
   created_at: string;
   updated_at: string;
@@ -149,6 +158,8 @@ type AdminBidJoinedRow = {
     estimated_price: string | number | null;
     confirmed_price: string | number | null;
     deposit_amount: string | number | null;
+    amount_paid: string | number | null;
+    deposit_payment_intent_id: string | null;
     properties: {
       id: string;
       name: string;
@@ -184,14 +195,14 @@ export async function getAdminBidDetail(
       `
       id, booking_id, slug, status,
       schedule_notes, gear_list, faq,
-      quote_note, staff_notes, denial_reason, refund_amount,
-      expires_at, signed_at, cancelled_at,
+      quote_note, staff_notes, denial_reason, refund_amount, refund_payment_intent_id,
+      expires_at, signed_at, paid_at, cancelled_at,
       created_at, updated_at,
       bookings (
         id, booking_type, start_time, end_time, duration_hours,
         guest_name, guest_email, guest_phone, guest_count, guest_notes,
         audience_type, capacity_reserved,
-        estimated_price, confirmed_price, deposit_amount,
+        estimated_price, confirmed_price, deposit_amount, amount_paid, deposit_payment_intent_id,
         properties ( id, name, slug, timezone ),
         instructors ( id, name ),
         booking_disciplines ( services ( id, name, description ) ),
@@ -240,8 +251,10 @@ export async function getAdminBidDetail(
       staffNotes: data.staff_notes,
       denialReason: data.denial_reason,
       refundAmount: toNumber(data.refund_amount),
+      refundPaymentIntentId: data.refund_payment_intent_id,
       expiresAt: data.expires_at,
       signedAt: data.signed_at,
+      paidAt: data.paid_at,
       cancelledAt: data.cancelled_at,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
@@ -261,7 +274,12 @@ export async function getAdminBidDetail(
       capacityReserved: booking.capacity_reserved,
       estimatedPrice: toNumber(booking.estimated_price),
       confirmedPrice: toNumber(booking.confirmed_price),
+      effectiveQuote:
+        toNumber(booking.confirmed_price) ??
+        toNumber(booking.estimated_price),
       depositAmount: toNumber(booking.deposit_amount),
+      amountPaid: toNumber(booking.amount_paid) ?? 0,
+      depositPaymentIntentId: booking.deposit_payment_intent_id,
     },
     property: {
       id: booking.properties!.id,

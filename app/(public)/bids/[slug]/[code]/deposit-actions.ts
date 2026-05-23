@@ -20,11 +20,13 @@ import {
 export async function createDepositSessionAction(
   bidSlug: string,
   bidAccessCode: string,
+  amount?: number,
 ): Promise<CreateDepositSessionResult> {
   return createDepositSession({
     supabase: createServiceRoleClient(),
     stripe: createStripeClient(),
     bidSlug,
     bidAccessCode,
+    amount,
   });
 }

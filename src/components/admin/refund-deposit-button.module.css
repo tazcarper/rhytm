@@ -1,0 +1,42 @@
+.amountRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.amountLabel {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+  letter-spacing: var(--tracking-tight);
+  flex: 0 0 auto;
+}
+
+.amountInput {
+  flex: 1 1 auto;
+  padding: var(--space-2) var(--space-3);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  color: var(--olive);
+}
+
+.amountInput:focus {
+  outline: 2px solid var(--olive);
+  outline-offset: 1px;
+}
+
+.amountHint {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+  margin: 0;
+}
+
+.successBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}

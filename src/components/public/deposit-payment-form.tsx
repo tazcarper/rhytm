@@ -4,6 +4,7 @@ import {
   type FormEvent,
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
@@ -53,54 +54,92 @@ const stripePromise = (() => {
 interface DepositPaymentFormProps {
   bidSlug: string;
   bidAccessCode: string;
-  amount: number; // dollars, server-known
+  depositAmount: number; // minimum payable (dollars)
+  quotedAmount: number | null; // maximum payable (dollars); null → fixed at deposit
 }
-
-type SessionState =
-  | { kind: "loading" }
-  | { kind: "ready"; clientSecret: string }
-  | { kind: "error"; message: string };
 
 export function DepositPaymentForm({
   bidSlug,
   bidAccessCode,
-  amount,
+  depositAmount,
+  quotedAmount,
 }: DepositPaymentFormProps) {
   const router = useRouter();
-  const [sessionState, setSessionState] = useState<SessionState>({
-    kind: "loading",
-  });
+
+  // Path A: the customer chooses any amount in [depositAmount, maxAmount].
+  // If no quote is set (or quote ≤ deposit), the form is fixed at deposit.
+  const maxAmount =
+    quotedAmount !== null && quotedAmount > depositAmount
+      ? quotedAmount
+      : depositAmount;
+  const allowsCustomAmount = maxAmount > depositAmount;
+
+  const [committedAmount, setCommittedAmount] = useState(depositAmount);
+  const [amountInput, setAmountInput] = useState(() =>
+    depositAmount.toFixed(2),
+  );
+  const [amountError, setAmountError] = useState<string | null>(null);
+  // Flattened state model (no union). Splitting these out lets us
+  // overlay-on-top-of-the-existing-Elements during a refetch instead of
+  // tearing the iframe down to a skeleton. Without this, the whole
+  // payment section flashes on every amount change — see the comment
+  // on the overlay render below.
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [isFetching, setIsFetching] = useState(true);
+  const [sessionError, setSessionError] = useState<string | null>(null);
+  // True after PaymentElement.onReady fires for the *current*
+  // clientSecret. Reset when clientSecret changes so we re-show the
+  // overlay while the new iframe initializes.
+  const [isElementReady, setIsElementReady] = useState(false);
   const [paymentSucceeded, setPaymentSucceeded] = useState(false);
   const [pollingExhausted, setPollingExhausted] = useState(false);
   const [fetchToken, setFetchToken] = useState(0);
+  // Locks the AmountPicker once the user has typed in the Stripe
+  // PaymentElement. Without this, changing the amount triggers a
+  // clientSecret refetch → <Elements key={clientSecret}> remount →
+  // card fields wiped. One-way: stays locked until form unmounts
+  // (success or page refresh). Comparable to Stripe's own pattern:
+  // amount is finalized before card entry begins.
+  const [cardInteracted, setCardInteracted] = useState(false);
 
-  // Step 1: fetch the clientSecret. Re-fetch when fetchToken changes
-  // (retry button bumps the token). React Strict Mode in dev will
-  // double-fire this — the Server Action is idempotent (Stripe returns
-  // the same PI from the idempotency cache), so the duplicate is
-  // benign.
+  // Step 1: fetch the clientSecret for the committed amount. Re-fetch
+  // when committedAmount or fetchToken changes (the latter via retry).
+  // React Strict Mode in dev will double-fire this — the Server Action
+  // is amount-aware and reuses the existing PI when the amount matches,
+  // so the duplicate is benign.
+  //
+  // Critically: we do NOT reset `clientSecret` to null here. Keeping
+  // the old clientSecret means the existing <Elements> stays mounted
+  // during the fetch; the overlay covers it. When the new clientSecret
+  // arrives, the `key` change triggers a clean swap behind the overlay.
   useEffect(() => {
     let cancelled = false;
-    setSessionState({ kind: "loading" });
+    setIsFetching(true);
+    setSessionError(null);
     (async () => {
-      const result = await createDepositSessionAction(bidSlug, bidAccessCode);
+      const result = await createDepositSessionAction(
+        bidSlug,
+        bidAccessCode,
+        committedAmount,
+      );
       if (cancelled) return;
       if (result.ok) {
-        setSessionState({
-          kind: "ready",
-          clientSecret: result.clientSecret,
-        });
+        setClientSecret(result.clientSecret);
       } else {
-        setSessionState({
-          kind: "error",
-          message: result.message,
-        });
+        setSessionError(result.message);
       }
+      setIsFetching(false);
     })();
     return () => {
       cancelled = true;
     };
-  }, [bidSlug, bidAccessCode, fetchToken]);
+  }, [bidSlug, bidAccessCode, fetchToken, committedAmount]);
+
+  // Reset the iframe-ready flag whenever clientSecret changes so the
+  // overlay stays up during the new iframe's load.
+  useEffect(() => {
+    if (clientSecret) setIsElementReady(false);
+  }, [clientSecret]);
 
   // Step 4: after a confirmed payment, refresh the server component
   // until the webhook has updated bid.status='paid' (at which point
@@ -124,42 +163,186 @@ export function DepositPaymentForm({
 
   const retry = useCallback(() => setFetchToken((n) => n + 1), []);
 
+  // Commit a typed/clicked amount. Only triggers a re-fetch if the
+  // amount actually changed — avoids needless PaymentElement remounts.
+  // Validates locally before committing; the server re-validates.
+  const commitAmount = useCallback(
+    (next: number) => {
+      const rounded = Math.round(next * 100) / 100;
+      if (!Number.isFinite(rounded)) {
+        setAmountError("Enter a valid amount.");
+        return;
+      }
+      if (rounded < depositAmount - 1e-9) {
+        setAmountError(
+          `Minimum is the deposit ($${depositAmount.toFixed(2)}).`,
+        );
+        return;
+      }
+      if (rounded > maxAmount + 1e-9) {
+        setAmountError(`Maximum is $${maxAmount.toFixed(2)}.`);
+        return;
+      }
+      setAmountError(null);
+      setAmountInput(rounded.toFixed(2));
+      if (rounded !== committedAmount) {
+        setCommittedAmount(rounded);
+      }
+    },
+    [depositAmount, maxAmount, committedAmount],
+  );
+
   if (paymentSucceeded) {
     return <SuccessCard pollingExhausted={pollingExhausted} />;
   }
 
-  if (sessionState.kind === "loading") {
-    return <div className={s.skeleton} aria-busy="true" aria-live="polite" />;
-  }
+  return (
+    <div className={s.wrap}>
+      {allowsCustomAmount && (
+        <AmountPicker
+          inputValue={amountInput}
+          onInputChange={setAmountInput}
+          onCommit={(raw) => commitAmount(Number.parseFloat(raw))}
+          depositAmount={depositAmount}
+          maxAmount={maxAmount}
+          committedAmount={committedAmount}
+          error={amountError}
+          locked={isFetching || cardInteracted}
+          lockedByCard={cardInteracted}
+        />
+      )}
 
-  if (sessionState.kind === "error") {
-    return (
-      <div className={s.errorBlock}>
-        <Alert variant="warn" title="We couldn't open the payment form">
-          {sessionState.message}
-        </Alert>
-        <div className={s.submitRow}>
-          <Button type="button" onClick={retry} variant="secondary">
-            Try again
-          </Button>
-        </div>
+      {/* Stable amount header — lives OUTSIDE <Elements> so it doesn't
+          flicker on remount. Always reflects the currently committed
+          amount, even while the underlying PI is being re-issued. */}
+      <div className={s.amountLine}>
+        <span className={s.amountLabel}>Deposit</span>
+        <span className={s.amount}>${formatMoney(committedAmount)}</span>
       </div>
-    );
-  }
+
+      {sessionError && (
+        <div className={s.errorBlock}>
+          <Alert variant="warn" title="We couldn't open the payment form">
+            {sessionError}
+          </Alert>
+          <div className={s.submitRow}>
+            <Button type="button" onClick={retry} variant="secondary">
+              Try again
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {!sessionError && (
+        <div className={s.paymentSection}>
+          {/* First load: no clientSecret yet, show a calm skeleton.
+              After first load: keep the previous <Elements> mounted
+              while a refetch is in flight and overlay it. The
+              overlay also stays through the iframe's own load (which
+              fires onReady when ready). */}
+          {clientSecret === null ? (
+            <div className={s.skeleton} aria-busy="true" aria-live="polite" />
+          ) : (
+            <Elements
+              key={clientSecret}
+              stripe={stripePromise}
+              options={{ clientSecret }}
+            >
+              <PaymentFormBody
+                amount={committedAmount}
+                bidSlug={bidSlug}
+                bidAccessCode={bidAccessCode}
+                paused={isFetching || !isElementReady}
+                onSucceeded={() => setPaymentSucceeded(true)}
+                onCardInteracted={() => setCardInteracted(true)}
+                onReady={() => setIsElementReady(true)}
+              />
+            </Elements>
+          )}
+
+          {clientSecret !== null && (isFetching || !isElementReady) && (
+            <div className={s.paymentOverlay} aria-busy="true">
+              <div className={s.paymentOverlaySpinner} aria-hidden="true" />
+              <p className={s.paymentOverlayText}>
+                Updating to ${formatMoney(committedAmount)}…
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface AmountPickerProps {
+  inputValue: string;
+  onInputChange: (next: string) => void;
+  onCommit: (raw: string) => void;
+  depositAmount: number;
+  maxAmount: number;
+  committedAmount: number;
+  error: string | null;
+  locked: boolean;
+  lockedByCard: boolean;
+}
+
+function AmountPicker({
+  inputValue,
+  onInputChange,
+  onCommit,
+  depositAmount,
+  maxAmount,
+  committedAmount,
+  error,
+  locked,
+  lockedByCard,
+}: AmountPickerProps) {
+  const isDeposit = Math.abs(committedAmount - depositAmount) < 0.005;
+  const isFull = Math.abs(committedAmount - maxAmount) < 0.005;
 
   return (
-    <Elements
-      key={sessionState.clientSecret}
-      stripe={stripePromise}
-      options={{ clientSecret: sessionState.clientSecret }}
-    >
-      <PaymentFormBody
-        amount={amount}
-        bidSlug={bidSlug}
-        bidAccessCode={bidAccessCode}
-        onSucceeded={() => setPaymentSucceeded(true)}
-      />
-    </Elements>
+    <div className={s.amountPicker}>
+      <label className={s.amountPickerLabel} htmlFor="deposit-amount">
+        Amount to pay
+      </label>
+      <div className={s.amountPickerRow}>
+        <input
+          id="deposit-amount"
+          className={s.amountPickerInput}
+          type="text"
+          inputMode="decimal"
+          value={inputValue}
+          onChange={(e) => onInputChange(e.target.value)}
+          onBlur={(e) => onCommit(e.target.value)}
+          disabled={locked}
+        />
+        <Button
+          type="button"
+          size="sm"
+          variant={isDeposit ? "primary" : "secondary"}
+          onClick={() => onCommit(depositAmount.toFixed(2))}
+          disabled={locked}
+        >
+          Deposit ${depositAmount.toFixed(2)}
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={isFull ? "primary" : "secondary"}
+          onClick={() => onCommit(maxAmount.toFixed(2))}
+          disabled={locked}
+        >
+          Full ${maxAmount.toFixed(2)}
+        </Button>
+      </div>
+      <p className={s.amountPickerHint}>
+        {error
+          ? error
+          : lockedByCard
+            ? "Amount is locked once you start entering card details. Refresh the page to change it."
+            : `Pay at least the $${depositAmount.toFixed(2)} deposit, up to the $${maxAmount.toFixed(2)} quote. The remainder settles at the property.`}
+      </p>
+    </div>
   );
 }
 
@@ -167,20 +350,39 @@ interface PaymentFormBodyProps {
   amount: number;
   bidSlug: string;
   bidAccessCode: string;
+  // True while a re-fetch is happening or the new iframe is still
+  // initializing. The Pay button stays disabled and the parent's
+  // overlay covers the form visually. Without this, a click during
+  // the swap could confirm the stale PI.
+  paused: boolean;
   onSucceeded: () => void;
+  // Fires on the first PaymentElement onChange event where the user
+  // has actually typed something (event.empty === false). Parent
+  // uses this to lock the AmountPicker so a remount doesn't wipe
+  // their card data.
+  onCardInteracted: () => void;
+  // Fires when Stripe's iframe is fully loaded for the current
+  // clientSecret. Parent uses this to dismiss the loading overlay.
+  onReady: () => void;
 }
 
 function PaymentFormBody({
   amount,
   bidSlug,
   bidAccessCode,
+  paused,
   onSucceeded,
+  onCardInteracted,
+  onReady,
 }: PaymentFormBodyProps) {
   const stripe = useStripe();
   const elements = useElements();
-  const [elementReady, setElementReady] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  // One-shot guard so we don't bombard the parent with onChange events
+  // (PaymentElement fires onChange on every keystroke). useRef avoids
+  // re-renders just to track this.
+  const interactedRef = useRef(false);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -224,15 +426,13 @@ function PaymentFormBody({
     ? "Processing…"
     : `Pay $${formatMoney(amount)}`;
 
-  const buttonDisabled = !stripe || !elements || !elementReady || submitting;
+  // `paused` covers the overlay window: refetch in flight OR new
+  // iframe still initializing. Confirming during either would target
+  // a stale PI or a not-yet-loaded element.
+  const buttonDisabled = !stripe || !elements || paused || submitting;
 
   return (
-    <form onSubmit={handleSubmit} className={s.wrap}>
-      <div className={s.amountLine}>
-        <span className={s.amountLabel}>Deposit</span>
-        <span className={s.amount}>${formatMoney(amount)}</span>
-      </div>
-
+    <form onSubmit={handleSubmit} className={s.formBody}>
       {submitError && (
         <Alert variant="warn" title="Payment didn't go through">
           {submitError}
@@ -240,7 +440,21 @@ function PaymentFormBody({
       )}
 
       <div className={s.elementMount}>
-        <PaymentElement onReady={() => setElementReady(true)} />
+        <PaymentElement
+          onReady={onReady}
+          onChange={(event) => {
+            // PaymentElement.onChange fires both on initial mount and
+            // on every user keystroke. We only want to lock the
+            // AmountPicker when the user has ACTUALLY typed something
+            // — `empty: false` is the signal for that. Mount events
+            // and the user clearing the form (back to empty) don't
+            // count.
+            if (!interactedRef.current && !event.empty) {
+              interactedRef.current = true;
+              onCardInteracted();
+            }
+          }}
+        />
       </div>
 
       <div className={s.submitRow}>

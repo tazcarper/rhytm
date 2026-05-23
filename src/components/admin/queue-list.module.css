@@ -162,6 +162,19 @@
   background: var(--cream);
 }
 
+/* Whole-row click handler. cursor: pointer signals it's interactive;
+   focus-visible gives keyboard users a clear target. The inner View
+   link still works on its own; we skip row-nav when the click lands
+   on any anchor/button inside the row (handled in bid-list-table.tsx). */
+.clickableRow {
+  cursor: pointer;
+}
+
+.clickableRow:focus-visible {
+  outline: 2px solid var(--olive);
+  outline-offset: -2px;
+}
+
 .guest {
   display: flex;
   flex-direction: column;
@@ -197,6 +210,13 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+.statusCell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
 
 .bookingTypeLabel {
