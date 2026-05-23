@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { EventCallbackHelper, EventCallbackRequest } from "@dropbox/sign";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import {
   handleSignatureEvent,
@@ -9,9 +9,10 @@ import {
 // the Stripe webhook (see app/api/webhooks/stripe/route.ts). Three
 // differences:
 //
-//   1. Signature verification is HMAC-SHA256 over `event_time +
-//      event_type` (per Dropbox Sign's docs), not their SDK. No
-//      `dbxsign.webhooks.constructEvent`-style helper.
+//   1. Signature verification uses the SDK's EventCallbackHelper.isValid()
+//      — the canonical HMAC-SHA256(event_time + event_type, api_key)
+//      implementation. We use it directly to avoid reimplementing the
+//      scheme by hand.
 //   2. Dropbox Sign expects the response body to literally contain
 //      the string "Hello API Event Received" — if it doesn't, they
 //      treat it as a failure and keep retrying. (Yes, really. Their
@@ -20,9 +21,7 @@ import {
 //      containing the event body. Not application/json. We parse it
 //      out before HMAC + dispatch.
 //
-// Dormant when env not configured: returns 503 if
-// DROPBOX_SIGN_WEBHOOK_SECRET is missing. Dropbox Sign treats 5xx as
-// "try again later" and stops retrying after some hours.
+// Dormant when env not configured: returns 503 if no API key is set.
 
 export const runtime = "nodejs";
 
@@ -65,9 +64,9 @@ export async function POST(req: Request): Promise<Response> {
     return new Response("invalid payload", { status: 400 });
   }
 
-  // 2. Verify HMAC. Dropbox Sign signs `event_time + event_type` (not
-  //    the full body — odd but documented). The expected hash arrives
-  //    in event.event.event_hash.
+  // 2. Verify the signature using the SDK's official helper. It
+  //    runs HMAC-SHA256(event_time + event_type) keyed on the API key
+  //    and compares against event.event_hash.
   const eventTime = event.event?.event_time;
   const eventType = event.event?.event_type;
   const eventHash = (event.event as { event_hash?: string })?.event_hash;
@@ -75,23 +74,33 @@ export async function POST(req: Request): Promise<Response> {
     return new Response("event metadata missing", { status: 400 });
   }
 
-  const expected = createHmac("sha256", webhookSecret)
-    .update(`${eventTime}${eventType}`)
-    .digest("hex");
-
-  let signatureOk = false;
+  let eventCallback: EventCallbackRequest;
   try {
-    const a = Buffer.from(expected, "utf8");
-    const b = Buffer.from(eventHash, "utf8");
-    signatureOk = a.length === b.length && timingSafeEqual(a, b);
-  } catch {
-    signatureOk = false;
+    eventCallback = EventCallbackRequest.init(event);
+  } catch (err) {
+    console.warn("[dropbox-sign webhook] init failed", {
+      message: err instanceof Error ? err.message : String(err),
+    });
+    return new Response("invalid payload", { status: 400 });
   }
 
+  const signatureOk = EventCallbackHelper.isValid(webhookSecret, eventCallback);
   if (!signatureOk) {
+    // Log enough to diagnose mismatch without leaking the secret.
+    // Most common cause: stale env var (the key in Vercel doesn't
+    // match what Dropbox Sign is signing with). Second-most common:
+    // trailing whitespace on the env var paste.
     console.warn(
       "[dropbox-sign webhook] signature verification failed",
-      { eventType, eventTime },
+      {
+        eventType,
+        eventTime,
+        receivedHashLength: eventHash.length,
+        secretLength: webhookSecret.length,
+        secretSource: process.env.DROPBOX_SIGN_WEBHOOK_SECRET
+          ? "DROPBOX_SIGN_WEBHOOK_SECRET"
+          : "DROPBOX_SIGN_API_KEY (fallback)",
+      },
     );
     return new Response("invalid signature", { status: 400 });
   }
