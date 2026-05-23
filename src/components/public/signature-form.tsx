@@ -37,6 +37,7 @@ type SessionState =
   | { kind: "ready"; signUrl: string }
   | { kind: "signed" }
   | { kind: "declined" }
+  | { kind: "syncing" } // signed in Dropbox Sign but our DB hasn't caught up
   | { kind: "error"; message: string };
 
 interface SignatureFormProps {
@@ -64,9 +65,21 @@ export function SignatureForm({
       if (cancelled) return;
       if (result.ok) {
         setSession({ kind: "ready", signUrl: result.signUrl });
-      } else {
-        setSession({ kind: "error", message: result.message });
+        return;
       }
+      // Distinguish the "already signed in Dropbox Sign, our DB is
+      // catching up via webhook" state from real errors — different
+      // UX. Webhook lag of a few seconds is expected; minutes means
+      // something's wrong but the customer's signature IS recorded.
+      if (result.reason === "already_signed") {
+        setSession({ kind: "syncing" });
+        return;
+      }
+      if (result.reason === "declined") {
+        setSession({ kind: "declined" });
+        return;
+      }
+      setSession({ kind: "error", message: result.message });
     })();
     return () => {
       cancelled = true;
@@ -151,9 +164,11 @@ export function SignatureForm({
 
   // Step 3: post-sign polling — same shape as deposit-payment-form's
   // success-then-refresh loop. Webhook stamps signed_at; we wait for
-  // the page revalidation to pick it up.
+  // the page revalidation to pick it up. Also kick polling when we
+  // detect the syncing state (envelope is signed in Dropbox Sign but
+  // our DB hasn't caught up — same recovery path).
   useEffect(() => {
-    if (session.kind !== "signed") return;
+    if (session.kind !== "signed" && session.kind !== "syncing") return;
     router.refresh();
     let attempts = 0;
     const interval = window.setInterval(() => {
@@ -201,7 +216,7 @@ export function SignatureForm({
     );
   }
 
-  if (session.kind === "signed") {
+  if (session.kind === "signed" || session.kind === "syncing") {
     return (
       <div className={s.successWrap}>
         <p className={s.successTitle}>Waiver signed</p>

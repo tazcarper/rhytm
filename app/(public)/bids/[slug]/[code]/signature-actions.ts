@@ -12,7 +12,13 @@ export type GetSignUrlResult =
   | { ok: true; signUrl: string; expiresAt: number }
   | {
       ok: false;
-      reason: "bid_not_found" | "no_envelope" | "disabled" | "api_error";
+      reason:
+        | "bid_not_found"
+        | "no_envelope"
+        | "already_signed" // envelope is signed at Dropbox Sign; our DB will catch up via webhook
+        | "declined"
+        | "disabled"
+        | "api_error";
       message: string;
     };
 
@@ -61,18 +67,41 @@ export async function getSignUrlAction(
   const result = await getEmbeddedSignUrl({
     envelopeId: bid.dropbox_sign_envelope_id,
   });
-  if (!result) {
-    return {
-      ok: false,
-      reason: "disabled",
-      message:
-        "The signing form is temporarily unavailable. Try again later or contact us.",
-    };
-  }
 
-  return {
-    ok: true,
-    signUrl: result.signUrl,
-    expiresAt: result.expiresAt,
-  };
+  switch (result.kind) {
+    case "available":
+      return {
+        ok: true,
+        signUrl: result.signUrl,
+        expiresAt: result.expiresAt,
+      };
+    case "already_signed":
+      return {
+        ok: false,
+        reason: "already_signed",
+        message:
+          "Your signature is in. Refresh in a moment — we're finalizing your bid.",
+      };
+    case "declined":
+      return {
+        ok: false,
+        reason: "declined",
+        message:
+          "This waiver was declined. Contact us to issue a fresh one.",
+      };
+    case "disabled":
+      return {
+        ok: false,
+        reason: "disabled",
+        message:
+          "Signing isn't available right now. Contact us to finalize.",
+      };
+    case "error":
+      return {
+        ok: false,
+        reason: "api_error",
+        message:
+          "Couldn't open the signing form. Try again in a moment.",
+      };
+  }
 }

@@ -1,35 +1,31 @@
 import { createDropboxSignClients } from "@/lib/dropbox-sign/server";
 
-// Resolve a fresh embedded sign URL for a given envelope (Dropbox
-// Sign signature_request_id). The URL is short-lived (~30 min from
-// Dropbox Sign's side) so we don't cache — every bid-page render
-// fetches a new one.
+// Resolve the current embedded-signing state for an envelope. Returns
+// a discriminated union so callers can render the right UI for each
+// case — distinguishing "envelope already signed (DB will catch up
+// via webhook)" from "real API failure".
 //
-// Two-step API:
+// Two-step API when minting a URL:
 //   1. signatureRequestGet(signatureRequestId) — returns the envelope
 //      including signatures[] (one entry per signer; we use [0]).
 //   2. embeddedSignUrl(signatureId) — returns the actual iframe URL.
-//
-// Dormant when env not configured (factory returns null).
-//
-// Returns null on any error or non-signable state (envelope already
-// signed / declined / canceled / etc.). Callers check null and render
-// the appropriate UI fallback.
+
+export type EmbeddedSignUrlResult =
+  | { kind: "available"; signUrl: string; expiresAt: number }
+  | { kind: "already_signed" }
+  | { kind: "declined" }
+  | { kind: "disabled" } // Dropbox Sign env not configured
+  | { kind: "error"; message: string };
 
 export interface GetEmbeddedSignUrlContext {
   envelopeId: string;
 }
 
-export interface EmbeddedSignUrlResult {
-  signUrl: string;
-  expiresAt: number; // unix seconds
-}
-
 export async function getEmbeddedSignUrl(
   ctx: GetEmbeddedSignUrlContext,
-): Promise<EmbeddedSignUrlResult | null> {
+): Promise<EmbeddedSignUrlResult> {
   const clients = createDropboxSignClients();
-  if (!clients) return null;
+  if (!clients) return { kind: "disabled" };
 
   try {
     const envelope = await clients.signatureRequest.signatureRequestGet(
@@ -41,19 +37,23 @@ export async function getEmbeddedSignUrl(
         "[dropbox-sign/get-embedded-sign-url] envelope has no signers",
         { envelopeId: ctx.envelopeId },
       );
-      return null;
+      return { kind: "error", message: "Envelope has no signers." };
     }
 
     // Single-signer v1: use the first (only) signer's signatureId.
     // Multi-signer would match by signerEmailAddress / signerRole.
     const signature = signatures[0];
-    if (!signature.signatureId) return null;
 
-    // Refuse to mint a URL if the signer has already signed, declined,
-    // or errored. The bid page's signedAt check should already gate
-    // this, but defend anyway.
-    if (signature.signedAt || signature.declineReason || signature.error) {
-      return null;
+    // Detect terminal states FIRST so callers know whether to wait
+    // for the webhook (signed) or surface a real failure.
+    if (signature.signedAt) {
+      return { kind: "already_signed" };
+    }
+    if (signature.declineReason) {
+      return { kind: "declined" };
+    }
+    if (!signature.signatureId) {
+      return { kind: "error", message: "Signer has no signature id." };
     }
 
     const urlResponse = await clients.embedded.embeddedSignUrl(
@@ -61,9 +61,11 @@ export async function getEmbeddedSignUrl(
     );
     const signUrl = urlResponse.body.embedded?.signUrl;
     const expiresAt = urlResponse.body.embedded?.expiresAt;
-    if (!signUrl || !expiresAt) return null;
+    if (!signUrl || !expiresAt) {
+      return { kind: "error", message: "Sign URL response was empty." };
+    }
 
-    return { signUrl, expiresAt };
+    return { kind: "available", signUrl, expiresAt };
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Dropbox Sign API call failed.";
@@ -71,6 +73,6 @@ export async function getEmbeddedSignUrl(
       "[dropbox-sign/get-embedded-sign-url] failed",
       { envelopeId: ctx.envelopeId, message },
     );
-    return null;
+    return { kind: "error", message };
   }
 }
