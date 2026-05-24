@@ -12,12 +12,15 @@ Every scenario assumes the **`/dev` dashboard** at `http://localhost:3000/dev` i
 | 2026-05-18 | F | ⏳ Pending | New scenario for the production `/login` page (App 4 first slice). To be run once the Supabase email template fix is confirmed; until then, exercise via the `/dev` magic-link generator as documented in the scenario prereq. |
 | 2026-05-21 | P1, P2, P3, P4, P5, P7, P8, P9, P10, P11, P12, P-status | ✅ All passed | Executed 2026-05-21 against live Supabase + local dev server. P6 skipped (DB-layer constraint coverage). P10b deferred to pre-launch polish gate (real-inbox preview belongs with App 8's Resend transport work). P4 surfaced a known UX gap (live availability filter on the slot picker — already tracked in TRACKER's Deferred Improvements under "promote service-role public reads to SECURITY DEFINER RPCs"; not a bug, planned pre-launch). P-status workflow-guard trigger re-enabled cleanly (`tgenabled = 'O'`). |
 | 2026-05-23 | S1, S2, S3, S4, S5, S11, S14 | ✅ All passed | First end-to-end verification of the App 6 Stripe deposit flow against `stripe listen` locally AND the production webhook endpoint on `rhytm-one.vercel.app`. Surfaced one Vercel-only issue during setup (env var `STRIPE_WEBHOOK_SECRET` mismatch — the dashboard endpoint's signing secret differs from the `stripe listen` ephemeral one; once synced + redeployed, S1 + S11 passed against prod). S6, S7, S8, S9, S10, S12, S13, S15 not yet formally re-run in this session — covered by dev-time validation during the build, formal re-run recommended before any change touching `app/api/webhooks/stripe/` or `src/services/stripe/`. |
+| 2026-05-23 | W1, W2, W9 | ✅ Passed | First end-to-end verification of App 7 Dropbox Sign waiver flow on `rhytm-one.vercel.app`. Surfaced three setup issues + one code bug worth recording: (1) Initial 404 on the webhook route because the App 7 scaffolding wasn't pushed yet — once deployed, route became reachable. (2) Webhook 400 because Vercel env var `DROPBOX_SIGN_WEBHOOK_SECRET` was set to the API App's Client ID, not the account API key (different 32-char hex strings, easy to confuse). Fixed by re-pasting the actual API key. (3) Webhook firing pattern: TEST callback worked, but real `signature_request_all_signed` events weren't reaching us because the callback URL wasn't actually SAVED on the API app (had to click UPDATE APPLICATION). After save, real signing events flow end-to-end. (4) SSR error on the bid page: `hellosign-embedded` SDK touches `window` at import time; switched to a dynamic import inside the click handler. Also shipped during the session: modal-popup signing surface (was inline, now full-screen overlay) and admin-only state-preview toolbar. W3–W8 (pay-then-sign / sign-then-pay / decline / webhook replay / signature forge / URL expiry) deferred to a follow-up session — covered by code-path inspection but not formally re-run live. |
 
 Re-run **A–F** before any future change that touches: `/auth/callback`, `middleware.ts`, the people / memberships / membership_people / member_adventure_rsvps schema, or any RLS policy on those tables.
 
 Re-run **P1–P12 + P-status** before any future change that touches: `create_public_booking()` PL/pgSQL function, `src/services/bookings/create-public-booking.ts`, the booking-flow components (`<BookingTypePicker>`, `<BookingBuilder>`, `<BookingSummary>`, `<DetailsForm>`), the bid page (`app/(public)/bids/[slug]/[code]/page.tsx`), `src/services/bids/get-bid.ts`, `src/services/bids/bid-url.ts`, the booking-flow provider/guard, the email shim (`src/services/notifications/send-email.ts`), any RLS policy on `bookings` / `booking_disciplines` / `booking_add_ons` / `bids`, or any of Phase 2's BEFORE triggers / exclusion constraint.
 
 Re-run **S1–S15** before any future change that touches: `app/api/webhooks/stripe/route.ts`, anything under `src/services/stripe/`, `src/services/admin/refund-deposit.ts`, `src/components/public/deposit-payment-form.tsx`, `src/components/admin/refund-deposit-button.tsx`, `src/components/admin/payment-status-badge.tsx`, `lib/stripe/*`, the `sync_booking_from_bid` trigger function, or any of the App 6 migrations (`20260523120000`, `20260523120100`, `20260523130000`, `20260524120000`).
+
+Re-run **W1–W9** before any future change that touches: `app/api/webhooks/dropbox-sign/route.ts`, anything under `src/services/dropbox-sign/`, `src/components/public/signature-form.tsx`, `lib/dropbox-sign/*`, the `confirmBid` Server Action's envelope-creation hook in `src/services/admin/transition-bid.ts`, or the `bids.dropbox_sign_envelope_id` / `bids.signed_at` schema.
 
 ---
 
@@ -768,6 +771,212 @@ Visual + interaction verification of the admin bids list (`/admin/bids`).
 
 ---
 
+## App 7 — Dropbox Sign Waiver Flow
+
+The "W" series. Covers the e-sign waiver lifecycle: envelope creation at bid confirmation (7.1), customer-facing modal signing flow (7.4 client component), webhook handler (7.5) including the App 6 workflow finalization contract (never regress `paid` → `signed`), admin envelope visibility.
+
+The pattern is: confirm a bid → admin Server Action queues `createSignatureEnvelope` via `after()` → envelope id stamped on `bids.dropbox_sign_envelope_id` → customer visits bid page → "Sign your waiver →" button → modal opens with Dropbox Sign iframe → customer signs → webhook fires → `bids.signed_at` stamped → page transitions to "Signed ✓".
+
+Re-run **W1–W9** before any future change that touches: `app/api/webhooks/dropbox-sign/route.ts`, anything under `src/services/dropbox-sign/`, `src/components/public/signature-form.tsx`, `lib/dropbox-sign/*`, the `confirmBid` envelope-creation hook in `src/services/admin/transition-bid.ts`, or the `bids.dropbox_sign_envelope_id` / `bids.signed_at` schema.
+
+### App 7 prerequisites (do once per test session)
+
+- [ ] Dropbox Sign account created (free tier is fine — uses test mode by default via `DROPBOX_SIGN_TEST_MODE` defaulting to on)
+- [ ] API key copied from Settings → API → API Keys (NOT the API App's Client ID — easy to confuse; both are 32-char hex)
+- [ ] API App created at Settings → API → API Apps with:
+  - **Domain**: `rhytm-one.vercel.app` (the deployed Vercel URL)
+  - **Event callback URL**: `https://rhytm-one.vercel.app/api/webhooks/dropbox-sign` — **must click "UPDATE APPLICATION" to save**; the TEST button works on the field's current state but real envelope events only fire to the saved URL
+  - Client ID copied
+- [ ] Template uploaded at Templates → Create New Template with:
+  - Any 1-page PDF
+  - Signer role named exactly **"Guest"** (case-sensitive — see `src/services/dropbox-sign/create-envelope.ts`)
+  - At minimum: 1 × Signature field, 1 × Name (auto-fill), 1 × Date Signed (auto-fill) — all assigned to "Guest"
+  - Template ID copied
+- [ ] Three env vars in Vercel **Production**, then redeploy:
+  - `DROPBOX_SIGN_API_KEY` — the API key
+  - `NEXT_PUBLIC_DROPBOX_SIGN_CLIENT_ID` — the Client ID
+  - `DROPBOX_SIGN_TEMPLATE_ID` — the template id
+  - (Optional: `DROPBOX_SIGN_WEBHOOK_SECRET` if your account surfaces a distinct Callback Signing Key — paid plans only. Free tier omits this and the webhook handler falls back to `DROPBOX_SIGN_API_KEY` for HMAC verification.)
+- [ ] Verify env vars are loaded by clicking **TEST** on the API App's Event callback field. Vercel logs should show `POST /api/webhooks/dropbox-sign → 200` and Dropbox Sign dashboard should show "Success! Hello API Event Received was found in the response."
+
+### App 7 cleanup helper
+
+To reset a signed bid for re-testing:
+
+```sql
+-- Clear signing artifacts on a bid. The envelope_id is intentionally
+-- preserved so the existing Dropbox Sign record stays accessible from
+-- the admin page; only clear it if you want a completely fresh envelope
+-- (and accept that the existing Dropbox Sign signature request becomes
+-- orphaned in their dashboard).
+
+ALTER TABLE bids DISABLE TRIGGER bids_sync_booking_status;
+
+UPDATE bids
+SET signed_at = NULL,
+    status = CASE WHEN status = 'signed' THEN 'confirmed' ELSE status END
+WHERE booking_id IN (SELECT id FROM bookings WHERE guest_email = 'you+w1@example.com');
+
+-- Booking status follows. If you also reset bid.status to 'confirmed':
+UPDATE bookings
+SET status = 'awaiting_guest', updated_at = now()
+WHERE guest_email = 'you+w1@example.com';
+
+ALTER TABLE bids ENABLE TRIGGER bids_sync_booking_status;
+```
+
+**Re-enable the trigger before the next scenario.** Same warning as P-status / App 6 cleanup.
+
+To void the existing Dropbox Sign envelope and start fresh:
+
+```sql
+-- Clear the envelope_id so the next confirmBid creates a new envelope
+-- (otherwise the existing one is reused). The Dropbox Sign-side
+-- envelope is left orphaned; cancel it manually in their dashboard if
+-- you want it tidied.
+UPDATE bids
+SET dropbox_sign_envelope_id = NULL
+WHERE booking_id IN (SELECT id FROM bookings WHERE guest_email = 'you+w1@example.com');
+```
+
+---
+
+### W1 — Envelope created at bid confirmation
+
+Confirms the App 7.1 hook: `confirmBid` Server Action queues `createSignatureEnvelope()` via `after()`, which calls Dropbox Sign's `signatureRequestCreateEmbeddedWithTemplate` and persists the resulting `signature_request_id` to `bids.dropbox_sign_envelope_id`.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Create a fresh `pending_review` bid via the public funnel (P1 pattern). Note the slug | Bid exists; `dropbox_sign_envelope_id` is NULL |
+| 2 | Go to `/admin/bids/[id]` for the new bid → click **Confirm** | Confirm succeeds; status badge changes to **Confirmed** |
+| 3 | Watch Vercel logs (within ~5 seconds) | Either silence (envelope creation succeeded) or `[transition-bid/confirm] envelope creation failed { bidId, reason, message }`. Reason `disabled` means env vars not set (App 7 dormant — expected if not configured yet). |
+| 4 | Refresh `/admin/bids/[id]`. Check the Lifecycle card's "Waiver envelope" row | Shows a non-null envelope id (looks like `7925fb23bad49d6dfd335c83a4ea69910a5c9185` — 40-char hex) |
+| 5 | In the Dropbox Sign dashboard → Documents (or Signature Requests) | A new signature request appears for `you+w1@example.com` with status "Awaiting signature" |
+| 6 | `SELECT dropbox_sign_envelope_id FROM bids WHERE booking_id = (SELECT id FROM bookings WHERE guest_email = 'you+w1@example.com');` | Returns the same envelope id from step 4 |
+
+**Pass criteria:** envelope id stamped within ~5s of confirm; signature request visible in Dropbox Sign; admin Lifecycle card reflects it. If step 3 logs `disabled`, complete Prerequisites then re-run.
+
+---
+
+### W2 — Customer signs in modal (happy path)
+
+Confirms the full embedded-signing flow: customer opens the modal, signs in the iframe, webhook fires, bid transitions to `signed`.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Open the customer-facing bid URL for the W1 bid (status now `confirmed`, envelope ready) | Hero + body sections render. SignatureSlot shows a **"Sign your waiver →"** button (replaces the old inline 500px iframe — see App 7 modal-mode change) |
+| 2 | Click **Sign your waiver →** | Modal overlay appears with backdrop. Dropbox Sign iframe loads inside (full-screen-ish, responsive). Close button visible in top corner |
+| 3 | Sign in the modal. After submitting, the modal auto-closes | Bid page shows the "Waiver signed — Finalizing your booking" success card with a 40px spinner |
+| 4 | In `stripe listen`-equivalent — Vercel logs | `POST /api/webhooks/dropbox-sign → 200` for `signature_request_signed` AND `signature_request_all_signed` events |
+| 5 | Within ~2-5s (polling loop in `signature-form.tsx`) the page auto-refreshes | SignatureSlot now shows **"Signed ✓"** with the "Waiver signed" copy; slot turns green (slotDone class). Timeline marks Sign step as complete |
+| 6 | SQL verify: `SELECT status, signed_at, dropbox_sign_envelope_id FROM bids WHERE booking_id = (SELECT id FROM bookings WHERE guest_email = 'you+w2@example.com');` | `status = 'signed'` (or stays `'paid'` if bid was already paid — see W3), `signed_at` populated, envelope id unchanged |
+| 7 | `SELECT event_type, processed_at FROM processed_webhooks WHERE source = 'dropbox_sign' ORDER BY processed_at DESC LIMIT 5;` | Two rows: `signature_request_signed` + `signature_request_all_signed` for this envelope |
+
+**Pass criteria:** modal opens cleanly, signature persists end-to-end, page auto-transitions to Signed ✓ without manual refresh, `processed_webhooks` records both events.
+
+---
+
+### W3 — Pay-then-sign order: signing a paid bid stays paid
+
+Confirms the App 6 workflow finalization contract: when a bid is already `paid` (App 6 pay-before-sign), signing stamps `signed_at` but does NOT regress status to `signed`. This is enforced by the conditional `WHERE status = 'confirmed'` in `handle-signature-event.ts`'s status-advance UPDATE.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Create a fresh confirmed bid (W1 pattern). Pay the deposit via App 6's DepositPaymentForm with test card `4242…` | Bid `status='paid'`, `paid_at` set, `signed_at` still NULL |
+| 2 | Open the bid URL. SignatureSlot still shows the "Sign your waiver →" button (paid bids still need to sign for full finalization) | Confirm button visible; status banner reads "Deposit received — one more step: sign your waiver above before \<date\>" |
+| 3 | Sign in the modal as in W2 | Page transitions through the success card |
+| 4 | SQL: `SELECT status, signed_at, paid_at FROM bids WHERE …` | **`status` remains `'paid'`** (NOT regressed to `'signed'`), `signed_at` and `paid_at` both populated |
+| 5 | SQL: `SELECT status FROM bookings WHERE id = (SELECT booking_id FROM bids WHERE …);` | Booking stays at `deposit_paid` (no spurious transition because bid status didn't change in the conditional UPDATE) |
+| 6 | Bid page render | "All set" status banner ("We'll see you on \<date\>"), timeline shows BOTH Sign and Pay steps complete + "All set" complete |
+
+**Pass criteria:** signing a paid bid never regresses status; both signals end up stamped; UI flips to the fully-finalized terminal state.
+
+---
+
+### W4 — Sign-then-pay order: signing first reaches `signed`, then paying reaches finalization
+
+The mirror of W3. Same workflow finalization rule from the other direction.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Create + confirm a fresh bid (`you+w4@example.com`). Status `confirmed` | Envelope created |
+| 2 | Sign first (don't pay yet) | Webhook fires. Bid → `signed`, `signed_at` stamped. Trigger fans booking → `signed` (Phase 3 trigger) |
+| 3 | Pay deposit | Webhook fires (App 6). Bid → `paid`, `paid_at` stamped. Booking → `deposit_paid`. `signed_at` preserved |
+| 4 | Bid page render | "All set" terminal banner. Same as W3 |
+
+**Pass criteria:** opposite ordering reaches the same terminal state.
+
+---
+
+### W5 — Customer declines the waiver
+
+Confirms decline handling: the webhook records the event in `processed_webhooks`, but the bid stays in its current state (admin follow-up is manual for v1).
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Fresh confirmed bid (`you+w5@example.com`). Open bid URL → click **Sign your waiver →** | Modal opens |
+| 2 | Inside the iframe, find Dropbox Sign's decline option (might require their menu to "Decline" — depends on signer permissions on the template) | Decline confirmed in iframe |
+| 3 | Modal closes. SignatureForm renders the "Waiver declined" Alert: "You can't finalize your booking without signing the waiver." | Decline copy visible |
+| 4 | Vercel logs | `POST /api/webhooks/dropbox-sign → 200` for `signature_request_declined` event. Handler logs `[dropbox-sign webhook] signer declined; admin follow-up required` |
+| 5 | SQL: `SELECT status, signed_at FROM bids WHERE …` | **status unchanged** (still `confirmed`), `signed_at` still NULL |
+| 6 | `SELECT event_type FROM processed_webhooks WHERE source = 'dropbox_sign' AND event_type = 'signature_request_declined' ORDER BY processed_at DESC LIMIT 1;` | Returns the declined event |
+
+**Pass criteria:** decline path doesn't accidentally advance status; event is captured in `processed_webhooks` for audit. Admin would normally follow up via email; that's currently manual (not built in App 7 v1).
+
+---
+
+### W6 — Webhook replay is idempotent
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | After W2's successful signing, note the `processed_webhooks` row id for `signature_request_all_signed` | One row |
+| 2 | Dropbox Sign dashboard → API App → callback history → find the signed event → Resend (if dashboard surfaces a resend option). Alternative: use the SDK's resend API. | New POST appears in Vercel logs |
+| 3 | Re-run the SQL from step 1 | Still **one** row for that event id (PK collision short-circuited the claim insert) |
+| 4 | SQL: `SELECT signed_at FROM bids WHERE …` | Unchanged from W2 (the UPDATE has `signed_at IS NULL` guard, so re-running it is a no-op) |
+| 5 | Vercel log for the replay attempt | `POST /api/webhooks/dropbox-sign → 200` with `"Hello API Event Received"` body |
+
+**Pass criteria:** replays return 200 quickly; no duplicate state mutations.
+
+---
+
+### W7 — Webhook signature forge
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Forge a POST: `curl -X POST https://rhytm-one.vercel.app/api/webhooks/dropbox-sign -F 'json={"event":{"event_time":"123","event_type":"callback_test","event_hash":"bogus"}}'` | HTTP **400**, body `"invalid signature"` |
+| 2 | Vercel logs | `[dropbox-sign webhook] signature verification failed { eventType: 'callback_test', eventTime: '123', receivedHashLength: 5, secretLength: 32, secretSource: 'DROPBOX_SIGN_API_KEY (fallback)' }` |
+| 3 | `SELECT COUNT(*) FROM processed_webhooks WHERE id = 'bogus'` | 0 (signature verification gates the claim insert) |
+
+**Pass criteria:** forged events rejected before any DB write; diagnostic log fields useful without leaking the secret.
+
+---
+
+### W8 — Embedded URL expiry / refresh-to-continue
+
+Embedded sign URLs expire ~30 min from creation. If the customer leaves the modal open across that boundary, signing fails. The UI should surface a clean recovery path.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Fresh confirmed bid, open bid URL, click **Sign your waiver →** | Modal opens |
+| 2 | Wait ≥ 31 min without signing (or simulate by mocking the URL expiry in dev) | Iframe shows Dropbox Sign's "session expired" error inside the modal |
+| 3 | Close the modal → click **Sign your waiver →** again | New sign URL fetched via Server Action; modal opens with fresh iframe; signing works |
+
+**Pass criteria:** URL expiry is recoverable with one extra click — no permanent failure.
+
+---
+
+### W9 — Admin sees envelope id on bid detail
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | After W1 confirm, open `/admin/bids/[id]` for that bid | Lifecycle card includes a **"Waiver envelope"** row with the envelope id (as monospace text) |
+| 2 | After W2 sign, refresh the admin page | Same envelope id row, plus the "Signed" row now shows the timestamp from `bids.signed_at` |
+| 3 | (Future polish, not yet built) Link to the signed PDF | n/a — link to signed PDF download via Dropbox Sign API is deferred to a later phase. For now, staff can view the signed document in the Dropbox Sign dashboard by clicking through to the request |
+
+**Pass criteria:** envelope id surfaces in admin Lifecycle card pre- and post-signing.
+
+---
+
 ## Cleanup
 
 After a testing session, for every plus-aliased email used:
@@ -776,6 +985,7 @@ After a testing session, for every plus-aliased email used:
 - [ ] For App 2 scenarios, run the SQL cleanup helper in the "App 2 cleanup helper" section above (clears `bookings`, cascaded children, and `dev_email_outbox` rows)
 - [ ] If P-status or any App 6 scenario ran with the workflow guard disabled, confirm `ALTER TABLE bids ENABLE TRIGGER bids_sync_booking_status;` was executed — a left-disabled workflow guard silently allows invalid status transitions on future bookings
 - [ ] If App 6 scenarios created real (test-mode) Stripe PaymentIntents, no Stripe-side cleanup is required — test-mode PIs are sandboxed and auto-cancel after 24h. The `processed_webhooks` rows survive (acceptable — they're keyed by Stripe event id) and the weekly `pg_cron` job deletes them after 30 days
+- [ ] If App 7 scenarios created Dropbox Sign envelopes, leave them — test-mode envelopes don't count against the free-tier monthly cap and they're cheap to ignore. The `bids.dropbox_sign_envelope_id` rows persist as historical references. If you DO want to cancel an envelope on the Dropbox Sign side, use their dashboard's "Cancel signature request" action; our app doesn't expose a cancel UI yet
 
 Verify Recent member rows is back to whatever it was before the session started (or empty).
 

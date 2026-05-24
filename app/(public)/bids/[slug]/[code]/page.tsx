@@ -20,6 +20,7 @@ import {
 } from "@/src/services/public/format";
 import { MarkdownProse } from "@/src/components/shared/markdown";
 import { BidTimeline } from "@/src/components/public/bid-timeline";
+import { BidCelebration } from "@/src/components/public/bid-celebration";
 import { DepositPaymentForm } from "@/src/components/public/deposit-payment-form";
 import { SignatureForm } from "@/src/components/public/signature-form";
 import { BidPreviewToolbar } from "@/src/components/admin/bid-preview-toolbar";
@@ -90,9 +91,14 @@ export default async function BidPage({
         <BidTimeline
           status={detail.bid.status}
           signedAt={detail.bid.signedAt}
+          requiresDeposit={detail.booking.requiresDeposit}
         />
       )}
-      <StatusBanner status={detail.bid.status} detail={detail} />
+      <StatusBanner
+        status={detail.bid.status}
+        detail={detail}
+        celebrationKey={parsed.slug}
+      />
 
       {isActiveBid(detail.bid.status) && (
         <>
@@ -106,12 +112,15 @@ export default async function BidPage({
             status={detail.bid.status}
             detail={detail}
             accessCode={parsed.code}
+            requiresDeposit={detail.booking.requiresDeposit}
           />
-          <DepositSlot
-            status={detail.bid.status}
-            detail={detail}
-            accessCode={parsed.code}
-          />
+          {detail.booking.requiresDeposit && (
+            <DepositSlot
+              status={detail.bid.status}
+              detail={detail}
+              accessCode={parsed.code}
+            />
+          )}
         </>
       )}
 
@@ -200,9 +209,11 @@ function BidHero({ detail }: { detail: BidDetail }) {
 function StatusBanner({
   status,
   detail,
+  celebrationKey,
 }: {
   status: BidStatus;
   detail: BidDetail;
+  celebrationKey: string;
 }) {
   if (status === "pending_review") {
     return (
@@ -253,22 +264,42 @@ function StatusBanner({
     );
   }
 
-  if (status === "paid") {
-    const finalized = detail.bid.signedAt !== null;
-    const dateLong = formatDateLongTz(
-      detail.booking.startTime,
-      detail.property.timezone,
+  // Active path (confirmed / signed / paid). Sign and pay are independent
+  // signals; what "finalized" means depends on whether a deposit is owed:
+  //   deposit required → signed AND paid
+  //   no deposit       → signed alone (the bid never reaches 'paid')
+  const requiresDeposit = detail.booking.requiresDeposit;
+  const signed = detail.bid.signedAt !== null || status === "signed";
+  const paid = status === "paid";
+  const finalized = requiresDeposit ? signed && paid : signed;
+  const dateLong = formatDateLongTz(
+    detail.booking.startTime,
+    detail.property.timezone,
+  );
+
+  if (finalized) {
+    const firstName = detail.booking.guestName.trim().split(/\s+/)[0];
+    const greetingName = firstName ? `, ${firstName}` : "";
+    return (
+      <div className={`${s.banner} ${s.finaleBanner}`}>
+        <BidCelebration celebrationKey={celebrationKey} />
+        <Alert
+          variant="success"
+          title={`You're all set${greetingName} — we can't wait to see you.`}
+        >
+          {requiresDeposit
+            ? "Deposit’s in, waiver’s signed, "
+            : "Waiver’s signed, "}
+          {dateLong} is locked in. Nothing left to do but show up. Save this
+          page &mdash; everything you need is right here. See you at{" "}
+          {detail.property.name}!
+        </Alert>
+      </div>
     );
-    if (finalized) {
-      return (
-        <div className={s.banner}>
-          <Alert variant="success" title={`We'll see you on ${dateLong}.`}>
-            Your deposit is in and your waiver is signed. Save this page —
-            everything you need is here.
-          </Alert>
-        </div>
-      );
-    }
+  }
+
+  // Deposit-required, paid but not yet signed: nudge toward the waiver.
+  if (requiresDeposit && paid && !signed) {
     return (
       <div className={s.banner}>
         <Alert variant="success" title="Deposit received">
@@ -506,10 +537,12 @@ function SignatureSlot({
   status,
   detail,
   accessCode,
+  requiresDeposit,
 }: {
   status: BidStatus;
   detail: BidDetail;
   accessCode: string;
+  requiresDeposit: boolean;
 }) {
   // After App 6, sign and pay are independent — `paid` no longer
   // implies signed. The only reliable signal that the waiver is on
@@ -521,18 +554,24 @@ function SignatureSlot({
   const envelopeReady =
     !done && detail.bid.dropboxSignEnvelopeId !== null;
 
+  // With no deposit, the waiver is the only thing standing between the
+  // guest and a finalized booking — label it accordingly.
+  const eyebrow = done ? "Signed ✓" : requiresDeposit ? "Step 1" : "Last step";
+
   return (
     <section className={`${s.slot} ${done ? s.slotDone : ""}`}>
-      <p className={s.slotEyebrow}>{done ? "Signed ✓" : "Step 1"}</p>
+      <p className={s.slotEyebrow}>{eyebrow}</p>
       <p className={s.slotTitle}>
         {done ? "Waiver signed" : "Sign your waiver"}
       </p>
       <p className={s.slotBody}>
         {done
           ? "Thanks — your waiver is on file."
-          : payDoneButNotSigned
-            ? "Your deposit is in — one last step left. Sign your waiver to lock the booking."
-            : "You can sign before or after paying — both are required to finalize."}
+          : !requiresDeposit
+            ? "Sign your waiver to finalize your booking — it’s the only step left."
+            : payDoneButNotSigned
+              ? "Your deposit is in — one last step left. Sign your waiver to lock the booking."
+              : "You can sign before or after paying — both are required to finalize."}
       </p>
       {envelopeReady && (
         <div style={{ marginTop: "var(--space-3)" }}>
@@ -594,27 +633,11 @@ function DepositSlot({
     );
   }
 
-  // status is 'confirmed' or 'signed' (page only renders DepositSlot
-  // for active bids). Two sub-cases: deposit_amount set → mount the
-  // live <PaymentElement> form; null/0 → "we'll set the amount soon"
-  // placeholder so staff can confirm before pricing the bid.
-  if (deposit === null || deposit <= 0) {
-    return (
-      <section className={s.slot}>
-        <p className={s.slotEyebrow}>Step 2</p>
-        <p className={s.slotTitle}>Deposit pending</p>
-        <p className={s.slotBody}>
-          The team is finalizing your quote &mdash; we&rsquo;ll email you the
-          deposit details as soon as it&rsquo;s set.
-        </p>
-        {quoteNote && (
-          <div style={{ marginTop: "var(--space-2)" }}>
-            <MarkdownProse small>{quoteNote}</MarkdownProse>
-          </div>
-        )}
-      </section>
-    );
-  }
+  // Defensive: the page only mounts DepositSlot when requiresDeposit is
+  // true (deposit_amount > 0), so a non-positive amount shouldn't reach
+  // here. A non-positive deposit means "no deposit required" — render
+  // nothing rather than a stale "pending" placeholder.
+  if (deposit === null || deposit <= 0) return null;
 
   const allowsVariableAmount = quoted !== null && quoted > deposit;
 

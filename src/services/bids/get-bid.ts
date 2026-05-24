@@ -78,6 +78,11 @@ export interface BidBooking {
   // are null (rare — pricing rules failed AND no quote authored).
   effectiveQuote: number | null;
   depositAmount: number | null;
+  // Whether this bid collects a deposit at all. A non-positive
+  // deposit_amount (null OR 0) means NO deposit is required — the bid page
+  // hides the payment step entirely and the waiver signature alone
+  // finalizes the booking. Only a positive amount triggers the Stripe flow.
+  requiresDeposit: boolean;
   // Actual amount paid via Stripe (App 6 Path A). Defaults to 0
   // server-side, so 0 == "not paid yet." Always numeric.
   amountPaid: number;
@@ -327,6 +332,7 @@ export async function getBidDetail(
         toNumber(bookingRow.confirmed_price) ??
         toNumber(bookingRow.estimated_price),
       depositAmount: toNumber(bookingRow.deposit_amount),
+      requiresDeposit: (toNumber(bookingRow.deposit_amount) ?? 0) > 0,
       amountPaid: toNumber(bookingRow.amount_paid) ?? 0,
     },
     property: {

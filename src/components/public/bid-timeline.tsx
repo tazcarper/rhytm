@@ -32,11 +32,15 @@ interface BidTimelineStep {
 interface BidTimelineProps {
   status: BidStatus;
   signedAt: string | null;
+  // When false (no deposit required), the "Pay your deposit" step is
+  // dropped and signing the waiver alone reaches "All set".
+  requiresDeposit: boolean;
 }
 
 function buildSteps(
   status: BidStatus,
   signedAt: string | null,
+  requiresDeposit: boolean,
 ): BidTimelineStep[] {
   if (status === "pending_review") {
     return [
@@ -51,11 +55,26 @@ function buildSteps(
   //     (the second arm covers "paid first, signed later" — App 7 stamps
   //      signed_at without changing status away from 'paid')
   //   paid   = bid.status==='paid'
-  // The "All set" terminal is reached only when BOTH are done.
   const signedDone = status === "signed" || signedAt !== null;
   const paidDone = status === "paid";
-  const finalized = signedDone && paidDone;
 
+  // No deposit: a two-step path where the signature is the only action and
+  // "All set" follows from it alone (the bid never reaches 'paid').
+  if (!requiresDeposit) {
+    return [
+      {
+        label: "Sign your waiver",
+        state: signedDone ? "complete" : "current",
+      },
+      {
+        label: "All set",
+        state: signedDone ? "complete" : "pending",
+      },
+    ];
+  }
+
+  // Deposit required: "All set" is reached only when BOTH are done.
+  const finalized = signedDone && paidDone;
   return [
     {
       label: "Sign your waiver",
@@ -72,8 +91,12 @@ function buildSteps(
   ];
 }
 
-export function BidTimeline({ status, signedAt }: BidTimelineProps) {
-  const steps = buildSteps(status, signedAt);
+export function BidTimeline({
+  status,
+  signedAt,
+  requiresDeposit,
+}: BidTimelineProps) {
+  const steps = buildSteps(status, signedAt, requiresDeposit);
   // Track-fill fraction: 0 → 1 across (steps.length - 1) segments. The
   // current step counts as half-filled so the line reaches its dot but
   // not past it.

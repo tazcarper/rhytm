@@ -61,8 +61,20 @@ export function applyBidPreview(
   bid.signedAt = null;
   booking.amountPaid = 0;
 
-  const depositOrFallback = booking.depositAmount ?? 100;
+  // The deposit-involving previews force a positive deposit so they show the
+  // payment flow even when run against a no-deposit bid (whose real
+  // depositAmount is null/0). confirmed/signed/pending keep the real
+  // requiresDeposit so admins can preview the no-deposit path by pointing at
+  // a no-deposit bid.
+  const depositOrFallback =
+    booking.depositAmount && booking.depositAmount > 0
+      ? booking.depositAmount
+      : 100;
   const fullOrFallback = booking.effectiveQuote ?? depositOrFallback;
+  const withDeposit = () => {
+    booking.depositAmount = depositOrFallback;
+    booking.requiresDeposit = true;
+  };
 
   switch (preview) {
     case "pending":
@@ -72,11 +84,13 @@ export function applyBidPreview(
       bid.status = "confirmed";
       break;
     case "paid-deposit":
+      withDeposit();
       bid.status = "paid";
       bid.paidAt = fakeNow;
       booking.amountPaid = depositOrFallback;
       break;
     case "paid-full":
+      withDeposit();
       bid.status = "paid";
       bid.paidAt = fakeNow;
       booking.amountPaid = fullOrFallback;
@@ -86,12 +100,14 @@ export function applyBidPreview(
       bid.signedAt = fakeNow;
       break;
     case "finalized":
+      withDeposit();
       bid.status = "paid";
       bid.paidAt = fakeNow;
       bid.signedAt = fakeNow;
       booking.amountPaid = fullOrFallback;
       break;
     case "refunded":
+      withDeposit();
       bid.status = "refunded";
       bid.paidAt = fakeNow;
       bid.signedAt = fakeNow;
