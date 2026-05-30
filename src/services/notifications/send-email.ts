@@ -131,14 +131,40 @@ export class NoopEmailService implements EmailService {
 }
 
 // ---- Factory ---------------------------------------------------------------
-// Env-driven selection. NODE_ENV === "test" → noop; everything else →
-// logging shim. App 8 introduces a "resend" branch reading from a new
-// env var (e.g. EMAIL_TRANSPORT=resend) without changing this signature.
+// Env-driven selection:
+//   NODE_ENV === "test"         → NoopEmailService (silent, for tests)
+//   EMAIL_TRANSPORT === "resend" → ResendEmailService (real delivery, App 8)
+//   default                      → LoggingEmailService (dev_email_outbox)
+//
+// Resend branch requires RESEND_API_KEY. If EMAIL_TRANSPORT is set to
+// "resend" but the key is missing we log a warning and fall back to
+// the logging shim — emails go to dev_email_outbox instead of getting
+// dropped. Callers (best-effort sends) don't care; this is a safety
+// net for misconfigured deploys.
 
 export function getEmailService(): EmailService {
   if (process.env.NODE_ENV === "test") {
     return new NoopEmailService();
   }
+
+  if (process.env.EMAIL_TRANSPORT === "resend") {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (apiKey) {
+      // Lazy-require so we don't pull in the Resend SDK on dev/test
+      // paths where it's never used. `require` inside a function is
+      // intentional — keeps the transport choice deferred to runtime.
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const {
+        ResendEmailService,
+      } = require("./resend-email-service") as typeof import("./resend-email-service");
+      const replyTo = process.env.RESEND_REPLY_TO?.trim() || null;
+      return new ResendEmailService(apiKey, replyTo);
+    }
+    console.warn(
+      "[notifications] EMAIL_TRANSPORT=resend but RESEND_API_KEY is not set; falling back to LoggingEmailService.",
+    );
+  }
+
   return new LoggingEmailService();
 }
 
@@ -157,7 +183,13 @@ export function getSiteOrigin(): string {
   return "http://localhost:3000";
 }
 
-// Convention. Real `from` lives in env in App 8 (Resend "verified
-// sender" — pre-launch DNS work). Local dev shim uses an obvious
-// placeholder so /dev/emails reviewers know it isn't real.
-export const DEFAULT_FROM_EMAIL = "no-reply@rhythm.local";
+// The "From" address used by callers when they don't pass one
+// explicitly. Reads RESEND_FROM_EMAIL when set (production / staging
+// where the domain is verified in Resend), falls back to a clearly-
+// fake local placeholder so dev reviewers know the LoggingEmailService
+// row isn't a real delivery.
+//
+// Callers reference DEFAULT_FROM_EMAIL as a constant for backward
+// compatibility — they shouldn't read process.env themselves.
+export const DEFAULT_FROM_EMAIL =
+  process.env.RESEND_FROM_EMAIL?.trim() || "no-reply@rhythm.local";

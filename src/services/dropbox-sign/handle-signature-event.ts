@@ -1,4 +1,7 @@
+import { after } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { inngest } from "@/lib/inngest/client";
+import { bidSigned } from "@/lib/inngest/events";
 
 // Dropbox Sign webhook event handler.
 //
@@ -107,12 +110,16 @@ async function onSigned(
 ): Promise<void> {
   const now = new Date().toISOString();
 
-  // 1. Stamp signed_at. Idempotent on IS NULL guard.
-  const { error: stampErr } = await supabase
+  // 1. Stamp signed_at. Idempotent on IS NULL guard. The `.select(...)`
+  //    returns the affected row only when this call actually performed
+  //    the stamp — replays land here with an empty array, which is our
+  //    signal to skip the downstream Inngest event.
+  const { data: stampedRows, error: stampErr } = await supabase
     .from("bids")
     .update({ signed_at: now })
     .eq("dropbox_sign_envelope_id", envelopeId)
-    .is("signed_at", null);
+    .is("signed_at", null)
+    .select("id, signed_at");
 
   if (stampErr) {
     console.error(
@@ -143,5 +150,47 @@ async function onSigned(
       { envelopeId, message: advanceErr.message },
     );
     throw advanceErr;
+  }
+
+  // 3. Fire bid/signed downstream. Skipped on replays (stampedRows
+  //    empty when signed_at was already set). Best-effort via after():
+  //    the processed_webhooks claim is taken before the handler runs,
+  //    so a 500 here would not trigger a meaningful Dropbox Sign retry
+  //    of the send — the next delivery would short-circuit on the
+  //    duplicate claim. Logged failures are observable; the DB stamp
+  //    is the source of truth.
+  const stamped = stampedRows?.[0] as { id: string; signed_at: string } | undefined;
+  if (stamped) {
+    after(() =>
+      fireBidSignedEventBestEffort({
+        bidId: stamped.id,
+        signedAt: stamped.signed_at,
+      }),
+    );
+  }
+}
+
+interface BidSignedEventArgs {
+  bidId: string;
+  signedAt: string;
+}
+
+async function fireBidSignedEventBestEffort(
+  args: BidSignedEventArgs,
+): Promise<void> {
+  try {
+    await inngest.send({
+      id: `bid-${args.bidId}-signed`,
+      name: bidSigned.name,
+      data: {
+        bidId: args.bidId,
+        signedAt: args.signedAt,
+      },
+    });
+  } catch (err) {
+    console.error(
+      "[dropbox-sign webhook] inngest bid/signed send failed",
+      { bidId: args.bidId, err },
+    );
   }
 }

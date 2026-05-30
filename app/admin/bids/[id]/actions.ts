@@ -26,7 +26,11 @@ export async function confirmBidAction(
   if (!bidId) return { ok: false, error: "Missing bid id." };
 
   const supabase = await createServerSupabaseClient();
-  const result = await confirmBid(supabase, bidId);
+  const { data: userData } = await supabase.auth.getUser();
+  const staffId = userData.user?.id;
+  if (!staffId) return { ok: false, error: "Sign in required." };
+
+  const result = await confirmBid(supabase, bidId, staffId);
 
   if (result.ok) {
     revalidatePath(`/admin/bids/${bidId}`);

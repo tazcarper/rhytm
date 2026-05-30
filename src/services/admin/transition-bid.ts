@@ -4,6 +4,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildBidUrl, buildAbsoluteBidUrl } from "@/src/services/bids/bid-url";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createSignatureEnvelope } from "@/src/services/dropbox-sign/create-envelope";
+import { inngest } from "@/lib/inngest/client";
+import { bidConfirmed } from "@/lib/inngest/events";
 
 export interface TransitionResult {
   ok: boolean;
@@ -25,6 +27,7 @@ function friendlyTransitionError(message: string): string {
 export async function confirmBid(
   supabase: SupabaseClient,
   bidId: string,
+  staffId: string,
 ): Promise<TransitionResult> {
   const { error } = await supabase
     .from("bids")
@@ -62,7 +65,41 @@ export async function confirmBid(
     }
   });
 
+  // Fire the bid/confirmed Inngest event post-response. Best-effort:
+  // the DB update is the source of truth for "this bid is confirmed";
+  // event delivery feeds downstream workflows (bid-ready email, Q7
+  // 48h unsigned follow-up timer, HubSpot stage advance). A failure
+  // here logs and returns — confirming via the admin UI must not 5xx
+  // because Inngest is down. Stable dedupe id keeps a replayed
+  // `after()` callback from double-firing the downstream chain.
+  after(() => fireBidConfirmedEventBestEffort({ bidId, staffId }));
+
   return { ok: true };
+}
+
+interface BidConfirmedEventArgs {
+  bidId: string;
+  staffId: string;
+}
+
+async function fireBidConfirmedEventBestEffort(
+  args: BidConfirmedEventArgs,
+): Promise<void> {
+  try {
+    await inngest.send({
+      id: `bid-${args.bidId}-confirmed`,
+      name: bidConfirmed.name,
+      data: {
+        bidId: args.bidId,
+        confirmedByStaffId: args.staffId,
+      },
+    });
+  } catch (err) {
+    console.error(
+      "[transition-bid/confirm] inngest bid/confirmed send failed",
+      { bidId: args.bidId, err },
+    );
+  }
 }
 
 export async function denyBid(

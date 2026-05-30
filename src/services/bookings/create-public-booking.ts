@@ -3,6 +3,8 @@ import { createElement } from "react";
 import { after } from "next/server";
 import { z } from "zod";
 import { createServiceRoleClient } from "@/lib/supabase/service";
+import { inngest } from "@/lib/inngest/client";
+import { bidCreated } from "@/lib/inngest/events";
 import { buildAbsoluteBidUrl, buildBidUrl } from "@/src/services/bids/bid-url";
 import {
   DEFAULT_FROM_EMAIL,
@@ -146,6 +148,22 @@ export async function createPublicBooking(
     }),
   );
 
+  // Fire the bid/created Inngest event post-response. Best-effort: a
+  // send failure on this user-facing path must not surface as a 5xx
+  // (the booking already committed and the user is being redirected to
+  // their bid page). The producer-side `id` ensures Inngest dedupes if
+  // a retry ever fires the same bid twice. Downstream workflows
+  // (HubSpot stage create, future confirmation-email migration, the
+  // Q7-blocked auto-expiry timer) subscribe inside lib/inngest/.
+  after(() =>
+    fireBidCreatedEventBestEffort({
+      bidId: row.bid_id,
+      bookingId: row.booking_id,
+      propertyId: parsed.data.propertyId,
+      guestEmail: parsed.data.guest.email,
+    }),
+  );
+
   return {
     ok: true,
     bookingId: row.booking_id,
@@ -232,6 +250,61 @@ async function sendConfirmationEmailBestEffort(
     console.error(
       "[bookings/create-public-booking] email send threw",
       { slug: args.bidSlug, err },
+    );
+  }
+}
+
+interface BidCreatedEventArgs {
+  bidId: string;
+  bookingId: string;
+  propertyId: string;
+  guestEmail: string;
+}
+
+// Best-effort `bid/created` Inngest send. Runs from `after()` so it
+// cannot delay the bid-page redirect. Looks up the property slug from
+// propertyId (the event payload uses slug — stable, human-readable, the
+// shape downstream HubSpot + per-property routing rules key off of).
+// A lookup failure or send failure logs and returns; the booking is
+// already committed and any missed event can be replayed manually from
+// the bid id. Inngest's client retries transient HTTP failures
+// internally so most network blips are absorbed inside this call.
+async function fireBidCreatedEventBestEffort(
+  args: BidCreatedEventArgs,
+): Promise<void> {
+  try {
+    const supabase = createServiceRoleClient();
+    const { data: property, error } = await supabase
+      .from("properties")
+      .select("slug")
+      .eq("id", args.propertyId)
+      .single();
+
+    if (error || !property) {
+      console.error(
+        "[bookings/create-public-booking] property slug lookup for bid/created failed",
+        { propertyId: args.propertyId, bidId: args.bidId, error },
+      );
+      return;
+    }
+
+    await inngest.send({
+      // Stable dedupe id — Inngest drops repeats within its dedupe
+      // window, so a retried `after()` callback can't double-fire the
+      // downstream workflows.
+      id: `bid-${args.bidId}-created`,
+      name: bidCreated.name,
+      data: {
+        bidId: args.bidId,
+        bookingId: args.bookingId,
+        propertySlug: (property as { slug: string }).slug,
+        guestEmail: args.guestEmail,
+      },
+    });
+  } catch (err) {
+    console.error(
+      "[bookings/create-public-booking] inngest bid/created send failed",
+      { bidId: args.bidId, err },
     );
   }
 }
