@@ -2,6 +2,8 @@ import { createElement } from "react";
 import { after } from "next/server";
 import type Stripe from "stripe";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { inngest } from "@/lib/inngest/client";
+import { bidDepositPaid, bookingConfirmed } from "@/lib/inngest/events";
 import {
   DEFAULT_FROM_EMAIL,
   getEmailService,
@@ -91,6 +93,22 @@ export async function handlePaymentIntentSucceeded(
     return;
   }
 
+  // 1a. Fire bid/deposit-paid downstream. Only when this call actually
+  //     flipped the bid (updatedBid non-null) — replays land in the
+  //     warn-and-return branch above and skip this. Best-effort via
+  //     after(): the processed_webhooks claim is taken before the
+  //     handler runs, so a 5xx here would not trigger a Stripe replay
+  //     of the send (the next delivery short-circuits on the duplicate
+  //     claim). DB flip is the source of truth; a missed send is
+  //     observable via the [stripe webhook] log lines.
+  after(() =>
+    fireBidDepositPaidEventBestEffort({
+      bidId,
+      amountPaidCents: pi.amount,
+      paymentIntentId: pi.id,
+    }),
+  );
+
   // 1b. Reconcile the booking with the PI that actually succeeded.
   //     The webhook is the authoritative truth — overwrite both
   //     columns unconditionally:
@@ -139,6 +157,23 @@ export async function handlePaymentIntentSucceeded(
       },
     );
     return;
+  }
+
+  // 2b. Fire booking/confirmed when paying finalizes the booking. This
+  //     is the sign-then-pay convergence: bid was 'signed' before the
+  //     payment, so paying tips it into the "fully finalized" state
+  //     (mirrors bid-timeline's `signedDone && paidDone` rule). The
+  //     pay-then-sign and no-deposit paths fire this event from the
+  //     Dropbox Sign handler instead. Shared dedupe id squashes any
+  //     race where both sides race to fire.
+  if (updatedBid.signed_at !== null) {
+    after(() =>
+      fireBookingConfirmedEventBestEffort({
+        bookingId,
+        bidId,
+        eventStartAt: receipt.start_time,
+      }),
+    );
   }
 
   // 3. Queue the receipt send post-response.
@@ -227,4 +262,62 @@ type ReceiptRow = {
 function toNumber(value: string | number | null): number | null {
   if (value === null) return null;
   return typeof value === "string" ? parseFloat(value) : value;
+}
+
+interface BookingConfirmedEventArgs {
+  bookingId: string;
+  bidId: string;
+  eventStartAt: string;
+}
+
+async function fireBookingConfirmedEventBestEffort(
+  args: BookingConfirmedEventArgs,
+): Promise<void> {
+  try {
+    await inngest.send({
+      id: `booking-${args.bookingId}-confirmed`,
+      name: bookingConfirmed.name,
+      data: {
+        bookingId: args.bookingId,
+        bidId: args.bidId,
+        eventStartAt: args.eventStartAt,
+      },
+    });
+  } catch (err) {
+    console.error(
+      "[stripe webhook] inngest booking/confirmed send failed",
+      { bookingId: args.bookingId, err },
+    );
+  }
+}
+
+interface BidDepositPaidEventArgs {
+  bidId: string;
+  amountPaidCents: number;
+  paymentIntentId: string;
+}
+
+async function fireBidDepositPaidEventBestEffort(
+  args: BidDepositPaidEventArgs,
+): Promise<void> {
+  try {
+    await inngest.send({
+      // Bid-keyed dedupe: a bid can only transition to `paid` from
+      // `confirmed`/`signed` (Path A blocks re-payment of an already-
+      // paid bid via the UPDATE WHERE), so one bid → one successful
+      // payment → one event in practice.
+      id: `bid-${args.bidId}-deposit-paid`,
+      name: bidDepositPaid.name,
+      data: {
+        bidId: args.bidId,
+        amountPaidCents: args.amountPaidCents,
+        paymentIntentId: args.paymentIntentId,
+      },
+    });
+  } catch (err) {
+    console.error(
+      "[stripe webhook] inngest bid/deposit-paid send failed",
+      { bidId: args.bidId, err },
+    );
+  }
 }

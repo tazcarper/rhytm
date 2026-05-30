@@ -1,7 +1,7 @@
 import { after } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { inngest } from "@/lib/inngest/client";
-import { bidSigned } from "@/lib/inngest/events";
+import { bidSigned, bookingConfirmed } from "@/lib/inngest/events";
 
 // Dropbox Sign webhook event handler.
 //
@@ -113,13 +113,14 @@ async function onSigned(
   // 1. Stamp signed_at. Idempotent on IS NULL guard. The `.select(...)`
   //    returns the affected row only when this call actually performed
   //    the stamp — replays land here with an empty array, which is our
-  //    signal to skip the downstream Inngest event.
+  //    signal to skip the downstream Inngest event. paid_at + booking_id
+  //    feed the booking/confirmed convergence check below.
   const { data: stampedRows, error: stampErr } = await supabase
     .from("bids")
     .update({ signed_at: now })
     .eq("dropbox_sign_envelope_id", envelopeId)
     .is("signed_at", null)
-    .select("id, signed_at");
+    .select("id, signed_at, paid_at, booking_id");
 
   if (stampErr) {
     console.error(
@@ -159,13 +160,88 @@ async function onSigned(
   //    of the send — the next delivery would short-circuit on the
   //    duplicate claim. Logged failures are observable; the DB stamp
   //    is the source of truth.
-  const stamped = stampedRows?.[0] as { id: string; signed_at: string } | undefined;
+  const stamped = stampedRows?.[0] as
+    | { id: string; signed_at: string; paid_at: string | null; booking_id: string }
+    | undefined;
   if (stamped) {
     after(() =>
       fireBidSignedEventBestEffort({
         bidId: stamped.id,
         signedAt: stamped.signed_at,
       }),
+    );
+
+    // 4. booking/confirmed when signing reaches the finalization
+    //    threshold. Two cases land here (mirrors bid-timeline.tsx's
+    //    "finalized" rule):
+    //      - pay-then-sign: bid already has paid_at, so signing is
+    //        the second-of-two and tips it into finalized.
+    //      - waiver-only: bid's booking has no deposit_amount, so
+    //        signing alone finalizes (the bid never reaches 'paid').
+    //    The sign-then-pay convergence fires from the Stripe handler.
+    //    Shared dedupe id (booking-${bookingId}-confirmed) squashes
+    //    any cross-webhook race.
+    after(() =>
+      fireBookingConfirmedIfFinalizedBestEffort({
+        supabase,
+        bidId: stamped.id,
+        bookingId: stamped.booking_id,
+        paidAt: stamped.paid_at,
+      }),
+    );
+  }
+}
+
+interface FireBookingConfirmedIfFinalizedArgs {
+  supabase: SupabaseClient;
+  bidId: string;
+  bookingId: string;
+  paidAt: string | null;
+}
+
+async function fireBookingConfirmedIfFinalizedBestEffort(
+  args: FireBookingConfirmedIfFinalizedArgs,
+): Promise<void> {
+  try {
+    const { data: booking, error } = await args.supabase
+      .from("bookings")
+      .select("start_time, deposit_amount")
+      .eq("id", args.bookingId)
+      .single<{ start_time: string; deposit_amount: number | string | null }>();
+
+    if (error || !booking) {
+      console.error(
+        "[dropbox-sign webhook] booking lookup for booking/confirmed failed",
+        { bookingId: args.bookingId, error },
+      );
+      return;
+    }
+
+    // requiresDeposit mirrors get-bid.ts:335 (deposit_amount > 0).
+    // Numeric columns come back as string from PostgREST in some
+    // contexts, so coerce defensively.
+    const depositAmount =
+      typeof booking.deposit_amount === "string"
+        ? parseFloat(booking.deposit_amount)
+        : (booking.deposit_amount ?? 0);
+    const requiresDeposit = depositAmount > 0;
+
+    const finalized = requiresDeposit ? args.paidAt !== null : true;
+    if (!finalized) return;
+
+    await inngest.send({
+      id: `booking-${args.bookingId}-confirmed`,
+      name: bookingConfirmed.name,
+      data: {
+        bookingId: args.bookingId,
+        bidId: args.bidId,
+        eventStartAt: booking.start_time,
+      },
+    });
+  } catch (err) {
+    console.error(
+      "[dropbox-sign webhook] inngest booking/confirmed send failed",
+      { bookingId: args.bookingId, err },
     );
   }
 }
