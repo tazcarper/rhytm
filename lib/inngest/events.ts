@@ -42,6 +42,14 @@ export const bidCreated = eventType("bid/created", {
     bookingId: string;
     propertySlug: string;
     guestEmail: string;
+    // Relative bid path with the one-time plaintext access code already
+    // embedded (e.g. "/bids/<slug>/<code>"). The plaintext only exists
+    // for the lifetime of the create request — the DB stores only the
+    // bcrypt hash — so the URL is captured into the event payload here
+    // for any subscriber that needs to link the guest back to their bid
+    // (confirmation email, future HubSpot deal note). Subscribers
+    // prepend `getSiteOrigin()` to produce an absolute URL.
+    bidPath: string;
   }>(),
 });
 

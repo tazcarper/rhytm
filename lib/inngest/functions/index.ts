@@ -1,5 +1,6 @@
 import "server-only";
 import { onBidCreated } from "./on-bid-created";
+import { sendBidConfirmationEmail } from "./send-bid-confirmation-email";
 
 // Barrel of every Inngest function registered with the `serve` handler
 // in `app/api/inngest/route.ts`. Adding a new function:
@@ -11,4 +12,4 @@ import { onBidCreated } from "./on-bid-created";
 // The route handler registers whatever's in this array; functions
 // not listed here are unreachable even if defined.
 
-export const inngestFunctions = [onBidCreated];
+export const inngestFunctions = [onBidCreated, sendBidConfirmationEmail];

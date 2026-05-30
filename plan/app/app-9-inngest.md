@@ -1,6 +1,6 @@
 # App 9 — Inngest Workflow Engine (Implementation Plan)
 
-**Status:** 🔄 Scaffold landed 2026-05-24; workflow bodies blocked on client Q1–Q16 (esp. Q7, Q8, Q15) · **Drafted:** 2026-05-24
+**Status:** 🔄 Sub-phases 9.1 (scaffold) + 9.2 (event firing wiring) + 9.3 (W5 confirmation email migration) landed; workflow bodies for W1–W4/W6 blocked on client Q1–Q16 (esp. Q7, Q8, Q15) · **Drafted:** 2026-05-24 · **Last updated:** 2026-05-30
 
 Inngest handles every multi-step async flow in the system: bid reminders, pre-event emails, post-event follow-up, membership approval, bid expiry, HubSpot sync. Each step has automatic retries, idempotency keys, and a visual execution timeline in Inngest's dashboard.
 
@@ -175,13 +175,28 @@ Win: bid creation no longer blocks on email render + send. Email failures become
 - `.env.example` documentation
 - This plan doc
 
-### Sub-phase 9.2 — Event firing wiring (no client block)
+### Sub-phase 9.2 — Event firing wiring (✅ DONE 2026-05-30)
 
-- Add `inngest.send(...)` calls inside existing Server Actions and webhook
-  handlers after their DB commits succeed.
-- Pattern: `await commit; await inngest.send(...);` (NOT inside the
-  transaction — phantom workflows on rollback).
-- One event at a time. Verify each with the local Inngest dev server.
+All five events fire after DB commits. Each send uses a stable
+producer-side `id` for idempotency and best-effort `after()` semantics
+with logged failure — see the "Lost-event window" subsection below
+for why awaited-with-throw isn't used.
+
+| Event | Fired from | Dedupe id | Trigger condition |
+|---|---|---|---|
+| `bid/created` | `src/services/bookings/create-public-booking.ts` (after the `create_public_booking` RPC commits) | `bid-${bidId}-created` | Always |
+| `bid/confirmed` | `src/services/admin/transition-bid.ts` `confirmBid` (after status='confirmed' update). `confirmBidAction` threads `staffId` from `supabase.auth.getUser()` | `bid-${bidId}-confirmed` | Always |
+| `bid/signed` | `src/services/dropbox-sign/handle-signature-event.ts` `onSigned` | `bid-${bidId}-signed` | Only when the stamp UPDATE actually affected a row (`stampedRows.length === 1`) — replays land as 0 rows and skip |
+| `bid/deposit-paid` | `src/services/stripe/handle-payment-intent-succeeded.ts` (after bid flip to status='paid') | `bid-${bidId}-deposit-paid` | Only when `updatedBid` is non-null (already-paid bids hit the warn-and-return branch first) |
+| `booking/confirmed` | **Both webhooks** at the finalization convergence point: Stripe handler for sign-then-pay; Dropbox Sign handler for pay-then-sign + waiver-only | `booking-${bookingId}-confirmed` (shared) | Stripe side: when `updatedBid.signed_at !== null`. Dropbox Sign side: when `requiresDeposit ? paid_at !== null : true` (mirrors `bid-timeline.tsx`'s `finalized` rule, where `requiresDeposit = deposit_amount > 0`) |
+
+**Verified end-to-end on Vercel (2026-05-30)** across all three convergence paths:
+
+| Scenario | bid/created | bid/confirmed | bid/signed | bid/deposit-paid | booking/confirmed |
+|---|---|---|---|---|---|
+| Sign-then-pay | ✓ | ✓ | ✓ at signing | ✓ at payment | ✓ at payment (with bid/deposit-paid) |
+| Pay-then-sign | ✓ | ✓ | ✓ at signing | ✓ at payment | ✓ at signing (with bid/signed) |
+| Waiver-only (deposit_amount = 0) | ✓ | ✓ | ✓ at signing | — | ✓ at signing (with bid/signed) |
 
 **Lost-event window.** `inngest.send()` retries transient HTTP failures
 internally (built-in backoff), so most ephemeral network blips are
@@ -207,11 +222,30 @@ Events to wire (priority order):
 5. `booking/confirmed` — from the bid finalization trigger (fired when
    both `signed_at` and `paid_at` are set)
 
-### Sub-phase 9.3 — W5 migration (no client block)
+### Sub-phase 9.3 — W5 migration (✅ DONE 2026-05-30)
 
-Migrate the existing booking-confirmation email send into an Inngest
-function subscribing to `bid/created`. Existing inline send removed.
-End-to-end test: a bid creates → email lands → bid_email_log row.
+Guest confirmation email migrated into `lib/inngest/functions/send-bid-confirmation-email.ts`
+subscribing to `bid/created`. Two cached steps: `lookup-booking-details`
+(single bookings → properties join) and `send` (throws on `!result.ok` so
+Inngest retries instead of swallowing failures).
+
+Event payload extended with one new field — `bidPath` (relative
+`/bids/<slug>/<code>` URL with the one-time plaintext access code
+embedded). The plaintext only exists during the create request (DB
+stores the bcrypt hash); embedding it in a URL keeps the secret as a
+single field rather than splitting `bidSlug` + `bidAccessCode` across
+the payload.
+
+Inline `after()` email send removed from `create-public-booking.ts`
+along with its helper, args interface, and now-unused imports. The
+surviving `after()` block fires the (extended) `bid/created` event.
+Atomic — new function + inline-send removal in one change so no booking
+ever fires two emails.
+
+End-to-end verified locally 2026-05-30: bid/created fires → both
+`scaffold-on-bid-created` and `send-bid-confirmation-email` runs land
+COMPLETED in the Inngest dashboard → exactly one row in
+`dev_email_outbox` for the expected subject + recipient.
 
 ### Sub-phase 9.4+ — Workflow bodies (blocked per Q answers)
 

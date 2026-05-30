@@ -1,18 +1,10 @@
 import { randomBytes } from "node:crypto";
-import { createElement } from "react";
 import { after } from "next/server";
 import { z } from "zod";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { inngest } from "@/lib/inngest/client";
 import { bidCreated } from "@/lib/inngest/events";
-import { buildAbsoluteBidUrl, buildBidUrl } from "@/src/services/bids/bid-url";
-import {
-  DEFAULT_FROM_EMAIL,
-  getEmailService,
-  getSiteOrigin,
-} from "@/src/services/notifications/send-email";
-import { formatDateLong, formatSlotLabel } from "@/src/services/public/format";
-import { GuestBookingConfirmation } from "@/src/components/email/templates/guest-booking-confirmation";
+import { buildBidUrl } from "@/src/services/bids/bid-url";
 import type { BookingType } from "@/src/components/public/booking-flow/booking-flow-types";
 
 // Atomic booking creation. Calls the `create_public_booking` Postgres
@@ -128,39 +120,26 @@ export async function createPublicBooking(
     };
   }
 
-  // Fire the confirmation email after the response has been sent. App 2.9
-  // shim writes to dev_email_outbox; App 8 swaps in Resend. `after()` is
-  // the Next.js 16 non-blocking-side-effect mechanism — the redirect to
-  // the bid page goes out first, the email send runs post-response, and
-  // a send failure cannot delay or roll back the booking that already
-  // committed.
-  // Reference: node_modules/next/dist/docs/01-app/03-api-reference/
-  // 04-functions/after.md.
-  after(() =>
-    sendConfirmationEmailBestEffort({
-      propertyId: parsed.data.propertyId,
-      guestName: parsed.data.guest.name,
-      guestEmail: parsed.data.guest.email,
-      date: parsed.data.date,
-      slotStart: parsed.data.slotStart,
-      bidSlug: row.bid_slug,
-      bidAccessCode: accessCode,
-    }),
-  );
-
   // Fire the bid/created Inngest event post-response. Best-effort: a
   // send failure on this user-facing path must not surface as a 5xx
   // (the booking already committed and the user is being redirected to
   // their bid page). The producer-side `id` ensures Inngest dedupes if
   // a retry ever fires the same bid twice. Downstream workflows
-  // (HubSpot stage create, future confirmation-email migration, the
-  // Q7-blocked auto-expiry timer) subscribe inside lib/inngest/.
+  // subscribe inside lib/inngest/functions/ — currently the guest
+  // confirmation email (W5, replaced the prior inline `after()` send)
+  // and the scaffold logger; HubSpot stage create + Q7-blocked auto-
+  // expiry land later.
+  //
+  // bidPath carries the one-time plaintext access code embedded in the
+  // URL — the DB only stores the bcrypt hash, so this is the single
+  // moment that value can be passed to downstream consumers.
   after(() =>
     fireBidCreatedEventBestEffort({
       bidId: row.bid_id,
       bookingId: row.booking_id,
       propertyId: parsed.data.propertyId,
       guestEmail: parsed.data.guest.email,
+      bidPath: buildBidUrl(row.bid_slug, accessCode),
     }),
   );
 
@@ -173,92 +152,12 @@ export async function createPublicBooking(
   };
 }
 
-interface ConfirmationEmailArgs {
-  propertyId: string;
-  guestName: string;
-  guestEmail: string;
-  date: string;
-  slotStart: string;
-  bidSlug: string;
-  bidAccessCode: string;
-}
-
-// Best-effort confirmation email send. Runs from `after()` — i.e. post
-// response. Creates its own service-role client; the caller's client
-// may be disposed by the time this fires. Any failure (property lookup,
-// template render, transport) is swallowed with a server-side log —
-// the booking is already committed and the customer-visible bid-page
-// redirect already happened. App 8's Resend transport keeps the same
-// contract.
-async function sendConfirmationEmailBestEffort(
-  args: ConfirmationEmailArgs,
-): Promise<void> {
-  try {
-    const supabase = createServiceRoleClient();
-    const { data: property, error } = await supabase
-      .from("properties")
-      .select("name")
-      .eq("id", args.propertyId)
-      .single();
-
-    if (error || !property) {
-      console.error(
-        "[bookings/create-public-booking] property lookup for email failed",
-        { propertyId: args.propertyId, error },
-      );
-      return;
-    }
-
-    const bidUrl = buildAbsoluteBidUrl(
-      getSiteOrigin(),
-      args.bidSlug,
-      args.bidAccessCode,
-    );
-    const timeLabel = `${formatSlotLabel(args.slotStart)} CT`;
-
-    const props = {
-      guestName: args.guestName,
-      propertyName: (property as { name: string }).name,
-      dateLong: formatDateLong(args.date),
-      timeLabel,
-      bidUrl,
-    };
-
-    const result = await getEmailService().send({
-      to: args.guestEmail,
-      from: DEFAULT_FROM_EMAIL,
-      subject: `We're preparing your bid for ${props.propertyName}`,
-      source: "public_booking",
-      template: {
-        name: "guest_booking_confirmation",
-        // Use createElement (vs calling the component as a function or
-        // JSX in a .tsx file) so React handles the element creation —
-        // future memo/Children APIs work cleanly. Lives in a `.ts` file
-        // because nothing else here needs JSX.
-        element: createElement(GuestBookingConfirmation, props),
-        props,
-      },
-    });
-
-    if (!result.ok) {
-      console.error(
-        "[bookings/create-public-booking] email send failed",
-        { slug: args.bidSlug, error: result.error },
-      );
-    }
-  } catch (err) {
-    console.error(
-      "[bookings/create-public-booking] email send threw",
-      { slug: args.bidSlug, err },
-    );
-  }
-}
-
 interface BidCreatedEventArgs {
   bidId: string;
   bookingId: string;
   propertyId: string;
   guestEmail: string;
+  bidPath: string;
 }
 
 // Best-effort `bid/created` Inngest send. Runs from `after()` so it
@@ -299,6 +198,7 @@ async function fireBidCreatedEventBestEffort(
         bookingId: args.bookingId,
         propertySlug: (property as { slug: string }).slug,
         guestEmail: args.guestEmail,
+        bidPath: args.bidPath,
       },
     });
   } catch (err) {
