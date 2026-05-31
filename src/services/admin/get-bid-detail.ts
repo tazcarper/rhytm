@@ -152,7 +152,9 @@ type AdminBidJoinedRow = {
   dropbox_sign_envelope_id: string | null;
   created_at: string;
   updated_at: string;
-  waiver_documents: Array<{ pdf_sha256: string; signed_name: string }> | null;
+  // One-to-one embed (bid_id is UNIQUE) -> PostgREST returns an object,
+  // not an array.
+  waiver_documents: { pdf_sha256: string; signed_name: string } | null;
   bookings: {
     id: string;
     booking_type: AdminBookingType;
@@ -252,7 +254,7 @@ export async function getAdminBidDetail(
       unitPrice: toNumber(row.unit_price_at_booking) ?? 0,
     }));
 
-  const waiverRow = data.waiver_documents?.[0] ?? null;
+  const waiverRow = data.waiver_documents ?? null;
 
   return {
     bid: {
