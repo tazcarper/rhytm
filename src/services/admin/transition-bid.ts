@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildBidUrl, buildAbsoluteBidUrl } from "@/src/services/bids/bid-url";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createSignatureEnvelope } from "@/src/services/dropbox-sign/create-envelope";
+import { getWaiverProvider } from "@/lib/waiver/provider";
 import { inngest } from "@/lib/inngest/client";
 import { bidConfirmed } from "@/lib/inngest/events";
 
@@ -38,32 +39,35 @@ export async function confirmBid(
     return { ok: false, error: friendlyTransitionError(error.message) };
   }
 
-  // App 7: kick off envelope creation post-response. Failures here
-  // (Dropbox Sign disabled, API error, etc.) do NOT roll back the
-  // confirmation — the bid is still confirmed in our DB; the
-  // signature flow is best-effort. Admin can retry manually if it
-  // doesn't show up. Uses service-role since the cookie-scoped admin
-  // client isn't reachable from `after()` (no per-request context).
-  after(async () => {
-    const result = await createSignatureEnvelope({
-      supabase: createServiceRoleClient(),
-      bidId,
-    });
-    if (!result.ok) {
-      if (result.reason === "disabled") {
-        // Expected during scaffolding / pre-activation. Quiet log.
-        console.info(
-          "[transition-bid/confirm] Dropbox Sign disabled, skipping envelope",
-          { bidId },
-        );
-      } else {
-        console.error(
-          "[transition-bid/confirm] envelope creation failed",
-          { bidId, reason: result.reason, message: result.message },
-        );
+  // App 7: pre-create a Dropbox Sign envelope ONLY when the vendor path is
+  // selected. The native waiver path (default) needs no envelope — the
+  // guest's signing Server Action renders + stores the PDF on the fly — so
+  // this whole step is skipped. Kept intact behind the switch as a
+  // fallback. Failures here do NOT roll back the confirmation; the
+  // signature flow is best-effort. Uses service-role since the
+  // cookie-scoped admin client isn't reachable from `after()`.
+  if (getWaiverProvider() === "dropbox_sign") {
+    after(async () => {
+      const result = await createSignatureEnvelope({
+        supabase: createServiceRoleClient(),
+        bidId,
+      });
+      if (!result.ok) {
+        if (result.reason === "disabled") {
+          // Expected during scaffolding / pre-activation. Quiet log.
+          console.info(
+            "[transition-bid/confirm] Dropbox Sign disabled, skipping envelope",
+            { bidId },
+          );
+        } else {
+          console.error(
+            "[transition-bid/confirm] envelope creation failed",
+            { bidId, reason: result.reason, message: result.message },
+          );
+        }
       }
-    }
-  });
+    });
+  }
 
   // Fire the bid/confirmed Inngest event post-response. Best-effort:
   // the DB update is the source of truth for "this bid is confirmed";

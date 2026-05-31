@@ -32,6 +32,7 @@ export function AdminNav({ email, role, pendingBidCount }: AdminNavProps) {
     { label: "Bookings", href: "/admin/bookings" },
     { label: "Members", href: "/admin/members", disabled: true },
     { label: "Properties", href: "/admin/properties" },
+    { label: "Waivers", href: "/admin/settings/waivers" },
   ];
 
   const isActive = (href: string) =>

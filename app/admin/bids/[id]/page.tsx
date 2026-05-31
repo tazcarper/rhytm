@@ -362,9 +362,27 @@ export default async function AdminBidDetail({
                 )}
               </dd>
 
-              <dt className={s.kvKey}>Waiver envelope</dt>
+              <dt className={s.kvKey}>Waiver</dt>
               <dd className={s.kvValue}>
-                {bid.dropboxSignEnvelopeId ? (
+                {detail.waiver ? (
+                  <>
+                    <a
+                      href={`/admin/bids/${bid.id}/waiver`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      View signed waiver →
+                    </a>
+                    <br />
+                    <span
+                      className={s.empty}
+                      style={{ fontSize: "var(--text-micro)" }}
+                      title={`SHA-256 ${detail.waiver.sha256}`}
+                    >
+                      verified · sha256 {detail.waiver.sha256.slice(0, 12)}…
+                    </span>
+                  </>
+                ) : bid.dropboxSignEnvelopeId ? (
                   <code style={{ fontSize: "var(--text-micro)" }}>
                     {bid.dropboxSignEnvelopeId}
                   </code>

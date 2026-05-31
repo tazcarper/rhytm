@@ -1,3 +1,10 @@
+// ⚠️ DEPRECATED — Dropbox Sign webhook (App 7 vendor path).
+// Superseded by the in-house typed-signature waiver (src/services/waiver/*),
+// which records signatures synchronously and needs no webhook. Kept INTACT
+// as a revivable fallback — NOT deleted. Only receives events while
+// WAIVER_PROVIDER=dropbox_sign (see lib/waiver/provider.ts). Don't extend;
+// revival steps in src/services/dropbox-sign/DEPRECATED.md.
+
 import { EventCallbackHelper, EventCallbackRequest } from "@dropbox/sign";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import {

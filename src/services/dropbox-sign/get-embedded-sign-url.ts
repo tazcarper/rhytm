@@ -1,3 +1,9 @@
+// ⚠️ DEPRECATED — Dropbox Sign waiver path (App 7).
+// Superseded by the in-house typed-signature waiver (src/services/waiver/*).
+// Kept INTACT as a revivable fallback — NOT deleted. Dormant unless
+// WAIVER_PROVIDER=dropbox_sign (see lib/waiver/provider.ts). Don't extend;
+// revival steps in src/services/dropbox-sign/DEPRECATED.md.
+
 import { createDropboxSignClients } from "@/lib/dropbox-sign/server";
 
 // Resolve the current embedded-signing state for an envelope. Returns

@@ -23,7 +23,14 @@ import { BidTimeline } from "@/src/components/public/bid-timeline";
 import { BidCelebration } from "@/src/components/public/bid-celebration";
 import { DepositPaymentForm } from "@/src/components/public/deposit-payment-form";
 import { SignatureForm } from "@/src/components/public/signature-form";
+import { WaiverSignModal } from "@/src/components/public/waiver-sign-modal";
 import { BidPreviewToolbar } from "@/src/components/admin/bid-preview-toolbar";
+import { getWaiverProvider, type WaiverProvider } from "@/lib/waiver/provider";
+import {
+  getActiveWaiverTemplate,
+  type WaiverTemplate,
+} from "@/src/services/waiver/get-active-waiver-template";
+import { createServiceRoleClient } from "@/lib/supabase/service";
 import s from "./bid-page.module.css";
 
 const ADMIN_ROLES = new Set([
@@ -83,6 +90,21 @@ export default async function BidPage({
       ? applyBidPreview(rawDetail, search.preview)
       : rawDetail;
 
+  // Waiver signing backend (default native; WAIVER_PROVIDER=dropbox_sign
+  // reverts). For the native path, load the property's active waiver
+  // template here via service-role — guests have no RLS read on
+  // waiver_templates — so the modal can show the legal text + consent copy.
+  const provider = getWaiverProvider();
+  const alreadySigned =
+    detail.bid.signedAt !== null || detail.bid.status === "signed";
+  const waiverTemplate =
+    provider === "native" && isActiveBid(detail.bid.status) && !alreadySigned
+      ? await getActiveWaiverTemplate(
+          createServiceRoleClient(),
+          detail.property.id,
+        )
+      : null;
+
   return (
     <main className={s.wrap}>
       {adminViewer && <BidPreviewToolbar />}
@@ -113,6 +135,8 @@ export default async function BidPage({
             detail={detail}
             accessCode={parsed.code}
             requiresDeposit={detail.booking.requiresDeposit}
+            provider={provider}
+            template={waiverTemplate}
           />
           {detail.booking.requiresDeposit && (
             <DepositSlot
@@ -537,21 +561,32 @@ function SignatureSlot({
   detail,
   accessCode,
   requiresDeposit,
+  provider,
+  template,
 }: {
   status: BidStatus;
   detail: BidDetail;
   accessCode: string;
   requiresDeposit: boolean;
+  provider: WaiverProvider;
+  template: WaiverTemplate | null;
 }) {
   // After App 6, sign and pay are independent — `paid` no longer
   // implies signed. The only reliable signal that the waiver is on
-  // file is `bid.signed_at`, stamped by App 7 (Dropbox Sign webhook).
-  // `status === "signed"` is also a done state but is now an
-  // intermediate one (pay-pending); we treat it as signed for slot UI.
+  // file is `bid.signed_at`. `status === "signed"` is also a done state
+  // but is now an intermediate one (pay-pending); treat it as signed for
+  // slot UI.
   const done = detail.bid.signedAt !== null || status === "signed";
   const payDoneButNotSigned = status === "paid" && !done;
-  const envelopeReady =
-    !done && detail.bid.dropboxSignEnvelopeId !== null;
+
+  // Native path (default): show the modal once a template is loaded.
+  // Vendor path (deprecated): show the embedded iframe once the envelope
+  // exists. Exactly one is active per the WAIVER_PROVIDER switch.
+  const nativeReady = provider === "native" && !done && template !== null;
+  const vendorReady =
+    provider === "dropbox_sign" &&
+    !done &&
+    detail.bid.dropboxSignEnvelopeId !== null;
 
   // With no deposit, the waiver is the only thing standing between the
   // guest and a finalized booking — label it accordingly.
@@ -572,7 +607,19 @@ function SignatureSlot({
               ? "Your deposit is in — one last step left. Sign your waiver to lock the booking."
               : "You can sign before or after paying — both are required to finalize."}
       </p>
-      {envelopeReady && (
+      {nativeReady && template && (
+        <div style={{ marginTop: "var(--space-3)" }}>
+          <WaiverSignModal
+            bidSlug={detail.bid.slug}
+            bidAccessCode={accessCode}
+            defaultName={detail.booking.guestName}
+            waiverTitle={template.title}
+            waiverBody={template.body}
+            consentText={template.consentText}
+          />
+        </div>
+      )}
+      {vendorReady && (
         <div style={{ marginTop: "var(--space-3)" }}>
           <SignatureForm
             bidSlug={detail.bid.slug}
@@ -580,7 +627,7 @@ function SignatureSlot({
           />
         </div>
       )}
-      {!done && !envelopeReady && (
+      {!done && !nativeReady && !vendorReady && (
         <p className={s.slotMeta}>
           Waiver is being prepared. Refresh in a moment.
         </p>

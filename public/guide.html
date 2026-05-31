@@ -281,7 +281,7 @@
         <tr><td><strong>Add-on</strong></td><td>An optional priced extra attached to a service (e.g. an ammo package, a guide rental).</td></tr>
         <tr><td><strong>Booking type</strong></td><td>One of three formats: Plan a Visit, Private Lesson, or Host an Occasion.</td></tr>
         <tr><td><strong>Deposit</strong></td><td>The amount paid up front on the bid page to lock the date. The balance settles at the property.</td></tr>
-        <tr><td><strong>Waiver</strong></td><td>The liability document the guest signs electronically (via Dropbox Sign) before the visit.</td></tr>
+        <tr><td><strong>Waiver</strong></td><td>The liability document the guest signs electronically on the bid page before the visit.</td></tr>
         <tr><td><strong>Property</strong></td><td>One of the three clubs. Each has its own services, prices, capacity, and booking window.</td></tr>
       </tbody>
     </table>
@@ -305,7 +305,7 @@ flowchart TD
     G -.->|Staff confirms price and details| H{{Bid: Confirmed}}
     G -.->|Staff declines| X1{{Bid: Denied}}
     G -.->|7 days pass| X2{{Bid: Expired}}
-    H --> I[Sign the waiver<br/>Dropbox Sign]
+    H --> I[Sign the waiver<br/>typed e-signature]
     H --> J{Deposit required?}
     J -->|Yes| K[Pay deposit<br/>Stripe card or bank]
     J -->|No| L
@@ -341,8 +341,9 @@ flowchart TD
     <blockquote><p><strong>Why the wait?</strong> Pricing for some experiences is confirmed by a person, not a formula. This is the step where staff lock in your quote, schedule, gear list, and waiver.</p></blockquote>
     <blockquote><i><strong>Developer Note.</strong> Most / All of this COULD be automated if we can build a formula for pricing. There is nothing stopping the development of this, but it must be planned carefully.</i></blockquote>
     <h3 id="g-sign">1.4 Signing and paying on the bid page</h3>
-    <p>Once staff confirm your bid, returning to your bid link unlocks the full page: your <strong>schedule</strong>, the <strong>gear list</strong>, <strong>FAQ</strong> and contact info, a <strong>Sign your waiver</strong> section (Dropbox Sign, in-page), and a <strong>Pay your deposit</strong> section if required (Stripe — card or bank transfer).</p>
+    <p>Once staff confirm your bid, returning to your bid link unlocks the full page: your <strong>schedule</strong>, the <strong>gear list</strong>, <strong>FAQ</strong> and contact info, a <strong>Sign your waiver</strong> section (typed e-signature, in-page), and a <strong>Pay your deposit</strong> section if required (Stripe — card or bank transfer).</p>
     <p><strong>Both signing and paying are typically required to finalize</strong>, and you can do them in either order. If no deposit is required, signing alone finalizes the booking. When all requirements are met, the page celebrates — <em>“You're all set”</em> — and locks in your date. <strong>Save this page; it's your confirmation and everything you need is on it.</strong></p>
+    <blockquote><i><strong>Developer Note.</strong> The waiver is signed with our own in-house e-signature — not a third-party service like DocuSign or Dropbox Sign. Our use case (a single-signer, few-field liability waiver) isn't complex enough to justify a vendor, and a paid e-sign subscription would cost more money for no added benefit. We render the signed PDF ourselves, store it privately, and keep a tamper-evidence hash plus an audit trail (typed name, timestamp, IP), which meets the ESIGN/UETA bar for a waiver. The previous Dropbox Sign integration is retained in the codebase but deprecated; it can be switched back on with a single environment variable if a future need (multi-party signing, identity proofing) ever calls for it.</i></blockquote>
 
     <h3 id="g-states">1.5 Bid states you might see</h3>
     <table>

@@ -85,6 +85,10 @@ export interface AdminBidDetail {
   disciplines: AdminBidDiscipline[];
   addOns: AdminBidAddOn[];
   instructor: { id: string; name: string } | null;
+  // App 7 native waiver: present once the guest has signed. The admin
+  // Lifecycle card links to /admin/bids/[id]/waiver, which streams the PDF
+  // via a short-lived signed URL.
+  waiver: { sha256: string; signedName: string } | null;
 }
 
 function parseGearList(gearListJson: unknown): AdminBidGearItem[] {
@@ -148,6 +152,9 @@ type AdminBidJoinedRow = {
   dropbox_sign_envelope_id: string | null;
   created_at: string;
   updated_at: string;
+  // One-to-one embed (bid_id is UNIQUE) -> PostgREST returns an object,
+  // not an array.
+  waiver_documents: { pdf_sha256: string; signed_name: string } | null;
   bookings: {
     id: string;
     booking_type: AdminBookingType;
@@ -205,6 +212,7 @@ export async function getAdminBidDetail(
       expires_at, signed_at, paid_at, cancelled_at,
       dropbox_sign_envelope_id,
       created_at, updated_at,
+      waiver_documents ( pdf_sha256, signed_name ),
       bookings (
         id, booking_type, start_time, end_time, duration_hours,
         guest_name, guest_email, guest_phone, guest_count, guest_notes,
@@ -245,6 +253,8 @@ export async function getAdminBidDetail(
       quantity: row.quantity,
       unitPrice: toNumber(row.unit_price_at_booking) ?? 0,
     }));
+
+  const waiverRow = data.waiver_documents ?? null;
 
   return {
     bid: {
@@ -298,5 +308,8 @@ export async function getAdminBidDetail(
     disciplines,
     addOns,
     instructor: booking.instructors,
+    waiver: waiverRow
+      ? { sha256: waiverRow.pdf_sha256, signedName: waiverRow.signed_name }
+      : null,
   };
 }
