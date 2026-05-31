@@ -184,6 +184,51 @@ Verifies the `property_id` claim propagates from `app_metadata` to the admin por
 
 ---
 
+## App 4 — Member Portal (post-login surfaces)
+
+The "G/H/I" series. Covers what a signed-in member sees on `/member/bookings`, `/member/adventures`, and the RSVP flow. Scenarios A–F (above) already cover login and the household-visibility stub on `/member`; this section picks up where those leave off.
+
+**App 4 sub-phase 4.1** landed `/member/bookings` plus household-visible bookings (one new SECURITY DEFINER helper + a replaced bookings RLS policy — see `supabase/migrations/20260530120000_household_visible_bookings.sql`). Scenarios G1–G5 below verify the household visibility actually works at the policy level + renders correctly in the UI.
+
+### App 4 prerequisites
+
+- `/dev` dashboard available and signed in as dev (DEV_DASHBOARD_PASSWORD set).
+- At least two seeded auth users (`you+a@…` and `you+b@…`) who can both be made `member` role.
+- At least one booking row in the DB attributed to each test member. Easiest path: run any Scenario P-* (public booking flow) once with a `member_user_id` stamped — or run via `/dev → Stamp role` then create the booking through the public funnel using their email.
+
+### Scenario G — My bookings (sub-phase 4.1)
+
+Verifies the household-scoped bookings list, the new RLS policy, and the bid status display.
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| G1 | Sign in as `you+a@…` (single-property member, owns 1 booking). Navigate to `/member/bookings` | One card renders: date/time in the property timezone, property name, booking type, status badge, price summary. No "Booked by" attribution (it's their own booking). No empty-state alert. |
+| G2 | Same user with active memberships at HBSC + Hog Heaven, 1 booking at each. Navigate to `/member/bookings` | Both cards render, most-recent first by `start_time`. Each card's property name disambiguates. |
+| G3 | **Household visibility.** Two people on shared HBSC membership: spouse A (`you+a@…`, primary) and spouse B (`you+b@…`, spouse). A creates a private lesson booking. Sign in as B → `/member/bookings` | B sees A's booking. Card shows the italic "Booked by Alex Foo" attribution line beneath the booking-type strip. No "Bid: ..." status line (only visible on `isMine=true` rows). |
+| G4 | **Cross-household RLS still rejects.** Sign in as `you+c@…` (member at the same property as A but on a DIFFERENT membership) → `/member/bookings` | C does NOT see A's or B's bookings. Only C's own bookings (or empty state if none). Verify via Supabase SQL editor with claim impersonation: `SET role authenticated; SET request.jwt.claim.sub = '<C-user-id>'; SET request.jwt.claim.app_metadata.role = 'member'; SELECT id, member_user_id FROM bookings;` returns only C's rows. |
+| G5 | **Bid status visibility.** A creates a booking; bid sits at `status='pending_review'`. Both A and B view `/member/bookings`. | A's card shows "Bid: Awaiting staff review." Once staff confirm → bid `status='confirmed'` → A's card label flips to "Quoted — ready to sign + pay." After 4.1b landed, B (spouse) ALSO sees the bid line on their household-visible row (bids RLS expanded to household). The card itself is now a link to the detail page (G6 covers). |
+| G6 | **Click-through to detail page (sub-phase 4.1b).** Click any booking card on `/member/bookings`. | Navigates to `/member/bookings/<id>`. BookingDetailView renders: summary card (date/property/instructor/guests/status), schedule notes (if any), disciplines + add-ons, gear list (if any), FAQ (if any), pricing summary. "← All bookings" back link at top; MemberNav "bookings" tab stays active. |
+| G7 | **Spouse sees household detail page.** As B, click into A's booking from G3. | Detail page renders. Summary card shows "Booked by A". Schedule notes / gear list / FAQ all visible (bid RLS expanded to household by migration `20260530160000`). No "Sign & Pay" surface (read-only — sign + pay stay on the public bid page reached via email link). |
+| G8 | **Cross-household detail RLS.** As member C (different household), navigate directly to `/member/bookings/<A's-booking-id>`. | 404 — booking is RLS-hidden for C. Verify also via SQL editor with claim impersonation: `SELECT id FROM bids WHERE booking_id = '<A's-booking-id>';` as C returns zero rows. |
+| G9 | **Stamping + backfill (migration `20260530140000`).** Push the migration. Refresh `/member/bookings` as a member who previously made a public-funnel booking with their own email. | Backfill stamped `member_user_id` on prior matching bookings; they now appear. New public-funnel bookings made while signed in as member auto-attribute going forward. |
+| G10 | **Funnel prefill for signed-in member.** Sign in as a member, navigate to `/book/<property>` → walk to the Details step. | Name + email fields prefilled from the member's `people` row. Phone field blank, labeled "(optional)"; submitting without phone succeeds. Fields are editable — typing a friend's email overwrites the value but the submitted booking still attributes to the auth user's `member_user_id` (auth-session-based stamping, not email-based). |
+
+**Pass criteria:** every row matches. G3 and G4 are the policy-level proof — failing G4 means the new SECURITY DEFINER helper is leaking. If G3 shows only your own bookings, the helper isn't traversing `current_household_person_ids()` correctly; check the migration applied (`./node_modules/.bin/supabase migration list` should show `20260530120000_household_visible_bookings` matched).
+
+**Quick SQL sanity checks (run as `postgres` in Supabase Studio):**
+
+```sql
+-- 1. Helper exists and returns the right shape:
+SELECT * FROM current_household_user_ids();  -- expects rows for an authenticated session, error otherwise
+\df+ current_household_user_ids               -- should be SECURITY DEFINER, STABLE, language sql
+
+-- 2. Policy is in place on bookings:
+SELECT policyname, cmd, qual FROM pg_policies
+WHERE tablename = 'bookings' AND policyname = 'bookings: member household read';
+```
+
+---
+
 ## App 2 — Public Booking Flow
 
 The "P" series. Covers the public funnel (`/book` → property picker → `/book/[property]` → `/book/[property]/disciplines` → `/book/[property]/details` → `/bids/[slug]/[code]`), Phase 2's BEFORE triggers + instructor exclusion constraint, Phase 3's bid page + access-code gate, and the App 2.9 confirmation-email shim. Every constraint Phase 2 added gets hit by at least one scenario.

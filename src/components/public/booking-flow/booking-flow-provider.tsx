@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { BookingFlowState } from "./booking-flow-types";
+import type { BookingFlowState, GuestInfo } from "./booking-flow-types";
 
 // Funnel state. Refresh resets — see feedback_booking_funnel_state.md.
 
@@ -19,25 +19,41 @@ interface BookingFlowContextValue {
 
 const BookingFlowContext = createContext<BookingFlowContextValue | null>(null);
 
-// Sensible defaults that the funnel UI displays from step 1. Set here (not
-// in the components that consume them) so there's no undefined window
-// between provider mount and the consumer's first render. Reading these
-// fields downstream uses `state.guestCount` directly — never `?? default`.
-const INITIAL_STATE: BookingFlowState = {
-  guestCount: 1,
-  disciplineSelections: [],
-};
+// Build INITIAL_STATE per mount. The defaulted fields (guestCount,
+// disciplineSelections) are constants; `guest` is seeded from the
+// signed-in member's profile when the layout passes it in. Computing
+// the object at mount avoids sharing a frozen reference across
+// browser sessions, which would otherwise leak prefill from one
+// session to the next during HMR.
+function buildInitialState(initialGuest: Partial<GuestInfo> | null): BookingFlowState {
+  const base: BookingFlowState = {
+    guestCount: 1,
+    disciplineSelections: [],
+  };
+  if (initialGuest) {
+    base.guest = initialGuest;
+  }
+  return base;
+}
 
-export function BookingFlowProvider({ children }: { children: ReactNode }) {
-  const [state, setStateInternal] = useState<BookingFlowState>(INITIAL_STATE);
+export function BookingFlowProvider({
+  children,
+  initialGuest = null,
+}: {
+  children: ReactNode;
+  initialGuest?: Partial<GuestInfo> | null;
+}) {
+  const [state, setStateInternal] = useState<BookingFlowState>(() =>
+    buildInitialState(initialGuest),
+  );
 
   const setState = useCallback((patch: Partial<BookingFlowState>) => {
     setStateInternal((prev) => ({ ...prev, ...patch }));
   }, []);
 
   const reset = useCallback(() => {
-    setStateInternal(INITIAL_STATE);
-  }, []);
+    setStateInternal(buildInitialState(initialGuest));
+  }, [initialGuest]);
 
   return (
     <BookingFlowContext.Provider value={{ state, setState, reset }}>

@@ -11,7 +11,7 @@ export interface DisciplineSelection {
 export interface GuestInfo {
   name: string;
   email: string;
-  phone: string;
+  phone: string;     // optional in the form + server schema; stays a string here ("") when absent
   notes: string;
 }
 
@@ -62,7 +62,7 @@ export function isSubmittable(
   if (state.slotStart === undefined) return false;
   if (state.durationHours === undefined) return false;
   if (!state.guest) return false;
-  if (!state.guest.name || !state.guest.email || !state.guest.phone) return false;
+  if (!state.guest.name || !state.guest.email) return false;
   return true;
 }
 

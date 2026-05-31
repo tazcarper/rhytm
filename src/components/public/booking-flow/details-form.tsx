@@ -173,7 +173,7 @@ export function DetailsForm({
             )}
           </FormField>
 
-          <FormField label="Phone" required error={errors.phone}>
+          <FormField label="Phone (optional)" error={errors.phone}>
             {(props) => (
               <Input
                 {...props}
@@ -228,6 +228,8 @@ const guestSchema = z.object({
   phone: z
     .string()
     .trim()
-    .regex(/^[\d\s+\-().]{7,}$/, "Please enter a valid phone number."),
+    .regex(/^[\d\s+\-().]{7,}$/, "Please enter a valid phone number.")
+    .or(z.literal(""))
+    .default(""),
   notes: z.string().max(1000, "Keep notes under 1000 characters.").default(""),
 });

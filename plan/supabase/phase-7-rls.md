@@ -145,6 +145,7 @@ Functions that traverse the `people → membership_people → memberships` chain
 | `current_member_active_membership_ids()` | `SETOF uuid` | Strictly active: junction AND membership both `'active'`. Use in **INSERT WITH CHECK** so new RSVPs can't be created under a lapsed or suspended membership. |
 | `current_member_active_property_ids()` | `SETOF uuid` | Distinct `property_id`s the current person has an active membership at. For property-scoped reads like `member_adventures`. |
 | `current_household_person_ids()` | `SETOF uuid` | All `person_id`s on any membership the current person shares an active junction with — i.e., spouse + dependents + the primary, depending on who's signed in. Powers the "who else is on this membership" visibility on `/member`. |
+| `current_household_user_ids()` | `SETOF uuid` | The distinct `auth.users.id` for everyone in `current_household_person_ids()` whose `people.user_id` is non-NULL. Powers the household-visible bookings policy — so a spouse sees the other spouse's bookings on `/member/bookings`. Added in App 4 sub-phase 4.1. |
 | `staff_visible_person_ids()` | `SETOF uuid` | Distinct `person_id`s on active junctions whose membership is at the caller's `auth_property_id()`. For property-scoped staff reads of `people`. |
 
 **Security model — important:** each function reads `auth.uid()` (or `auth_property_id()`) from the JWT internally. A caller cannot pass an arbitrary user_id. The outer policy that calls the helper still enforces `auth_role() = '<expected>'`, so non-members can't reach the `current_member_*` path and non-staff can't reach `staff_visible_person_ids()`.
@@ -393,10 +394,10 @@ CREATE POLICY "bookings: partner read own"      ON bookings FOR SELECT
     AND concierge_user_id = (SELECT auth.uid())
   );
 
-CREATE POLICY "bookings: member read own"       ON bookings FOR SELECT
+CREATE POLICY "bookings: member household read"  ON bookings FOR SELECT
   USING (
-    (SELECT auth.jwt() -> 'app_metadata' ->> 'role') = 'member'
-    AND member_user_id = (SELECT auth.uid())
+    auth_role() = 'member'
+    AND member_user_id IN (SELECT current_household_user_ids())
   );
 
 CREATE POLICY "bookings: staff update"          ON bookings FOR UPDATE
@@ -411,7 +412,7 @@ CREATE POLICY "bookings: staff update"          ON bookings FOR UPDATE
 
 - No INSERT policy — bookings are created exclusively by the public booking flow Server Action via service role.
 - `concierge` and `partner` share `concierge_user_id` — both roles are external-facing booking origins keyed on the auth user who created the booking.
-- Member read keys on `member_user_id`, NOT through `people` / memberships. This is a deliberate denormalization: the booking flow stamps the auth user directly, so RLS doesn't need a cross-table traversal here.
+- Member read is **household-scoped** as of App 4 sub-phase 4.1 — `current_household_user_ids()` returns every auth user_id on a membership the caller shares. Spouse A sees spouse B's bookings on `/member/bookings`. The bookings table is still stamped with the literal booker's `member_user_id`; the policy just widens visibility. Child tables (`booking_disciplines`, `booking_add_ons`, `bids`) keep the narrower `member_user_id = auth.uid()` policy — the `/member/bookings` card view doesn't need those for non-mine rows, and bid signing/access codes stay scoped to the original booker.
 - Staff UPDATE is row-level — `property_manager` is bound to their property, but they can still change any column. Column-level (e.g. PM may change `status` / `confirmed_price` but NOT `guest_email` / `property_id`) is enforced inside service-role Server Actions in App 3.
 
 ### 7.6 `booking_disciplines`, `booking_add_ons` (Phase 2)
@@ -428,9 +429,11 @@ CREATE POLICY "<table>: property_manager read"  ON <table> FOR SELECT
                  AND (SELECT auth.jwt() -> 'app_metadata' ->> 'role') = 'property_manager'
                  AND b.property_id = (SELECT (auth.jwt() -> 'app_metadata' ->> 'property_id')::uuid)));
 
-CREATE POLICY "<table>: member read own"        ON <table> FOR SELECT
-  USING (EXISTS (SELECT 1 FROM bookings b WHERE b.id = booking_id
-                 AND b.member_user_id = (SELECT auth.uid())));
+CREATE POLICY "<table>: member household read"  ON <table> FOR SELECT
+  USING (
+    auth_role() = 'member'
+    AND EXISTS (SELECT 1 FROM bookings b WHERE b.id = booking_id
+                AND b.member_user_id IN (SELECT current_household_user_ids())));
 
 CREATE POLICY "<table>: partner read own"       ON <table> FOR SELECT
   USING (EXISTS (SELECT 1 FROM bookings b WHERE b.id = booking_id
@@ -469,11 +472,11 @@ CREATE POLICY "bids: partner read own"        ON bids FOR SELECT
                 AND b.concierge_user_id = (SELECT auth.uid()))
   );
 
-CREATE POLICY "bids: member read own"         ON bids FOR SELECT
+CREATE POLICY "bids: member household read"   ON bids FOR SELECT
   USING (
-    (SELECT auth.jwt() -> 'app_metadata' ->> 'role') = 'member'
+    auth_role() = 'member'
     AND EXISTS (SELECT 1 FROM bookings b WHERE b.id = booking_id
-                AND b.member_user_id = (SELECT auth.uid()))
+                AND b.member_user_id IN (SELECT current_household_user_ids()))
   );
 
 CREATE POLICY "bids: staff update"            ON bids FOR UPDATE
@@ -816,5 +819,8 @@ Tracked here so the migration history's intent is recoverable without re-reading
 | 2026-05-18 | `20260518234818_break_people_memberships_rls_cycle` | Cycle 2 hotfix — introduced `staff_visible_person_ids()` SECURITY DEFINER helper. Replaced `people` staff-read inline EXISTS with helper. |
 | 2026-05-18 | `20260518235335_rls_helpers_for_member_access` | Comprehensive member-policy refactor. Added `current_person_id()`, `current_member_membership_ids()`, `current_member_active_membership_ids()`, `current_member_active_property_ids()`. Rewrote member-facing policies on `memberships`, `membership_people`, `member_adventure_rsvps`, `member_adventures`. Restored household visibility on the junction. |
 | 2026-05-18 | `20260519015647_household_visibility_on_people` | Added `current_household_person_ids()` and `people: member read household` policy so members can read the `people` rows of other people on shared memberships. |
+| 2026-05-30 | `20260530120000_household_visible_bookings` | App 4 sub-phase 4.1. Added `current_household_user_ids()` SECURITY DEFINER helper. Replaced `bookings: member read own` with `bookings: member household read` — spouses now see each other's bookings on `/member/bookings`. Scope deliberately narrow: did not expand `booking_disciplines`, `booking_add_ons`, or `bids` member-read policies — the v1 `/member/bookings` card view doesn't need child rows for non-mine bookings, and bid signing/access stays scoped to the original booker. |
+| 2026-05-30 | `20260530140000_stamp_member_user_id_on_public_bookings` | App 4 sub-phase 4.1 follow-up. Added `p_member_user_id` (defaulted) to `create_public_booking` RPC so signed-in members get attribution stamped on public-funnel bookings. One-shot backfill links every prior NULL `member_user_id` row to its matching `people.user_id` via `guest_email`. Respects the `one_origin` CHECK by excluding rows with `concierge_user_id` set. |
+| 2026-05-30 | `20260530160000_household_visible_booking_children` | App 4 sub-phase 4.1 detail-page enablement. Replaced `bids: member read own`, `booking_disciplines: member read own`, and `booking_add_ons: member read own` policies with `... member household read` variants — same `current_household_user_ids()` pattern as the bookings policy. Powers `/member/bookings/[id]` so any household member can see gear lists, schedule notes, FAQ, disciplines, and add-ons on a shared booking. Access codes / sign + pay surfaces are unchanged — only SELECT widens. |
 
 When adding a new entry here, also append a row to the verification log in `docs/manual-testing.md` if the change requires re-running the auth-flow scenarios.

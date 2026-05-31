@@ -42,9 +42,15 @@ export async function TopBar() {
         <div className={s.right}>
           {viewer ? (
             <>
-              <p className={s.greeting}>
-                Hello, <strong>{viewer.displayName}</strong>
-              </p>
+              {viewer.role === "member" ? (
+                <Link href="/member/profile" className={s.greeting}>
+                  Hello, <strong>{viewer.displayName}</strong>
+                </Link>
+              ) : (
+                <p className={s.greeting}>
+                  Hello, <strong>{viewer.displayName}</strong>
+                </p>
+              )}
               <span className={s.divider} aria-hidden="true" />
               <form action={signOut} className={s.signOutForm}>
                 <button type="submit" className={s.signOutBtn}>

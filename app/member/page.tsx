@@ -1,7 +1,9 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getMyMemberships } from "@/src/services/members/memberships";
+import { getMyProfile } from "@/src/services/members/profile";
 import { Alert, Eyebrow, Heading, PageShell } from "@/lib/ui";
 import { MemberHeader } from "@/src/components/members/member-header";
+import { MemberNav } from "@/src/components/members/member-nav";
 import { MembershipCard } from "@/src/components/members/membership-card";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +25,8 @@ export default async function MemberHome() {
     user?.email ?? null,
   );
 
+  const profile = user ? await getMyProfile(supabase, user.id) : null;
+
   return (
     <PageShell width="narrow">
       <Eyebrow as="div" className="mb-2">
@@ -34,9 +38,12 @@ export default async function MemberHome() {
       <MemberHeader
         email={user?.email}
         role={user?.app_metadata?.role as string | undefined}
+        displayName={profile?.displayName ?? profile?.firstName ?? undefined}
       />
 
-      <div className="mt-12">
+      <MemberNav active="home" />
+
+      <div>
         <Eyebrow as="div" className="mb-2">
           Your memberships
         </Eyebrow>

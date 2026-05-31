@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { hasAdminAccess } from "@/lib/auth/portal";
 
 // What the TopBar (and any other site-wide chrome) needs to know about
 // whoever's looking at the page right now. Intentionally tiny: a name to
@@ -28,18 +29,26 @@ export async function getCurrentViewer(
 
   const { data: person } = await supabase
     .from("people")
-    .select("first_name")
+    .select("first_name, display_name")
     .eq("user_id", user.id)
     .maybeSingle();
 
+  const displayOverride = person?.display_name?.trim() || null;
   const firstName = person?.first_name?.trim() || null;
   const fallback = user.email.split("@")[0] ?? user.email;
   const roleClaim = user.app_metadata?.role;
   const role = typeof roleClaim === "string" ? roleClaim : null;
 
+  // Admins have no member profile — greet them by role, not by name.
+  // Everyone else prefers their app display name, then first name, then
+  // the email local-part.
+  const displayName = hasAdminAccess(role)
+    ? "Admin"
+    : displayOverride ?? firstName ?? fallback;
+
   return {
     email: user.email,
-    displayName: firstName ?? fallback,
+    displayName,
     role,
   };
 }

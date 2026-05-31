@@ -25,7 +25,10 @@ export const PublicBookingInputSchema = z.object({
   guest: z.object({
     name: z.string().trim().min(2).max(100),
     email: z.email(),
-    phone: z.string().trim().min(7),
+    // Optional — the public funnel UI surfaces phone as optional too
+    // (the prior min(7) made it accidentally required). Empty string is
+    // accepted at the boundary; the column is nullable.
+    phone: z.string().trim().max(40).default(""),
     notes: z.string().max(1000).default(""),
   }),
   guestCount: z.number().int().min(1).max(200),
@@ -43,6 +46,12 @@ export const PublicBookingInputSchema = z.object({
       }),
     )
     .default([]),
+  // Set by the submit action when the caller is signed in as a member.
+  // Stamps bookings.member_user_id + audience_type='member' so
+  // /member/bookings can surface the row under the household RLS policy.
+  // Defaults preserve the prior anonymous-funnel behavior.
+  memberUserId: z.uuid().nullable().default(null),
+  audienceType: z.enum(["public", "member", "partner"]).default("public"),
 });
 
 export type PublicBookingInput = z.infer<typeof PublicBookingInputSchema>;
@@ -84,7 +93,7 @@ export async function createPublicBooking(
   const { data, error } = await supabase.rpc("create_public_booking", {
     p_property_id: parsed.data.propertyId,
     p_booking_type: parsed.data.bookingType,
-    p_audience_type: "public",
+    p_audience_type: parsed.data.audienceType,
     p_date: parsed.data.date,
     p_slot_start: parsed.data.slotStart,
     p_duration_hours: parsed.data.durationHours,
@@ -102,6 +111,7 @@ export async function createPublicBooking(
       quantity: a.quantity,
     })),
     p_access_code: accessCode,
+    p_member_user_id: parsed.data.memberUserId,
   });
 
   if (error) {
