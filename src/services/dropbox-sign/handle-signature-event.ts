@@ -1,3 +1,11 @@
+// ⚠️ DEPRECATED — Dropbox Sign waiver path (App 7).
+// Superseded by the in-house typed-signature waiver (src/services/waiver/*).
+// The native path reproduces this onSigned contract synchronously in
+// src/services/waiver/emit-signed-side-effects.ts. Kept INTACT as a
+// revivable fallback — NOT deleted. Dormant unless
+// WAIVER_PROVIDER=dropbox_sign (see lib/waiver/provider.ts). Don't extend;
+// revival steps in src/services/dropbox-sign/DEPRECATED.md.
+
 import { after } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { inngest } from "@/lib/inngest/client";

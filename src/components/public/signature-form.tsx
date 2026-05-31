@@ -1,5 +1,12 @@
 "use client";
 
+// ⚠️ DEPRECATED — Dropbox Sign embedded signing UI (App 7 vendor path).
+// Superseded by src/components/public/waiver-sign-modal.tsx (native typed
+// signature). Kept INTACT as a revivable fallback — NOT deleted. Only
+// mounted by the bid page when WAIVER_PROVIDER=dropbox_sign (see
+// lib/waiver/provider.ts). Don't extend; revival steps in
+// src/services/dropbox-sign/DEPRECATED.md.
+
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type HelloSignType from "hellosign-embedded";

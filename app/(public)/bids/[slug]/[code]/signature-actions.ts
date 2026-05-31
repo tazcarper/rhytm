@@ -10,6 +10,12 @@ import {
 } from "@/src/services/waiver/record-signature";
 import { getEmbeddedSignUrl } from "@/src/services/dropbox-sign/get-embedded-sign-url";
 
+// ⚠️ DEPRECATED (getSignUrlAction + GetSignUrlResult) — Dropbox Sign path.
+// Superseded by submitWaiverSignatureAction below (the native waiver flow).
+// Kept INTACT as a revivable fallback — NOT deleted. Only called by the
+// deprecated SignatureForm when WAIVER_PROVIDER=dropbox_sign. Don't extend;
+// revival steps in src/services/dropbox-sign/DEPRECATED.md.
+//
 // Thin Server Action wrapper for the customer-facing signature form.
 // Validates the (slug, accessCode) pair via the same SECURITY DEFINER
 // RPC the bid page uses (`validate_bid_access_code`) before returning
