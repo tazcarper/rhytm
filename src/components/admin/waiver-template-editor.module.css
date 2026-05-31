@@ -1,0 +1,35 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.propertyName {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: var(--text-h3, 1.25rem);
+  color: var(--olive);
+}
+
+.version {
+  font-size: var(--text-caption);
+  color: var(--charcoal-soft);
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
