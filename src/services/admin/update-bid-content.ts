@@ -16,60 +16,34 @@ const faqItemSchema = z.object({
   answer: z.string().trim().min(1, "Answer is required").max(2000),
 });
 
-const moneyField = z
-  .union([z.string(), z.null(), z.undefined()])
-  .transform((moneyInput) => {
-    if (moneyInput === null || moneyInput === undefined || moneyInput === "")
-      return null;
-    const parsed = parseFloat(moneyInput);
-    return Number.isFinite(parsed) ? parsed : null;
-  })
-  .refine((amount) => amount === null || amount >= 0, "Must be ≥ 0");
-
-export const UpdateAdminBidInputSchema = z.object({
+export const UpdateBidContentInputSchema = z.object({
   bidId: z.string().uuid(),
-  bookingId: z.string().uuid(),
-  confirmedPrice: moneyField,
-  depositAmount: moneyField,
-  quoteNote: z.string().trim().max(500).optional().nullable(),
   scheduleNotes: z.string().trim().max(5000).optional().nullable(),
   staffNotes: z.string().trim().max(5000).optional().nullable(),
   gearList: z.array(gearItemSchema).max(20),
   faq: z.array(faqItemSchema).max(20),
 });
 
-export type UpdateAdminBidInput = z.infer<typeof UpdateAdminBidInputSchema>;
-export type UpdateAdminBidRawInput = z.input<typeof UpdateAdminBidInputSchema>;
+export type UpdateBidContentInput = z.infer<typeof UpdateBidContentInputSchema>;
+export type UpdateBidContentRawInput = z.input<
+  typeof UpdateBidContentInputSchema
+>;
 
-export interface UpdateAdminBidResult {
+export interface UpdateBidContentResult {
   ok: boolean;
   error?: string;
 }
 
-export async function updateAdminBid(
+// Persists the guest-facing presentation of a bid — schedule notes, gear
+// list, FAQ — plus internal staff notes. Pricing lives in updateBidPricing.
+export async function updateBidContent(
   supabase: SupabaseClient,
-  input: UpdateAdminBidInput,
-): Promise<UpdateAdminBidResult> {
-  const bookingUpdate = await supabase
-    .from("bookings")
-    .update({
-      confirmed_price: input.confirmedPrice,
-      deposit_amount: input.depositAmount,
-    })
-    .eq("id", input.bookingId);
-
-  if (bookingUpdate.error) {
-    return {
-      ok: false,
-      error: `Couldn't save pricing: ${bookingUpdate.error.message}`,
-    };
-  }
-
+  input: UpdateBidContentInput,
+): Promise<UpdateBidContentResult> {
   const bidUpdate = await supabase
     .from("bids")
     .update({
       schedule_notes: input.scheduleNotes ?? null,
-      quote_note: input.quoteNote ?? null,
       staff_notes: input.staffNotes ?? null,
       gear_list: input.gearList.map((gearItem) =>
         gearItem.description

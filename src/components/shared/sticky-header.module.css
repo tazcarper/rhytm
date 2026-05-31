@@ -1,0 +1,24 @@
+.sticky {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  transform: translateY(0);
+  transition: transform var(--transition-base);
+  will-change: transform;
+}
+
+.hidden {
+  transform: translateY(-100%);
+}
+
+/* Motion-averse readers get a plain sticky bar — it never animates, but
+   it also never hides, so nothing is lost behind a missing transition. */
+@media (prefers-reduced-motion: reduce) {
+  .sticky {
+    transition: none;
+  }
+
+  .hidden {
+    transform: translateY(0);
+  }
+}

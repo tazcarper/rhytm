@@ -3,26 +3,56 @@
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
-  updateAdminBid,
-  UpdateAdminBidInputSchema,
-  type UpdateAdminBidRawInput,
-  type UpdateAdminBidResult,
-} from "@/src/services/admin/update-bid";
+  updateBidPricing,
+  UpdateBidPricingInputSchema,
+  type UpdateBidPricingRawInput,
+  type UpdateBidPricingResult,
+} from "@/src/services/admin/update-bid-pricing";
+import {
+  updateBidContent,
+  UpdateBidContentInputSchema,
+  type UpdateBidContentRawInput,
+  type UpdateBidContentResult,
+} from "@/src/services/admin/update-bid-content";
 
-export async function updateAdminBidAction(
-  input: UpdateAdminBidRawInput,
-): Promise<UpdateAdminBidResult> {
-  const parsed = UpdateAdminBidInputSchema.safeParse(input);
+function firstIssueMessage(
+  issues: ReadonlyArray<{ path: PropertyKey[]; message: string }>,
+): string {
+  const issue = issues[0];
+  return issue
+    ? `${issue.path.map(String).join(".")}: ${issue.message}`
+    : "Invalid input";
+}
+
+export async function updateBidPricingAction(
+  input: UpdateBidPricingRawInput,
+): Promise<UpdateBidPricingResult> {
+  const parsed = UpdateBidPricingInputSchema.safeParse(input);
   if (!parsed.success) {
-    const issue = parsed.error.issues[0];
-    return {
-      ok: false,
-      error: issue ? `${issue.path.join(".")}: ${issue.message}` : "Invalid input",
-    };
+    return { ok: false, error: firstIssueMessage(parsed.error.issues) };
   }
 
   const supabase = await createServerSupabaseClient();
-  const result = await updateAdminBid(supabase, parsed.data);
+  const result = await updateBidPricing(supabase, parsed.data);
+
+  if (result.ok) {
+    revalidatePath(`/admin/bids/${parsed.data.bidId}`);
+    revalidatePath("/admin/bids");
+  }
+
+  return result;
+}
+
+export async function updateBidContentAction(
+  input: UpdateBidContentRawInput,
+): Promise<UpdateBidContentResult> {
+  const parsed = UpdateBidContentInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: firstIssueMessage(parsed.error.issues) };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const result = await updateBidContent(supabase, parsed.data);
 
   if (result.ok) {
     revalidatePath(`/admin/bids/${parsed.data.bidId}`);

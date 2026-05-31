@@ -1,0 +1,88 @@
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+/* Quiet text affordance, consistent with the Bid URL card's Rotate link. */
+.editLink {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gray);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.editLink:hover {
+  color: var(--olive);
+}
+
+.quoteNote {
+  margin-top: var(--space-2);
+}
+
+.editActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.modsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--paper-warm);
+  border: 1px dashed var(--border-strong, var(--border));
+  border-radius: var(--radius-card);
+}
+
+.modRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.modLabel {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+
+.modUp {
+  font-family: var(--sans);
+  font-size: var(--text-body-lg);
+  font-weight: 600;
+  color: var(--accent-success);
+}
+
+.modDown {
+  font-family: var(--sans);
+  font-size: var(--text-body-lg);
+  font-weight: 600;
+  color: var(--accent-warn);
+}
+
+.suggestedValue {
+  font-family: var(--sans);
+  font-size: var(--text-body-lg);
+  font-weight: 700;
+  color: var(--olive);
+}
+
+.modHint {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  font-style: italic;
+  color: var(--gray);
+}

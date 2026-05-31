@@ -1,26 +1,58 @@
 .bar {
   border-bottom: 1px solid var(--border);
-  background: var(--paper-warm);
+  background: var(--paper);
 }
 
 .inner {
-  margin: 0 auto;
-  padding: 0.5rem 2rem;
+  padding: 0.75rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.75rem;
-  min-height: 36px;
+  gap: 1rem;
+  min-height: 44px;
 }
 
-.left,
+/* ---- brand (top-left, always visible) ---- */
+.brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand:hover .wordmark {
+  color: var(--tan-deep);
+}
+
+.eyebrow {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: var(--gray);
+  font-weight: 500;
+}
+
+.wordmark {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--olive);
+  letter-spacing: -0.3px;
+  transition: color var(--transition-fast);
+}
+
+/* ---- auth strip (right) ---- */
 .right {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.adminLink {
+.adminLink,
+.signInLink {
   font-family: var(--sans);
   font-size: 13px;
   letter-spacing: var(--track-label);
@@ -31,7 +63,8 @@
   transition: color var(--transition-fast);
 }
 
-.adminLink:hover {
+.adminLink:hover,
+.signInLink:hover {
   color: var(--tan-deep);
 }
 
@@ -41,6 +74,7 @@
   font-size: 14px;
   color: var(--gray);
   margin: 0;
+  text-decoration: none;
 }
 
 .greeting strong {
@@ -54,21 +88,6 @@
   width: 1px;
   height: 14px;
   background: var(--border-strong);
-}
-
-.signInLink {
-  font-family: var(--sans);
-  font-size: 13px;
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-  color: var(--olive);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color var(--transition-fast);
-}
-
-.signInLink:hover {
-  color: var(--tan-deep);
 }
 
 .signOutForm {

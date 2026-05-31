@@ -21,7 +21,7 @@ export function portalHomeForRole(role: string | null | undefined): string {
 
 // True for every role that lands on /admin — super_admin, admin,
 // property_manager, concierge, membership_coordinator. Used by chrome
-// surfaces (TopBar) to decide whether to surface an admin shortcut.
+// surfaces (SiteHeader) to decide whether to surface an admin shortcut.
 export function hasAdminAccess(role: string | null | undefined): boolean {
   return portalHomeForRole(role) === "/admin";
 }

@@ -27,18 +27,19 @@ export default async function Home() {
         <div className={s.heroInner}>
           <span className={s.heroEstablished}>Est. 2026</span>
           <h1 className={s.heroTitle}>
-            Three properties. <br/><em>One way</em> to book them.
+            Your day in the <br/><em>Texas Hill Country</em> starts here.
           </h1>
           <p className={s.heroLead}>
-            We connect people to themselves, to each other, and to the
-            natural world — without making them call to do it.
+            Sporting clays, private instruction, and unforgettable
+            gatherings across three storied properties — reserved
+            online in minutes.
           </p>
           <div className={s.heroActions}>
             <Button asChild variant="primary" size="lg">
-              <Link href="/login">Members&rsquo; Entrance</Link>
+              <Link href="/book">Plan your visit</Link>
             </Button>
             <Button asChild variant="secondary" size="lg">
-              <Link href="/book">Book an experience</Link>
+              <Link href="/login">Members&rsquo; Entrance</Link>
             </Button>
           </div>
           {/* <div className={s.heroMeta}>
@@ -61,11 +62,12 @@ export default async function Home() {
       {/* ───── Manifesto pullquote ───────────────────────────────── */}
       <section className={s.manifesto}>
         <div className={s.manifestoInner}>
-          <div className={s.manifestoMark}>The Operating Principle</div>
+          <div className={s.manifestoMark}>Why Rhythm</div>
           <p className={s.manifestoQuote}>
-            Outdoor experiences are not hard. <strong>Booking them is.</strong>{" "}
-            We built one back-of-house so the front-of-house can just be
-            present.
+            A great day outside should be easy to say yes to.{" "}
+            <strong>So we made it simple.</strong> Choose your property,
+            pick your experience, and we&rsquo;ll have everything ready
+            when you arrive.
           </p>
           <div className={s.manifestoAttr}>Rhythm Outdoors</div>
         </div>
@@ -88,8 +90,8 @@ export default async function Home() {
             Different experiences. <em style={{ fontStyle: "italic", color: "var(--tan-deep)", fontWeight: 500 }}>Same standards.</em>
           </h2>
           <p className={s.sectionDeck}>
-            Each property keeps its own character — and shares the same
-            concierge, the same bid, the same deposit flow.
+            Each property has its own character and setting — and every
+            one delivers the same warm welcome and effortless booking.
           </p>
         </header>
 
@@ -140,7 +142,7 @@ export default async function Home() {
       <section className={s.howSection}>
         <div className={s.howInner}>
           <header className={s.sectionHead}>
-            <div className={s.heroEstablished}>The Promise</div>
+            <div className={s.heroEstablished}>How It Works</div>
             <h2
               style={{
                 fontFamily: "var(--serif)",
@@ -151,25 +153,25 @@ export default async function Home() {
                 margin: 0,
               }}
             >
-              From interest to confirmed booking — <em style={{ fontStyle: "italic", color: "var(--tan-deep)", fontWeight: 500 }}>in five clicks.</em>
+              From first idea to a day on the calendar — <em style={{ fontStyle: "italic", color: "var(--tan-deep)", fontWeight: 500 }}>in minutes.</em>
             </h2>
             <p className={s.sectionDeck}>
-              The shape of every reservation, regardless of property or
-              experience type.
+              No phone tag, no waiting on a callback. Reserve your
+              experience whenever inspiration strikes.
             </p>
           </header>
 
           <div className={s.howCard}>
             <p className={s.howCardTitle}>
-              Five stages &middot; fifteen clicks or fewer &middot; one
-              signed bid at the end.
+              A few simple steps &middot; clear pricing &middot; confirmed
+              the moment you&rsquo;re done.
             </p>
             <div className={s.howSteps}>
-              <Step num="01" label="Land" desc="Public site, member portal, or partner link" />
-              <Step num="02" label="Choose" desc="Property, experience, audience tier" />
-              <Step num="03" label="Configure" desc="Guests, date, time — priced live" />
-              <Step num="04" label="Sign" desc="Digital signature on a branded bid" />
-              <Step num="05" label="Pay" desc="Deposit + waiver, embedded" />
+              <Step num="01" label="Choose your property" desc="Three Hill Country settings, each with its own character" />
+              <Step num="02" label="Pick your experience" desc="Sporting clays, a private lesson, or a hosted occasion" />
+              <Step num="03" label="Set the details" desc="Guests, date, and time — priced for you instantly" />
+              <Step num="04" label="Review your bid" desc="Everything laid out clearly, ready to sign" />
+              <Step num="05" label="Confirm your spot" desc="Place your deposit and you&rsquo;re booked" />
             </div>
           </div>
         </div>
@@ -178,20 +180,20 @@ export default async function Home() {
       {/* ───── Final CTA ─────────────────────────────────────────── */}
       <section className={s.finalCta}>
         <div className={s.finalCtaInner}>
-          <span className={s.finalCtaEyebrow}>Two ways in</span>
+          <span className={s.finalCtaEyebrow}>Ready when you are</span>
           <h2 className={s.finalCtaTitle}>
-            Already a member, <em>or thinking about it?</em>
+            Come spend a day <em>with us.</em>
           </h2>
           <p className={s.finalCtaDeck}>
-            Members sign in to manage their bookings and household.
-            Everyone else starts at a property and talks to the concierge.
+            New here? Start by planning your visit. Already a member?
+            Sign in to manage your bookings and household.
           </p>
           <div className={s.finalCtaActions}>
             <Button asChild variant="secondary" size="lg">
-              <Link href="/login">Members&rsquo; Entrance</Link>
+              <Link href="/book">Plan your visit</Link>
             </Button>
             <Button asChild variant="ghost" size="lg">
-              <Link href="#properties">Explore properties</Link>
+              <Link href="/login">Members&rsquo; Entrance</Link>
             </Button>
           </div>
         </div>

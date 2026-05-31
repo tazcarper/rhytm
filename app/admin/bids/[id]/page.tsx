@@ -1,30 +1,25 @@
-import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getBidUrlForAdmin } from "@/src/services/bids/get-bid-url-for-admin";
-import {
-  Button,
-  Card,
-  Divider,
-  Heading,
-  PageShell,
-  Text,
-} from "@/lib/ui";
+import { Card, Divider, Heading, PageShell, Text } from "@/lib/ui";
 import { AdminBreadcrumb } from "@/src/components/admin/admin-breadcrumb";
 import {
   formatDateLongTz,
-  formatMoney,
   formatSlotLabelTz,
 } from "@/src/services/public/format";
 import { getAdminBidDetail } from "@/src/services/admin/get-bid-detail";
+import { getPropertyCatalog } from "@/src/services/admin/catalog";
 import { BidStatusBadge } from "@/src/components/admin/bid-status-badge";
-import {
-  PaymentStatusBadge,
-  paymentStatusLabel,
-} from "@/src/components/admin/payment-status-badge";
+import { PaymentStatusBadge } from "@/src/components/admin/payment-status-badge";
 import { BidActions } from "@/src/components/admin/bid-actions";
 import { BidUrlCard } from "@/src/components/admin/bid-url-card";
+import { BidContentDrawer } from "@/src/components/admin/bid-content-drawer";
+import { PricingEditor } from "@/src/components/admin/pricing-editor";
+import {
+  BidAddOnsEditor,
+  type AvailableAddOn,
+} from "@/src/components/admin/bid-add-ons-editor";
 import { RefundDepositButton } from "@/src/components/admin/refund-deposit-button";
 import { PropertyPill } from "@/src/components/admin/property-pill";
 import { MarkdownProse } from "@/src/components/shared/markdown";
@@ -50,10 +45,6 @@ function formatTimestamp(iso: string | null, timezone: string): string {
     iso,
     timezone,
   )} CT`;
-}
-
-function formatMoneyOrDash(n: number | null): string {
-  return n === null ? "—" : `$${formatMoney(n)}`;
 }
 
 function siteOriginFromHeaders(h: Headers): string {
@@ -84,13 +75,34 @@ export default async function AdminBidDetail({
   const origin = siteOriginFromHeaders(await headers());
   const { url: bidUrl } = await getBidUrlForAdmin(supabase, bid.id, origin);
 
-  const addOnsByService = new Map<string, typeof addOns>();
-  for (const a of addOns) {
-    const list = addOnsByService.get(a.serviceId) ?? [];
-    list.push(a);
-    addOnsByService.set(a.serviceId, list);
+  // Catalog drives which add-ons an admin may attach to each discipline:
+  // active add-ons linked (via service_add_ons) to the booking's services.
+  const catalog = await getPropertyCatalog(supabase, property.id);
+  const linkedAddOnIdsByService = new Map<string, Set<string>>();
+  for (const link of catalog.links) {
+    const set = linkedAddOnIdsByService.get(link.serviceId) ?? new Set<string>();
+    set.add(link.addOnId);
+    linkedAddOnIdsByService.set(link.serviceId, set);
+  }
+  const availableByService: Record<string, AvailableAddOn[]> = {};
+  for (const discipline of disciplines) {
+    const linked = linkedAddOnIdsByService.get(discipline.id) ?? new Set<string>();
+    availableByService[discipline.id] = catalog.addOns
+      .filter((addOn) => addOn.isActive && linked.has(addOn.id))
+      .map((addOn) => ({
+        addOnId: addOn.id,
+        name: addOn.name,
+        price: addOn.price,
+      }));
   }
 
+  const addOnsEditable =
+    bid.status === "pending_review" || bid.status === "confirmed";
+
+  const addOnTotal = addOns.reduce(
+    (sum, addOn) => sum + addOn.unitPrice * addOn.quantity,
+    0,
+  );
 
   return (
     <PageShell width="xl">
@@ -121,26 +133,10 @@ export default async function AdminBidDetail({
             ID {bid.id}
           </p>
         </div>
-
-        <div className={s.actions}>
-          <Button asChild variant="secondary" size="sm">
-            <Link href={`/admin/bids/${bid.id}/edit`}>Edit</Link>
-          </Button>
-          <BidActions bidId={bid.id} status={bid.status} />
-          {bid.status === "paid" &&
-            bid.refundPaymentIntentId === null &&
-            booking.amountPaid > 0 && (
-              <RefundDepositButton
-                bidId={bid.id}
-                amountPaid={booking.amountPaid}
-              />
-            )}
-        </div>
       </div>
 
-      <BidUrlCard bidId={bid.id} status={bid.status} bidUrl={bidUrl} />
-
-      <div className={s.sectionGrid}>
+      <div className={s.layout}>
+        <div className={s.main}>
         <Card padding="loose" elevation="soft" className={s.section}>
           <h2 className={s.sectionTitle}>Booking</h2>
           <dl className={s.kv}>
@@ -212,166 +208,17 @@ export default async function AdminBidDetail({
           )}
         </Card>
 
-        <Card padding="loose" elevation="soft" className={`${s.section} ${s.span2}`}>
-          <h2 className={s.sectionTitle}>Disciplines & Add-ons</h2>
-          {disciplines.length === 0 ? (
-            <p className={s.empty}>No disciplines on this booking.</p>
-          ) : (
-            <ul className={s.list}>
-              {disciplines.map((d) => {
-                const serviceAddOns = addOnsByService.get(d.id) ?? [];
-                return (
-                  <li key={d.id} className={s.listItem}>
-                    <p className={s.disciplineName}>{d.name}</p>
-                    {d.description && (
-                      <p className={s.disciplineDesc}>{d.description}</p>
-                    )}
-                    {serviceAddOns.length > 0 && (
-                      <ul className={s.addOnList}>
-                        {serviceAddOns.map((a) => (
-                          <li key={a.id} className={s.addOnItem}>
-                            <span>
-                              <span className={s.qty}>×{a.quantity}</span>
-                              {a.name}
-                            </span>
-                            <span>${formatMoney(a.unitPrice * a.quantity)}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </Card>
+        <BidAddOnsEditor
+          className={`${s.section} ${s.mainSpan2}`}
+          bidId={bid.id}
+          bookingId={booking.id}
+          editable={addOnsEditable}
+          disciplines={disciplines}
+          addOns={addOns}
+          availableByService={availableByService}
+        />
 
-        <Card padding="loose" elevation="soft" className={s.section}>
-          <h2 className={s.sectionTitle}>Pricing</h2>
-          <dl className={s.kv}>
-            <dt className={s.kvKey}>Estimated</dt>
-            <dd
-              className={`${s.kvValue} ${
-                booking.confirmedPrice !== null &&
-                booking.confirmedPrice !== booking.estimatedPrice
-                  ? s.priceStruck
-                  : ""
-              }`}
-            >
-              {formatMoneyOrDash(booking.estimatedPrice)}
-            </dd>
-
-            <dt className={s.kvKey}>Confirmed quote</dt>
-            <dd className={s.kvValue}>
-              {booking.confirmedPrice !== null
-                ? `$${formatMoney(booking.confirmedPrice)}`
-                : booking.estimatedPrice !== null
-                  ? `$${formatMoney(booking.estimatedPrice)} (auto)`
-                  : "—"}
-              {bid.quoteNote && (
-                <div style={{ marginTop: "var(--space-2)" }}>
-                  <MarkdownProse small>{bid.quoteNote}</MarkdownProse>
-                </div>
-              )}
-            </dd>
-
-            <dt className={s.kvKey}>Deposit (min)</dt>
-            <dd className={s.kvValue}>
-              {formatMoneyOrDash(booking.depositAmount)}
-            </dd>
-
-            <dt className={s.kvKey}>Amount paid</dt>
-            <dd className={s.kvValue}>
-              ${formatMoney(booking.amountPaid)}
-              {bid.paidAt && (
-                <span className={s.paidPill}>
-                  {" "}
-                  · ✓ {paymentStatusLabel(booking) ?? "Paid"}
-                </span>
-              )}
-            </dd>
-
-            {booking.effectiveQuote !== null &&
-              booking.amountPaid > 0 &&
-              booking.amountPaid + 0.005 < booking.effectiveQuote && (
-                <>
-                  <dt className={s.kvKey}>Balance due at property</dt>
-                  <dd className={s.kvValue}>
-                    ${formatMoney(booking.effectiveQuote - booking.amountPaid)}
-                  </dd>
-                </>
-              )}
-
-            {bid.refundAmount !== null && (
-              <>
-                <dt className={s.kvKey}>Refund</dt>
-                <dd className={s.kvValue}>
-                  {formatMoneyOrDash(bid.refundAmount)}
-                </dd>
-              </>
-            )}
-          </dl>
-        </Card>
-
-        <Card padding="loose" elevation="soft" className={s.section}>
-          <h2 className={s.sectionTitle}>Lifecycle</h2>
-          <dl className={s.kv}>
-            <dt className={s.kvKey}>Created</dt>
-            <dd className={s.kvValue}>{formatTimestamp(bid.createdAt, tz)}</dd>
-
-            <dt className={s.kvKey}>Updated</dt>
-            <dd className={s.kvValue}>{formatTimestamp(bid.updatedAt, tz)}</dd>
-
-            <dt className={s.kvKey}>Paid</dt>
-            <dd className={s.kvValue}>
-              {bid.paidAt ? (
-                formatTimestamp(bid.paidAt, tz)
-              ) : (
-                <span className={s.empty}>—</span>
-              )}
-            </dd>
-
-            <dt className={s.kvKey}>Signed</dt>
-            <dd className={s.kvValue}>
-              {bid.signedAt ? (
-                formatTimestamp(bid.signedAt, tz)
-              ) : (
-                <span className={s.empty}>—</span>
-              )}
-            </dd>
-
-            <dt className={s.kvKey}>Waiver envelope</dt>
-            <dd className={s.kvValue}>
-              {bid.dropboxSignEnvelopeId ? (
-                <code style={{ fontSize: "var(--text-micro)" }}>
-                  {bid.dropboxSignEnvelopeId}
-                </code>
-              ) : (
-                <span className={s.empty}>—</span>
-              )}
-            </dd>
-
-            <dt className={s.kvKey}>Cancelled</dt>
-            <dd className={s.kvValue}>
-              {bid.cancelledAt ? (
-                formatTimestamp(bid.cancelledAt, tz)
-              ) : (
-                <span className={s.empty}>—</span>
-              )}
-            </dd>
-
-            <dt className={s.kvKey}>Expires</dt>
-            <dd className={s.kvValue}>
-              {bid.expiresAt ? (
-                formatTimestamp(bid.expiresAt, tz)
-              ) : (
-                <span className={s.empty}>—</span>
-              )}
-            </dd>
-          </dl>
-        </Card>
-
-        <Card padding="loose" elevation="soft" className={`${s.section} ${s.span2}`}>
+        <Card padding="loose" elevation="soft" className={`${s.section} ${s.mainSpan2}`}>
           <h2 className={s.sectionTitle}>Bid content</h2>
 
           <Text variant="caption" className="text-gray">
@@ -424,7 +271,7 @@ export default async function AdminBidDetail({
           )}
         </Card>
 
-        <Card padding="loose" elevation="soft" className={`${s.section} ${s.span2}`}>
+        <Card padding="loose" elevation="soft" className={`${s.section} ${s.mainSpan2}`}>
           <h2 className={s.sectionTitle}>Staff notes</h2>
           <p className={s.privateBanner}>Internal — not shown to the guest.</p>
           {bid.staffNotes ? (
@@ -447,6 +294,105 @@ export default async function AdminBidDetail({
             </>
           )}
         </Card>
+        </div>
+
+        <aside className={s.rail}>
+          <Card padding="loose" elevation="soft" className={s.section}>
+            <h2 className={s.sectionTitle}>Actions</h2>
+            <div className={s.railActions}>
+              <BidContentDrawer
+                bidId={bid.id}
+                scheduleNotes={bid.scheduleNotes}
+                staffNotes={bid.staffNotes}
+                gearList={bid.gearList}
+                faq={bid.faq}
+              />
+              <BidActions bidId={bid.id} status={bid.status} />
+              {bid.status === "paid" &&
+                bid.refundPaymentIntentId === null &&
+                booking.amountPaid > 0 && (
+                  <RefundDepositButton
+                    bidId={bid.id}
+                    amountPaid={booking.amountPaid}
+                  />
+                )}
+            </div>
+          </Card>
+
+          <BidUrlCard bidId={bid.id} status={bid.status} bidUrl={bidUrl} />
+
+          <PricingEditor
+            bidId={bid.id}
+            bookingId={booking.id}
+            estimatedPrice={booking.estimatedPrice}
+            confirmedPrice={booking.confirmedPrice}
+            depositAmount={booking.depositAmount}
+            amountPaid={booking.amountPaid}
+            effectiveQuote={booking.effectiveQuote}
+            quoteNote={bid.quoteNote}
+            refundAmount={bid.refundAmount}
+            paid={bid.paidAt !== null}
+            addOnTotal={addOnTotal}
+          />
+
+          <Card padding="loose" elevation="soft" className={s.section}>
+            <h2 className={s.sectionTitle}>Lifecycle</h2>
+            <dl className={s.kv}>
+              <dt className={s.kvKey}>Created</dt>
+              <dd className={s.kvValue}>{formatTimestamp(bid.createdAt, tz)}</dd>
+
+              <dt className={s.kvKey}>Updated</dt>
+              <dd className={s.kvValue}>{formatTimestamp(bid.updatedAt, tz)}</dd>
+
+              <dt className={s.kvKey}>Paid</dt>
+              <dd className={s.kvValue}>
+                {bid.paidAt ? (
+                  formatTimestamp(bid.paidAt, tz)
+                ) : (
+                  <span className={s.empty}>—</span>
+                )}
+              </dd>
+
+              <dt className={s.kvKey}>Signed</dt>
+              <dd className={s.kvValue}>
+                {bid.signedAt ? (
+                  formatTimestamp(bid.signedAt, tz)
+                ) : (
+                  <span className={s.empty}>—</span>
+                )}
+              </dd>
+
+              <dt className={s.kvKey}>Waiver envelope</dt>
+              <dd className={s.kvValue}>
+                {bid.dropboxSignEnvelopeId ? (
+                  <code style={{ fontSize: "var(--text-micro)" }}>
+                    {bid.dropboxSignEnvelopeId}
+                  </code>
+                ) : (
+                  <span className={s.empty}>—</span>
+                )}
+              </dd>
+
+              <dt className={s.kvKey}>Cancelled</dt>
+              <dd className={s.kvValue}>
+                {bid.cancelledAt ? (
+                  formatTimestamp(bid.cancelledAt, tz)
+                ) : (
+                  <span className={s.empty}>—</span>
+                )}
+              </dd>
+
+              <dt className={s.kvKey}>Expires</dt>
+              <dd className={s.kvValue}>
+                {bid.expiresAt ? (
+                  formatTimestamp(bid.expiresAt, tz)
+                ) : (
+                  <span className={s.empty}>—</span>
+                )}
+              </dd>
+            </dl>
+          </Card>
+        </aside>
       </div>
     </PageShell>
   );

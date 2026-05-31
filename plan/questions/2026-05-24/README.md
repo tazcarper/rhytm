@@ -40,6 +40,12 @@ Design decisions easier to make before App 3 (Admin Portal) lands than after.
 - [A1 — Deny/refund reason visibility to guest](admin-operations/a1-deny-refund-reason-visibility.md)
 - [A2 — Sidebar vs topbar navigation](admin-operations/a2-sidebar-vs-topbar.md)
 
+## App 9 — HubSpot CRM sync
+
+Designed but unbuilt; deferred until the client hands over CRM access and the pipeline shape.
+
+- [H1 — HubSpot account access & credentials](app-9-hubspot/h1-account-access.md)
+
 ## Domain & deployment strategy
 
 - [D1 — Per-property branded subdomains (long-term)](domain-strategy/d1-per-property-subdomains.md)

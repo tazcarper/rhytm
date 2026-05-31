@@ -62,15 +62,6 @@ export function BidActions({ bidId, status }: BidActionsProps) {
   if (mode === "none") {
     return (
       <>
-        {canConfirm && (
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setMode("confirm")}
-          >
-            Confirm
-          </Button>
-        )}
         {canDeny && (
           <Button
             variant="secondary"
@@ -78,6 +69,17 @@ export function BidActions({ bidId, status }: BidActionsProps) {
             onClick={() => setMode("deny")}
           >
             Deny
+          </Button>
+        )}
+        {/* Confirm sits last — the primary action anchors the bottom of the
+            Edit / Deny / Confirm stack. */}
+        {canConfirm && (
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setMode("confirm")}
+          >
+            Confirm
           </Button>
         )}
       </>

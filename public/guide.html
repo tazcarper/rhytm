@@ -19,7 +19,9 @@
     --accent: #b4632b;   /* warm outdoors clay */
   }
   * { box-sizing: border-box; }
-  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; scroll-behavior: smooth; }
+  /* Offset so a jumped-to heading isn't flush against the top of the window */
+  h2[id], h3[id] { scroll-margin-top: 24px; }
   body {
     margin: 0;
     color: var(--ink);
@@ -115,6 +117,9 @@
   .toc ol ol li { font-weight: 400; color: var(--muted); font-size: 14.5px; }
   .toc a { text-decoration: none; color: var(--ink); }
   .toc a:hover { color: var(--admin); }
+  .toc-overview { list-style: none; margin: 0 0 14px; padding: 0 0 14px; border-bottom: 1px solid var(--line); }
+  .toc-overview li { margin: 0; font-weight: 600; color: var(--muted); }
+  .toc-overview a { font-weight: 600; }
 
   /* ---- Diagram cards ---- */
   .diagram {
@@ -197,6 +202,53 @@
     </div>
   </header>
 
+  <!-- TOC -->
+  <nav class="toc">
+    <h2>Table of Contents</h2>
+    <ul class="toc-overview">
+      <li><a href="#about">What Rhythm Outdoors Is</a> — overview &amp; key terms</li>
+    </ul>
+    <ol>
+      <li><a href="#guests">For Guests — booking, signing, and paying</a>
+        <ol>
+          <li><a href="#g-glance">The guest journey at a glance</a></li>
+          <li><a href="#g-steps">Step-by-step: landing page to confirmed trip</a></li>
+          <li><a href="#g-after">What happens after you submit</a></li>
+          <li><a href="#g-sign">Signing and paying on the bid page</a></li>
+          <li><a href="#g-states">Bid states you might see</a></li>
+        </ol>
+      </li>
+      <li><a href="#members">For Members — managing your account</a>
+        <ol>
+          <li><a href="#m-glance">The member journey at a glance</a></li>
+          <li><a href="#m-login">Logging in</a></li>
+          <li><a href="#m-dash">Your dashboard and memberships</a></li>
+          <li><a href="#m-book">Your bookings</a></li>
+          <li><a href="#m-profile">Editing your profile</a></li>
+        </ol>
+      </li>
+      <li><a href="#staff">For Staff — running the platform</a>
+        <ol>
+          <li><a href="#a-glance">The admin journey at a glance</a></li>
+          <li><a href="#a-who">Who can sign in</a></li>
+          <li><a href="#a-dash">The dashboard</a></li>
+          <li><a href="#a-bid">Working a bid: review, price, confirm, send</a></li>
+          <li><a href="#a-book">Bookings</a></li>
+          <li><a href="#a-prop">Property settings</a></li>
+          <li><a href="#a-cat">The catalog: services and add-ons</a></li>
+        </ol>
+      </li>
+      <li><a href="#reference">Reference</a>
+        <ol>
+          <li><a href="#r-status">Bid &amp; booking status glossary</a></li>
+          <li><a href="#r-life">How a booking moves through the system</a></li>
+          <li><a href="#r-stack">The technology behind it</a></li>
+          <li><a href="#r-faq">Frequently asked questions</a></li>
+        </ol>
+      </li>
+    </ol>
+  </nav>
+
   <!-- INTRO -->
   <section>
     <h2 id="about">What Rhythm Outdoors Is</h2>
@@ -234,49 +286,6 @@
       </tbody>
     </table>
   </section>
-
-  <!-- TOC -->
-  <nav class="toc">
-    <h2>Table of Contents</h2>
-    <ol>
-      <li><a href="#guests">For Guests — booking, signing, and paying</a>
-        <ol>
-          <li><a href="#g-glance">The guest journey at a glance</a></li>
-          <li><a href="#g-steps">Step-by-step: landing page to confirmed trip</a></li>
-          <li><a href="#g-after">What happens after you submit</a></li>
-          <li><a href="#g-sign">Signing and paying on the bid page</a></li>
-          <li><a href="#g-states">Bid states you might see</a></li>
-        </ol>
-      </li>
-      <li><a href="#members">For Members — managing your account</a>
-        <ol>
-          <li><a href="#m-glance">The member journey at a glance</a></li>
-          <li><a href="#m-login">Logging in</a></li>
-          <li><a href="#m-dash">Your dashboard and memberships</a></li>
-          <li><a href="#m-book">Your bookings</a></li>
-          <li><a href="#m-profile">Editing your profile</a></li>
-        </ol>
-      </li>
-      <li><a href="#staff">For Staff — running the platform</a>
-        <ol>
-          <li><a href="#a-glance">The admin journey at a glance</a></li>
-          <li><a href="#a-who">Who can sign in</a></li>
-          <li><a href="#a-dash">The dashboard</a></li>
-          <li><a href="#a-bid">Working a bid: review, price, confirm, send</a></li>
-          <li><a href="#a-book">Bookings</a></li>
-          <li><a href="#a-prop">Property settings</a></li>
-          <li><a href="#a-cat">The catalog: services and add-ons</a></li>
-        </ol>
-      </li>
-      <li><a href="#reference">Reference</a>
-        <ol>
-          <li><a href="#r-status">Bid &amp; booking status glossary</a></li>
-          <li><a href="#r-life">How a booking moves through the system</a></li>
-          <li><a href="#r-faq">Frequently asked questions</a></li>
-        </ol>
-      </li>
-    </ol>
-  </nav>
 
   <!-- ===== PUBLIC ===== -->
   <section class="sec-public">
@@ -500,7 +509,53 @@ flowchart LR
       <div class="diagram-cap">One booking, seen three ways: the guest's bid page, the member's “My bookings,” and the admin bid detail — all reading from one database</div>
     </div>
 
-    <h3 id="r-faq">4.3 Frequently asked questions</h3>
+    <h3 id="r-stack">4.3 The technology behind it</h3>
+    <p>Rhythm Outdoors is <strong>one web application</strong>, not a patchwork of separate systems. It runs on Next.js and leans on a handful of specialist services for the things a website shouldn't try to build itself — taking payments, sending email, collecting signatures. The golden rule: <strong>our own database is the single source of truth.</strong> Everything else either feeds into it or reads from it.</p>
+
+    <div class="diagram">
+      <pre class="mermaid">
+flowchart TD
+    subgraph core[Our application]
+      APP[Next.js app<br/>public · member · admin portals]
+      DB[(Supabase database<br/>the source of truth)]
+      APP --- DB
+    end
+    APP --> AUTH[Supabase Auth<br/>member &amp; staff sign-in]
+    APP --> PAY[Stripe<br/>deposits &amp; refunds]
+    APP --> MAIL[Resend<br/>transactional email]
+    APP --> SIGN[Dropbox Sign<br/>waiver e-signatures]
+    APP --> BLOB[Vercel Blob<br/>file storage]
+    APP --> FLOW[Inngest<br/>background workflows]
+    APP -.feeds.-> CRM[HubSpot<br/>downstream CRM]
+    APP -.planned.-> OBS[Sentry + Axiom<br/>error &amp; log monitoring]
+    HOST[[Vercel<br/>hosting]] -.runs.- APP
+    classDef corec fill:#eef2ff,stroke:#6366f1,color:#1e1b4b;
+    classDef planned fill:#f8fafc,stroke:#94a3b8,color:#475569,stroke-dasharray: 4 3;
+    class APP,DB corec;
+    class OBS planned;
+      </pre>
+      <div class="diagram-cap">One app at the center, specialist services around the edge — the database is the source of truth</div>
+    </div>
+
+    <h4>What each piece does</h4>
+    <table>
+      <thead><tr><th>Tool</th><th>Job</th><th>What it actually does for us</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Next.js</strong></td><td>The application</td><td>Builds every page and handles every request — the public booking funnel, the member portal, and the admin tools are all one Next.js app.</td></tr>
+        <tr><td><strong>Vercel</strong></td><td>Hosting</td><td>Runs the app on the internet, deploys new versions, and serves preview links for work in progress.</td></tr>
+        <tr><td><strong>Supabase</strong></td><td>Database &amp; auth</td><td>The Postgres database that stores bookings, bids, members, pricing, and properties — plus the sign-in system for members and staff. This is the source of truth.</td></tr>
+        <tr><td><strong>Stripe</strong></td><td>Payments</td><td>Collects the deposit on the bid page (card or bank transfer) and processes refunds when staff issue them.</td></tr>
+        <tr><td><strong>Resend</strong></td><td>Email</td><td>Sends the automated emails — booking confirmations, “your bid is ready to sign,” and similar notices.</td></tr>
+        <tr><td><strong>Dropbox Sign</strong></td><td>E-signatures</td><td>Powers the “sign your waiver” step on the bid page, capturing a legal signature in-page.</td></tr>
+        <tr><td><strong>Vercel Blob</strong></td><td>File storage</td><td>Holds uploaded files and documents the app needs to keep.</td></tr>
+        <tr><td><strong>Inngest</strong></td><td>Background workflows</td><td>Runs the multi-step jobs that happen behind the scenes after an action — e.g. follow-up steps once a bid is confirmed — without making the guest wait.</td></tr>
+        <tr><td><strong>HubSpot</strong></td><td>CRM (downstream)</td><td>Receives customer and booking information from the app for sales and marketing. It reads <em>from</em> us; it is never the source of truth.</td></tr>
+        <tr><td><strong>Sentry + Axiom</strong></td><td>Monitoring <em>(planned)</em></td><td>Will track errors and logs so the team can spot and diagnose problems quickly. Planned for closer to launch.</td></tr>
+      </tbody>
+    </table>
+    <blockquote><p><strong>Why so many services?</strong> Each one is best-in-class at a single hard job — taking a payment safely, delivering email reliably, capturing a legal signature. We connect them rather than rebuild them, and keep all the decisions and records in our own database.</p></blockquote>
+
+    <h3 id="r-faq">4.4 Frequently asked questions</h3>
     <h4>Does a guest need an account to book?</h4>
     <p>No. Booking, signing, and paying all happen on a private bid link without logging in.</p>
     <h4>Why didn't a price show up instantly?</h4>

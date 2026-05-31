@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
-import { TopBar } from "@/src/components/shared/top-bar";
+import { SiteHeader } from "@/src/components/shared/site-header";
 import "./globals.css";
 
 // Brand typography. next/font self-hosts these so there's no FOUT and
@@ -36,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${cormorant.variable} ${inter.variable}`}>
       <body>
-        <TopBar />
+        <SiteHeader />
         {children}
       </body>
     </html>

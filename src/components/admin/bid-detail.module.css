@@ -51,28 +51,74 @@
   letter-spacing: var(--tracking-tight);
 }
 
-.actions {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-}
 
-.sectionGrid {
+/* Two-column record layout: a wide content column + a narrow action/metadata
+   rail. `align-items: start` keeps the rail cell from stretching so the rail
+   can stick while the main column scrolls. */
+.layout {
   display: grid;
   gap: var(--space-4);
   margin-top: var(--space-6);
   grid-template-columns: 1fr;
+  align-items: start;
 }
 
-@media (min-width: 900px) {
-  .sectionGrid {
-    grid-template-columns: 2fr 1fr;
+@media (min-width: 1000px) {
+  .layout {
+    /* Narrower content column, wider rail (~20% shift from the prior
+       1fr / 340px split). */
+    grid-template-columns: minmax(0, 1fr) 410px;
+  }
+}
+
+/* The content column is itself a grid so Booking + Guest sit two-up while the
+   wider sections span the full width. */
+.main {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+  align-content: start;
+}
+
+@media (min-width: 680px) {
+  .main {
+    grid-template-columns: 1fr 1fr;
   }
 
-  .span2 {
+  .mainSpan2 {
     grid-column: 1 / -1;
   }
+}
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@media (min-width: 1000px) {
+  .rail {
+    position: sticky;
+    top: var(--space-4);
+  }
+}
+
+/* Action buttons stack full-width inside the rail's Actions card. */
+.railActions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+}
+
+/* Normalize typography across the stacked actions so the primary Confirm
+   matches the outlined Edit/Deny — same size, sentence case. The fill color
+   alone carries the primary emphasis. The descendant selector outranks
+   Button's own variant/size classes, so this wins without !important. */
+.railActions button {
+  text-transform: none;
+  font-size: var(--text-body);
+  letter-spacing: var(--track-label);
 }
 
 .section {
@@ -83,10 +129,11 @@
 
 .sectionTitle {
   font-family: var(--sans);
-  font-size: var(--text-eyebrow);
-  letter-spacing: 0.12em;
+  font-size: var(--text-body-lg);
+  font-weight: 700;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--gray);
+  color: var(--olive);
   margin: 0;
 }
 
@@ -150,27 +197,6 @@
   margin: 4px 0 0;
   font-size: var(--text-micro);
   color: var(--gray);
-}
-
-.addOnList {
-  margin: var(--space-2) 0 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.addOnItem {
-  display: flex;
-  justify-content: space-between;
-  font-size: var(--text-micro);
-  color: var(--olive);
-}
-
-.addOnItem .qty {
-  color: var(--gray);
-  margin-right: var(--space-3);
 }
 
 .notesBlock {

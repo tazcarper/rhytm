@@ -1,7 +1,6 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getMyProfile } from "@/src/services/members/profile";
 import { Eyebrow, Heading, PageShell } from "@/lib/ui";
-import { MemberHeader } from "@/src/components/members/member-header";
 import { MemberNav } from "@/src/components/members/member-nav";
 import { ProfileForm } from "@/src/components/members/profile-form";
 
@@ -19,10 +18,8 @@ export default async function MemberProfilePage() {
   } = await supabase.auth.getUser();
 
   const profile = user ? await getMyProfile(supabase, user.id) : null;
-  // The strip shows the live name; the form is pre-filled with the
-  // current override, or the first name as a starting point if none
-  // has been set yet.
-  const headerName = profile?.displayName ?? profile?.firstName ?? undefined;
+  // The form is pre-filled with the current override, or the first
+  // name as a starting point if none has been set yet.
   const prefill = profile?.displayName ?? profile?.firstName ?? "";
 
   return (
@@ -33,11 +30,6 @@ export default async function MemberProfilePage() {
       <Heading level={1} size="h1" underline>
         Your <em>profile</em>
       </Heading>
-      <MemberHeader
-        email={user?.email}
-        role={user?.app_metadata?.role as string | undefined}
-        displayName={headerName}
-      />
 
       <MemberNav active="profile" />
 
