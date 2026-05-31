@@ -1,9 +1,3 @@
-.row {
-  display: flex;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-}
-
 .dialog {
   display: flex;
   flex-direction: column;
@@ -12,6 +6,10 @@
   background: var(--paper-warm);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
+  /* When opened inside the header toolbar (a flex row), drop to a full-width
+     line of its own rather than wedging between the other action buttons. */
+  flex-basis: 100%;
+  max-width: 34rem;
 }
 
 .dialogTitle {
@@ -49,45 +47,4 @@
 .dialogActions {
   display: flex;
   gap: var(--space-2);
-}
-
-.urlPanel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-4);
-  background: var(--paper-warm);
-  border: 1px solid var(--accent-success);
-  border-radius: var(--radius-card);
-}
-
-.urlPanelTitle {
-  font-family: var(--sans);
-  font-size: var(--text-eyebrow);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--accent-success);
-  margin: 0;
-}
-
-.urlBox {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  background: var(--paper);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  font-family: var(--font-mono, monospace);
-  font-size: var(--text-micro);
-  color: var(--olive);
-  word-break: break-all;
-}
-
-.urlWarning {
-  font-family: var(--sans);
-  font-size: var(--text-micro);
-  color: var(--accent-warn);
-  font-style: italic;
-  margin: 0;
 }

@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getBidUrlForAdmin } from "@/src/services/bids/get-bid-url-for-admin";
 import {
   Button,
   Card,
@@ -22,6 +24,7 @@ import {
   paymentStatusLabel,
 } from "@/src/components/admin/payment-status-badge";
 import { BidActions } from "@/src/components/admin/bid-actions";
+import { BidUrlCard } from "@/src/components/admin/bid-url-card";
 import { RefundDepositButton } from "@/src/components/admin/refund-deposit-button";
 import { PropertyPill } from "@/src/components/admin/property-pill";
 import { MarkdownProse } from "@/src/components/shared/markdown";
@@ -53,6 +56,14 @@ function formatMoneyOrDash(n: number | null): string {
   return n === null ? "—" : `$${formatMoney(n)}`;
 }
 
+function siteOriginFromHeaders(h: Headers): string {
+  const fromEnv = process.env.NEXT_PUBLIC_SITE_URL;
+  if (fromEnv) return fromEnv.replace(/\/$/, "");
+  const proto = h.get("x-forwarded-proto") ?? "http";
+  const host = h.get("host") ?? "localhost:3000";
+  return `${proto}://${host}`;
+}
+
 
 export default async function AdminBidDetail({
   params,
@@ -69,6 +80,9 @@ export default async function AdminBidDetail({
 
   const { bid, booking, property, disciplines, addOns, instructor } = detail;
   const tz = property.timezone;
+
+  const origin = siteOriginFromHeaders(await headers());
+  const { url: bidUrl } = await getBidUrlForAdmin(supabase, bid.id, origin);
 
   const addOnsByService = new Map<string, typeof addOns>();
   for (const a of addOns) {
@@ -123,6 +137,8 @@ export default async function AdminBidDetail({
             )}
         </div>
       </div>
+
+      <BidUrlCard bidId={bid.id} status={bid.status} bidUrl={bidUrl} />
 
       <div className={s.sectionGrid}>
         <Card padding="loose" elevation="soft" className={s.section}>

@@ -1,0 +1,100 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+  padding: var(--space-4);
+  background: var(--paper-warm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+/* Briefly emphasised after a rotate so the admin notices the link changed. */
+.cardFresh {
+  border-color: var(--accent-success);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.eyebrow {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin: 0;
+}
+
+.eyebrowFresh {
+  color: var(--accent-success);
+}
+
+.field {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+}
+
+.urlInput {
+  flex: 1;
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-micro);
+  color: var(--olive);
+}
+
+.help {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+  margin: 0;
+}
+
+/* Quiet text-button affordance — rotation is a rare, slightly destructive
+   action, so it stays understated next to the primary Copy. */
+.rotateLink {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gray);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.rotateLink:hover {
+  color: var(--accent-warn);
+}
+
+.rotatePanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+  padding: var(--space-3);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.rotateTitle {
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  font-weight: 500;
+  color: var(--olive);
+  margin: 0;
+}
+
+.rotateActions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}

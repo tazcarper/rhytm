@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rhythm Outdoors — User Guide</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --ink: #1a1d24;
+    --muted: #5b6472;
+    --line: #e3e7ee;
+    --bg: #ffffff;
+    --soft: #f6f8fb;
+    --public: #6366f1;   /* indigo */
+    --member: #10b981;   /* emerald */
+    --admin:  #3b82f6;   /* blue */
+    --danger: #ef4444;
+    --accent: #b4632b;   /* warm outdoors clay */
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: #eef1f6;
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    font-size: 16px;
+  }
+  .sheet {
+    max-width: 880px;
+    margin: 32px auto;
+    background: var(--bg);
+    padding: 64px 72px;
+    box-shadow: 0 10px 40px rgba(20,30,50,.12);
+    border-radius: 6px;
+  }
+
+  /* ---- Cover ---- */
+  .cover {
+    text-align: center;
+    padding: 40px 0 56px;
+    border-bottom: 3px solid var(--accent);
+    margin-bottom: 8px;
+  }
+  .cover .kicker {
+    text-transform: uppercase;
+    letter-spacing: .32em;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .cover h1 {
+    font-size: 52px;
+    line-height: 1.05;
+    margin: 18px 0 10px;
+    letter-spacing: -.02em;
+  }
+  .cover .sub {
+    color: var(--muted);
+    font-size: 18px;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+  .portal-chips { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 28px; }
+  .chip {
+    font-size: 13px; font-weight: 600; padding: 7px 16px; border-radius: 999px;
+    border: 1.5px solid; background: #fff;
+  }
+  .chip.p { color: var(--public); border-color: var(--public); }
+  .chip.m { color: var(--member); border-color: var(--member); }
+  .chip.a { color: var(--admin);  border-color: var(--admin);  }
+
+  /* ---- Typography ---- */
+  h2 {
+    font-size: 30px; letter-spacing: -.01em; margin: 56px 0 6px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--line);
+  }
+  h2 .num {
+    display: inline-block; width: 38px; height: 38px; line-height: 38px; text-align: center;
+    border-radius: 9px; color: #fff; font-size: 17px; margin-right: 12px; vertical-align: 2px;
+  }
+  .sec-public h2 .num { background: var(--public); }
+  .sec-member h2 .num { background: var(--member); }
+  .sec-admin  h2 .num { background: var(--admin);  }
+  .sec-ref    h2 .num { background: var(--accent); }
+  h3 { font-size: 21px; margin: 34px 0 8px; letter-spacing: -.01em; }
+  h4 { font-size: 16px; margin: 22px 0 4px; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; font-size: 13px; }
+  p { margin: 10px 0; }
+  a { color: var(--admin); }
+  strong { color: var(--ink); }
+  blockquote {
+    margin: 20px 0; padding: 14px 20px; background: var(--soft);
+    border-left: 4px solid var(--accent); border-radius: 0 6px 6px 0; color: #3a414d;
+  }
+  blockquote p { margin: 0; }
+  code { background: #eef1f6; padding: 1px 6px; border-radius: 4px; font-size: .88em; font-family: "SFMono-Regular", Consolas, monospace; }
+
+  /* ---- Lead / intro ---- */
+  .lead { font-size: 18px; color: var(--muted); font-style: italic; }
+
+  /* ---- Tables ---- */
+  table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14.5px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--soft); font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  tr:last-child td { border-bottom: none; }
+
+  /* ---- TOC ---- */
+  .toc { background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 26px 32px; margin: 28px 0; }
+  .toc h2 { border: none; margin: 0 0 14px; font-size: 22px; padding: 0; }
+  .toc ol { margin: 0; padding-left: 22px; }
+  .toc > ol > li { margin: 10px 0; font-weight: 600; }
+  .toc ol ol { padding-left: 18px; margin: 4px 0 0; }
+  .toc ol ol li { font-weight: 400; color: var(--muted); font-size: 14.5px; }
+  .toc a { text-decoration: none; color: var(--ink); }
+  .toc a:hover { color: var(--admin); }
+
+  /* ---- Diagram cards ---- */
+  .diagram {
+    background: #fbfcfe; border: 1px solid var(--line); border-radius: 12px;
+    padding: 24px; margin: 24px 0; text-align: center;
+    cursor: zoom-in; position: relative;
+  }
+  .diagram .mermaid { display: flex; justify-content: center; }
+  .diagram-cap { font-size: 12.5px; color: var(--muted); margin-top: 10px; text-transform: uppercase; letter-spacing: .06em; }
+  .diagram .zoom-tag {
+    position: absolute; top: 12px; right: 14px; font-size: 11px; font-weight: 600;
+    color: var(--muted); background: #fff; border: 1px solid var(--line);
+    border-radius: 999px; padding: 3px 10px; letter-spacing: .04em;
+  }
+
+  /* ---- Lightbox ---- */
+  .lightbox {
+    display: none; position: fixed; inset: 0; z-index: 1000;
+    background: rgba(15,20,30,.82); backdrop-filter: blur(2px);
+    padding: 3vh 3vw; cursor: zoom-out;
+  }
+  .lightbox.open { display: flex; flex-direction: column; }
+  .lightbox-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    color: #fff; margin-bottom: 12px; flex: 0 0 auto;
+  }
+  .lightbox-title { font-size: 15px; font-weight: 600; letter-spacing: .02em; }
+  .lightbox-close {
+    cursor: pointer; border: 1px solid rgba(255,255,255,.4); background: transparent;
+    color: #fff; border-radius: 8px; padding: 6px 14px; font-size: 14px; font-weight: 600;
+  }
+  .lightbox-close:hover { background: rgba(255,255,255,.12); }
+  .lightbox-stage {
+    flex: 1 1 auto; background: #fff; border-radius: 10px; overflow: auto;
+    display: flex; align-items: center; justify-content: center; padding: 24px; cursor: default;
+  }
+  .lightbox-stage svg { width: 100% !important; max-width: 100% !important; height: auto !important; }
+
+  .callout { display: flex; gap: 14px; align-items: flex-start; }
+
+  hr { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
+  .footer-note { color: var(--muted); font-size: 14px; font-style: italic; margin-top: 8px; }
+
+  .print-hint {
+    max-width: 880px; margin: 16px auto -8px; padding: 12px 18px;
+    background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px;
+    color: #9a3412; font-size: 14px;
+  }
+
+  /* ---- Print ---- */
+  @media print {
+    body { background: #fff; font-size: 11.5pt; }
+    .sheet { box-shadow: none; margin: 0; max-width: none; padding: 0 12mm; border-radius: 0; }
+    .print-hint, .zoom-tag, .lightbox { display: none !important; }
+    .diagram { cursor: default; }
+    h2 { page-break-after: avoid; }
+    h3, h4 { page-break-after: avoid; }
+    table, .diagram, blockquote { page-break-inside: avoid; }
+    .sec-public, .sec-member, .sec-admin, .sec-ref { page-break-before: always; }
+    .cover { page-break-after: always; }
+    @page { margin: 16mm 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="print-hint">📄 <strong>To save as PDF:</strong> press <code>Ctrl/Cmd&nbsp;+&nbsp;P</code>, choose “Save as PDF,” enable “Background graphics,” and set margins to “Default.” Diagrams render automatically (needs internet for the diagram library).</div>
+
+<div class="sheet">
+
+  <!-- COVER -->
+  <header class="cover">
+    <div class="kicker">Platform Manual</div>
+    <h1>Rhythm Outdoors</h1>
+    <p class="sub">A practical guide for everyone who uses the platform — guests booking a visit, members managing their experiences, and staff running the day-to-day.</p>
+    <div class="portal-chips">
+      <span class="chip p">Public · Guests</span>
+      <span class="chip m">Member portal</span>
+      <span class="chip a">Admin portal</span>
+    </div>
+  </header>
+
+  <!-- INTRO -->
+  <section>
+    <h2 id="about">What Rhythm Outdoors Is</h2>
+    <p>Rhythm Outdoors is a single web application that runs three outdoor sporting clubs from one place:</p>
+    <ul>
+      <li><strong>Horseshoe Bay Sporting Club</strong></li>
+      <li><strong>Hog Heaven Sporting Club</strong></li>
+      <li><strong>Packsaddle Precision</strong></li>
+    </ul>
+    <p>One website, one backend, one database — but three different “front doors,” called <strong>portals</strong>, each built for a different kind of person.</p>
+    <table>
+      <thead><tr><th>Portal</th><th>Who it's for</th><th>What they do there</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Public</strong></td><td>Anyone on the internet — prospective guests</td><td>Browse, build a booking, sign a waiver, and pay a deposit</td></tr>
+        <tr><td><strong>Member</strong></td><td>Logged-in club members</td><td>See memberships, household, and upcoming trips; edit their profile</td></tr>
+        <tr><td><strong>Admin</strong></td><td>Staff (five roles)</td><td>Review and price bids, manage bookings, configure properties and pricing</td></tr>
+      </tbody>
+    </table>
+
+    <h3>The one idea behind everything</h3>
+    <blockquote><p><strong>Every inquiry should end as a signed bid page with a deposit already paid</strong> — no phone tag, no five tabs open, no spreadsheets. A guest tells us what they want, staff confirms the details and price, and the guest signs and pays on a single web page that becomes their confirmation.</p></blockquote>
+
+    <h3>Words you'll see throughout this guide</h3>
+    <table>
+      <thead><tr><th>Term</th><th>What it means</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Booking</strong></td><td>A request to visit a property on a date — who's coming, what they'll do, for how long.</td></tr>
+        <tr><td><strong>Bid</strong></td><td>The page a guest receives for a booking. Holds the confirmed price, schedule, waiver, and deposit. The bid is what a guest signs and pays.</td></tr>
+        <tr><td><strong>Discipline / Service</strong></td><td>An activity offered at a property (e.g. a shooting discipline, a lesson type).</td></tr>
+        <tr><td><strong>Add-on</strong></td><td>An optional priced extra attached to a service (e.g. an ammo package, a guide rental).</td></tr>
+        <tr><td><strong>Booking type</strong></td><td>One of three formats: Plan a Visit, Private Lesson, or Host an Occasion.</td></tr>
+        <tr><td><strong>Deposit</strong></td><td>The amount paid up front on the bid page to lock the date. The balance settles at the property.</td></tr>
+        <tr><td><strong>Waiver</strong></td><td>The liability document the guest signs electronically (via Dropbox Sign) before the visit.</td></tr>
+        <tr><td><strong>Property</strong></td><td>One of the three clubs. Each has its own services, prices, capacity, and booking window.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- TOC -->
+  <nav class="toc">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="#guests">For Guests — booking, signing, and paying</a>
+        <ol>
+          <li><a href="#g-glance">The guest journey at a glance</a></li>
+          <li><a href="#g-steps">Step-by-step: landing page to confirmed trip</a></li>
+          <li><a href="#g-after">What happens after you submit</a></li>
+          <li><a href="#g-sign">Signing and paying on the bid page</a></li>
+          <li><a href="#g-states">Bid states you might see</a></li>
+        </ol>
+      </li>
+      <li><a href="#members">For Members — managing your account</a>
+        <ol>
+          <li><a href="#m-glance">The member journey at a glance</a></li>
+          <li><a href="#m-login">Logging in</a></li>
+          <li><a href="#m-dash">Your dashboard and memberships</a></li>
+          <li><a href="#m-book">Your bookings</a></li>
+          <li><a href="#m-profile">Editing your profile</a></li>
+        </ol>
+      </li>
+      <li><a href="#staff">For Staff — running the platform</a>
+        <ol>
+          <li><a href="#a-glance">The admin journey at a glance</a></li>
+          <li><a href="#a-who">Who can sign in</a></li>
+          <li><a href="#a-dash">The dashboard</a></li>
+          <li><a href="#a-bid">Working a bid: review, price, confirm, send</a></li>
+          <li><a href="#a-book">Bookings</a></li>
+          <li><a href="#a-prop">Property settings</a></li>
+          <li><a href="#a-cat">The catalog: services and add-ons</a></li>
+        </ol>
+      </li>
+      <li><a href="#reference">Reference</a>
+        <ol>
+          <li><a href="#r-status">Bid &amp; booking status glossary</a></li>
+          <li><a href="#r-life">How a booking moves through the system</a></li>
+          <li><a href="#r-faq">Frequently asked questions</a></li>
+        </ol>
+      </li>
+    </ol>
+  </nav>
+
+  <!-- ===== PUBLIC ===== -->
+  <section class="sec-public">
+    <h2 id="guests"><span class="num">1</span>For Guests — Public Portal</h2>
+    <p class="lead">The experience for anyone visiting the website without logging in. No account is needed to book, sign, or pay.</p>
+
+    <h3 id="g-glance">1.1 The guest journey at a glance</h3>
+    <div class="diagram">
+      <pre class="mermaid">
+flowchart TD
+    A([Landing page]) -->|Book an experience| B[Pick a property<br/>Horseshoe Bay · Hog Heaven · Packsaddle]
+    B --> C[Pick a booking type<br/>Plan a Visit · Private Lesson · Host an Occasion]
+    C --> D[Build the booking<br/>guests · date · time slot · disciplines · add-ons]
+    D --> E[Enter your details<br/>name · email · phone · notes]
+    E -->|Submit| F[/Booking + bid created<br/>confirmation email sent/]
+    F --> G{{Bid: In Review}}
+    G -.->|Staff confirms price and details| H{{Bid: Confirmed}}
+    G -.->|Staff declines| X1{{Bid: Denied}}
+    G -.->|7 days pass| X2{{Bid: Expired}}
+    H --> I[Sign the waiver<br/>Dropbox Sign]
+    H --> J{Deposit required?}
+    J -->|Yes| K[Pay deposit<br/>Stripe card or bank]
+    J -->|No| L
+    I --> L([Booked! 'You're all set'])
+    K --> L
+    L --> M[Save the bid page as your confirmation]
+    classDef state fill:#eef2ff,stroke:#6366f1,color:#1e1b4b;
+    classDef dead fill:#fef2f2,stroke:#ef4444,color:#7f1d1d;
+    class G,H state;
+    class X1,X2 dead;
+      </pre>
+      <div class="diagram-cap">The five-step promise: choose → configure → sign → pay → show up</div>
+    </div>
+
+    <h3 id="g-steps">1.2 Step-by-step: from landing page to confirmed trip</h3>
+    <p><strong>Step 1 — Land.</strong> The homepage explains the five-step promise. Tap <strong>Book an experience</strong>.</p>
+    <p><strong>Step 2 — Choose a property.</strong> Pick one of the three clubs. Each card shows its name, location, and a short tagline.</p>
+    <p><strong>Step 3 — Choose a booking type:</strong></p>
+    <table>
+      <thead><tr><th>Type</th><th>Best for</th><th>Length</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Plan a Visit</strong></td><td>Open range time, casual</td><td>~2 hours</td></tr>
+        <tr><td><strong>Private Lesson</strong></td><td>One-on-one with an instructor</td><td>1–3 hours</td></tr>
+        <tr><td><strong>Host an Occasion</strong></td><td>Exclusive use, tournaments, corporate days</td><td>2–6 hours</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Step 4 — Build the booking.</strong> On one screen you set the number of <strong>guests</strong>, pick a <strong>date</strong> (only dates within the property's booking window appear), pick a <strong>time slot</strong> (full slots are greyed out — availability is checked live), and choose your <strong>disciplines</strong> and any <strong>add-ons</strong>. A running summary shows an estimated total as you go.</p>
+    <p><strong>Step 5 — Enter your details.</strong> Name and email are required; phone and notes are optional. Tap <strong>Submit Your Booking</strong>.</p>
+
+    <h3 id="g-after">1.3 What happens after you submit</h3>
+    <p>The moment you submit, the system creates your booking and a <strong>bid</strong> in one atomic step, then emails you a confirmation. You land on your personal <strong>bid page</strong> at a private link (a unique slug + access code — no login, but keep the link safe).</p>
+    <p>At first the bid shows <strong>“In review.”</strong> Staff confirm the details and final price — typically <strong>within 24 hours</strong> — and you'll get an email when it's ready to sign and pay.</p>
+    <blockquote><p><strong>Why the wait?</strong> Pricing for some experiences is confirmed by a person, not a formula. This is the step where staff lock in your quote, schedule, gear list, and waiver.</p></blockquote>
+    <blockquote><i><strong>Developer Note.</strong> Most / All of this COULD be automated if we can build a formula for pricing. There is nothing stopping the development of this, but it must be planned carefully.</i></blockquote>
+    <h3 id="g-sign">1.4 Signing and paying on the bid page</h3>
+    <p>Once staff confirm your bid, returning to your bid link unlocks the full page: your <strong>schedule</strong>, the <strong>gear list</strong>, <strong>FAQ</strong> and contact info, a <strong>Sign your waiver</strong> section (Dropbox Sign, in-page), and a <strong>Pay your deposit</strong> section if required (Stripe — card or bank transfer).</p>
+    <p><strong>Both signing and paying are typically required to finalize</strong>, and you can do them in either order. If no deposit is required, signing alone finalizes the booking. When all requirements are met, the page celebrates — <em>“You're all set”</em> — and locks in your date. <strong>Save this page; it's your confirmation and everything you need is on it.</strong></p>
+
+    <h3 id="g-states">1.5 Bid states you might see</h3>
+    <table>
+      <thead><tr><th>State</th><th>What it means for you</th></tr></thead>
+      <tbody>
+        <tr><td><strong>In review</strong></td><td>Submitted; staff are preparing your quote. Nothing to do yet.</td></tr>
+        <tr><td><strong>Confirmed</strong></td><td>Ready to sign and pay.</td></tr>
+        <tr><td><strong>Signed / Paid / Booked</strong></td><td>You've completed your part — you're set.</td></tr>
+        <tr><td><strong>Expired</strong></td><td>The bid sat unsigned/unpaid too long. Contact the team for a fresh one.</td></tr>
+        <tr><td><strong>Denied</strong></td><td>The booking couldn't be accommodated. Contact the team.</td></tr>
+        <tr><td><strong>Refunded</strong></td><td>A paid deposit was returned (e.g. a cancellation).</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ===== MEMBER ===== -->
+  <section class="sec-member">
+    <h2 id="members"><span class="num">2</span>For Members — Member Portal</h2>
+    <p class="lead">For people who belong to one of the clubs. Membership is invite-only — staff add you from the roster, and you sign in with the email you were invited under.</p>
+
+    <h3 id="m-glance">2.1 The member journey at a glance</h3>
+    <div class="diagram">
+      <pre class="mermaid">
+flowchart TD
+    A([Members' Entrance /login]) --> B{Sign-in method}
+    B -->|Magic link| C[Enter invited email]
+    B -->|Google| D[Google sign-in]
+    C --> E[/auth callback/]
+    D --> E
+    E --> F{Email on the<br/>invite roster?}
+    F -->|No| G[Signed out<br/>'invite not found']
+    F -->|Yes, first time| H[Account linked<br/>role = member]
+    F -->|Yes, returning| I
+    H --> I([Dashboard /member])
+    I --> J[Your memberships<br/>tier · number · household]
+    I --> K[My bookings]
+    I --> L[Profile]
+    K --> M[Booking detail<br/>schedule · gear · pricing · bid status]
+    L --> N[Edit display name]
+    classDef home fill:#ecfdf5,stroke:#10b981,color:#064e3b;
+    classDef dead fill:#fef2f2,stroke:#ef4444,color:#7f1d1d;
+    class I home;
+    class G dead;
+      </pre>
+      <div class="diagram-cap">Invite-only sign-in, then a read-only view of your household's activity</div>
+    </div>
+
+    <h3 id="m-login">2.2 Logging in</h3>
+    <p>Go to <strong>/login</strong> (“Members' Entrance”) and choose <strong>Magic link</strong> (enter your email; we send a one-tap sign-in link, no password) or <strong>Google</strong>. Either way, <strong>only invited emails work</strong>. If your email isn't on the roster (or the invite expired), you're signed out with an “invite not found” message — reach out to staff to be added.</p>
+
+    <h3 id="m-dash">2.3 Your dashboard and memberships</h3>
+    <p>After signing in you land on <strong>/member</strong>. The dashboard shows <strong>Your memberships</strong>. Each card shows the <strong>property</strong>, your <strong>member number</strong> and <strong>tier</strong>, the <strong>status</strong>, your <strong>role</strong> (e.g. primary), and the <strong>household</strong> — other people who share the membership. One person can belong to several memberships (across properties or shared in a household), and they all appear here.</p>
+    <blockquote><i><strong>Developer Note.</strong> This is a work in progress. I dont recommend we lean TOO heavy into a "profile" with a ton of personal information. The membership dashboard really is a place to see planned trips, memberships and customize your name for your reservations.</i></blockquote>
+
+    <h3 id="m-book">2.4 Your bookings</h3>
+    <p>The <strong>My bookings</strong> tab lists every booking made by anyone in your household, across all your memberships — date/time, property, type, status, party size, and who booked it. Tap a booking for its <strong>detail page</strong>: full guest info, schedule, gear list, FAQ, disciplines, add-ons, and the complete pricing breakdown (quote, deposit, amount paid, balance).</p>
+    <blockquote><p><strong>What is Household.</strong> "Household" an optional feature built that assumes a "membership" could include family members, such as wives. John and Jane could be on the same membership number and use different emails. They would be in a "household".</p></blockquote>
+
+    <h3 id="m-profile">2.5 Editing your profile</h3>
+    <p>The <strong>Profile</strong> tab lets you set your <strong>display name</strong> — the name the portal uses in the header, on membership cards, and as “booked by” on bookings. It's an app-only nickname; it doesn't change your login email or Google name. (Names already captured on existing bids and bookings stay as they were.) Sign out anytime from the header.</p>
+  </section>
+
+  <!-- ===== ADMIN ===== -->
+  <section class="sec-admin">
+    <h2 id="staff"><span class="num">3</span>For Staff — Admin Portal</h2>
+    <p class="lead">Where staff run the platform: reviewing and pricing bids, watching upcoming events, and configuring each property's offerings and prices.</p>
+
+    <h3 id="a-glance">3.1 The admin journey at a glance</h3>
+    <div class="diagram">
+      <pre class="mermaid">
+flowchart TD
+    A([Sign in]) --> B([Dashboard /admin])
+    B --> C[Pending bids · next 24h · next 7 days by property]
+    B --> D[Bids queue /admin/bids]
+    B --> E[Bookings /admin/bookings]
+    B --> F[Properties /admin/properties]
+    D --> G[Open a bid]
+    G --> H[Edit: price · deposit · schedule · gear · FAQ · notes]
+    G --> I{Decision}
+    I -->|Confirm| J[/Bid unlocked for guest<br/>email sent/]
+    I -->|Deny + reason| K[/Guest notified/]
+    G --> L[Regenerate secure URL]
+    G --> M[Refund deposit]
+    F --> N[Per-property settings<br/>horizon · capacity · tagline · support]
+    F --> O[Catalog]
+    O --> P[Services: add · edit · reorder · deactivate]
+    O --> Q[Add-ons: add · edit · price · reorder · deactivate]
+    O --> R[Link add-ons to services]
+    classDef home fill:#eff6ff,stroke:#3b82f6,color:#1e3a8a;
+    class B home;
+      </pre>
+      <div class="diagram-cap">Admin work centers on bid curation and property operations</div>
+    </div>
+
+    <h3 id="a-who">3.2 Who can sign in</h3>
+    <p>Five staff roles have access to <strong>/admin</strong>: <strong>super_admin, admin, property_manager, concierge, membership_coordinator</strong>. Admins intentionally do <strong>not</strong> have access to the member or partner portals — staff see member data through admin views, not by logging in as a member.</p>
+
+    <h3 id="a-dash">3.3 The dashboard</h3>
+    <p>The first screen is an operations snapshot: a <strong>pending review</strong> count and the most recent waiting bids; <strong>confirmed bookings · next 24 hours</strong> grouped by property (today and tomorrow); and <strong>upcoming · next 7 days</strong>, one column per property. Everything links into a detail page; the dashboard itself is read-only.</p>
+
+    <h3 id="a-bid">3.4 Working a bid: review, price, confirm, send</h3>
+    <p>This is the core of the admin job. From the <strong>Bids</strong> queue (filter by status, property, date range, or search by guest), open a bid to see the full picture: booking details, guest contact, disciplines and add-ons, the pricing breakdown, lifecycle timestamps, and internal staff notes.</p>
+    <h4>Tap Edit and set</h4>
+    <ul>
+      <li><strong>Confirmed quote</strong> — the price the guest sees (overrides the auto-estimate)</li>
+      <li><strong>Deposit</strong> — the minimum due before the trip</li>
+      <li><strong>Schedule notes</strong>, a <strong>gear list</strong>, and <strong>FAQ</strong> entries</li>
+      <li><strong>Staff notes</strong> (internal only)</li>
+    </ul>
+    <h4>Then act on the bid</h4>
+    <table>
+      <thead><tr><th>Action</th><th>When it's available</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Confirm</strong></td><td>Bid is in review</td><td>Unlocks the schedule, waiver, and deposit on the guest's bid page; emails the guest.</td></tr>
+        <tr><td><strong>Deny</strong></td><td>Bid is in review</td><td>Marks the bid denied with an internal reason; guest is notified (they don't see the reason).</td></tr>
+        <tr><td><strong>Regenerate URL</strong></td><td>Active bids</td><td>Issues a new secure link and invalidates the old one (shown once — copy it).</td></tr>
+        <tr><td><strong>Refund deposit</strong></td><td>Deposit was paid</td><td>Returns the deposit to the guest's card via Stripe.</td></tr>
+      </tbody>
+    </table>
+    <blockquote><p>Always verify the price and bid content <strong>before</strong> confirming — confirming is what reveals it all to the guest.</p></blockquote>
+
+    <h3 id="a-book">3.5 Bookings</h3>
+    <p>The <strong>Bookings</strong> list mirrors the bids list (same filters and columns) and is largely a read-only record. Most bookings have an associated bid; opening such a booking takes you straight to its bid, which is where the editing happens.</p>
+
+    <h3 id="a-prop">3.6 Property settings</h3>
+    <p><strong>/admin/properties</strong> shows one editable card per property. Staff can set the <strong>booking horizon</strong> (how far ahead guests may book, 1–365 days), <strong>max concurrent groups</strong> (capacity ceiling per slot), the <strong>tagline</strong> on the public homepage, and the <strong>support email / phone</strong> shown to guests. Changes apply immediately to the public booking funnel.</p>
+
+    <h3 id="a-cat">3.7 The catalog: services and add-ons</h3>
+    <p>Each property's <strong>catalog</strong> (<code>/admin/properties/[id]/catalog</code>) has two panels. <strong>Services</strong> (the disciplines guests can book) can be added, edited, reordered, or deactivated — deactivating warns about affected bookings first. <strong>Add-ons</strong> (priced extras) can be added, edited (including <strong>price</strong>), reordered, or deactivated. When editing a service, choose which add-ons are offered with it — you can even create new add-ons inline. Catalog changes flow straight through to what guests see in the booking funnel.</p>
+  </section>
+
+  <!-- ===== REFERENCE ===== -->
+  <section class="sec-ref">
+    <h2 id="reference"><span class="num">4</span>Reference</h2>
+
+    <h3 id="r-status">4.1 Bid &amp; booking status glossary</h3>
+    <table>
+      <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><strong>pending_review</strong></td><td>Submitted by a guest; awaiting staff pricing/confirmation.</td></tr>
+        <tr><td><strong>confirmed</strong></td><td>Staff approved and priced; guest can sign and pay.</td></tr>
+        <tr><td><strong>signed</strong></td><td>Waiver signed; deposit may still be owed.</td></tr>
+        <tr><td><strong>paid / booked</strong></td><td>Deposit paid and waiver signed — fully finalized.</td></tr>
+        <tr><td><strong>denied</strong></td><td>Staff could not accommodate the request.</td></tr>
+        <tr><td><strong>expired</strong></td><td>Sat unsigned/unpaid past the window (≈7 days).</td></tr>
+        <tr><td><strong>refunded</strong></td><td>A paid deposit was returned.</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="r-life">4.2 How a booking moves through the system</h3>
+    <div class="diagram">
+      <pre class="mermaid">
+flowchart LR
+    G[Guest submits] --> P[(pending_review)]
+    P -->|staff confirms| C[(confirmed)]
+    P -->|staff denies| D[(denied)]
+    P -->|times out| E[(expired)]
+    C -->|signs waiver| S[(signed)]
+    C -->|pays deposit| PD[(paid)]
+    S --> B[(booked)]
+    PD --> B
+    B -->|cancellation| R[(refunded)]
+      </pre>
+      <div class="diagram-cap">One booking, seen three ways: the guest's bid page, the member's “My bookings,” and the admin bid detail — all reading from one database</div>
+    </div>
+
+    <h3 id="r-faq">4.3 Frequently asked questions</h3>
+    <h4>Does a guest need an account to book?</h4>
+    <p>No. Booking, signing, and paying all happen on a private bid link without logging in.</p>
+    <h4>Why didn't a price show up instantly?</h4>
+    <p>Many experiences are priced by staff. The guest gets an estimate during booking; the confirmed quote arrives when staff confirm the bid (usually within 24 hours).</p>
+    <h4>How do members get access?</h4>
+    <p>By invitation only. Staff add the member's email to the roster; the member signs in with that exact email via magic link or Google.</p>
+    <h4>Can an admin log in as a member?</h4>
+    <p>No. Staff view member data through admin screens, not by entering the member portal. This keeps each portal single-purpose and easy to secure.</p>
+    <h4>Where do pricing and availability actually live?</h4>
+    <p>In the database, which all three portals read from. HubSpot and other tools are downstream of it, never the source of truth.</p>
+
+    <hr/>
+    <p class="footer-note">This guide describes the platform as built. For phase status and what's planned next, see <code>TRACKER.md</code> in the repository root.</p>
+  </section>
+
+</div>
+
+<!-- Lightbox: full-viewport popup for any diagram -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Enlarged diagram">
+  <div class="lightbox-bar">
+    <span class="lightbox-title" id="lightbox-title"></span>
+    <button class="lightbox-close" type="button" id="lightbox-close">Close ✕</button>
+  </div>
+  <div class="lightbox-stage" id="lightbox-stage"></div>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      fontFamily: 'Segoe UI, system-ui, sans-serif',
+      fontSize: '14px',
+      primaryColor: '#f6f8fb',
+      primaryBorderColor: '#9aa6b8',
+      primaryTextColor: '#1a1d24',
+      lineColor: '#7c8696'
+    },
+    flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' }
+  });
+
+  // Click any diagram to open it full-width in a popup.
+  (function setupLightbox() {
+    const box = document.getElementById('lightbox');
+    const stage = document.getElementById('lightbox-stage');
+    const title = document.getElementById('lightbox-title');
+
+    function close() {
+      box.classList.remove('open');
+      stage.innerHTML = '';
+      document.body.style.overflow = '';
+    }
+    function open(diagram) {
+      const svg = diagram.querySelector('svg');
+      if (!svg) return; // diagram not rendered yet
+      const cap = diagram.querySelector('.diagram-cap');
+      title.textContent = cap ? cap.textContent : 'Diagram';
+      stage.innerHTML = '';
+      stage.appendChild(svg.cloneNode(true));
+      box.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    document.querySelectorAll('.diagram').forEach(function (diagram) {
+      const tag = document.createElement('span');
+      tag.className = 'zoom-tag';
+      tag.textContent = '⤢ Click to enlarge';
+      diagram.appendChild(tag);
+      diagram.addEventListener('click', function () { open(diagram); });
+    });
+
+    document.getElementById('lightbox-close').addEventListener('click', function (e) {
+      e.stopPropagation(); close();
+    });
+    // Click the backdrop closes; clicking the diagram itself does not.
+    box.addEventListener('click', function (e) {
+      if (e.target === box || e.target.id === 'lightbox-stage') close();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && box.classList.contains('open')) close();
+    });
+  })();
+</script>
+</body>
+</html>

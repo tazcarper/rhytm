@@ -287,12 +287,11 @@ function StatusBanner({
           variant="success"
           title={`You're all set${greetingName} — we can't wait to see you.`}
         >
-          {requiresDeposit
-            ? "Deposit’s in, waiver’s signed, "
-            : "Waiver’s signed, "}
-          {dateLong} is locked in. Nothing left to do but show up. Save this
-          page &mdash; everything you need is right here. See you at{" "}
-          {detail.property.name}!
+        {`${
+  requiresDeposit
+    ? "Deposit’s in, waiver’s signed"
+    : "Waiver’s signed"
+}, ${dateLong.toString()} is locked in. Nothing left to do but show up. Save this page — everything you need is right here. See you at ${detail.property.name}!`}
         </Alert>
       </div>
     );

@@ -300,6 +300,7 @@ export async function refundDeposit(
           props,
         },
         source: "admin_refund",
+        idempotencyKey: `refund:${refund.id}`,
       });
       if (!result.ok) {
         console.error(

@@ -235,6 +235,7 @@ export async function handlePaymentIntentSucceeded(
           props,
         },
         source: "stripe_webhook",
+        idempotencyKey: `payment_intent:${pi.id}`,
       });
       if (!result.ok) {
         console.error(

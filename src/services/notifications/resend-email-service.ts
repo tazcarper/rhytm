@@ -50,12 +50,14 @@ export class ResendEmailService implements EmailService {
     }
 
     // Idempotency key. Resend's idempotency cache returns the same
-    // result for the same key within a 24h window. We use a deterministic
-    // key tied to the source + template + recipient so retries from the
-    // calling Server Action or webhook handler (e.g. transient DB blip)
-    // never duplicate the delivery. NOT a security guarantee — just
-    // prevents accidental fan-out.
-    const idempotencyKey = `${input.source}-${input.template.name}-${input.to}`;
+    // result for the same key within a 24h window. We include the
+    // caller-supplied per-send scope (bid id / payment intent / refund
+    // id) so two separate sends with the same source/template/recipient
+    // (e.g. the same email creating two bids) stay distinct. The
+    // source/template/to prefix keeps the key human-readable in logs.
+    // NOT a security guarantee — just prevents accidental fan-out.
+    const scope = input.idempotencyKey ?? "default";
+    const idempotencyKey = `${input.source}-${input.template.name}-${input.to}-${scope}`;
 
     try {
       const result = await this.client.emails.send(

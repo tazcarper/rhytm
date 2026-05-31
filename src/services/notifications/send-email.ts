@@ -2,6 +2,7 @@ import "server-only";
 import type { ReactElement } from "react";
 import { render, toPlainText } from "@react-email/render";
 import { createServiceRoleClient } from "@/lib/supabase/service";
+import { ResendEmailService } from "./resend-email-service";
 
 // `import "server-only"` blocks any "use client" module from reaching
 // this file directly (build-time guardrail against the "I'll just
@@ -59,6 +60,12 @@ export interface EmailMessage {
   // Free-form tag for the originator of the send (booking flow, RSVP,
   // partner invite, etc). Today: "public_booking".
   source: string;
+  // Per-send unique scope for transport-level idempotency. The Resend
+  // transport combines this with source/template/to so retries of the
+  // same logical send collapse, while two separate sends (e.g. two
+  // different bids from the same email) stay distinct. Use a stable
+  // domain id: `bid:<bidId>`, `payment_intent:<piId>`, `refund:<id>`.
+  idempotencyKey?: string;
 }
 
 export interface EmailSendResult {
@@ -150,13 +157,6 @@ export function getEmailService(): EmailService {
   if (process.env.EMAIL_TRANSPORT === "resend") {
     const apiKey = process.env.RESEND_API_KEY;
     if (apiKey) {
-      // Lazy-require so we don't pull in the Resend SDK on dev/test
-      // paths where it's never used. `require` inside a function is
-      // intentional — keeps the transport choice deferred to runtime.
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const {
-        ResendEmailService,
-      } = require("./resend-email-service") as typeof import("./resend-email-service");
       const replyTo = process.env.RESEND_REPLY_TO?.trim() || null;
       return new ResendEmailService(apiKey, replyTo);
     }

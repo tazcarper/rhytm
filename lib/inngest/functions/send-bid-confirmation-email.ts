@@ -111,6 +111,7 @@ export const sendBidConfirmationEmail = inngest.createFunction(
         from: DEFAULT_FROM_EMAIL,
         subject: `We're preparing your bid for ${props.propertyName}`,
         source: "public_booking",
+        idempotencyKey: `bid:${bidId}`,
         template: {
           name: "guest_booking_confirmation",
           element: createElement(GuestBookingConfirmation, props),
