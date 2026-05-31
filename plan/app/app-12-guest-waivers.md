@@ -4,7 +4,7 @@
 
 Extends the post-confirmation bid flow so that **every guest in a party signs a waiver**, not just the primary signer. Today only the lead guest (the person who requested the bid) signs via Dropbox Sign; a party of four shows up with three unsigned waivers. This adds a self-service way for the primary to collect the rest.
 
-Companion to `plan/app/app-7-dropbox-sign.md` (the single-signer waiver flow this builds on) and `plan/app/app-6-stripe-deposit.md` (the deposit flow that, together with App 7, defines "finalized").
+Companion to `plan/app/app-7-waiver.md` (the single-signer waiver flow this builds on — homegrown native signing, with Dropbox Sign retained as a deprecated fallback) and `plan/app/app-6-stripe-deposit.md` (the deposit flow that, together with App 7, defines "finalized").
 
 ---
 

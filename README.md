@@ -108,6 +108,8 @@ Waivers are signed with the **homegrown "native" flow by default**: a mobile-fir
 
 **Why in-house instead of DocuSign / Dropbox Sign?** A single-signer, few-field liability waiver isn't complex enough to justify a vendor, and a paid e-sign subscription would cost more for no added benefit. The typed signature + consent + audit trail + retained PDF meets the ESIGN/UETA bar for a waiver.
 
+**Both signing backends ship in the codebase** — the app **defaults to the homegrown native flow**, with the Dropbox Sign vendor path retained as a deprecated, switchable fallback.
+
 **No env var is required to use the native flow** — `WAIVER_PROVIDER` defaults to `native`, and the path reuses the existing Supabase env vars plus the `waivers` bucket (migration `20260531140000`). The switch:
 
 | `WAIVER_PROVIDER` | Effect |
