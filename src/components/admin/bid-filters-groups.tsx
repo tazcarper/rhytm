@@ -7,16 +7,15 @@ import {
   type AdminBidListFilters,
   type AdminBidStatus,
 } from "@/src/services/admin/bids";
-import { buildBidsHref, type BidFilterUi } from "./bid-filter-params";
+import { buildBidsHref } from "./bid-filter-params";
 import s from "./queue-list.module.css";
 
-// Layout 1 — workflow groups. Primary buckets answer "which pile / does it
-// need me?". When "Active" is selected, a secondary row refines down to a
-// single status, so the grouping never hides detail you might want.
+// Workflow-group filters. Primary buckets answer "which pile / does it need
+// me?". When "Active" is selected, a secondary row refines down to a single
+// status, so the grouping never hides detail you might want.
 
 interface BidFiltersGroupsProps {
   current: AdminBidListFilters;
-  filterUi: BidFilterUi;
   basePath: string;
 }
 
@@ -30,22 +29,15 @@ const ACTIVE_REFINE: ReadonlyArray<{
   { status: "paid", label: "Paid" },
 ];
 
-export function BidFiltersGroups({
-  current,
-  filterUi,
-  basePath,
-}: BidFiltersGroupsProps) {
+export function BidFiltersGroups({ current, basePath }: BidFiltersGroupsProps) {
   const noGroupSelected = !current.statusGroup;
 
-  // Every group change resets the design-specific selections (exact status,
-  // independent axes) and pagination, so each bucket opens clean.
+  // Every group change resets the exact-status sub-refine and pagination,
+  // so each bucket opens clean.
   function groupHref(statusGroup: AdminBidListFilters["statusGroup"]): string {
     return buildBidsHref(basePath, current, {
-      filterUi,
       statusGroup,
       status: undefined,
-      signature: undefined,
-      payment: undefined,
       page: undefined,
     });
   }
@@ -80,11 +72,8 @@ export function BidFiltersGroups({
             <Link
               key={item.label}
               href={buildBidsHref(basePath, current, {
-                filterUi,
                 statusGroup: "active",
                 status: item.status,
-                signature: undefined,
-                payment: undefined,
                 page: undefined,
               })}
               className={cn(

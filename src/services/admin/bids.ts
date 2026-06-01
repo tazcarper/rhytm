@@ -49,21 +49,11 @@ export const BID_STATUS_GROUPS: ReadonlyArray<{
   { key: "closed", label: "Closed" },
 ];
 
-// Signing and paying are independent in the data model (App 6 allows
-// sign-then-pay or pay-then-sign), so each is its own filter axis rather
-// than a point on a single status line. Used by the "stage + signals"
-// layout. We key off the lifecycle timestamps (signed_at / paid_at)
-// because they're stable regardless of which order the guest completed in.
-export type BidSignatureFilter = "signed" | "unsigned";
-export type BidPaymentFilter = "paid" | "unpaid";
-
 export interface AdminBidListFilters {
   // Exact status. Wins over statusGroup when both are present (lets the
   // "Active" group offer a sub-refine down to a single status).
   status?: AdminBidStatus;
   statusGroup?: AdminBidStatusGroup;
-  signature?: BidSignatureFilter;
-  payment?: BidPaymentFilter;
   propertyId?: string;
   from?: string;
   to?: string;
@@ -178,16 +168,6 @@ export async function getAdminBidsList(
     query = query.eq("status", filters.status);
   } else if (filters.statusGroup) {
     query = query.in("status", [...BID_STATUS_GROUP_MEMBERS[filters.statusGroup]]);
-  }
-  if (filters.signature === "signed") {
-    query = query.not("signed_at", "is", null);
-  } else if (filters.signature === "unsigned") {
-    query = query.is("signed_at", null);
-  }
-  if (filters.payment === "paid") {
-    query = query.not("paid_at", "is", null);
-  } else if (filters.payment === "unpaid") {
-    query = query.is("paid_at", null);
   }
   if (filters.propertyId) {
     query = query.eq("bookings.property_id", filters.propertyId);

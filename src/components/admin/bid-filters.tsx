@@ -3,39 +3,20 @@
 import { useTransition, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button, cn } from "@/lib/ui";
+import { Button } from "@/lib/ui";
 import type { AdminBidListFilters } from "@/src/services/admin/bids";
 import type { PublicProperty } from "@/src/services/public/properties";
 import { BidFiltersGroups } from "./bid-filters-groups";
-import { BidFiltersSignals } from "./bid-filters-signals";
-import {
-  buildBidsHref,
-  DEFAULT_BID_FILTER_UI,
-  type BidFilterUi,
-} from "./bid-filter-params";
+import { buildBidsHref } from "./bid-filter-params";
 import s from "./queue-list.module.css";
 
 interface BidFiltersProps {
   current: AdminBidListFilters;
-  filterUi: BidFilterUi;
   properties: ReadonlyArray<PublicProperty>;
   basePath: string;
 }
 
-// Temporary A/B toggle so the team can compare the two filter layouts on
-// live data. Once a winner is picked, drop the toggle and the losing
-// layout component.
-const FILTER_UI_OPTIONS: ReadonlyArray<{ key: BidFilterUi; label: string }> = [
-  { key: "groups", label: "Workflow groups" },
-  { key: "signals", label: "Stage + signals" },
-];
-
-export function BidFilters({
-  current,
-  filterUi,
-  properties,
-  basePath,
-}: BidFiltersProps) {
+export function BidFilters({ current, properties, basePath }: BidFiltersProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -68,65 +49,15 @@ export function BidFilters({
 
   return (
     <div className={s.filters}>
-      <div className={s.filterUiToggle}>
-        <span className={s.filterUiLabel}>Filter style</span>
-        <div className={s.segmented} role="group" aria-label="Filter style">
-          {FILTER_UI_OPTIONS.map((option) => (
-            <Link
-              key={option.key}
-              // Switching layout keeps only the cross-cutting filters; the
-              // design-specific selections (exact status, signal axes) are
-              // dropped so each layout opens in a coherent state.
-              href={buildBidsHref(
-                basePath,
-                {
-                  statusGroup: current.statusGroup,
-                  propertyId: current.propertyId,
-                  from: current.from,
-                  to: current.to,
-                  q: current.q,
-                },
-                { filterUi: option.key },
-              )}
-              className={cn(s.segment, filterUi === option.key && s.segmentActive)}
-              aria-pressed={filterUi === option.key}
-            >
-              {option.label}
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {filterUi === "signals" ? (
-        <BidFiltersSignals
-          current={current}
-          filterUi={filterUi}
-          basePath={basePath}
-        />
-      ) : (
-        <BidFiltersGroups
-          current={current}
-          filterUi={filterUi}
-          basePath={basePath}
-        />
-      )}
+      <BidFiltersGroups current={current} basePath={basePath} />
 
       <form key={formKey} onSubmit={handleSubmit} className={s.advanced}>
-        {/* Preserve the active layout + chip selections across an Apply. */}
-        {filterUi !== DEFAULT_BID_FILTER_UI && (
-          <input type="hidden" name="filterUi" value={filterUi} />
-        )}
+        {/* Preserve the active chip selections across an Apply. */}
         {current.statusGroup && (
           <input type="hidden" name="statusGroup" value={current.statusGroup} />
         )}
         {current.status && (
           <input type="hidden" name="status" value={current.status} />
-        )}
-        {current.signature && (
-          <input type="hidden" name="signature" value={current.signature} />
-        )}
-        {current.payment && (
-          <input type="hidden" name="payment" value={current.payment} />
         )}
 
         <label className={s.field}>
@@ -177,8 +108,13 @@ export function BidFilters({
         </label>
 
         <div className={s.actions}>
-          <Button asChild variant="secondary" size="sm">
-            <Link href={buildBidsHref(basePath, { filterUi }, {})}>Reset</Link>
+          <Button
+            asChild
+            variant="secondary"
+            size="sm"
+            className={s.resetAction}
+          >
+            <Link href={buildBidsHref(basePath, {}, {})}>Reset</Link>
           </Button>
           <Button type="submit" variant="primary" size="sm" loading={isPending}>
             {isPending ? "Searching…" : "Apply"}

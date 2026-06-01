@@ -16,62 +16,14 @@
   gap: var(--space-2);
 }
 
-/* Vertical stack shared by both filter layouts: status row on top, the
-   layout-specific refine/signal row beneath it. */
+/* Vertical stack: status row on top, the "Active" refine row beneath it. */
 .layoutStack {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
 }
 
-/* ---- Layout A/B toggle ---- */
-.filterUiToggle {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.filterUiLabel {
-  font-family: var(--sans);
-  font-size: var(--text-eyebrow);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--gray);
-}
-
-.segmented {
-  display: inline-flex;
-  padding: 2px;
-  gap: 2px;
-  background: var(--paper);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-}
-
-.segment {
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-pill);
-  font-family: var(--sans);
-  font-size: var(--text-micro);
-  color: var(--gray);
-  text-decoration: none;
-  transition: background var(--motion-fast) ease, color var(--motion-fast) ease;
-}
-
-.segment:hover {
-  color: var(--olive);
-}
-
-.segmentActive {
-  background: var(--olive);
-  color: var(--paper);
-}
-
-.segmentActive:hover {
-  color: var(--paper);
-}
-
-/* ---- Layout 1: workflow groups — secondary refine row ---- */
+/* ---- Workflow groups: secondary refine row ---- */
 .refineRow {
   display: flex;
   flex-wrap: wrap;
@@ -110,13 +62,6 @@
   background: var(--paper);
   border-color: var(--olive);
   color: var(--olive);
-}
-
-/* ---- Layout 2: stage + signals — dropdown row ---- */
-.signalRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
 }
 
 .searching {
@@ -211,6 +156,18 @@
   display: flex;
   gap: var(--space-2);
   margin-left: auto;
+}
+
+/* The shared Button `secondary` variant is sentence-case + body-size by
+   design, which looks mismatched next to the uppercase, 10px `primary`
+   "Apply". Re-align Reset to Apply's text treatment (keeping its outlined
+   look) so the action pair reads as one. Doubled class + parent scope
+   beats the `.secondary.sm` (0,2,0) rule from button.module.css. */
+.actions .resetAction.resetAction {
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: var(--track-label);
 }
 
 .summary {
