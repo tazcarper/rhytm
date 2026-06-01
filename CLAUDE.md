@@ -227,11 +227,13 @@ Admins are NOT in the `/member` or `/partner` allowlists. This is intentional.
 
 **Why:** Each portal queries data scoped to `auth.uid()`. An admin landing on `/member` would render "no memberships" because they don't have a `people` row — useful only as confusion. Making the page detect role and branch into "admin preview" mode mixes two UIs in one component (separation-of-concerns smell). The role-per-portal model keeps each portal a clean, single-purpose surface that's easy to RLS-audit and reason about.
 
-**How admins WILL see member-side data** (planned for App 3 — Admin Portal):
+**How admins WILL see member-side data** (App 3 — Admin Portal):
 
-A "preview as <member>" view *inside* `/admin`, NOT a side door to `/member`. Reuses the `/member` React components but fetches data by `member_id` via the admin's broader RLS scope. Admin stays signed in as themselves; no impersonation, no token-swap. Read-only by nature — admin actions on behalf of a member go through admin-portal write paths that explicitly attribute (e.g. `created_by_admin_id` on bookings) rather than masquerading as the member.
+A read-only **Members index + membership detail** *inside* `/admin` (`/admin/members`, `/admin/members/[id]`) — an admin-facing directory of memberships (households) and their people, bookings, and RSVPs, fetched via the admin's broader RLS scope. Admin stays signed in as themselves; no impersonation, no token-swap.
 
-Full impersonation (admin signs in literally as the member) is deferred indefinitely. Revisit only if a specific bug-reproduction or interaction-debug need can't be served by read-only preview.
+**"Preview as <member>" (re-rendering the `/member` portal UI for a member) was dropped (2026-06-01).** Two reasons: the guest-facing surface that staff actually need to inspect — the bid page — is already a shareable public link (`/bids/<slug>/<code>`), so there's no preview to build there; and re-rendering the logged-in member portal as an admin added a whole parallel data-fetch path for little launch-scale value. Admins get the facts they need from the read-only membership detail instead. Member-side **write** actions on behalf of a member still go through admin-portal write paths that explicitly attribute (e.g. `created_by_admin_id` on bookings) rather than masquerading as the member.
+
+Full impersonation (admin signs in literally as the member) remains deferred indefinitely. Revisit the dropped portal-preview only if a concrete need (bug-repro, interaction-debug) shows up that the read-only membership detail can't serve.
 
 ## RLS Rules (read this before writing any policy)
 

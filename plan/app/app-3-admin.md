@@ -32,7 +32,7 @@ What this builds:
 - `/admin` dashboard placeholder: signed-in identity, quick links to Bids queue, count summary (count of pending_review bids, today's bookings) — minimal but live data, not lorem.
 - Strict portal allowlist already in place (`proxy.ts`) gates the route to the five staff roles. No middleware changes needed.
 
-**Out of scope for 3.1.** Real bid queue (that's 3.2). Real dashboard widgets beyond a count or two (later sub-phase). Preview-as-member (3.7+).
+**Out of scope for 3.1.** Real bid queue (that's 3.2). Real dashboard widgets beyond a count or two (later sub-phase). Members index + membership detail (3.8).
 
 ---
 
@@ -134,18 +134,20 @@ What this builds:
 
 ---
 
-## Sub-phase 3.8 — Members Index + Preview-as-Member (`/admin/members`)
+## Sub-phase 3.8 — Members Index + Membership Detail (`/admin/members`), read-only
 
-**Goal.** Members directory + the preview-as-member surface. Admins do NOT enter `/member` directly (strict portal allowlist — see CLAUDE.md Architecture Decisions); instead, `/admin/members/[id]/preview` renders the `/member` React components but driven by admin-RLS-scoped data fetching keyed on `member_id`. Admin stays signed in as themselves; no impersonation, no token-swap.
+**Scope changed 2026-06-01 — preview-as-member dropped.** This sub-phase is now a read-only members directory only. The old "preview as member" surface (re-rendering the `/member` portal UI for a member from inside `/admin`) is cut — see CLAUDE.md Architecture Decisions for the rationale (the bid page staff need to inspect is already a public link; re-rendering the member portal added a parallel data path for little launch-scale value). Removing it also breaks the old dependency on App 4's member components, so 3.8 is now buildable independently.
+
+**Goal.** An admin-facing directory of memberships (the household account is the unit, not the individual person) and a read-only detail view per membership. Admins do NOT enter `/member` directly (strict portal allowlist); they see member facts here instead.
 
 What this builds:
 
-- `app/admin/members/page.tsx` — list of people + their memberships (filter by property, status, tier).
-- `app/admin/members/[id]/page.tsx` — read-only member detail.
-- `app/admin/members/[id]/preview/page.tsx` — re-renders the `/member` dashboard components (App 4 work) keyed on the member's id, fetched via the admin's RLS scope (not the member's). Components don't change; only the data source.
-- Preview is read-only by nature — admin actions on behalf of a member go through admin-portal write paths that explicitly attribute (e.g. `created_by_admin_id` on bookings).
+- `app/admin/members/page.tsx` — list of memberships: one row per membership showing the primary person + household size, member number, property, tier, status. Filter by property, status, tier; search by name / email / member number.
+- `app/admin/members/[id]/page.tsx` — read-only membership detail: the household (every person on the membership with their role + contact info), membership facts (number, tier, status, property, dates), and activity (the household's bookings + adventure RSVPs).
 
-**Note.** This sub-phase depends on App 4's member dashboard components existing — if App 4's "my bookings" + "adventures listing" are still in progress, 3.8 is gated on them. Sequence accordingly.
+**Read-only by design.** No status changes, approvals, or edits in this slice — those are a later sub-phase that lands alongside the membership application flow (App 4 / App 9, gated on Q8). Member-side write actions on behalf of a member route through admin-portal write paths that explicitly attribute (e.g. `created_by_admin_id` on bookings).
+
+**Client-gated cosmetics only.** Tier *names* (Q9) and the dues model (Q16) just fill in labels — the page renders whatever's in the columns, so neither blocks the build.
 
 ---
 
@@ -177,7 +179,7 @@ Scenarios (working title — finalize at build time):
 - A7: regenerate URL → old URL 404s, new URL works, guest receives new-link email.
 - A8: property manager role sees only their property's bids in the queue (RLS-scoped via auth_property_id).
 - A9: super_admin / admin sees all properties' bids.
-- A10: preview-as-member renders the `/member` dashboard for a member as that member sees it (data scoped correctly).
+- A10: members index lists memberships (filter by property/status/tier); membership detail renders the household, facts, and activity (bookings + RSVPs) read-only, data scoped correctly.
 - A11: property settings edit persists; booking funnel uses the new horizon next session.
 
 Verification log row in `docs/manual-testing.md` matching the App 2 precedent.
@@ -225,7 +227,7 @@ Sub-phases 3.1 → 3.2 → 3.3 → 3.4 → 3.5 form the minimum viable cut to un
 
 3.6 (dashboard) is polish — useful but not blocking.
 
-3.7 (bookings index) and 3.8 (members preview) round out the admin surface but don't gate downstream Apps.
+3.7 (bookings index) and 3.8 (members index + membership detail, read-only) round out the admin surface but don't gate downstream Apps.
 
 3.9 (property settings) is independent — could land anywhere.
 

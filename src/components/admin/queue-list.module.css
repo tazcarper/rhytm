@@ -120,6 +120,23 @@
   gap: var(--space-3);
 }
 
+/* Inline client-side filter row (e.g. a member's bookings on the detail
+   page). Reuses .field / .fieldLabel / .select. */
+.inlineFilters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.filterSummary {
+  margin-top: var(--space-3);
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -209,6 +226,18 @@
   border-bottom: 1px solid var(--border);
 }
 
+/* Smaller legend under a column header (e.g. the per-line item order in
+   the Memberships column). Resets the header's uppercase/spacing. */
+.colHint {
+  display: block;
+  margin-top: 2px;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--gray);
+}
+
 .table tbody tr {
   border-top: 1px solid var(--border);
   transition: background var(--motion-fast) ease;
@@ -244,6 +273,31 @@
 .guestName {
   color: var(--olive);
   font-weight: 500;
+}
+
+/* Stacked memberships inside a member row, aligned into columns
+   (property · member # · status) so they scan vertically regardless of how
+   wide each property name is. The whole row is the click target. */
+.membershipGrid {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  justify-items: start;
+  gap: var(--space-1) var(--space-3);
+  width: fit-content;
+}
+
+.membershipNumber {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  font-variant-numeric: tabular-nums;
+  color: var(--gray);
+}
+
+.guestAlias {
+  color: var(--olive);
+  font-size: var(--text-micro);
+  font-style: italic;
 }
 
 .guestEmail {

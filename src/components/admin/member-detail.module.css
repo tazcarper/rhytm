@@ -1,0 +1,82 @@
+.header {
+  margin-bottom: var(--space-6);
+}
+
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.memberNumber {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  font-variant-numeric: tabular-nums;
+  color: var(--gray);
+}
+
+.alias {
+  margin: var(--space-1) 0 0;
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  font-style: italic;
+  color: var(--olive);
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.sectionTitle {
+  font-family: var(--serif);
+  font-size: var(--text-h4);
+  color: var(--olive);
+  margin: 0;
+}
+
+.sectionCount {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+}
+
+/* Memberships table — cell treatments. The table chrome (header labels,
+   padded cells, row borders) comes from the shared queue-list styles. */
+.roleCell {
+  text-transform: capitalize;
+  color: var(--olive);
+}
+
+.joinedCell {
+  color: var(--gray);
+  white-space: nowrap;
+}
+
+.loginTag {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+}
+
+.emptyNote {
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  color: var(--gray);
+  margin: 0;
+}
+
+.rsvpStatus {
+  text-transform: capitalize;
+  color: var(--olive);
+}
