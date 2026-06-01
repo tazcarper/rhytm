@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type MouseEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, FormField, Input } from "@/lib/ui";
 import { MarkdownProse } from "@/src/components/shared/markdown";
@@ -14,6 +20,10 @@ import s from "./waiver-sign-modal.module.css";
 // confirms — the Server Action renders + stores the PDF and stamps
 // signed_at synchronously, so success is immediate (no polling, unlike the
 // Dropbox Sign path it replaces).
+//
+// The name + consent + sign controls stay hidden until the guest has
+// scrolled the waiver text to the end (or used "Skip to bottom"), so they
+// can't sign without the document having been fully presented to them.
 
 interface WaiverSignModalProps {
   bidSlug: string;
@@ -29,6 +39,10 @@ type SubmitState =
   | { kind: "submitting" }
   | { kind: "error"; message: string };
 
+// Slack (px) when deciding "scrolled to the end" — covers sub-pixel
+// rounding and trailing margins.
+const BOTTOM_SLACK = 8;
+
 export function WaiverSignModal({
   bidSlug,
   bidAccessCode,
@@ -39,34 +53,69 @@ export function WaiverSignModal({
 }: WaiverSignModalProps) {
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const [signedName, setSignedName] = useState(defaultName);
   const [agreed, setAgreed] = useState(false);
   const [state, setState] = useState<SubmitState>({ kind: "idle" });
+  const [isOpen, setIsOpen] = useState(false);
+  const [hasReadToBottom, setHasReadToBottom] = useState(false);
 
   const submitting = state.kind === "submitting";
 
-  // Always release the page scroll-lock whenever the dialog closes, no
-  // matter how (button, Esc, backdrop, or a successful submit).
+  // Release the page scroll-lock + clear open state whenever the dialog
+  // closes (button, Esc, backdrop, or a successful submit).
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
-    const releaseScroll = () => {
+    const handleClose = () => {
       document.body.style.overflow = "";
+      setIsOpen(false);
     };
-    dialog.addEventListener("close", releaseScroll);
-    return () => dialog.removeEventListener("close", releaseScroll);
+    dialog.addEventListener("close", handleClose);
+    return () => dialog.removeEventListener("close", handleClose);
   }, []);
+
+  // While open, watch the waiver body's scroll position. Latches
+  // hasReadToBottom once the end is reached. The immediate check also
+  // covers a waiver short enough that the body never scrolls.
+  useEffect(() => {
+    if (!isOpen) return;
+    const el = bodyRef.current;
+    if (!el) return;
+    const checkAtBottom = () => {
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - BOTTOM_SLACK) {
+        setHasReadToBottom(true);
+      }
+    };
+    checkAtBottom();
+    el.addEventListener("scroll", checkAtBottom, { passive: true });
+    return () => el.removeEventListener("scroll", checkAtBottom);
+  }, [isOpen]);
 
   const open = () => {
     setState({ kind: "idle" });
     setAgreed(false);
     setSignedName(defaultName);
+    setHasReadToBottom(false);
+    setIsOpen(true);
     document.body.style.overflow = "hidden";
     dialogRef.current?.showModal();
   };
 
   const close = () => {
     dialogRef.current?.close();
+  };
+
+  const skipToBottom = (event: MouseEvent<HTMLButtonElement>) => {
+    // Block this click's default action. Revealing the controls swaps this
+    // same button slot into the type="submit" "Confirm & sign" on the next
+    // render, and React commits that within the discrete click event —
+    // before the browser evaluates the default action — which would
+    // otherwise submit the still-empty form. preventDefault stops that.
+    event.preventDefault();
+    const el = bodyRef.current;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    setHasReadToBottom(true);
   };
 
   const handleSubmit = async (event: FormEvent) => {
@@ -130,53 +179,61 @@ export function WaiverSignModal({
             </button>
           </header>
 
-          <div className={s.body}>
+          <div className={s.body} ref={bodyRef}>
             <MarkdownProse>{waiverBody}</MarkdownProse>
           </div>
 
-          <div className={s.controls}>
-            <FormField
-              label="Type your full legal name"
-              required
-              error={
-                state.kind === "error" && !signedName.trim()
-                  ? state.message
-                  : undefined
-              }
-            >
-              {(controlProps) => (
-                <Input
-                  {...controlProps}
-                  value={signedName}
-                  onChange={(event) => setSignedName(event.target.value)}
-                  placeholder="Full legal name"
-                  autoComplete="name"
-                  autoCapitalize="words"
-                  maxLength={120}
+          {hasReadToBottom && (
+            <div className={s.controls}>
+              <FormField
+                label="Type your full legal name"
+                required
+                error={
+                  state.kind === "error" && !signedName.trim()
+                    ? state.message
+                    : undefined
+                }
+              >
+                {(controlProps) => (
+                  <Input
+                    {...controlProps}
+                    value={signedName}
+                    onChange={(event) => setSignedName(event.target.value)}
+                    placeholder="Full legal name"
+                    autoComplete="name"
+                    autoCapitalize="words"
+                    autoFocus
+                    maxLength={120}
+                    disabled={submitting}
+                  />
+                )}
+              </FormField>
+
+              <label className={s.consent}>
+                <input
+                  type="checkbox"
+                  className={s.checkbox}
+                  checked={agreed}
+                  onChange={(event) => setAgreed(event.target.checked)}
                   disabled={submitting}
                 />
+                <span className={s.consentText}>{consentText}</span>
+              </label>
+
+              {state.kind === "error" && (
+                <Alert variant="warn" title="Couldn't sign your waiver">
+                  {state.message}
+                </Alert>
               )}
-            </FormField>
-
-            <label className={s.consent}>
-              <input
-                type="checkbox"
-                className={s.checkbox}
-                checked={agreed}
-                onChange={(event) => setAgreed(event.target.checked)}
-                disabled={submitting}
-              />
-              <span className={s.consentText}>{consentText}</span>
-            </label>
-
-            {state.kind === "error" && (
-              <Alert variant="warn" title="Couldn't sign your waiver">
-                {state.message}
-              </Alert>
-            )}
-          </div>
+            </div>
+          )}
 
           <footer className={s.footer}>
+            {!hasReadToBottom && (
+              <span className={s.readHint}>
+                Scroll through the full waiver to sign.
+              </span>
+            )}
             <Button
               type="button"
               variant="secondary"
@@ -185,14 +242,20 @@ export function WaiverSignModal({
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              loading={submitting}
-              disabled={submitting}
-            >
-              {submitting ? "Signing…" : "Confirm & sign"}
-            </Button>
+            {hasReadToBottom ? (
+              <Button
+                type="submit"
+                variant="primary"
+                loading={submitting}
+                disabled={submitting}
+              >
+                {submitting ? "Signing…" : "Confirm & sign"}
+              </Button>
+            ) : (
+              <Button type="button" variant="secondary" onClick={skipToBottom}>
+                Skip to bottom ↓
+              </Button>
+            )}
           </footer>
         </form>
       </dialog>

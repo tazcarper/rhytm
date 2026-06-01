@@ -117,6 +117,8 @@
   position: sticky;
   bottom: 0;
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
   gap: var(--space-3);
   padding: var(--space-4);
@@ -124,11 +126,23 @@
   border-top: 1px solid var(--border-strong);
 }
 
+/* Shown before the guest has read to the end; pushes the buttons right. */
+.readHint {
+  margin-right: auto;
+  font-size: var(--text-caption);
+  color: var(--charcoal-soft);
+}
+
 @media (min-width: 640px) {
   .dialog {
-    inset: auto;
+    /* Keep inset:0 from the base rule — that's what lets `margin: auto`
+       center the dialog in the viewport. `fit-content` height (capped at
+       88vh) gives a definite box so the auto margins split evenly on both
+       axes. Setting `inset: auto` here was the centering bug (fell to
+       top-left). */
     width: min(640px, 92vw);
-    height: auto;
+    height: fit-content;
+    max-height: 88vh;
     margin: auto;
   }
 
