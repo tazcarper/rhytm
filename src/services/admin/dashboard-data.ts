@@ -15,6 +15,8 @@ type DashboardBidRow = {
   status: AdminBidStatus;
   created_at: string;
   updated_at: string;
+  signed_at: string | null;
+  paid_at: string | null;
   booking_id: string;
   bookings: {
     booking_type: AdminBookingType;
@@ -37,7 +39,7 @@ type DashboardBidRow = {
 };
 
 const SELECT = `
-  id, slug, status, created_at, updated_at, booking_id,
+  id, slug, status, created_at, updated_at, signed_at, paid_at, booking_id,
   bookings!inner (
     booking_type, start_time, duration_hours,
     guest_name, guest_email, guest_count,
@@ -76,6 +78,8 @@ function toRow(r: DashboardBidRow): AdminBidListRow {
     effectiveQuote: confirmed ?? estimated,
     depositAmount: toNumber(r.bookings.deposit_amount),
     amountPaid: toNumber(r.bookings.amount_paid) ?? 0,
+    signedAt: r.signed_at,
+    paidAt: r.paid_at,
   };
 }
 

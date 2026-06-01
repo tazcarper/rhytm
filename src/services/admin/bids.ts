@@ -24,8 +24,46 @@ export const ADMIN_BID_STATUSES: ReadonlyArray<AdminBidStatus> = [
   "expired",
 ];
 
+// Workflow buckets the seven raw statuses collapse into. The point of the
+// grouping: the statuses are stages in one pipeline, not parallel
+// categories. Grouping answers the question an admin actually has —
+// "which pile is this in / does it need me?" — instead of "what was the
+// last event on it?". Used by the "workflow groups" filter layout.
+export type AdminBidStatusGroup = "needs_review" | "active" | "closed";
+
+export const BID_STATUS_GROUP_MEMBERS: Record<
+  AdminBidStatusGroup,
+  ReadonlyArray<AdminBidStatus>
+> = {
+  needs_review: ["pending_review"],
+  active: ["confirmed", "signed", "paid"],
+  closed: ["denied", "expired", "refunded"],
+};
+
+export const BID_STATUS_GROUPS: ReadonlyArray<{
+  key: AdminBidStatusGroup;
+  label: string;
+}> = [
+  { key: "needs_review", label: "Needs review" },
+  { key: "active", label: "Active" },
+  { key: "closed", label: "Closed" },
+];
+
+// Signing and paying are independent in the data model (App 6 allows
+// sign-then-pay or pay-then-sign), so each is its own filter axis rather
+// than a point on a single status line. Used by the "stage + signals"
+// layout. We key off the lifecycle timestamps (signed_at / paid_at)
+// because they're stable regardless of which order the guest completed in.
+export type BidSignatureFilter = "signed" | "unsigned";
+export type BidPaymentFilter = "paid" | "unpaid";
+
 export interface AdminBidListFilters {
+  // Exact status. Wins over statusGroup when both are present (lets the
+  // "Active" group offer a sub-refine down to a single status).
   status?: AdminBidStatus;
+  statusGroup?: AdminBidStatusGroup;
+  signature?: BidSignatureFilter;
+  payment?: BidPaymentFilter;
   propertyId?: string;
   from?: string;
   to?: string;
@@ -59,6 +97,11 @@ export interface AdminBidListRow {
   effectiveQuote: number | null;
   depositAmount: number | null;
   amountPaid: number;
+  // Independent lifecycle timestamps — drive the per-row progress
+  // indicator. Either can be set without the other (App 6 sign/pay order
+  // is not fixed).
+  signedAt: string | null;
+  paidAt: string | null;
 }
 
 export interface AdminBidListResult {
@@ -76,6 +119,8 @@ type BidsRow = {
   slug: string;
   status: AdminBidStatus;
   created_at: string;
+  signed_at: string | null;
+  paid_at: string | null;
   booking_id: string;
   bookings: {
     booking_type: AdminBookingType;
@@ -115,7 +160,7 @@ export async function getAdminBidsList(
     .from("bids")
     .select(
       `
-      id, slug, status, created_at, booking_id,
+      id, slug, status, created_at, signed_at, paid_at, booking_id,
       bookings!inner (
         booking_type, start_time, duration_hours,
         guest_name, guest_email, guest_count,
@@ -131,6 +176,18 @@ export async function getAdminBidsList(
 
   if (filters.status) {
     query = query.eq("status", filters.status);
+  } else if (filters.statusGroup) {
+    query = query.in("status", [...BID_STATUS_GROUP_MEMBERS[filters.statusGroup]]);
+  }
+  if (filters.signature === "signed") {
+    query = query.not("signed_at", "is", null);
+  } else if (filters.signature === "unsigned") {
+    query = query.is("signed_at", null);
+  }
+  if (filters.payment === "paid") {
+    query = query.not("paid_at", "is", null);
+  } else if (filters.payment === "unpaid") {
+    query = query.is("paid_at", null);
   }
   if (filters.propertyId) {
     query = query.eq("bookings.property_id", filters.propertyId);
@@ -180,6 +237,8 @@ export async function getAdminBidsList(
         toNumber(row.bookings.estimated_price),
       depositAmount: toNumber(row.bookings.deposit_amount),
       amountPaid: toNumber(row.bookings.amount_paid) ?? 0,
+      signedAt: row.signed_at,
+      paidAt: row.paid_at,
     }),
   );
 

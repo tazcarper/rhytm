@@ -16,6 +16,109 @@
   gap: var(--space-2);
 }
 
+/* Vertical stack shared by both filter layouts: status row on top, the
+   layout-specific refine/signal row beneath it. */
+.layoutStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* ---- Layout A/B toggle ---- */
+.filterUiToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.filterUiLabel {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+}
+
+.segment {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+  text-decoration: none;
+  transition: background var(--motion-fast) ease, color var(--motion-fast) ease;
+}
+
+.segment:hover {
+  color: var(--olive);
+}
+
+.segmentActive {
+  background: var(--olive);
+  color: var(--paper);
+}
+
+.segmentActive:hover {
+  color: var(--paper);
+}
+
+/* ---- Layout 1: workflow groups — secondary refine row ---- */
+.refineRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding-left: var(--space-2);
+  border-left: 2px solid var(--border-strong);
+}
+
+.refineLabel {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-right: var(--space-1);
+}
+
+.refinePill {
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  border: 1px solid var(--border);
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+  text-decoration: none;
+  transition: background var(--motion-fast) ease;
+}
+
+.refinePill:hover {
+  background: var(--paper);
+}
+
+.refinePillActive {
+  background: var(--paper);
+  border-color: var(--olive);
+  color: var(--olive);
+}
+
+/* ---- Layout 2: stage + signals — dropdown row ---- */
+.signalRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
 .searching {
   display: inline-flex;
   align-items: center;
@@ -217,6 +320,61 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
+}
+
+/* ---- Per-row progress indicator ---- */
+.progress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checkpoint {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+  white-space: nowrap;
+}
+
+.checkpointMark {
+  font-size: 0.85em;
+  line-height: 1;
+  color: var(--border-strong);
+}
+
+/* Completed checkpoint: green checkbox + green text (matches the "paid"
+   green in the badge palette). Not-done checkpoints keep the default gray. */
+.checkpointDone {
+  color: #2d5520;
+}
+
+.checkpointDone .checkpointMark {
+  color: #2d5520;
+}
+
+/* Closed-unsuccessful bid (denied/expired): milestones won't be reached,
+   so dim them rather than imply pending work. */
+.checkpointMuted {
+  color: var(--border-strong);
+  opacity: 0.6;
+}
+
+.checkpointMuted .checkpointMark {
+  color: var(--border-strong);
+}
+
+.progressNote {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+  font-style: italic;
 }
 
 .bookingTypeLabel {

@@ -17,6 +17,8 @@ Newer questions surfaced during App 6 / 7 / 8 work. Each question is a standalon
 
 - **2026-05-24 batch — App 8 / App 7 / property config / branding / admin / domains:**
   [`plan/questions/2026-05-24/README.md`](./questions/2026-05-24/README.md)
+- **2026-06-01 batch — bid lifecycle / deposit expiry:**
+  [`plan/questions/2026-06-01/README.md`](./questions/2026-06-01/README.md)
 
 See [`plan/questions/README.md`](./questions/README.md) for the folder convention. New batches go in new dated folders; prior dated folders are a historical record and shouldn't be mutated.
 

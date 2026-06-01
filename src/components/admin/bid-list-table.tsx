@@ -9,7 +9,7 @@ import {
 } from "@/src/services/public/format";
 import type { AdminBidListRow } from "@/src/services/admin/bids";
 import { BidStatusBadge } from "./bid-status-badge";
-import { PaymentStatusBadge } from "./payment-status-badge";
+import { BidProgress } from "./bid-progress";
 import { PropertyPill } from "./property-pill";
 import s from "./queue-list.module.css";
 
@@ -125,14 +125,14 @@ export function BidListTable({ rows }: { rows: ReadonlyArray<AdminBidListRow> })
                 </td>
                 <td>
                   <div className={s.statusCell}>
-                    <BidStatusBadge status={row.status} />
-                    {row.status === "paid" && (
-                      <PaymentStatusBadge
-                        amountPaid={row.amountPaid}
-                        depositAmount={row.depositAmount}
-                        effectiveQuote={row.effectiveQuote}
-                      />
-                    )}
+                    <BidStatusBadge status={row.status} display="stage" />
+                    <BidProgress
+                      status={row.status}
+                      signedAt={row.signedAt}
+                      amountPaid={row.amountPaid}
+                      depositAmount={row.depositAmount}
+                      effectiveQuote={row.effectiveQuote}
+                    />
                   </div>
                 </td>
                 <td className={s.createdAt}>{formatRelative(row.createdAt)}</td>

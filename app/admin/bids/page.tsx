@@ -6,11 +6,21 @@ import {
   getAdminBidsList,
   type AdminBidListFilters,
   type AdminBidStatus,
+  type AdminBidStatusGroup,
+  type BidSignatureFilter,
+  type BidPaymentFilter,
   ADMIN_BID_STATUSES,
+  BID_STATUS_GROUPS,
 } from "@/src/services/admin/bids";
 import { getPublicProperties } from "@/src/services/public/properties";
 import { BidFilters } from "@/src/components/admin/bid-filters";
 import { BidListTable } from "@/src/components/admin/bid-list-table";
+import {
+  buildBidsHref,
+  isBidFilterUi,
+  DEFAULT_BID_FILTER_UI,
+  type BidFilterUi,
+} from "@/src/components/admin/bid-filter-params";
 import s from "@/src/components/admin/queue-list.module.css";
 
 export const dynamic = "force-dynamic";
@@ -28,8 +38,27 @@ function isBidStatus(value: string | undefined): value is AdminBidStatus {
   return !!value && (ADMIN_BID_STATUSES as ReadonlyArray<string>).includes(value);
 }
 
+function isStatusGroup(
+  value: string | undefined,
+): value is AdminBidStatusGroup {
+  return !!value && BID_STATUS_GROUPS.some((group) => group.key === value);
+}
+
+function isSignatureFilter(
+  value: string | undefined,
+): value is BidSignatureFilter {
+  return value === "signed" || value === "unsigned";
+}
+
+function isPaymentFilter(value: string | undefined): value is BidPaymentFilter {
+  return value === "paid" || value === "unpaid";
+}
+
 function parseFilters(params: RawSearchParams): AdminBidListFilters {
   const statusValue = first(params.status);
+  const statusGroupValue = first(params.statusGroup);
+  const signatureValue = first(params.signature);
+  const paymentValue = first(params.payment);
   const propertyId = first(params.propertyId) || undefined;
   const from = first(params.from) || undefined;
   const to = first(params.to) || undefined;
@@ -39,6 +68,9 @@ function parseFilters(params: RawSearchParams): AdminBidListFilters {
 
   return {
     status: isBidStatus(statusValue) ? statusValue : undefined,
+    statusGroup: isStatusGroup(statusGroupValue) ? statusGroupValue : undefined,
+    signature: isSignatureFilter(signatureValue) ? signatureValue : undefined,
+    payment: isPaymentFilter(paymentValue) ? paymentValue : undefined,
     propertyId,
     from,
     to,
@@ -47,19 +79,9 @@ function parseFilters(params: RawSearchParams): AdminBidListFilters {
   };
 }
 
-function buildPageHref(
-  filters: AdminBidListFilters,
-  nextPage: number,
-): string {
-  const queryParams = new URLSearchParams();
-  if (filters.status) queryParams.set("status", filters.status);
-  if (filters.propertyId) queryParams.set("propertyId", filters.propertyId);
-  if (filters.from) queryParams.set("from", filters.from);
-  if (filters.to) queryParams.set("to", filters.to);
-  if (filters.q) queryParams.set("q", filters.q);
-  if (nextPage > 0) queryParams.set("page", String(nextPage));
-  const queryString = queryParams.toString();
-  return queryString ? `${BASE_PATH}?${queryString}` : BASE_PATH;
+function parseFilterUi(params: RawSearchParams): BidFilterUi {
+  const value = first(params.filterUi);
+  return isBidFilterUi(value) ? value : DEFAULT_BID_FILTER_UI;
 }
 
 export default async function AdminBidsList({
@@ -69,6 +91,7 @@ export default async function AdminBidsList({
 }) {
   const params = await searchParams;
   const filters = parseFilters(params);
+  const filterUi = parseFilterUi(params);
 
   const supabase = await createServerSupabaseClient();
 
@@ -104,6 +127,7 @@ export default async function AdminBidsList({
 
       <BidFilters
         current={filters}
+        filterUi={filterUi}
         properties={properties}
         basePath={BASE_PATH}
       />
@@ -132,14 +156,26 @@ export default async function AdminBidsList({
           <div className={s.pageButtons}>
             {list.page > 0 ? (
               <Button asChild variant="secondary" size="sm">
-                <Link href={buildPageHref(filters, list.page - 1)}>
+                <Link
+                  href={buildBidsHref(
+                    BASE_PATH,
+                    { ...filters, filterUi },
+                    { page: list.page - 1 },
+                  )}
+                >
                   ← Previous
                 </Link>
               </Button>
             ) : null}
             {list.hasMore ? (
               <Button asChild variant="secondary" size="sm">
-                <Link href={buildPageHref(filters, list.page + 1)}>
+                <Link
+                  href={buildBidsHref(
+                    BASE_PATH,
+                    { ...filters, filterUi },
+                    { page: list.page + 1 },
+                  )}
+                >
                   Next →
                 </Link>
               </Button>
