@@ -1,0 +1,314 @@
+/* ---- Manager toolbar ---- */
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  margin-bottom: var(--space-4);
+}
+
+.tabs {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.tab {
+  appearance: none;
+  border: none;
+  background: var(--paper);
+  color: var(--charcoal-soft);
+  font: inherit;
+  font-size: var(--text-small, 0.875rem);
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+}
+
+.tab:hover {
+  background: var(--paper-warm);
+}
+
+.tabActive {
+  background: var(--olive);
+  color: var(--paper);
+}
+
+.tabActive:hover {
+  background: var(--olive);
+}
+
+.filterSelect {
+  font: inherit;
+  font-size: var(--text-small, 0.875rem);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--paper);
+  color: var(--charcoal);
+}
+
+.spacer {
+  margin-left: auto;
+}
+
+/* ---- List + cards ---- */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.empty {
+  color: var(--charcoal-soft);
+  padding: var(--space-6);
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-card);
+}
+
+.card {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--paper);
+}
+
+.cardInactive {
+  opacity: 0.6;
+  background: var(--paper-warm);
+}
+
+.cardMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.cardTitle {
+  font-weight: 600;
+  color: var(--charcoal);
+  margin: 0;
+}
+
+.cardBody {
+  color: var(--charcoal-soft);
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-small, 0.875rem);
+  white-space: pre-wrap;
+}
+
+.cardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.dedupe {
+  font-family: var(--mono, monospace);
+  font-size: var(--text-eyebrow, 0.6875rem);
+  color: var(--gray);
+  background: var(--paper-warm);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sharp);
+}
+
+.scopeTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.tag {
+  font-size: var(--text-eyebrow, 0.6875rem);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  color: var(--charcoal-soft);
+  background: var(--paper);
+}
+
+.tagGlobal {
+  border-color: var(--olive);
+  color: var(--olive);
+}
+
+.inactiveBadge {
+  font-size: var(--text-eyebrow, 0.6875rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gray);
+}
+
+.cardActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* ---- Editor modal (slide-in panel, mirrors bid-content-drawer) ---- */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: rgba(30, 30, 20, 0.45);
+  animation: tpl-fade-in 160ms ease-out;
+}
+
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(560px, 100vw);
+  height: 100%;
+  background: var(--paper);
+  border-left: 1px solid var(--border);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.12);
+  animation: tpl-slide-in 200ms ease-out;
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+
+.panelTitle {
+  font-family: var(--serif, var(--sans));
+  font-size: var(--text-h3, 1.25rem);
+  color: var(--olive);
+  margin: 0;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--gray);
+  padding: var(--space-1);
+  border-radius: var(--radius-card);
+}
+
+.closeBtn:hover {
+  color: var(--olive);
+  background: var(--paper-warm);
+}
+
+.panelBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.panelFoot {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--border);
+  background: var(--paper-warm);
+}
+
+/* ---- Scope picker ---- */
+
+.scopeGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.scopeGroupTitle {
+  font-size: var(--text-small, 0.875rem);
+  font-weight: 600;
+  color: var(--charcoal);
+  margin: 0;
+}
+
+.checkList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding-left: var(--space-2);
+}
+
+.propertyGroupLabel {
+  font-size: var(--text-eyebrow, 0.6875rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gray);
+  margin-top: var(--space-2);
+}
+
+.checkItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--text-small, 0.875rem);
+  color: var(--charcoal);
+  cursor: pointer;
+}
+
+.checkItem input {
+  margin-top: 2px;
+}
+
+.rowFields {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.rowFields > * {
+  flex: 1;
+}
+
+@keyframes tpl-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes tpl-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .backdrop {
+    animation: none;
+  }
+}

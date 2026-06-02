@@ -14,6 +14,10 @@ import {
   type UpdateBidContentRawInput,
   type UpdateBidContentResult,
 } from "@/src/services/admin/update-bid-content";
+import {
+  resolveBidLibraryContent,
+  type ResolveBidLibraryResult,
+} from "@/src/services/admin/resolve-bid-library";
 
 function firstIssueMessage(
   issues: ReadonlyArray<{ path: PropertyKey[]; message: string }>,
@@ -60,4 +64,14 @@ export async function updateBidContentAction(
   }
 
   return result;
+}
+
+// Resolve-only: returns what the content library would auto-fill for this bid.
+// Does not persist — the drawer merges the result into its draft, and saving
+// goes through updateBidContentAction.
+export async function repullBidContentAction(
+  bidId: string,
+): Promise<ResolveBidLibraryResult> {
+  const supabase = await createServerSupabaseClient();
+  return resolveBidLibraryContent(supabase, bidId);
 }

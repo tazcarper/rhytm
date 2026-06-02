@@ -3,7 +3,11 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button } from "@/lib/ui";
-import { updateBidContentAction } from "@/app/admin/bids/[id]/edit/actions";
+import {
+  updateBidContentAction,
+  repullBidContentAction,
+} from "@/app/admin/bids/[id]/edit/actions";
+import type { BidLibraryContent } from "@/src/services/admin/resolve-bid-library";
 import form from "./bid-editor-form.module.css";
 import s from "./bid-content-drawer.module.css";
 
@@ -42,6 +46,15 @@ export function BidContentDrawer({
   const [gearDraft, setGearDraft] = useState<GearDraft[]>([]);
   const [faqDraft, setFaqDraft] = useState<FaqDraft[]>([]);
 
+  // Content-library state. Fetched once per drawer instance (cached in
+  // `library`) and reused for both Re-pull and the per-section pickers.
+  const [library, setLibrary] = useState<BidLibraryContent | null>(null);
+  const [libraryLoading, setLibraryLoading] = useState(false);
+  const [libraryError, setLibraryError] = useState<string | null>(null);
+  const [showGearLibrary, setShowGearLibrary] = useState(false);
+  const [showFaqLibrary, setShowFaqLibrary] = useState(false);
+  const [confirmRepull, setConfirmRepull] = useState(false);
+
   // Seed the drafts from the source-of-truth props each time the drawer
   // opens so a cancel-then-reopen always reflects what's actually saved.
   const openDrawer = () => {
@@ -55,7 +68,75 @@ export function BidContentDrawer({
     );
     setFaqDraft(faq.map((item) => ({ question: item.question, answer: item.answer })));
     setError(null);
+    setLibraryError(null);
+    setShowGearLibrary(false);
+    setShowFaqLibrary(false);
+    setConfirmRepull(false);
     setOpen(true);
+  };
+
+  // Lazy-load (and cache) what the content library would auto-fill for this
+  // bid. Resolve-only — nothing is persisted until Save.
+  const ensureLibrary = async (): Promise<BidLibraryContent | null> => {
+    if (library) return library;
+    setLibraryLoading(true);
+    setLibraryError(null);
+    const result = await repullBidContentAction(bidId);
+    setLibraryLoading(false);
+    if (!result.ok) {
+      setLibraryError(result.error || "Couldn't load the content library.");
+      return null;
+    }
+    setLibrary(result.content);
+    return result.content;
+  };
+
+  const gearPresent = (name: string) =>
+    gearDraft.some((g) => g.name.trim().toLowerCase() === name.trim().toLowerCase());
+  const faqPresent = (question: string) =>
+    faqDraft.some(
+      (item) => item.question.trim().toLowerCase() === question.trim().toLowerCase(),
+    );
+
+  const openGearLibrary = async () => {
+    const content = await ensureLibrary();
+    if (content) setShowGearLibrary(true);
+  };
+  const openFaqLibrary = async () => {
+    const content = await ensureLibrary();
+    if (content) setShowFaqLibrary(true);
+  };
+
+  const addLibraryGear = (item: { name: string; description?: string }) =>
+    setGearDraft((prev) => [
+      ...prev,
+      { name: item.name, description: item.description ?? "" },
+    ]);
+  const addLibraryFaq = (item: FaqDraft) =>
+    setFaqDraft((prev) => [...prev, { question: item.question, answer: item.answer }]);
+
+  // Two-click: first click loads + arms the confirm, second replaces both
+  // lists with the resolved library content (discarding manual edits).
+  const repull = async () => {
+    const content = await ensureLibrary();
+    if (!content) {
+      setConfirmRepull(false);
+      return;
+    }
+    if (!confirmRepull) {
+      setConfirmRepull(true);
+      return;
+    }
+    setGearDraft(
+      content.gearList.map((item) => ({
+        name: item.name,
+        description: item.description ?? "",
+      })),
+    );
+    setFaqDraft(
+      content.faq.map((item) => ({ question: item.question, answer: item.answer })),
+    );
+    setConfirmRepull(false);
   };
 
   // Escape to close + body scroll lock while the overlay is up.
@@ -120,6 +201,14 @@ export function BidContentDrawer({
     });
   };
 
+  // Library items not already in the draft (matched by name / question).
+  const gearSuggestions = (library?.gearList ?? []).filter(
+    (item) => !gearPresent(item.name),
+  );
+  const faqSuggestions = (library?.faq ?? []).filter(
+    (item) => !faqPresent(item.question),
+  );
+
   return (
     <>
       <Button variant="secondary" size="sm" onClick={openDrawer} fullWidth>
@@ -153,6 +242,48 @@ export function BidContentDrawer({
                   {error}
                 </Alert>
               )}
+
+              <section className={form.section}>
+                <h3 className={form.sectionTitle}>Content library</h3>
+                {libraryError && (
+                  <Alert variant="error" title="Library">
+                    {libraryError}
+                  </Alert>
+                )}
+                <p className={form.help}>
+                  Re-pull replaces the gear and FAQ below with what the library
+                  auto-fills for this bid. Or use &ldquo;Add from library&rdquo;
+                  in each section to pull individual items without losing your
+                  edits.
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "var(--space-2)",
+                    alignItems: "center",
+                  }}
+                >
+                  <Button
+                    variant={confirmRepull ? "primary" : "secondary"}
+                    size="sm"
+                    onClick={repull}
+                    loading={libraryLoading}
+                  >
+                    {confirmRepull
+                      ? "Confirm — replace gear + FAQ"
+                      : "Re-pull from library"}
+                  </Button>
+                  {confirmRepull && (
+                    <button
+                      type="button"
+                      className={form.removeBtn}
+                      onClick={() => setConfirmRepull(false)}
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              </section>
 
               <section className={form.section}>
                 <h3 className={form.sectionTitle}>Schedule notes</h3>
@@ -213,6 +344,42 @@ export function BidContentDrawer({
                     + Add gear item
                   </button>
                 )}
+                {!showGearLibrary ? (
+                  <button
+                    type="button"
+                    onClick={openGearLibrary}
+                    className={form.addBtn}
+                    disabled={libraryLoading}
+                  >
+                    {libraryLoading ? "Loading…" : "Add from library"}
+                  </button>
+                ) : (
+                  <div className={form.repeaterList}>
+                    {gearSuggestions.length === 0 ? (
+                      <p className={form.emptyRepeater}>
+                        Nothing new in the library for this bid.
+                      </p>
+                    ) : (
+                      gearSuggestions.map((item, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => addLibraryGear(item)}
+                          className={form.addBtn}
+                        >
+                          + {item.name}
+                        </button>
+                      ))
+                    )}
+                    <button
+                      type="button"
+                      className={form.removeBtn}
+                      onClick={() => setShowGearLibrary(false)}
+                    >
+                      Done
+                    </button>
+                  </div>
+                )}
               </section>
 
               <section className={form.section}>
@@ -256,6 +423,42 @@ export function BidContentDrawer({
                   <button type="button" onClick={addFaq} className={form.addBtn}>
                     + Add FAQ item
                   </button>
+                )}
+                {!showFaqLibrary ? (
+                  <button
+                    type="button"
+                    onClick={openFaqLibrary}
+                    className={form.addBtn}
+                    disabled={libraryLoading}
+                  >
+                    {libraryLoading ? "Loading…" : "Add from library"}
+                  </button>
+                ) : (
+                  <div className={form.repeaterList}>
+                    {faqSuggestions.length === 0 ? (
+                      <p className={form.emptyRepeater}>
+                        Nothing new in the library for this bid.
+                      </p>
+                    ) : (
+                      faqSuggestions.map((item, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => addLibraryFaq(item)}
+                          className={form.addBtn}
+                        >
+                          + {item.question}
+                        </button>
+                      ))
+                    )}
+                    <button
+                      type="button"
+                      className={form.removeBtn}
+                      onClick={() => setShowFaqLibrary(false)}
+                    >
+                      Done
+                    </button>
+                  </div>
                 )}
               </section>
 
