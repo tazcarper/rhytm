@@ -1,23 +1,31 @@
-import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { Alert, Button, Heading, PageShell } from "@/lib/ui";
+import { Alert, Heading, PageShell } from "@/lib/ui";
 import { AdminBreadcrumb } from "@/src/components/admin/admin-breadcrumb";
 import {
-  getAdminBookingsList,
-  type AdminBookingListFilters,
-  type AdminBookingStatus,
-  type AdminBookingType,
-  ADMIN_BOOKING_STATUSES,
-  ADMIN_BOOKING_TYPES,
-} from "@/src/services/admin/bookings";
-import { getPublicProperties } from "@/src/services/public/properties";
-import { BookingFilters } from "@/src/components/admin/booking-filters";
-import { BookingListTable } from "@/src/components/admin/booking-list-table";
-import s from "@/src/components/admin/queue-list.module.css";
+  BookingsCalendar,
+  type PropertyOption,
+} from "@/src/components/admin/bookings-calendar";
+import {
+  DaySchedule,
+  bookingRowToScheduleBlock,
+} from "@/src/components/admin/day-schedule";
+import {
+  getAdminMonthBookings,
+  computeDayDensity,
+  bookingCalendarDate,
+} from "@/src/services/admin/bookings-calendar";
+import { getAdminPropertiesList } from "@/src/services/admin/properties";
+import type { AdminBookingListRow } from "@/src/services/admin/bookings";
+import { formatDateLong } from "@/src/services/public/format";
+import dashboard from "@/src/components/admin/dashboard.module.css";
 
 export const dynamic = "force-dynamic";
 
 const BASE_PATH = "/admin/bookings";
+const ALL_PROPERTIES = "all";
+// All three properties share this zone today; bucketing in computeDayDensity
+// uses each booking's own property timezone, so a second zone needs no change.
+const CALENDAR_TZ = "America/Chicago";
 
 type RawSearchParams = Record<string, string | string[] | undefined>;
 
@@ -26,96 +34,113 @@ function first(value: string | string[] | undefined): string | undefined {
   return value;
 }
 
-function isBookingStatus(value: string | undefined): value is AdminBookingStatus {
-  return !!value && (ADMIN_BOOKING_STATUSES as ReadonlyArray<string>).includes(value);
+function todayKeyInTz(timezone: string): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 }
 
-function isBookingType(value: string | undefined): value is AdminBookingType {
-  return !!value && (ADMIN_BOOKING_TYPES as ReadonlyArray<string>).includes(value);
+/** Add days to a YYYY-MM-DD key (UTC math; the key is timezone-agnostic). */
+function addDaysToKey(dateKey: string, days: number): string {
+  const [year, monthNumber, dayOfMonth] = dateKey.split("-").map(Number);
+  const date = new Date(Date.UTC(year, monthNumber - 1, dayOfMonth));
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
 }
 
-function parseFilters(params: RawSearchParams): AdminBookingListFilters {
-  const statusValue = first(params.status);
-  const typeValue = first(params.type);
-  const propertyId = first(params.propertyId) || undefined;
-  const from = first(params.from) || undefined;
-  const to = first(params.to) || undefined;
-  const searchTerm = first(params.q)?.trim() || undefined;
-  const pageValue = first(params.page);
-  const page = pageValue ? Math.max(0, parseInt(pageValue, 10) || 0) : 0;
+const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
+const DAY_PATTERN = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
-  return {
-    status: isBookingStatus(statusValue) ? statusValue : undefined,
-    type: isBookingType(typeValue) ? typeValue : undefined,
-    propertyId,
-    from,
-    to,
-    q: searchTerm,
-    page,
-  };
-}
-
-function buildPageHref(
-  filters: AdminBookingListFilters,
-  nextPage: number,
-): string {
-  const queryParams = new URLSearchParams();
-  if (filters.status) queryParams.set("status", filters.status);
-  if (filters.type) queryParams.set("type", filters.type);
-  if (filters.propertyId) queryParams.set("propertyId", filters.propertyId);
-  if (filters.from) queryParams.set("from", filters.from);
-  if (filters.to) queryParams.set("to", filters.to);
-  if (filters.q) queryParams.set("q", filters.q);
-  if (nextPage > 0) queryParams.set("page", String(nextPage));
-  const queryString = queryParams.toString();
-  return queryString ? `${BASE_PATH}?${queryString}` : BASE_PATH;
-}
-
-export default async function AdminBookingsList({
+export default async function AdminBookingsCalendarPage({
   searchParams,
 }: {
   searchParams: Promise<RawSearchParams>;
 }) {
   const params = await searchParams;
-  const filters = parseFilters(params);
+  const todayKey = todayKeyInTz(CALENDAR_TZ);
+
+  const monthValue = first(params.month);
+  const month = monthValue && MONTH_PATTERN.test(monthValue)
+    ? monthValue
+    : todayKey.slice(0, 7);
+  const [year, monthNumber] = month.split("-").map(Number);
+
+  const propertyValue = first(params.property) || ALL_PROPERTIES;
+  const isAllProperties = propertyValue === ALL_PROPERTIES;
 
   const supabase = await createServerSupabaseClient();
 
-  const [list, propertiesResult] = await Promise.all([
-    getAdminBookingsList(supabase, filters).catch((err: Error) => ({
-      error: err.message,
-      rows: [],
-      totalCount: 0,
-      page: filters.page ?? 0,
-      pageSize: 50,
-      hasMore: false,
-    })),
-    getPublicProperties(supabase),
-  ]);
+  let properties: PropertyOption[] = [];
+  let monthRows: AdminBookingListRow[] = [];
+  let error: string | null = null;
+  let horizonDate: string | null = null;
+  // Slug/timezone needed for the day-detail columns, beyond the filter options.
+  let propertyDetails: Awaited<ReturnType<typeof getAdminPropertiesList>> = [];
 
-  const properties = propertiesResult.data ?? [];
+  try {
+    propertyDetails = await getAdminPropertiesList(supabase);
+    properties = propertyDetails.map((property) => ({
+      id: property.id,
+      name: property.name,
+    }));
 
-  const error = "error" in list ? list.error : null;
-  const start = list.page * list.pageSize + (list.rows.length > 0 ? 1 : 0);
-  const end = list.page * list.pageSize + list.rows.length;
+    // The filter narrows the fetch; "all" omits propertyId.
+    const selectedPropertyId = isAllProperties ? undefined : propertyValue;
+    // Two months so the second calendar (next month) is also density-colored;
+    // the second month is hidden by CSS below tablet width.
+    monthRows = await getAdminMonthBookings(supabase, {
+      propertyId: selectedPropertyId,
+      year,
+      month: monthNumber,
+      monthCount: 2,
+    });
+
+    // Horizon boundary: a specific property's own horizon, or the furthest
+    // any property allows when viewing all.
+    const horizonDays = isAllProperties
+      ? propertyDetails.reduce(
+          (furthest, property) => Math.max(furthest, property.bookingHorizonDays),
+          0,
+        )
+      : (propertyDetails.find((property) => property.id === propertyValue)
+          ?.bookingHorizonDays ?? null);
+    if (horizonDays !== null) {
+      horizonDate = addDaysToKey(todayKey, horizonDays);
+    }
+  } catch (caughtError) {
+    error = (caughtError as Error).message;
+  }
+
+  const densityMap = computeDayDensity(monthRows, propertyDetails);
+  const dayCells = Object.fromEntries(densityMap);
+
+  // Default selected day: today if it's inside the viewed month, else the 1st.
+  const dayValue = first(params.day);
+  const selectedDay = dayValue && DAY_PATTERN.test(dayValue)
+    ? dayValue
+    : todayKey.slice(0, 7) === month
+      ? todayKey
+      : `${month}-01`;
+
+  // Day-detail columns: bookings on the selected day, grouped per property.
+  const columnProperties = isAllProperties
+    ? propertyDetails
+    : propertyDetails.filter((property) => property.id === propertyValue);
+  const selectedDayRows = monthRows.filter(
+    (row) => bookingCalendarDate(row) === selectedDay,
+  );
 
   return (
     <PageShell width="xl">
       <AdminBreadcrumb
-        segments={[
-          { label: "Admin", href: "/admin" },
-          { label: "Bookings" },
-        ]}
+        segments={[{ label: "Admin", href: "/admin" }, { label: "Bookings" }]}
       />
       <Heading level={1} size="h2" underline>
         Bookings
       </Heading>
-
-      <BookingFilters
-        current={filters}
-        properties={properties}
-        basePath={BASE_PATH}
-      />
 
       {error && (
         <div className="mt-4">
@@ -125,35 +150,40 @@ export default async function AdminBookingsList({
         </div>
       )}
 
-      <div className={s.summary}>
-        {list.totalCount === 0
-          ? "0 bookings"
-          : `Showing ${start}–${end} of ${list.totalCount}`}
-      </div>
+      <BookingsCalendar
+        month={month}
+        selectedDay={selectedDay}
+        propertyId={propertyValue}
+        properties={properties}
+        dayCells={dayCells}
+        today={todayKey}
+        horizonDate={horizonDate}
+        basePath={BASE_PATH}
+      />
 
-      <BookingListTable rows={list.rows} />
-
-      {(list.page > 0 || list.hasMore) && (
-        <div className={s.pagination}>
-          <div className={s.pageInfo}>Page {list.page + 1}</div>
-          <div className={s.pageButtons}>
-            {list.page > 0 ? (
-              <Button asChild variant="secondary" size="sm">
-                <Link href={buildPageHref(filters, list.page - 1)}>
-                  ← Previous
-                </Link>
-              </Button>
-            ) : null}
-            {list.hasMore ? (
-              <Button asChild variant="secondary" size="sm">
-                <Link href={buildPageHref(filters, list.page + 1)}>
-                  Next →
-                </Link>
-              </Button>
-            ) : null}
-          </div>
+      <section style={{ marginTop: "var(--space-6)" }}>
+        <p className={dashboard.dayLabel}>
+          <span className={dashboard.dayLabelName}>Schedule</span>
+          <span className={dashboard.dayLabelDate}>
+            {formatDateLong(selectedDay)}
+          </span>
+        </p>
+        <div className={dashboard.columnGrid}>
+          {columnProperties.map((property) => (
+            <DaySchedule
+              key={property.id}
+              propertyId={property.id}
+              propertyName={property.name}
+              propertySlug={property.slug}
+              rows={selectedDayRows
+                .filter((row) => row.propertyId === property.id)
+                .map(bookingRowToScheduleBlock)}
+              dateInTz={selectedDay}
+              todayInTz={todayKey}
+            />
+          ))}
         </div>
-      )}
+      </section>
     </PageShell>
   );
 }

@@ -18,7 +18,10 @@ import {
 } from "@/src/services/admin/bids";
 import { bidStatusLabel } from "@/src/components/admin/bid-status-badge";
 import { PropertyPill } from "@/src/components/admin/property-pill";
-import { DaySchedule } from "@/src/components/admin/day-schedule";
+import {
+  DaySchedule,
+  bidRowToScheduleBlock,
+} from "@/src/components/admin/day-schedule";
 import s from "@/src/components/admin/dashboard.module.css";
 
 export const dynamic = "force-dynamic";
@@ -277,7 +280,7 @@ export default async function AdminHome() {
                         propertyId={col.propertyId}
                         propertyName={col.propertyName}
                         propertySlug={col.propertySlug}
-                        rows={col.rows}
+                        rows={col.rows.map(bidRowToScheduleBlock)}
                         dateInTz={todayCt}
                         todayInTz={todayCt}
                       />
@@ -299,7 +302,7 @@ export default async function AdminHome() {
                             propertyId={col.propertyId}
                             propertyName={col.propertyName}
                             propertySlug={col.propertySlug}
-                            rows={col.rows}
+                            rows={col.rows.map(bidRowToScheduleBlock)}
                             dateInTz={tomorrowCt}
                             todayInTz={todayCt}
                           />

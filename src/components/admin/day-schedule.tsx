@@ -1,14 +1,58 @@
 import Link from "next/link";
 import { cn } from "@/lib/ui";
-import type { AdminBidListRow } from "@/src/services/admin/bids";
+import type { AdminBookingType, AdminBidListRow } from "@/src/services/admin/bids";
+import type { AdminBookingListRow } from "@/src/services/admin/bookings";
 import { PropertyPill } from "./property-pill";
 import s from "./day-schedule.module.css";
+
+/**
+ * The hourly grid's view model — one block on the timeline. Decoupled from any
+ * source row so the dashboard (bid rows) and the bookings calendar (booking
+ * rows) can both feed it via the adapters below. `href` is resolved by the
+ * adapter, so DaySchedule owns no routing knowledge.
+ */
+export interface ScheduleBlock {
+  id: string;
+  startTime: string;
+  durationHours: number;
+  guestName: string;
+  guestCount: number;
+  bookingType: AdminBookingType;
+  href: string;
+}
+
+/** Dashboard bid rows → blocks: the row id *is* the bid id. */
+export function bidRowToScheduleBlock(row: AdminBidListRow): ScheduleBlock {
+  return {
+    id: row.id,
+    startTime: row.startTime,
+    durationHours: row.durationHours,
+    guestName: row.guestName,
+    guestCount: row.guestCount,
+    bookingType: row.bookingType,
+    href: `/admin/bids/${row.id}`,
+  };
+}
+
+/** Booking rows → blocks: link to the bid detail when one exists, else the
+    no-bid booking detail (the future admin-created-booking case). */
+export function bookingRowToScheduleBlock(row: AdminBookingListRow): ScheduleBlock {
+  return {
+    id: row.id,
+    startTime: row.startTime,
+    durationHours: row.durationHours,
+    guestName: row.guestName,
+    guestCount: row.guestCount,
+    bookingType: row.bookingType,
+    href: row.bidId ? `/admin/bids/${row.bidId}` : `/admin/bookings/${row.id}`,
+  };
+}
 
 interface DayScheduleProps {
   propertyId: string;
   propertyName: string;
   propertySlug: string;
-  rows: ReadonlyArray<AdminBidListRow>;
+  rows: ReadonlyArray<ScheduleBlock>;
   /** YYYY-MM-DD in the property's timezone — used to draw the "now" line
       only if the date matches today. */
   dateInTz: string;
@@ -18,7 +62,10 @@ interface DayScheduleProps {
 
 const DEFAULT_DAY_START = 7;
 const DEFAULT_DAY_END = 20;
-const HOUR_HEIGHT = 56;
+const HOUR_HEIGHT = 72;
+// A block needs roughly this many pixels to show all three lines (time +
+// guest + activity meta) without clipping; below it we drop the meta line.
+const META_MIN_HEIGHT = 64;
 
 const SLUG_TO_BLOCK: Record<string, string> = {
   "horseshoe-bay": "block_hsb",
@@ -53,7 +100,7 @@ function formatRangeLabel(startHour: number, durationHours: number): string {
   } CT`;
 }
 
-const BOOKING_TYPE_SHORT: Record<AdminBidListRow["bookingType"], string> = {
+const BOOKING_TYPE_SHORT: Record<AdminBookingType, string> = {
   plan_a_visit: "Plan a Visit",
   private_lesson: "Lesson",
   host_an_occasion: "Occasion",
@@ -136,11 +183,11 @@ export function DaySchedule({
             row.durationHours * HOUR_HEIGHT - 4,
             HOUR_HEIGHT - 4,
           );
-          const isShort = row.durationHours < 2;
+          const isShort = height < META_MIN_HEIGHT;
           return (
             <Link
               key={row.id}
-              href={`/admin/bids/${row.id}`}
+              href={row.href}
               className={cn(
                 s.block,
                 s[blockVariant] ?? s.block_neutral,

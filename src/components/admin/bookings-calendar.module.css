@@ -1,0 +1,234 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+/* --- Property filter --- */
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.filterButton {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--olive);
+  cursor: pointer;
+  transition: background var(--motion-fast) ease, color var(--motion-fast) ease;
+}
+
+.filterButton:hover {
+  background: var(--cream);
+}
+
+.filterActive,
+.filterActive:hover {
+  background: var(--olive);
+  color: var(--paper);
+  border-color: var(--olive);
+}
+
+/* --- Density palette (count buckets). Each class only sets CSS variables so
+   the same class colors both a day cell and a legend swatch without a
+   specificity battle against react-day-picker's base styles. --- */
+
+.empty {
+  --density-bg: var(--paper);
+  --density-fg: var(--gray);
+  --density-border: var(--border);
+}
+.light {
+  --density-bg: rgba(184, 156, 115, 0.38);
+  --density-fg: var(--olive-deep);
+  --density-border: rgba(184, 156, 115, 0.6);
+}
+.busy {
+  --density-bg: rgba(217, 143, 43, 0.6);
+  --density-fg: var(--olive-darker);
+  --density-border: rgba(217, 143, 43, 0.85);
+}
+.full {
+  --density-bg: var(--olive-deep);
+  --density-fg: var(--paper);
+  --density-border: var(--olive-darker);
+}
+
+/* --- react-day-picker container + brand overrides --- */
+
+.calendar {
+  --rdp-accent-color: var(--olive);
+  --rdp-accent-background-color: var(--cream);
+  --rdp-day-width: 56px;
+  --rdp-day-height: 56px;
+  --rdp-day_button-width: 100%;
+  --rdp-day_button-height: 100%;
+  --rdp-day_button-border-radius: var(--radius-card);
+  --rdp-day_button-border: 1px solid transparent;
+  --rdp-today-color: var(--olive-deep);
+  --rdp-nav_button-width: 2rem;
+  --rdp-nav_button-height: 2rem;
+  --rdp-months-gap: var(--space-6);
+  font-family: var(--sans);
+  color: var(--olive);
+}
+
+/* Keep the two months side-by-side (never stack-wrap); the narrow-screen
+   single-month fallback is handled by hiding the second month below. */
+.calendar :global(.rdp-months) {
+  flex-wrap: nowrap;
+}
+
+.calendar :global(.rdp-month_grid) {
+  border-collapse: separate;
+  border-spacing: 3px;
+}
+
+.calendar :global(.rdp-month_caption) {
+  padding-left: var(--space-1);
+}
+
+.calendar :global(.rdp-caption_label) {
+  font-family: var(--serif);
+  font-size: var(--text-h4);
+  color: var(--olive-deep);
+}
+
+.calendar :global(.rdp-weekday) {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray);
+  font-weight: 500;
+}
+
+.calendar :global(.rdp-chevron) {
+  fill: var(--olive);
+}
+
+/* --- Day cells. Scoped under .calendar so these win over rdp's
+   .rdp-day_button base rules (equal class count, but the descendant
+   combinator adds specificity). --- */
+
+.calendar .day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: var(--density-bg);
+  color: var(--density-fg);
+  border: 1px solid var(--density-border);
+  border-radius: var(--radius-card);
+  transition: filter var(--motion-fast) ease, transform var(--motion-fast) ease;
+}
+
+.calendar .day:hover {
+  filter: brightness(0.96);
+  transform: translateY(-1px);
+}
+
+.dayNumber {
+  font-family: var(--serif);
+  font-size: var(--text-body);
+  line-height: 1;
+}
+
+.dayCount {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  font-weight: 600;
+}
+
+.calendar .today {
+  box-shadow: 0 0 0 2px var(--olive);
+}
+
+.calendar .selected {
+  box-shadow: inset 0 0 0 2px var(--olive-deep);
+  border-color: var(--olive-deep);
+}
+
+.calendar .today.selected {
+  box-shadow: 0 0 0 2px var(--olive), inset 0 0 0 2px var(--olive-deep);
+}
+
+.calendar .past {
+  opacity: 0.5;
+}
+
+/* Days past the booking horizon — guests can't book here yet. Dimmed +
+   hatched so the boundary reads without an explicit divider. */
+.calendar .beyondHorizon {
+  opacity: 0.55;
+  border-style: dashed;
+}
+
+/* --- Legend --- */
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.legendLabel {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+}
+
+.legendSwatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: var(--density-bg);
+  border: 1px solid var(--density-border);
+}
+
+/* Two 7-column grids stop fitting side-by-side below ~900px, so drop to a
+   single month for portrait tablets and phones. The nav still moves the
+   (now sole) visible month. */
+@media (max-width: 899px) {
+  .calendar :global(.rdp-month ~ .rdp-month) {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .calendar {
+    --rdp-day-width: 13vw;
+    --rdp-day-height: 13vw;
+  }
+}
