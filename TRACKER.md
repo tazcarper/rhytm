@@ -117,3 +117,49 @@ Items identified during review as worth doing eventually but explicitly deferred
 | Phase 6 → 10 | Structured logging on the duplicate-claim path (`23505` conflict) for idempotency observability | Belongs in Phase 10 (Sentry / Axiom integration), not the webhook handler itself | Phase 10 is in progress — emit a `webhook.duplicate_claim` structured event with `{ source, event_type, id }` so Axiom can chart it |
 | App 2 → pre-launch | Promote service-role public reads (slots availability + pricing rules) to `SECURITY DEFINER` RPCs | App 2 placeholder mode — `bookings` and `pricing_rules` have no anon SELECT RLS, so the public funnel reads them via service-role. Service-role works but enlarges the trusted surface. RPCs (`public_available_slots(...)` and `public_pricing_for_booking(...)`) encapsulate the queries and let anon call them via `SET search_path = public` + careful return shapes — column-projected, PII-free. Today's callers: `src/services/public/slots.ts`, `src/services/public/pricing.ts`. | Before public launch, OR before adding a third service-role read caller |
 | Cross-cutting | Extend the intent-revealing-naming sweep (2026-05-22) to the rest of the codebase | First pass covered admin pages + filters + admin services + bid services + memberships service + dev actions + login form + booking date helpers (17 files). Banned: `raw`, `q` (var), `qs`, `v`, `obj`, `fmt`, single-letter map vars. Kept idioms: `i`, `e`, `err`, `ctx`, `s` (CSS), `prev`/`next`. Rules live in `.claude/skills/naming/SKILL.md` (auto-triggers on TS/TSX edits) + memory `feedback_intent_revealing_names.md`. Untouched: most of `src/components/public/booking-flow/*`, `app/(public)/book/**`, public services beyond `bids/get-bid.ts`. | Naturally — apply the rules whenever a file in those areas is next touched. No need to do as a standalone PR. |
+
+## Launch / Production Cutover
+
+The pre-launch runbook for flipping every integration from test/sandbox to live. **None of this is done yet** — App 6 (Stripe) and App 8 (Resend) were verified in *test mode* only. Work top to bottom; nothing here should be touched until the client signs off on go-live. Tick each box as it lands and note the date.
+
+### Stripe (App 6 — Payments)
+- [ ] Activate the live Stripe account (business details, bank account, identity verification complete).
+- [ ] Generate **live** keys — swap `STRIPE_SECRET_KEY` (`sk_live_…`) and `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (`pk_live_…`) in Vercel prod env. Prefer a **Restricted live key** scoped to PaymentIntents + Refunds (see `stripe-best-practices` skill) over the unrestricted secret key.
+- [ ] Create the **live-mode webhook endpoint** in the Stripe dashboard pointing at the prod URL (`/api/webhooks/stripe`); copy its signing secret into `STRIPE_WEBHOOK_SECRET` (the `whsec_…` from live mode differs from the `stripe listen` / test value).
+- [ ] Confirm the webhook subscribes to the same events the handler claims (`payment_intent.succeeded`, refund events).
+- [ ] Smoke-test one real low-value deposit + manual refund end-to-end against prod, then refund it.
+
+### Resend (App 8 — Notifications + Supabase Auth SMTP)
+- [ ] Verify the production sending domain in Resend — add SPF, DKIM, and DMARC DNS records; wait for verification to go green.
+- [ ] Generate a **production** `RESEND_API_KEY` and set it in Vercel prod env.
+- [ ] Set `EMAIL_TRANSPORT=resend` in prod (defaults to the logging transport otherwise), plus `RESEND_FROM_EMAIL` and `RESEND_REPLY_TO` on the verified domain.
+- [ ] Configure **custom SMTP (Resend) for Supabase Auth** (Session Handoff item B) so magic-link / OAuth invite email isn't capped at the built-in ~3–4/hour limit. Use the same verified domain.
+- [ ] Send one real transactional email of each template (bid receipt, etc.) and confirm inbox delivery + no spam folder.
+
+### Supabase
+- [ ] Confirm the prod project is the one wired to Vercel prod (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`).
+- [ ] All migrations applied to the prod DB; run the **RLS manual-test pass** against prod (CLAUDE.md RLS rule 6 — apply-success is not proof).
+- [ ] Confirm the `waivers` private Storage bucket exists in prod with its access policy (App 7 homegrown waiver).
+- [ ] Set the OAuth redirect / Site URL in Supabase Auth to the prod domain (not `localhost` / preview).
+
+### Waiver (App 7 — homegrown)
+- [ ] `WAIVER_PROVIDER` set correctly in prod (homegrown path; Dropbox Sign vars are the deprecated fallback only — see [[homegrown-waiver]]).
+- [ ] If Dropbox Sign is *not* the active provider, no Dropbox env vars need real values; if it ever is, flip `DROPBOX_SIGN_TEST_MODE=false` and supply live API key + template + webhook secret.
+
+### Vercel / domain / env
+- [ ] Custom production domain attached (replace the `rhytm-one.vercel.app` placeholder) with HTTPS + DNS.
+- [ ] `NEXT_PUBLIC_SITE_URL` set to the real prod origin (used for absolute links in emails / redirects).
+- [ ] Remove or lock down the `/dev` dashboard for prod — `DEV_DASHBOARD_PASSWORD` should not ship a known/weak value to prod (ideally the route is disabled in prod entirely).
+- [ ] `BID_COOKIE_SECRET` is a fresh strong secret in prod (not the dev value).
+- [ ] **Set the full prod env matrix in Vercel** (not `.env.local` — that's local-only and gitignored). What vars exist is defined by `.env.local`, which already carries everything the code reads **except** `WAIVER_PROVIDER` and `DROPBOX_SIGN_TEST_MODE` (both fall back to code defaults — set them explicitly in prod only if you don't want the default). Mirror every var into Vercel prod with **live** values.
+- [ ] **Re-sync `.env.example`** (committed template — for onboarding, not used at runtime) so it documents the real matrix: it currently omits `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `RESEND_REPLY_TO`, `EMAIL_TRANSPORT`, `WAIVER_PROVIDER`, `NEXT_PUBLIC_SITE_URL`, `DEV_DASHBOARD_PASSWORD`, `DROPBOX_SIGN_TEST_MODE`.
+
+### Inngest (App 9) — when workflows ship
+- [ ] Production Inngest environment created; `INNGEST_EVENT_KEY` + `INNGEST_SIGNING_KEY` set to prod values; the prod app synced/registered in the Inngest dashboard.
+
+### Observability (App 10) — gates "1.0"
+- [ ] Promote App 10 from deferred — Sentry + Axiom per `plan/app/app-10-observability.md` before relying on prod for anything beyond log-grepping.
+
+### Pre-launch hardening (promote from Deferred Improvements above)
+- [ ] Promote App 2 service-role public reads (slots + pricing) to `SECURITY DEFINER` RPCs.
+- [ ] Add `CHECK (jsonb_typeof(...))` guards on `bids.gear_list`, `bids.faq`, `member_adventures.details`.

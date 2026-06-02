@@ -1,0 +1,68 @@
+/* Wider reading surface than the design-system presets (all fixed px).
+   Declared after page-shell styles in the bundle, so this same-specificity
+   rule wins and the shell tracks 80% of the viewport. */
+.wideShell {
+  max-width: 80%;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-10);
+}
+
+.backLink {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+  text-decoration: none;
+  width: fit-content;
+}
+
+.backLink:hover {
+  color: var(--olive-deep);
+}
+
+.actions {
+  margin-top: var(--space-2);
+}
+
+/* Index: list of batch cards */
+.batchList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.batchCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Batch page: category groups */
+.group {
+  margin-bottom: var(--space-10);
+}
+
+.groupTitle {
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--rule-strong, var(--border-strong));
+  text-transform: capitalize;
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.intro {
+  margin-top: var(--space-12);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--rule, var(--border));
+}

@@ -35,7 +35,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${cormorant.variable} ${inter.variable}`}>
-      <body>
+      {/* suppressHydrationWarning: browser extensions (Grammarly, etc.) inject
+          data-* attributes onto <body> before React hydrates, which otherwise
+          trips a dev-only hydration mismatch. Scoped to this element only — it
+          does NOT suppress warnings for children. */}
+      <body suppressHydrationWarning>
         <SiteHeader />
         {children}
       </body>
