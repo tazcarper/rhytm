@@ -54,6 +54,10 @@
   margin-bottom: var(--space-6);
 }
 
+.bannerStrong {
+  font-weight: 600;
+}
+
 /* Finalized (deposit paid + waiver signed): a gentle rise-in so the success
    message feels like it arrives, paired with the one-shot confetti burst
    (see BidCelebration). The confetti is the spectacle; this keeps the banner

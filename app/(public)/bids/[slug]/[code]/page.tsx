@@ -243,11 +243,9 @@ function StatusBanner({
     return (
       <div className={s.banner}>
         <Alert variant="info" title="Your bid is being prepared">
-          The team will review your request and confirm within 24 hours.
-          You&rsquo;ll get an email at{" "}
-          <strong>{detail.booking.guestEmail}</strong> with the full
-          itinerary, a signature link, and a deposit link as soon as it&rsquo;s
-          ready.
+          {`The team will review your request and confirm within 24 hours. You’ll get an email at `}
+          <span className={s.bannerStrong}>{detail.booking.guestEmail}</span>
+          {` with the full itinerary, a signature link, and a deposit link as soon as it’s ready.`}
         </Alert>
       </div>
     );
