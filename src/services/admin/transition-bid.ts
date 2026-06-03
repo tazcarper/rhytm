@@ -6,7 +6,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createSignatureEnvelope } from "@/src/services/dropbox-sign/create-envelope";
 import { getWaiverProvider } from "@/lib/waiver/provider";
 import { inngest } from "@/lib/inngest/client";
-import { bidConfirmed } from "@/lib/inngest/events";
+import { bidConfirmed, bidDenied } from "@/lib/inngest/events";
 
 export interface TransitionResult {
   ok: boolean;
@@ -32,7 +32,8 @@ export async function confirmBid(
 ): Promise<TransitionResult> {
   const { error } = await supabase
     .from("bids")
-    .update({ status: "confirmed" })
+    // confirmed_at is the clock the W2 unsigned-bid digest measures from.
+    .update({ status: "confirmed", confirmed_at: new Date().toISOString() })
     .eq("id", bidId);
 
   if (error) {
@@ -123,7 +124,29 @@ export async function denyBid(
   if (error) {
     return { ok: false, error: friendlyTransitionError(error.message) };
   }
+
+  // Fire bid/denied post-response so the guest gets a courteous "couldn't
+  // confirm this one" email. Best-effort + stable dedupe id, same contract
+  // as the confirm path: the DB status flip is the source of truth, a failed
+  // emit logs and returns, and a replayed after() callback won't double-send.
+  after(() => fireBidDeniedEventBestEffort(bidId));
+
   return { ok: true };
+}
+
+async function fireBidDeniedEventBestEffort(bidId: string): Promise<void> {
+  try {
+    await inngest.send({
+      id: `bid-${bidId}-denied`,
+      name: bidDenied.name,
+      data: { bidId },
+    });
+  } catch (err) {
+    console.error("[transition-bid/deny] inngest bid/denied send failed", {
+      bidId,
+      err,
+    });
+  }
 }
 
 function generateAccessCode(): string {

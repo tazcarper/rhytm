@@ -45,3 +45,42 @@ export async function updateDisplayName(
   revalidatePath("/member", "layout");
   return { ok: true };
 }
+
+export type UpdatePasswordResult = { ok: boolean; error?: string };
+
+// bcrypt caps the meaningful input at 72 bytes; below that we set a sane
+// floor. The authoritative policy is the Supabase dashboard's password
+// settings — this is a friendly first line of defense.
+const MIN_PASSWORD_LENGTH = 8;
+const MAX_PASSWORD_LENGTH = 72;
+
+// Sets (or changes) the signed-in member's password so they can sign in
+// directly next time instead of waiting for a magic link. Works on the
+// existing invited auth user — no new user, no email re-confirmation. The
+// session must be present (the member is on /member/profile, i.e. already
+// authenticated), so the cookie-aware server client carries it into
+// updateUser. Magic link remains available as the recovery path, so there's
+// no separate reset flow.
+export async function updatePassword(
+  password: string,
+): Promise<UpdatePasswordResult> {
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return {
+      ok: false,
+      error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
+    };
+  }
+  if (password.length > MAX_PASSWORD_LENGTH) {
+    return {
+      ok: false,
+      error: `Password must be ${MAX_PASSWORD_LENGTH} characters or fewer.`,
+    };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
+}

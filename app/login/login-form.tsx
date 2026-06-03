@@ -2,26 +2,30 @@
 
 import { useState, type FormEvent } from "react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
+import { portalHomeForRole } from "@/lib/auth/portal";
 import { Button, FormField, Input } from "@/lib/ui";
 import styles from "./login.module.css";
 
-// idle              — nothing in flight, form is interactive
-// submitting_email  — magic-link OTP request awaiting Supabase response
-// sent              — Supabase accepted the OTP request, "check your inbox"
-// submitting_google — OAuth redirect to Google has been initiated; the
-//                     browser is about to leave this page. State exists
-//                     so the buttons disable for the (brief) gap
-//                     between click and navigation.
-// error             — last action failed, errorMessage is populated
+// idle                — nothing in flight, form is interactive
+// submitting_email     — magic-link OTP request awaiting Supabase response
+// submitting_password  — password sign-in awaiting Supabase response
+// sent                 — Supabase accepted the OTP request, "check your inbox"
+// submitting_google    — OAuth redirect to Google has been initiated; the
+//                        browser is about to leave this page. State exists
+//                        so the buttons disable for the (brief) gap
+//                        between click and navigation.
+// error                — last action failed, errorMessage is populated
 type FormState =
   | "idle"
   | "submitting_email"
+  | "submitting_password"
   | "sent"
   | "submitting_google"
   | "error";
 
 export function LoginForm({ next }: { next: string | null }) {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [state, setState] = useState<FormState>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -31,10 +35,45 @@ export function LoginForm({ next }: { next: string | null }) {
     return callback.toString();
   }
 
-  async function handleEmailSubmit(e: FormEvent<HTMLFormElement>) {
+  // One smart submit: if the member typed a password, sign in with it;
+  // otherwise fall back to the magic-link flow. Passwords are an opt-in
+  // convenience members can set in their profile after first login — the
+  // link path stays the default and works for everyone.
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!email) return;
+    if (password) {
+      await handlePasswordSignIn();
+    } else {
+      await handleMagicLink();
+    }
+  }
 
+  async function handlePasswordSignIn() {
+    setState("submitting_password");
+    setErrorMessage(null);
+
+    const supabase = createBrowserSupabaseClient();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setErrorMessage(mapErrorMessage(error.message));
+      setState("error");
+      return;
+    }
+
+    // Password sign-in doesn't pass through /auth/callback, but the role
+    // claim is already on the user from their first (magic-link) login, so
+    // the JWT gates middleware correctly. Send them to `next` or their
+    // role's portal home.
+    const role = data.user?.app_metadata?.role as string | undefined;
+    window.location.assign(next ?? portalHomeForRole(role));
+  }
+
+  async function handleMagicLink() {
     setState("submitting_email");
     setErrorMessage(null);
 
@@ -102,6 +141,7 @@ export function LoginForm({ next }: { next: string | null }) {
           className={styles.loginReset}
           onClick={() => {
             setEmail("");
+            setPassword("");
             setState("idle");
             setErrorMessage(null);
           }}
@@ -112,13 +152,25 @@ export function LoginForm({ next }: { next: string | null }) {
     );
   }
 
-  const isBusy = state === "submitting_email" || state === "submitting_google";
+  const isBusy =
+    state === "submitting_email" ||
+    state === "submitting_password" ||
+    state === "submitting_google";
+
+  const submitLabel =
+    state === "submitting_password"
+      ? "Signing in"
+      : state === "submitting_email"
+        ? "Sending link"
+        : password
+          ? "Sign in"
+          : "Email me a sign-in link";
 
   return (
     <>
       <form
         className={`${styles.loginForm} ${state === "error" ? styles.shake : ""}`}
-        onSubmit={handleEmailSubmit}
+        onSubmit={handleSubmit}
         autoComplete="on"
         // Reset the shake animation each time the user resubmits.
         key={state === "error" ? "error" : "ok"}
@@ -140,14 +192,32 @@ export function LoginForm({ next }: { next: string | null }) {
           )}
         </FormField>
 
+        <FormField
+          label="Password"
+          helper="Leave blank and we'll email you a sign-in link. Set a password in your profile to skip the email next time."
+        >
+          {(controlProps) => (
+            <Input
+              {...controlProps}
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              disabled={isBusy}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          )}
+        </FormField>
+
         <Button
           type="submit"
           variant="primary"
           fullWidth
-          loading={state === "submitting_email"}
+          loading={state === "submitting_email" || state === "submitting_password"}
           disabled={isBusy || !email}
         >
-          {state === "submitting_email" ? "Sending" : "Enter"}
+          {submitLabel}
         </Button>
       </form>
 
@@ -210,6 +280,12 @@ function GoogleMark() {
 // we don't accidentally swallow useful information.
 function mapErrorMessage(supabaseErrorMessage: string): string {
   const lower = supabaseErrorMessage.toLowerCase();
+  // Password sign-in with a wrong/unset password. Generic on purpose — don't
+  // reveal whether the email exists or whether a password is set — and point
+  // them at the always-available magic link.
+  if (lower.includes("invalid login credentials")) {
+    return "That email and password didn’t match. Leave the password blank to get a sign-in link instead.";
+  }
   if (
     lower.includes("user not found") ||
     lower.includes("signups not allowed") ||

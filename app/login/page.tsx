@@ -9,15 +9,16 @@ import styles from "./login.module.css";
 
 export const dynamic = "force-dynamic";
 
-// Members' entrance. Magic-link only. The same /login route serves
-// all three properties — members of Horseshoe Bay, Hog Heaven, and
-// Packsaddle all start here. Per-property themed login pages are a
-// future possibility but not in scope today.
+// Members' entrance. Magic link by default, with an OPTIONAL password a
+// member can set in their profile to sign in directly next time (App 4.6 —
+// the password field on the form falls back to the magic link when blank).
+// The same /login route serves all three properties — members of Horseshoe
+// Bay, Hog Heaven, and Packsaddle all start here. Per-property themed login
+// pages are a future possibility but not in scope today.
 //
-// Partner sign-in (email + password) and admin sign-in (email +
-// password + MFA) will land with App 5 and App 3 respectively. They
-// are intentionally NOT on this page — each has a different auth
-// shape and warrants its own surface.
+// Admin sign-in (email + password + MFA) will land with App 3 on its own
+// surface. The password field here also works for any already-onboarded
+// role, but only the member profile exposes a set-password UI this round.
 export default async function LoginPage({
   searchParams,
 }: {

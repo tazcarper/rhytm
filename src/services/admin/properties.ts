@@ -11,6 +11,16 @@ export interface AdminProperty {
   tagline: string | null;
   supportEmail: string | null;
   supportPhone: string | null;
+  // Pre-event reminder content (App 9 W3). Static per property; rendered in
+  // the cadence emails. Null omits the corresponding section.
+  directions: string | null;
+  parking: string | null;
+  arrivalContact: string | null;
+  // Admin-pasted Google Maps share link; rendered as the "Open in Google
+  // Maps" link in the pre-event emails.
+  mapUrl: string | null;
+  // Staff inbox for "new booking request" review alerts. Null → no alert.
+  notificationEmail: string | null;
 }
 
 type AdminPropertyRow = {
@@ -23,10 +33,15 @@ type AdminPropertyRow = {
   tagline: string | null;
   support_email: string | null;
   support_phone: string | null;
+  directions: string | null;
+  parking: string | null;
+  arrival_contact: string | null;
+  map_url: string | null;
+  notification_email: string | null;
 };
 
 const SELECT_COLUMNS =
-  "id, name, slug, timezone, booking_horizon_days, max_concurrent_groups, tagline, support_email, support_phone";
+  "id, name, slug, timezone, booking_horizon_days, max_concurrent_groups, tagline, support_email, support_phone, directions, parking, arrival_contact, map_url, notification_email";
 
 function rowToProperty(row: AdminPropertyRow): AdminProperty {
   return {
@@ -39,6 +54,11 @@ function rowToProperty(row: AdminPropertyRow): AdminProperty {
     tagline: row.tagline,
     supportEmail: row.support_email,
     supportPhone: row.support_phone,
+    directions: row.directions,
+    parking: row.parking,
+    arrivalContact: row.arrival_contact,
+    mapUrl: row.map_url,
+    notificationEmail: row.notification_email,
   };
 }
 
@@ -96,6 +116,19 @@ const optionalEmail = z
     "Not a valid email",
   );
 
+// Google Maps share link — must be an http(s) URL when present.
+const optionalUrl = z
+  .union([z.string(), z.null(), z.undefined()])
+  .transform((value) => {
+    if (value === null || value === undefined) return null;
+    const trimmed = value.trim();
+    return trimmed === "" ? null : trimmed;
+  })
+  .refine(
+    (value) => value === null || /^https?:\/\/\S+$/.test(value),
+    "Must be a link starting with http:// or https://",
+  );
+
 export const UpdateAdminPropertyInputSchema = z.object({
   propertyId: z.string().uuid(),
   bookingHorizonDays: z.coerce
@@ -110,6 +143,11 @@ export const UpdateAdminPropertyInputSchema = z.object({
   tagline: nullableTrimmed(500),
   supportEmail: optionalEmail,
   supportPhone: nullableTrimmed(50),
+  directions: nullableTrimmed(2000),
+  parking: nullableTrimmed(2000),
+  arrivalContact: nullableTrimmed(500),
+  mapUrl: optionalUrl,
+  notificationEmail: optionalEmail,
 });
 
 export type UpdateAdminPropertyInput = z.infer<
@@ -136,6 +174,11 @@ export async function updateAdminProperty(
       tagline: input.tagline,
       support_email: input.supportEmail,
       support_phone: input.supportPhone,
+      directions: input.directions,
+      parking: input.parking,
+      arrival_contact: input.arrivalContact,
+      map_url: input.mapUrl,
+      notification_email: input.notificationEmail,
       updated_at: new Date().toISOString(),
     })
     .eq("id", input.propertyId);

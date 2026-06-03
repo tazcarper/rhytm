@@ -28,6 +28,15 @@ export function PropertySettingsForm({ property }: PropertySettingsFormProps) {
   const [tagline, setTagline] = useState(property.tagline ?? "");
   const [supportEmail, setSupportEmail] = useState(property.supportEmail ?? "");
   const [supportPhone, setSupportPhone] = useState(property.supportPhone ?? "");
+  const [directions, setDirections] = useState(property.directions ?? "");
+  const [parking, setParking] = useState(property.parking ?? "");
+  const [arrivalContact, setArrivalContact] = useState(
+    property.arrivalContact ?? "",
+  );
+  const [mapUrl, setMapUrl] = useState(property.mapUrl ?? "");
+  const [notificationEmail, setNotificationEmail] = useState(
+    property.notificationEmail ?? "",
+  );
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -42,6 +51,11 @@ export function PropertySettingsForm({ property }: PropertySettingsFormProps) {
         tagline: tagline.trim() || null,
         supportEmail: supportEmail.trim() || null,
         supportPhone: supportPhone.trim() || null,
+        directions: directions.trim() || null,
+        parking: parking.trim() || null,
+        arrivalContact: arrivalContact.trim() || null,
+        mapUrl: mapUrl.trim() || null,
+        notificationEmail: notificationEmail.trim() || null,
       });
 
       if (!result.ok) {
@@ -146,6 +160,82 @@ export function PropertySettingsForm({ property }: PropertySettingsFormProps) {
         <span className={s.help} style={{ marginTop: "calc(-1 * var(--space-2))" }}>
           Support contact — saved but not yet displayed to guests.
         </span>
+
+        <label className={s.field}>
+          <span className={s.label}>Booking-alert email</span>
+          <input
+            type="email"
+            value={notificationEmail}
+            onChange={(e) => setNotificationEmail(e.target.value)}
+            className={s.input}
+            placeholder="bookings@example.com"
+          />
+          <span className={s.help}>
+            Staff inbox that gets a “new booking request — review needed” email
+            for this property. Blank turns the alert off.
+          </span>
+        </label>
+
+        <label className={s.field}>
+          <span className={s.label}>Google Maps link</span>
+          <input
+            type="url"
+            value={mapUrl}
+            onChange={(e) => setMapUrl(e.target.value)}
+            className={s.input}
+            maxLength={2000}
+            placeholder="https://maps.app.goo.gl/…"
+          />
+          <span className={s.help}>
+            Paste the Share link from Google Maps. Shown as an “Open in Google
+            Maps” link near the bottom of the pre-event emails. Blank hides it.
+          </span>
+        </label>
+
+        <label className={s.field}>
+          <span className={s.label}>Directions</span>
+          <textarea
+            value={directions}
+            onChange={(e) => setDirections(e.target.value)}
+            className={s.textarea}
+            maxLength={2000}
+            rows={3}
+            placeholder="How to get here — address, landmarks, gate code."
+          />
+          <span className={s.help}>
+            Sent in the early pre-event reminder. Blank hides the section.
+          </span>
+        </label>
+
+        <label className={s.field}>
+          <span className={s.label}>Parking</span>
+          <textarea
+            value={parking}
+            onChange={(e) => setParking(e.target.value)}
+            className={s.textarea}
+            maxLength={2000}
+            rows={2}
+            placeholder="Where to park and where to go from there."
+          />
+          <span className={s.help}>
+            Sent a few days before the visit. Blank hides the section.
+          </span>
+        </label>
+
+        <label className={s.field}>
+          <span className={s.label}>Arrival contact</span>
+          <input
+            type="text"
+            value={arrivalContact}
+            onChange={(e) => setArrivalContact(e.target.value)}
+            className={s.input}
+            maxLength={500}
+            placeholder="Who to ask for on the day — e.g. “Ask for Cody at the lodge.”"
+          />
+          <span className={s.help}>
+            Sent in the day-before reminder. Blank hides the line.
+          </span>
+        </label>
 
         <div className={s.actions}>
           <Button asChild variant="secondary">

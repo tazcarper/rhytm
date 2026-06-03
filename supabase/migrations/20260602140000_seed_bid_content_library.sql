@@ -68,7 +68,10 @@ INSERT INTO bid_faq_templates (id, question, answer, dedupe_key, display_order) 
 
 -- ---- FAQ scopes: global / property / booking_type ----
 INSERT INTO bid_faq_template_scopes (template_id, scope_type, property_id, booking_type)
-SELECT 'f0000000-0000-0000-0000-000000000001'::uuid, 'global', NULL, NULL
+-- First SELECT casts the NULLs so the UNION resolves property_id to uuid and
+-- booking_type to the enum (a bare NULL types as text → "text and uuid cannot
+-- be matched" against the later property/booking_type rows).
+SELECT 'f0000000-0000-0000-0000-000000000001'::uuid, 'global', NULL::uuid, NULL::booking_type_enum
 UNION ALL SELECT 'f0000000-0000-0000-0000-000000000002'::uuid, 'global', NULL, NULL
 UNION ALL SELECT 'f0000000-0000-0000-0000-000000000003'::uuid, 'global', NULL, NULL
 UNION ALL SELECT 'f0000000-0000-0000-0000-000000000004'::uuid, 'global', NULL, NULL
@@ -132,7 +135,9 @@ INSERT INTO bid_gear_templates (id, name, description, dedupe_key, display_order
 
 -- ---- Gear scopes: global / property / booking_type ----
 INSERT INTO bid_gear_template_scopes (template_id, scope_type, property_id, booking_type)
-SELECT '90000000-0000-0000-0000-000000000001'::uuid, 'global', NULL, NULL
+-- See the FAQ-scopes note above: cast the first SELECT's NULLs so the UNION
+-- resolves property_id to uuid and booking_type to the enum.
+SELECT '90000000-0000-0000-0000-000000000001'::uuid, 'global', NULL::uuid, NULL::booking_type_enum
 UNION ALL SELECT '90000000-0000-0000-0000-000000000002'::uuid, 'global', NULL, NULL
 UNION ALL SELECT '90000000-0000-0000-0000-000000000003'::uuid, 'global', NULL, NULL
 UNION ALL SELECT '90000000-0000-0000-0000-000000000004'::uuid, 'global', NULL, NULL

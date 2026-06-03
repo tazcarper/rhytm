@@ -1,7 +1,12 @@
 import "server-only";
 import { onBidCreated } from "./on-bid-created";
 import { sendBidConfirmationEmail } from "./send-bid-confirmation-email";
+import { sendNewBidStaffNotification } from "./send-new-bid-staff-notification";
 import { sendBidConfirmedEmail } from "./send-bid-confirmed-email";
+import { sendWaiverSignedEmail } from "./send-waiver-signed-email";
+import { sendBidDeniedEmail } from "./send-bid-denied-email";
+import { sendPreEventCadence } from "./send-pre-event-cadence";
+import { sendUnsignedBidDigest } from "./send-unsigned-bid-digest";
 
 // Barrel of every Inngest function registered with the `serve` handler
 // in `app/api/inngest/route.ts`. Adding a new function:
@@ -16,5 +21,10 @@ import { sendBidConfirmedEmail } from "./send-bid-confirmed-email";
 export const inngestFunctions = [
   onBidCreated,
   sendBidConfirmationEmail,
+  sendNewBidStaffNotification,
   sendBidConfirmedEmail,
+  sendWaiverSignedEmail,
+  sendBidDeniedEmail,
+  sendPreEventCadence,
+  sendUnsignedBidDigest,
 ];

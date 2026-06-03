@@ -60,6 +60,12 @@ export const bidConfirmed = eventType("bid/confirmed", {
   }>(),
 });
 
+export const bidDenied = eventType("bid/denied", {
+  schema: staticSchema<{
+    bidId: string;
+  }>(),
+});
+
 export const bidSigned = eventType("bid/signed", {
   schema: staticSchema<{
     bidId: string;

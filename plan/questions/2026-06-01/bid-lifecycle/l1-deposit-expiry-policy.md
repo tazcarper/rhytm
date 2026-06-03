@@ -1,7 +1,7 @@
 # L1 — Deposit expiry: do unpaid deposits auto-expire a confirmed bid?
 
 **Category:** Bid lifecycle (App 6 — Stripe deposit / App 3 — Admin Portal)
-**Status:** Open · surfaced 2026-06-01
+**Status:** Resolved 2026-06-03 (no deposit-driven expiry for now; revisitable) · surfaced 2026-06-01
 **Blocks:** Whether we build an automated bid-expiry job (Inngest) and, if so, what deadline it keys off of
 
 ## Context — what the code does today
@@ -67,4 +67,12 @@ on-site. Pending the client's preferred N.
 
 ## Answer
 
-_(pending — discuss with client)_
+**Decided 2026-06-03 — NO deposit-driven expiry for now.** We do not cancel or release a
+slot for non-prepayment; an unpaid deposit holds its slot like any other confirmed bid.
+**Explicitly revisitable:** the client may later want near-event unpaid slots auto-released
+(event-pegged was the leading option). Until then the `expires_at` / `idx_bids_expiry` /
+`bid/expired` machinery stays inert — don't wire it without a fresh decision.
+
+Instead of auto-expiry we built the **W2 unsigned-bid staff digest** (App 9, 2026-06-03): a
+daily per-property email of bids confirmed 48h+ but still unsigned, so staff follow up
+manually. See TRACKER App 9 sub-phase 9.8 and [[project_bid_no_auto_cancel]].

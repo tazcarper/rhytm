@@ -3,6 +3,7 @@ import { getMyProfile } from "@/src/services/members/profile";
 import { Eyebrow, Heading, PageShell } from "@/lib/ui";
 import { MemberNav } from "@/src/components/members/member-nav";
 import { ProfileForm } from "@/src/components/members/profile-form";
+import { PasswordForm } from "@/src/components/members/password-form";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,15 @@ export default async function MemberProfilePage() {
       <MemberNav active="profile" />
 
       <ProfileForm initialDisplayName={prefill} email={user?.email ?? ""} />
+
+      <Heading level={2} size="h3" className="mt-10">
+        Password
+      </Heading>
+      <p className="text-gray font-serif italic text-[14px] mt-1 mb-0 max-w-md">
+        Set a password to sign in directly next time, instead of waiting for an
+        emailed link. You can always use the link as a backup.
+      </p>
+      <PasswordForm />
     </PageShell>
   );
 }
