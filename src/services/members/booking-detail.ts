@@ -72,6 +72,8 @@ export interface BookingDetail {
   } | null;
   disciplines: BookingDiscipline[];
   addOns: BookingAddOn[];
+  shareToken: string | null;
+  shareNote: string | null;
 }
 
 export interface BookingDetailResult {
@@ -93,7 +95,8 @@ function toNumber(value: string | number | null): number | null {
 // schema enforcement at the DB layer — staff edit it through the admin
 // UI. Accept anything iterable; fall back to a name-only entry if a
 // single string lands in the array. Filter unparseable junk.
-function parseGearList(raw: unknown): BookingGearItem[] {
+// Exported so the public shared-trip service reuses the same parsing.
+export function parseGearList(raw: unknown): BookingGearItem[] {
   if (!Array.isArray(raw)) return [];
   return raw.flatMap((entry): BookingGearItem[] => {
     if (typeof entry === "string") {
@@ -117,7 +120,7 @@ function parseGearList(raw: unknown): BookingGearItem[] {
   });
 }
 
-function parseFaq(raw: unknown): BookingFaqEntry[] {
+export function parseFaq(raw: unknown): BookingFaqEntry[] {
   if (!Array.isArray(raw)) return [];
   return raw.flatMap((entry): BookingFaqEntry[] => {
     if (!entry || typeof entry !== "object") return [];
@@ -132,7 +135,7 @@ function parseFaq(raw: unknown): BookingFaqEntry[] {
 const BOOKING_DETAIL_SELECT = `
   id, start_time, end_time, duration_hours, booking_type, status,
   guest_count, guest_name, guest_email, guest_phone, guest_notes,
-  member_user_id,
+  member_user_id, share_token, share_note,
   confirmed_price, estimated_price, deposit_amount, amount_paid,
   properties ( name, slug, timezone ),
   instructors ( name ),
@@ -158,6 +161,8 @@ interface BookingDetailQueryRow {
   guest_phone: string | null;
   guest_notes: string | null;
   member_user_id: string | null;
+  share_token: string | null;
+  share_note: string | null;
   confirmed_price: string | number | null;
   estimated_price: string | number | null;
   deposit_amount: string | number | null;
@@ -315,6 +320,8 @@ async function normalizeDetail(
       : null,
     disciplines,
     addOns,
+    shareToken: row.share_token,
+    shareNote: row.share_note,
   };
 
   return { data: detail, error: null };

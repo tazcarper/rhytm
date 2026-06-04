@@ -10,9 +10,14 @@
   min-height: clamp(540px, 92vh, 940px);
   display: flex;
   align-items: flex-end;
+  overflow: hidden;
   background-color: var(--olive-darker);
-  background-size: cover;
-  background-position: center;
+}
+
+/* Layered behind the scrim; next/image `fill` provides position/size. */
+.heroImg {
+  object-fit: cover;
+  z-index: 0;
 }
 
 .back {
@@ -39,6 +44,8 @@
 }
 
 .heroScrim {
+  position: relative;
+  z-index: 1;
   width: 100%;
   background: linear-gradient(
     180deg,
@@ -127,6 +134,16 @@
   text-align: center;
 }
 
+.policyNote {
+  text-align: center;
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--tan-deep);
+  margin: 0;
+}
+
 .factLabel {
   font-family: var(--sans);
   font-size: 10px;
@@ -164,13 +181,11 @@
   margin-bottom: 1.25rem;
 }
 
-.lead {
-  font-family: var(--serif);
-  font-size: clamp(22px, 3vw, 30px);
-  line-height: 1.45;
-  color: var(--olive);
-  margin: 0;
-  letter-spacing: -0.3px;
+.overviewBody {
+  max-width: 640px;
+  margin: 1.5rem auto 0;
+  text-align: left;
+  font-size: 17px;
 }
 
 /* ── Highlights ─────────────────────────────────────────────────── */
@@ -224,6 +239,14 @@
   align-items: center;
 }
 
+.chapterMedia {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+}
+
 .chapterReversed .chapterMedia {
   order: -1;
 }
@@ -255,13 +278,9 @@
   margin: 0;
 }
 
+/* next/image `fill` provides position/size; just the crop here. */
 .chapterImg {
-  width: 100%;
-  aspect-ratio: 4 / 5;
   object-fit: cover;
-  border-radius: var(--radius-card);
-  display: block;
-  box-shadow: var(--shadow-soft);
 }
 
 @media (max-width: 760px) {
@@ -273,7 +292,7 @@
   .chapterReversed .chapterMedia {
     order: 0;
   }
-  .chapterImg {
+  .chapterMedia {
     aspect-ratio: 3 / 2;
   }
 }
@@ -287,28 +306,32 @@
   padding: 4rem 0.75rem;
 }
 
-.galleryImg,
-.galleryImgWide {
-  width: 100%;
-  object-fit: cover;
-  display: block;
+/* Positioned, aspect-sized cells; the image fills each via next/image. */
+.galleryCell,
+.galleryCellWide {
+  position: relative;
+  overflow: hidden;
   border-radius: var(--radius-card);
 }
 
-.galleryImg {
+.galleryCell {
   aspect-ratio: 4 / 3;
 }
 
-.galleryImgWide {
+.galleryCellWide {
   grid-column: 1 / -1;
   aspect-ratio: 21 / 9;
+}
+
+.galleryImg {
+  object-fit: cover;
 }
 
 @media (max-width: 640px) {
   .gallery {
     grid-template-columns: 1fr;
   }
-  .galleryImg {
+  .galleryCell {
     aspect-ratio: 3 / 2;
   }
 }
@@ -317,4 +340,19 @@
 
 .page {
   padding-bottom: clamp(5rem, 9vh, 7.5rem);
+}
+
+.previewBanner {
+  position: sticky;
+  top: 0;
+  z-index: 70;
+  text-align: center;
+  font-family: var(--sans);
+  font-size: 12px;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--cream);
+  background: var(--tan-deep);
+  padding: 0.6rem 1rem;
 }

@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { Badge } from "@/lib/ui";
+import { AdventureImage } from "./adventure-image";
 import type { PublicAdventure } from "@/src/services/public/adventures";
 import {
   adventureBadge,
   adventureDateLabel,
   adventurePriceLabel,
+  stripMarkdown,
 } from "@/src/services/adventures/display";
 import s from "./adventure-tile.module.css";
 
@@ -41,9 +43,13 @@ export function AdventureTile({
     >
       <div className={s.media}>
         {adventure.heroImage ? (
-          // Placeholder stock imagery; plain <img> by design.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img className={s.img} src={adventure.heroImage} alt="" loading={feature ? "eager" : "lazy"} />
+          <AdventureImage
+            className={s.img}
+            src={adventure.heroImage}
+            alt=""
+            priority={feature}
+            sizes={feature ? "100vw" : "(max-width: 600px) 100vw, (max-width: 1100px) 50vw, 33vw"}
+          />
         ) : (
           <div className={s.imgFallback} aria-hidden />
         )}
@@ -59,7 +65,7 @@ export function AdventureTile({
         {eyebrow && <div className={s.eyebrow}>{eyebrow}</div>}
         <h3 className={s.title}>{adventure.title}</h3>
         {feature && adventure.description && (
-          <p className={s.blurb}>{adventure.description}</p>
+          <p className={s.blurb}>{stripMarkdown(adventure.description)}</p>
         )}
         <div className={s.foot}>
           <span className={s.meta}>

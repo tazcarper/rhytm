@@ -5,6 +5,7 @@ import { getMyBookingDetail } from "@/src/services/members/booking-detail";
 import { Alert, Eyebrow, Heading, PageShell } from "@/lib/ui";
 import { MemberNav } from "@/src/components/members/member-nav";
 import { BookingDetailView } from "@/src/components/members/booking-detail-view";
+import { ShareTripCard } from "@/src/components/members/share-trip-card";
 
 export const dynamic = "force-dynamic";
 
@@ -64,7 +65,31 @@ export default async function MyBookingDetailPage({
         </Alert>
       )}
 
-      {booking && <BookingDetailView booking={booking} />}
+      {booking && (
+        <div className="flex flex-col gap-6">
+          <BookingDetailView booking={booking} />
+          {isFinalized(booking) && booking.isMine && (
+            <ShareTripCard
+              bookingId={booking.id}
+              initialToken={booking.shareToken}
+              initialNote={booking.shareNote}
+            />
+          )}
+        </div>
+      )}
     </PageShell>
+  );
+}
+
+// A trip is shareable once the bid is signed and the deposit is paid —
+// mirrors the gate in the shared-trip read service + mint action.
+function isFinalized(booking: {
+  bid: { signedAt: string | null } | null;
+  pricing: { depositAmount: number | null; amountPaid: number };
+}): boolean {
+  return (
+    !!booking.bid?.signedAt &&
+    booking.pricing.depositAmount !== null &&
+    booking.pricing.amountPaid >= booking.pricing.depositAmount
   );
 }

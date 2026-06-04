@@ -1,6 +1,6 @@
 # App 4 — Optional password login (member portal)
 
-> **Status:** 🔄 Building 2026-06-03
+> **Status:** ✅ Done (commit `f5dec25`). Code complete; one-time ops config (Supabase min password length ≥ 8) still pending.
 > **Owner surface:** `/login` (shared entrance) + `/member/profile` (set password)
 
 ## Goal

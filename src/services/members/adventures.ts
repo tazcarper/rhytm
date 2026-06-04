@@ -1,10 +1,16 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { parseAdventureDetails } from "@/src/services/adventures/display";
+import {
+  parseGuestManifest,
+  type GuestManifestEntry,
+} from "@/src/services/adventures/guest-manifest";
+import { ADVENTURE_HOLD_TTL_MINUTES } from "./start-adventure-checkout";
 
 // Member-portal adventures service. The portal's Adventures tab is now
 // "my trips" — the adventures the member has an active RSVP on. Browsing
 // + sign-up live on the public /adventures surface; the reserve write
-// (createMemberRsvp in ./rsvps) is triggered from the public detail page.
+// (startAdventureCheckout) runs from the public reserve page → Stripe →
+// the webhook flips pending_payment → confirmed.
 //
 // This module provides:
 //   - getMyAdventureRsvps: the member's confirmed/waitlisted trips.
@@ -12,9 +18,14 @@ import { parseAdventureDetails } from "@/src/services/adventures/display";
 //     member's reserve eligibility (membership at the adventure's property
 //     + any existing RSVP). Returns nulls for non-members (RLS).
 
-export type RsvpStatus = "confirmed" | "waitlisted" | "cancelled";
+export type RsvpStatus =
+  | "confirmed"
+  | "waitlisted"
+  | "cancelled"
+  | "pending_payment";
 
 export interface MyAdventureTrip {
+  rsvpId: string;
   adventureId: string;
   title: string;
   startDate: string; // 'YYYY-MM-DD'
@@ -30,6 +41,9 @@ export interface MyAdventureTrip {
   heroImage: string | null;
   rsvpStatus: RsvpStatus;
   guestCount: number;
+  guests: GuestManifestEntry[]; // additional guests (party size - 1)
+  amountPaid: number | null;
+  freeCancellationDays: number;
 }
 
 export interface MyAdventureTripsResult {
@@ -53,8 +67,11 @@ function toOptionalNumber(value: string | number | null): number | null {
 }
 
 interface MyTripRow {
+  id: string;
   status: RsvpStatus;
   guest_count: number;
+  guests: unknown;
+  amount_paid: string | number | null;
   member_adventures:
     | MyTripAdventure
     | MyTripAdventure[]
@@ -68,14 +85,15 @@ interface MyTripAdventure {
   end_date: string;
   price: string | number | null;
   guest_price: string | number | null;
+  free_cancellation_days: number;
   details: unknown;
   properties: { name: string } | { name: string }[] | null;
 }
 
 const MY_TRIPS_SELECT = `
-  status, guest_count,
+  id, status, guest_count, guests, amount_paid,
   member_adventures (
-    id, title, start_date, end_date, price, guest_price, details,
+    id, title, start_date, end_date, price, guest_price, free_cancellation_days, details,
     properties ( name )
   )
 `;
@@ -89,7 +107,9 @@ export async function getMyAdventureRsvps(
   const { data, error } = await supabase
     .from("member_adventure_rsvps")
     .select(MY_TRIPS_SELECT)
-    .neq("status", "cancelled");
+    // confirmed + waitlisted only — pending_payment is an in-progress
+    // checkout, not a trip yet.
+    .in("status", ["confirmed", "waitlisted"]);
 
   if (error) {
     return { data: null, error: { message: error.message } };
@@ -103,6 +123,7 @@ export async function getMyAdventureRsvps(
       const details = parseAdventureDetails(adventure.details);
       return [
         {
+          rsvpId: row.id,
           adventureId: adventure.id,
           title: adventure.title,
           startDate: adventure.start_date,
@@ -118,12 +139,59 @@ export async function getMyAdventureRsvps(
           heroImage: details.heroImage ?? null,
           rsvpStatus: row.status,
           guestCount: row.guest_count,
+          guests: parseGuestManifest(row.guests),
+          amountPaid: toOptionalNumber(row.amount_paid),
+          freeCancellationDays: adventure.free_cancellation_days ?? 14,
         },
       ];
     })
     .sort((a, b) => a.startDate.localeCompare(b.startDate));
 
   return { data: trips, error: null };
+}
+
+// In-progress checkout holds (pending_payment) for the member — surfaced
+// on /member/adventures as "finish reserving" with a countdown to the
+// release window. RLS (rsvps: member read own) scopes to the caller.
+export interface MyAdventureHold {
+  adventureId: string;
+  title: string;
+  guestCount: number;
+  holdExpiresAt: string; // ISO — updated_at + hold TTL
+}
+
+interface HoldRow {
+  guest_count: number;
+  updated_at: string;
+  member_adventures:
+    | { id: string; title: string }
+    | { id: string; title: string }[]
+    | null;
+}
+
+export async function getMyAdventureHolds(
+  supabase: SupabaseClient,
+): Promise<MyAdventureHold[]> {
+  const { data, error } = await supabase
+    .from("member_adventure_rsvps")
+    .select("guest_count, updated_at, member_adventures ( id, title )")
+    .eq("status", "pending_payment");
+
+  if (error || !data) return [];
+
+  const ttlMs = ADVENTURE_HOLD_TTL_MINUTES * 60_000;
+  return (data as unknown as HoldRow[]).flatMap((row): MyAdventureHold[] => {
+    const adventure = pickOne(row.member_adventures);
+    if (!adventure) return [];
+    return [
+      {
+        adventureId: adventure.id,
+        title: adventure.title,
+        guestCount: row.guest_count,
+        holdExpiresAt: new Date(new Date(row.updated_at).getTime() + ttlMs).toISOString(),
+      },
+    ];
+  });
 }
 
 export interface ReserveContext {
@@ -152,7 +220,9 @@ export async function getAdventureReserveContext(
     .from("member_adventure_rsvps")
     .select("status, guest_count")
     .eq("adventure_id", adventureId)
-    .neq("status", "cancelled")
+    // Only a confirmed/waitlisted RSVP counts as "already reserved" — a
+    // pending_payment hold lets them re-enter checkout (which reuses it).
+    .in("status", ["confirmed", "waitlisted"])
     .limit(1);
   const rsvp = rsvps?.[0];
   const existingRsvp = rsvp

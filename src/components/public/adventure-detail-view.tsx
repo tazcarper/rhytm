@@ -6,7 +6,9 @@ import {
   adventurePriceLabel,
 } from "@/src/services/adventures/display";
 import { AdventureAttributes } from "./adventure-attributes";
+import { AdventureImage } from "./adventure-image";
 import { ReserveBar, type ReserveState } from "./reserve-bar";
+import { MarkdownProse } from "@/src/components/shared/markdown";
 import s from "./adventure-detail-view.module.css";
 
 export type { ReserveState };
@@ -19,9 +21,11 @@ export type { ReserveState };
 export function AdventureDetailView({
   adventure,
   reserve,
+  preview = false,
 }: {
   adventure: PublicAdventure;
   reserve: ReserveState;
+  preview?: boolean;
 }) {
   const dateLabel = adventureDateLabel(adventure);
   const priceLabel = adventurePriceLabel({
@@ -32,15 +36,22 @@ export function AdventureDetailView({
 
   return (
     <article className={s.page}>
+      {preview && (
+        <div className={s.previewBanner}>
+          Preview · not publicly visible until published
+        </div>
+      )}
       {/* ── Full-screen hero ─────────────────────────────────── */}
-      <header
-        className={s.hero}
-        style={
-          adventure.heroImage
-            ? { backgroundImage: `url(${adventure.heroImage})` }
-            : undefined
-        }
-      >
+      <header className={s.hero}>
+        {adventure.heroImage && (
+          <AdventureImage
+            className={s.heroImg}
+            src={adventure.heroImage}
+            alt=""
+            priority
+            sizes="100vw"
+          />
+        )}
         <Link href="/adventures" className={s.back}>
           &larr; All adventures
         </Link>
@@ -65,6 +76,11 @@ export function AdventureDetailView({
             <Fact label="Hosted by" value={adventure.propertyName} />
             <Fact label="Member price" value={priceLabel} />
           </dl>
+          {!adventure.comingSoon && (
+            <p className={s.policyNote}>
+              Free cancellation up to {adventure.freeCancellationDays} days before the trip.
+            </p>
+          )}
         </div>
       </section>
 
@@ -72,7 +88,9 @@ export function AdventureDetailView({
       {adventure.description && (
         <section className={s.overview}>
           <div className={s.overviewMark}>The Experience</div>
-          <p className={s.lead}>{adventure.description}</p>
+          <div className={s.overviewBody}>
+            <MarkdownProse>{adventure.description}</MarkdownProse>
+          </div>
         </section>
       )}
 
@@ -98,17 +116,19 @@ export function AdventureDetailView({
       {/* ── Gallery ─────────────────────────────────────────────── */}
       {adventure.gallery.length > 0 && (
         <section className={s.gallery}>
-          {adventure.gallery.map((src, i) => (
-            // Placeholder stock imagery; plain <img> by design.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={i}
-              className={i % 3 === 0 ? s.galleryImgWide : s.galleryImg}
-              src={src}
-              alt=""
-              loading="lazy"
-            />
-          ))}
+          {adventure.gallery.map((src, i) => {
+            const wide = i % 3 === 0;
+            return (
+              <div key={i} className={wide ? s.galleryCellWide : s.galleryCell}>
+                <AdventureImage
+                  className={s.galleryImg}
+                  src={src}
+                  alt=""
+                  sizes={wide ? "100vw" : "(max-width: 640px) 100vw, 50vw"}
+                />
+              </div>
+            );
+          })}
         </section>
       )}
 
@@ -134,13 +154,18 @@ function Chapter({
       <div className={s.chapterText}>
         <div className={s.chapterMark}>{ROMAN[index] ?? index + 1}</div>
         <h2 className={s.chapterHeading}>{section.heading}</h2>
-        <p className={s.chapterBody}>{section.body}</p>
+        <div className={s.chapterBody}>
+          <MarkdownProse>{section.body}</MarkdownProse>
+        </div>
       </div>
       {section.image && (
         <div className={s.chapterMedia}>
-          {/* Placeholder stock imagery; plain <img> by design. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className={s.chapterImg} src={section.image} alt="" loading="lazy" />
+          <AdventureImage
+            className={s.chapterImg}
+            src={section.image}
+            alt=""
+            sizes="(max-width: 760px) 100vw, 50vw"
+          />
         </div>
       )}
     </section>

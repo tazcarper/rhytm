@@ -125,3 +125,37 @@ export function adventureDateLabel(a: {
 }): string {
   return a.datesLabel ?? formatDateRange(a.startDate, a.endDate);
 }
+
+// Trip total for a party. guest_count includes the member, so each guest
+// BEYOND the first adds guest_price. Mirrors the DB pricing semantics
+// (Phase 5: price + (guest_count - 1) * COALESCE(guest_price, 0)).
+export function adventureTotal(
+  price: number,
+  guestPrice: number | null,
+  guestCount: number,
+): number {
+  const extra = Math.max(0, guestCount - 1);
+  return price + extra * (guestPrice ?? 0);
+}
+
+export function adventureTotalLabel(
+  price: number,
+  guestPrice: number | null,
+  guestCount: number,
+): string {
+  const total = adventureTotal(price, guestPrice, guestCount);
+  return total === 0 ? "Included" : `$${formatMoney(total)}`;
+}
+
+// Flatten markdown to plain text for tight contexts (image-overlay tile
+// blurbs) where the description's bold/links/bullets would render as raw
+// syntax. The detail page renders the full markdown via MarkdownProse.
+export function stripMarkdown(md: string): string {
+  return md
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "") // images
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1") // links → text
+    .replace(/[*_~`#>]/g, "") // emphasis / heading / quote / code marks
+    .replace(/^\s*[-+*]\s+/gm, "") // list bullets
+    .replace(/\s+/g, " ")
+    .trim();
+}

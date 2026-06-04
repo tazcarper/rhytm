@@ -98,6 +98,31 @@ export const bookingConfirmed = eventType("booking/confirmed", {
   }>(),
 });
 
+// ---- Adventure lifecycle ---------------------------------------------------
+
+// An inquire-mode adventure reservation request — no online payment; the
+// concierge follows up. Fired from requestAdventureAction; a subscriber
+// emails the property's notification inbox.
+export const adventureRequested = eventType("adventure/requested", {
+  schema: staticSchema<{
+    rsvpId: string;
+    adventureId: string;
+    adventureTitle: string;
+    propertyId: string;
+    propertyName: string;
+    guestName: string;
+    guestCount: number;
+  }>(),
+});
+
+// A confirmed/pending adventure seat was freed (a cancellation) — ping the
+// waitlist to claim it. Fired from cancel-adventure-rsvp.
+export const adventureSpotOpened = eventType("adventure/spot-opened", {
+  schema: staticSchema<{
+    adventureId: string;
+  }>(),
+});
+
 // ---- Membership lifecycle --------------------------------------------------
 
 export const membershipApplicationSubmitted = eventType(

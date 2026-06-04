@@ -6,7 +6,6 @@ import { Button } from "@/lib/ui";
 import type { PublicAdventure } from "@/src/services/public/adventures";
 import type { RsvpStatus } from "@/src/services/members/adventures";
 import { adventurePriceLabel } from "@/src/services/adventures/display";
-import { RsvpForm } from "./rsvp-form";
 import s from "./reserve-bar.module.css";
 
 export interface ReserveState {
@@ -82,6 +81,19 @@ function BarContent({
 
   if (existingRsvp) {
     const guests = `${existingRsvp.guestCount} ${existingRsvp.guestCount === 1 ? "guest" : "guests"}`;
+    // Waitlisted + a spot is now open → invite them to claim it.
+    if (existingRsvp.status === "waitlisted" && !adventure.isSoldOut) {
+      return (
+        <>
+          <Summary label="A spot’s open" note="Reserve before it’s taken" />
+          <div className={s.action}>
+            <Button asChild variant="primary" size="md">
+              <Link href={`/adventures/${adventure.id}/reserve`}>Reserve your spot</Link>
+            </Button>
+          </div>
+        </>
+      );
+    }
     return (
       <>
         <Summary
@@ -100,28 +112,36 @@ function BarContent({
   if (adventure.isSoldOut) {
     return (
       <>
-        <Summary label="Fully reserved" note="Members only · ask about the waitlist" />
-        {!isMember && (
-          <div className={s.action}>
+        <Summary label="Fully reserved" note="Join the waitlist — we'll email you if a spot opens" />
+        <div className={s.action}>
+          {isMember && membershipId ? (
+            <Button asChild variant="primary" size="md">
+              <Link href={`/adventures/${adventure.id}/reserve`}>Join the waitlist</Link>
+            </Button>
+          ) : !isMember ? (
             <Button asChild variant="secondary" size="md">
               <Link href="/login">Members&rsquo; Entrance</Link>
             </Button>
-          </div>
-        )}
+          ) : null}
+        </div>
       </>
     );
   }
 
   if (isMember && membershipId) {
+    const ctaLabel =
+      adventure.paymentMode === "inquire"
+        ? "Request to reserve"
+        : adventure.paymentMode === "deposit"
+          ? "Reserve · deposit"
+          : "Reserve & pay";
     return (
       <>
         <Summary label="Reserve your place" note={priceLabel} />
         <div className={s.action}>
-          <RsvpForm
-            adventureId={adventure.id}
-            membershipId={membershipId}
-            maxGuests={adventure.pricing.maxGuestsPerRsvp}
-          />
+          <Button asChild variant="primary" size="lg">
+            <Link href={`/adventures/${adventure.id}/reserve`}>{ctaLabel}</Link>
+          </Button>
         </div>
       </>
     );

@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createStripeClient } from "@/lib/stripe/server";
 import { handlePaymentIntentSucceeded } from "@/src/services/stripe/handle-payment-intent-succeeded";
+import { handleAdventureRsvpSucceeded } from "@/src/services/stripe/handle-adventure-rsvp-succeeded";
 
 // Stripe webhook endpoint. Phase 6 idempotency pattern: signature
 // verify → claim into processed_webhooks → dispatch.
@@ -96,7 +97,14 @@ export async function POST(req: Request): Promise<Response> {
 
   try {
     if (event.type === "payment_intent.succeeded") {
-      await handlePaymentIntentSucceeded({ supabase, event });
+      // Route by PaymentIntent metadata: adventure RSVPs and bid deposits
+      // share the endpoint but confirm different records.
+      const pi = event.data.object as Stripe.PaymentIntent;
+      if (pi.metadata?.kind === "adventure_rsvp") {
+        await handleAdventureRsvpSucceeded({ supabase, event });
+      } else {
+        await handlePaymentIntentSucceeded({ supabase, event });
+      }
     }
     // Other event types: claimed (Stripe won't retry) but no-op.
     // Future handlers register here: payment_intent.payment_failed,

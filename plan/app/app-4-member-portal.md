@@ -1,6 +1,6 @@
 # App 4 — Member Portal (Implementation Plan)
 
-**Status:** 🔄 4.0 (login), 4.1 (my bookings), 4.1b (booking detail) landed. **4.2 (adventures listing) + 4.3 (RSVP) code complete 2026-06-03 — verification (dev-server walkthrough + manual H/I) pending.** 4.5 (shareable trip link) not started · **Drafted:** 2026-05-30 · **Last updated:** 2026-06-03
+**Status:** 🔄 4.0 (login), 4.1 (my bookings), 4.1b (booking detail) landed. **4.2 (adventures listing) + 4.3 (RSVP) code complete 2026-06-03 — verification (dev-server walkthrough + manual H/I) pending.** **4.5 (shareable trip link) ✅ Done 2026-06-04. 4.6 (optional password login) ✅ Done (f5dec25).** · **Drafted:** 2026-05-30 · **Last updated:** 2026-06-04
 
 > **2026-06-03 build note (4.2 + 4.3).** Decisions resolved with the user: (1) the reference cards' extra display fields — category/eyebrow, destination `location` (distinct from `property_id`, the owning club), `durationLabel` — live in `member_adventures.details` jsonb, read via a typed tolerant `AdventureDetails` parser (no ALTER migration; promote to columns when the App 3 adventures-editor is built). `details` also carries optional display overrides (`datesLabel`/`priceLabel`/`capacityLabel`/`badge`/`comingSoon`) used where a NOT NULL column can't express a reference state. (2) Seeded all five reference adventures (`supabase/migrations/20260603160000_seed_placeholder_adventures.sql`, all on `horseshoe-bay`, each `details.placeholder=true` for one-query cleanup). (3) Built listing + RSVP. **Capacity correction:** under member RLS the embedded rsvps are only the caller's own, so precise "spots remaining" can't be derived on the member surface — sold-out comes from the `status` column + `is_manually_sold_out`, and any human count comes from `details.capacityLabel`. New files: `src/services/members/adventures.ts`, `src/services/members/rsvps.ts`, `app/member/adventures/{page,actions}.ts(x)`, `src/components/members/{adventures-list,adventure-card,rsvp-form}.tsx`, plus `formatDateRange` in `src/services/public/format.ts`. No new RLS policies/helpers (Phase 7 doc unchanged). `member-nav.tsx` already had the Adventures tab. `tsc --noEmit` clean.
 
@@ -469,7 +469,10 @@ Recommend **(a)** for v1 — no migration, the round-trip is negligible (Edge fu
 
 **RLS interaction:** zero new policies. The existing `rsvps: member insert own` + capacity trigger cover the write path.
 
-### Sub-phase 4.5 — Shareable trip link (🔲 not started — planned only)
+### Sub-phase 4.5 — Shareable trip link (✅ Done 2026-06-04)
+
+> Built per the plan below. `bookings.share_token` (partial-UNIQUE) + `share_note` via `20260604180000_booking_share_token.sql`; `getSharedTrip` service-role read with a column allowlist + finalized gate; `/trip/[token]` anon page (`robots: noindex`); `mintShareLink`/`revokeShareLink` member actions (RLS ownership read → service-role write, idempotent mint); `ShareTripCard` on the booking detail page (shown only when finalized + the caller's own booking); `SharedTripView` presentational (property-branded, no pricing/contact). Followed the recommended open-question answers: property brand, optional `share_note`, "Hosted by" name shown.
+
 
 **Goal:** Once a booking is finalized (signed + paid), the booker can generate a shareable link they can send to other people on the trip — even non-members. The link renders a trimmed trip overview: dates, property, instructor, gear list, FAQ, schedule notes. It explicitly does NOT show pricing, deposit/payment amounts, payment intents, guest contact info, bid status, or the access code.
 

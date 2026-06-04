@@ -84,6 +84,10 @@ const LABEL: Record<string, string> = {
 
 export const ADVENTURE_ATTRIBUTE_KEYS = Object.keys(LABEL);
 
+// {key,label} list for the admin editor's multi-select.
+export const ADVENTURE_ATTRIBUTE_OPTIONS: ReadonlyArray<{ key: string; label: string }> =
+  Object.keys(LABEL).map((key) => ({ key, label: LABEL[key] }));
+
 export function AdventureAttributes({ keys }: { keys: string[] }) {
   const known = keys.filter((key) => key in LABEL);
   if (known.length === 0) return null;
