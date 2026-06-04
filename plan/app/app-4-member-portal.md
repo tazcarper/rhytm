@@ -1,6 +1,8 @@
 # App 4 — Member Portal (Implementation Plan)
 
-**Status:** 🔄 Sub-phase 4.0 landed (login + household visibility stub on `/member`). Sub-phases 4.1 (my bookings), 4.2 (adventures listing), 4.3 (RSVP) not started · **Drafted:** 2026-05-30 · **Last updated:** 2026-05-30
+**Status:** 🔄 4.0 (login), 4.1 (my bookings), 4.1b (booking detail) landed. **4.2 (adventures listing) + 4.3 (RSVP) code complete 2026-06-03 — verification (dev-server walkthrough + manual H/I) pending.** 4.5 (shareable trip link) not started · **Drafted:** 2026-05-30 · **Last updated:** 2026-06-03
+
+> **2026-06-03 build note (4.2 + 4.3).** Decisions resolved with the user: (1) the reference cards' extra display fields — category/eyebrow, destination `location` (distinct from `property_id`, the owning club), `durationLabel` — live in `member_adventures.details` jsonb, read via a typed tolerant `AdventureDetails` parser (no ALTER migration; promote to columns when the App 3 adventures-editor is built). `details` also carries optional display overrides (`datesLabel`/`priceLabel`/`capacityLabel`/`badge`/`comingSoon`) used where a NOT NULL column can't express a reference state. (2) Seeded all five reference adventures (`supabase/migrations/20260603160000_seed_placeholder_adventures.sql`, all on `horseshoe-bay`, each `details.placeholder=true` for one-query cleanup). (3) Built listing + RSVP. **Capacity correction:** under member RLS the embedded rsvps are only the caller's own, so precise "spots remaining" can't be derived on the member surface — sold-out comes from the `status` column + `is_manually_sold_out`, and any human count comes from `details.capacityLabel`. New files: `src/services/members/adventures.ts`, `src/services/members/rsvps.ts`, `app/member/adventures/{page,actions}.ts(x)`, `src/components/members/{adventures-list,adventure-card,rsvp-form}.tsx`, plus `formatDateRange` in `src/services/public/format.ts`. No new RLS policies/helpers (Phase 7 doc unchanged). `member-nav.tsx` already had the Adventures tab. `tsc --noEmit` clean.
 
 The `/login` surface, `/auth/callback`, middleware portal allowlist, and the household-visibility stub on `/member` all landed in App 1 / earlier App 4 work. This plan covers the remaining three surfaces that turn `/member` from a sign-in landing page into the member-facing product: **my bookings**, **adventures listing**, and **RSVP**.
 
@@ -256,7 +258,7 @@ Recommend **(b)** for v1 — keeps the migration small (one helper + one policy,
 
 **RLS interaction:** one new SECURITY DEFINER helper (`current_household_user_ids()`) + replacement of the `bookings: member read own` policy with a household-scoped variant. Detailed above under "Migration."
 
-### Sub-phase 4.2 — Adventures listing (🔲 not started)
+### Sub-phase 4.2 — Adventures listing (✅ code complete 2026-06-03 — see build note at top)
 
 **Goal:** `/member/adventures` lists every published or sold-out adventure at any of the member's active properties. Card per adventure with title, date range, property, price (solo + per-guest add-on), capacity remaining, sold-out badge, and a "Reserve" CTA that opens the inline RSVP form (sub-phase 4.3).
 
@@ -367,7 +369,7 @@ plan/supabase/phase-7-rls.md                   §7.5 + §7.6 + §10 updated
 - Spouse-viewed booking → "Booked by [primary]" attribution surfaces in the summary.
 - `gear_list` / `faq` jsonb has unexpected shape (operator typo in admin UI) → parser tolerates strings + objects, filters junk; never throws.
 
-### Sub-phase 4.3 — RSVP (🔲 not started)
+### Sub-phase 4.3 — RSVP (✅ code complete 2026-06-03 — see build note at top)
 
 **Goal:** Click "Reserve" on an adventure → inline form picks guest count (capped at `max_guests_per_rsvp`) → submit → Server Action inserts into `member_adventure_rsvps` → adventure card re-renders with the "You're going" state.
 

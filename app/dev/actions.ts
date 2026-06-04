@@ -520,3 +520,67 @@ export async function resetTestUser(formData: FormData) {
   revalidatePath("/dev");
   redirect("/dev?ok=user+reset");
 }
+
+// ─────────────────────────────────────────────────────────────
+// Seed: test adventure (RSVP capacity / waitlist testing)
+// ─────────────────────────────────────────────────────────────
+//
+// The placeholder-seed migration covers every *visual* state, but the
+// capacity-race / sold-out-flip path (scenario I4) needs an adventure
+// with a controlled small capacity. This inserts one published
+// member_adventures row via the service role. Tagged
+// details.placeholder=true (so the bulk cleanup catches it) plus
+// details.devTest=true. No capacityLabel override — that way, once the
+// confirmed RSVPs fill the cap, the sync trigger flips status→sold_out
+// and the card visibly becomes "Waitlist Only" on the next load.
+
+export async function createTestAdventure(formData: FormData) {
+  await requireDevAuth();
+
+  const propertyId = field(formData, "property_id");
+  if (!propertyId) {
+    redirect("/dev?error=missing+property");
+  }
+
+  const title = field(formData, "title") || "DEV Test Adventure";
+
+  const capacityRaw = parseInt(field(formData, "max_capacity"), 10);
+  const maxCapacity =
+    Number.isFinite(capacityRaw) && capacityRaw > 0 ? capacityRaw : 1;
+
+  // max_guests_per_rsvp must satisfy the CHECK (<= max_capacity). Clamp.
+  const guestsRaw = parseInt(field(formData, "max_guests_per_rsvp"), 10);
+  const requestedGuests =
+    Number.isFinite(guestsRaw) && guestsRaw > 0 ? guestsRaw : maxCapacity;
+  const maxGuests = Math.max(1, Math.min(requestedGuests, maxCapacity));
+
+  const priceRaw = parseFloat(field(formData, "price"));
+  const price = Number.isFinite(priceRaw) && priceRaw >= 0 ? priceRaw : 0;
+
+  const dayMs = 24 * 60 * 60 * 1000;
+  const toDate = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+  const startMs = Date.now() + 30 * dayMs;
+
+  const admin = createServiceRoleClient();
+  const { error } = await admin.from("member_adventures").insert({
+    property_id: propertyId,
+    title,
+    description: "Dev-only adventure for RSVP capacity / waitlist testing.",
+    start_date: toDate(startMs),
+    end_date: toDate(startMs + 2 * dayMs),
+    max_capacity: maxCapacity,
+    max_guests_per_rsvp: maxGuests,
+    price,
+    status: "published",
+    details: { placeholder: true, devTest: true, category: "Dev" },
+  });
+
+  if (error) {
+    redirect(`/dev?error=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePath("/dev");
+  redirect(
+    `/dev?ok=test+adventure+created+(cap+${maxCapacity}%2C+max+party+${maxGuests})`,
+  );
+}

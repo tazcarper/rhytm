@@ -1022,6 +1022,84 @@ Embedded sign URLs expire ~30 min from creation. If the customer leaves the moda
 
 ---
 
+## App 4 — Member Adventures (listing + RSVP)
+
+Covers sub-phases 4.2 (`/member/adventures` listing) and 4.3 (inline RSVP). Built 2026-06-03.
+Data source: the five placeholder trips from `20260603160000_seed_placeholder_adventures.sql`
+(all on `horseshoe-bay`). RLS gates these to members with an **active horseshoe-bay membership**.
+
+### App 4 adventures prerequisites (do once per session)
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | `supabase db push` (or apply `20260603160000_seed_placeholder_adventures.sql`) | `SELECT count(*) FROM member_adventures WHERE details->>'placeholder'='true';` returns 5 |
+| 2 | Via `/dev`: create a person + an **active** membership on **Horseshoe Bay**; generate a magic-link and sign in as that member | Lands on `/member` as a member |
+
+### H1 — Member sees adventures at their active property
+
+| # | Action | Expected outcome |
+|---|--------|-----------------|
+| 1 | Open `/member/adventures` | Five cards render, sorted by date: Founders' Retreat (Oct), Argentina Dove (Dec), Sonora Whitetail (Jan 8), Texas Hill Country Quail (Jan 15), World Sporting Clays Championship (Apr) |
+| 2 | Sign in instead as a member whose only active membership is at a **different** property (e.g. Packsaddle) | `/member/adventures` shows none of the HBSC trips (empty state, or only that property's adventures) |
+
+### H2 — Each visual state renders correctly
+
+| # | Card | Expected |
+|---|------|----------|
+| 1 | Argentina Dove · Córdoba | Eyebrow "Wingshooting"; badge **Filling Fast** (filling color); "Córdoba, Argentina · December 4–9, 2026 · 5 nights / 4 hunting days"; price **$6,850**; "3 of 8 reserved"; **Reserve** form |
+| 2 | Founders' Retreat · Pedernales | Badge **Now Booking**; price **Included**; "18 of 30 reserved"; Reserve form |
+| 3 | Sonora Whitetail · Late Season | Badge **Waitlist Only**; price $9,800; "4 of 4 reserved"; **Join the waitlist** (disabled) + "Ask the concierge" |
+| 4 | World Sporting Clays Championship | Badge **Coming Soon**; dates "Dates to be announced"; price "—"; **Stay informed** (disabled) |
+
+### H3 — Draft / completed / cancelled hidden
+
+| # | Action | Expected |
+|---|--------|----------|
+| 1 | `UPDATE member_adventures SET status='draft' WHERE title LIKE 'Argentina%';` then refresh | Argentina Dove disappears from the listing |
+| 2 | Revert: `UPDATE member_adventures SET status='published' WHERE title LIKE 'Argentina%';` | Argentina Dove returns |
+
+### I1 — Happy-path RSVP
+
+| # | Action | Expected |
+|---|--------|----------|
+| 1 | On Argentina Dove, set party to 2, click **Reserve** | Button shows "Reserving…", then the card flips to a **"✓ You're going · 2 guests"** pill (Reserve form gone) |
+| 2 | `SELECT guest_count, status FROM member_adventure_rsvps r JOIN member_adventures a ON a.id=r.adventure_id WHERE a.title LIKE 'Argentina%';` | One row, `guest_count=2`, `status='confirmed'`, `created_by_person_id` set |
+
+### I2 — Per-RSVP guest cap
+
+| # | Action | Expected |
+|---|--------|----------|
+| 1 | The stepper caps at `max_guests_per_rsvp` (Argentina = 2) — the **+** disables at 2 | Can't exceed the cap from the UI |
+| 2 | (Optional, force the path) call the action with `guestCount: 99` | Inline error "That's more guests than this experience allows per reservation." (`guest-cap`) |
+
+### I3 — Manual sold-out blocks confirmed RSVP
+
+| # | Action | Expected |
+|---|--------|----------|
+| 1 | Sonora Whitetail shows no Reserve form (sold out). If you force an RSVP insert against it | Trigger rejects; service returns `manually-sold-out`; UI: "This experience is full — ask the concierge about the waitlist." |
+
+### I4 — Capacity race
+
+| # | Action | Expected |
+|---|--------|----------|
+| 1 | Create a `/dev` test adventure with `max_capacity=1`. Two browsers (or two members on the same property), both Reserve the last spot simultaneously | One succeeds; the other gets `capacity` → "This experience just filled up." Status auto-flips to sold_out |
+
+### I5 — Lapsed membership can't RSVP
+
+| # | Action | Expected |
+|---|--------|----------|
+| 1 | Set the test membership `status='lapsed'`, attempt Reserve | RLS WITH CHECK rejects; service returns `rls` → "This membership isn't active…" (Reserve may not render if no active membership resolves) |
+
+### I6 — Double-RSVP rejected
+
+| # | Action | Expected |
+|---|--------|----------|
+| 1 | After I1, try to RSVP the same adventure under the same membership again (e.g. second household member) | UNIQUE `(adventure_id, membership_id)` rejects; service returns `duplicate` → "You've already reserved this experience." (Normally the card already shows "You're going", so this is a force-path check) |
+
+**Pass criteria:** all five cards render in their correct states (H2); a happy-path RSVP flips the card to "You're going" and writes one confirmed row (I1); capacity, guest-cap, sold-out, lapsed, and duplicate paths each surface their specific copy.
+
+---
+
 ## Cleanup
 
 After a testing session, for every plus-aliased email used:

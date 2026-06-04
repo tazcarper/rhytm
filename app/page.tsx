@@ -1,24 +1,15 @@
 import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getPublicProperties } from "@/src/services/public/properties";
-import { propertyOrdinal } from "@/src/constants/public/property-copy";
+import { getPublicAdventures } from "@/src/services/public/adventures";
+import { AdventureTile } from "@/src/components/public/adventure-tile";
 import { Alert, Button } from "@/lib/ui";
 import s from "./home.module.css";
 
 export const dynamic = "force-dynamic";
 
-// Locale + sign-in href per property. Tagline now lives in the DB
-// (properties.tagline, admin-editable at /admin/properties); locale
-// is a stable geographic label kept in code.
-const PROPERTY_COPY: Record<string, { locale: string; href: string }> = {
-  "horseshoe-bay": { locale: "Texas Hill Country", href: "/login" },
-  "hog-heaven": { locale: "Driftwood, Texas", href: "/login" },
-  "packsaddle": { locale: "Llano County", href: "/login" },
-};
-
 export default async function Home() {
   const supabase = await createServerSupabaseClient();
-  const { data: properties, error } = await getPublicProperties(supabase);
+  const { data: adventures, error } = await getPublicAdventures(supabase);
 
   return (
     <main>
@@ -73,69 +64,63 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ───── Properties ────────────────────────────────────────── */}
-      <section id="properties" className={s.section}>
-        <header className={s.sectionHead}>
-          <div className={s.heroEstablished}>The Properties</div>
-          <h2
-            style={{
-              fontFamily: "var(--serif)",
-              fontSize: "clamp(32px, 5vw, 44px)",
-              fontWeight: 600,
-              color: "var(--olive)",
-              letterSpacing: "-0.5px",
-              margin: 0,
-            }}
-          >
-            Different experiences. <em style={{ fontStyle: "italic", color: "var(--tan-deep)", fontWeight: 500 }}>Same standards.</em>
-          </h2>
-          <p className={s.sectionDeck}>
-            Each property has its own character and setting — and every
-            one delivers the same warm welcome and effortless booking.
-          </p>
-        </header>
+      {/* ───── Adventures (full-bleed, feature-led) ──────────────── */}
+      <section id="adventures" className={s.adventureBand}>
+        <div className={s.adventureInner}>
+          <header className={s.sectionHead}>
+            <div className={s.heroEstablished}>Member Adventures</div>
+            <h2
+              style={{
+                fontFamily: "var(--serif)",
+                fontSize: "clamp(36px, 6vw, 56px)",
+                fontWeight: 600,
+                color: "var(--olive)",
+                letterSpacing: "-1px",
+                margin: 0,
+                lineHeight: 1.02,
+              }}
+            >
+              Where we&rsquo;re <em style={{ fontStyle: "italic", color: "var(--tan-deep)", fontWeight: 500 }}>going next.</em>
+            </h2>
+            <p className={s.sectionDeck}>
+              Curated journeys and signature experiences — a members&rsquo;
+              privilege. Open to view; reserved by members of the Club.
+            </p>
+          </header>
 
-        {error && (
-          <div className={s.propertyError}>
-            <Alert variant="error" title="Could not load properties">
+          {error && (
+            <Alert variant="error" title="Could not load adventures">
               {error.message}
             </Alert>
-          </div>
-        )}
+          )}
 
-        {properties && properties.length > 0 && (
-          <div className={s.propertyGrid}>
-            {properties.map((p, i) => {
-              const copy = PROPERTY_COPY[p.slug] ?? {
-                locale: "—",
-                href: "/login",
-              };
-              return (
-                <Link
-                  key={p.id}
-                  href={copy.href}
-                  className={s.propertyCard}
-                >
-                  <div className={s.propertyOrdinal}>No. {propertyOrdinal(i)}</div>
-                  <h3 className={s.propertyName}>{p.name}</h3>
-                  <p className={s.propertyLocale}>{copy.locale}</p>
-                  <div className={s.propertyRule} />
-                  {p.tagline && (
-                    <p className={s.propertyTagline}>{p.tagline}</p>
-                  )}
-                  <span className={s.propertyCta}>Members&rsquo; Entrance &rarr;</span>
-                </Link>
-              );
-            })}
-          </div>
-        )}
+          {adventures && adventures.length > 0 && (
+            <>
+              <div className={s.adventureCollection}>
+                <AdventureTile adventure={adventures[0]} feature index={0} />
+                {adventures.length > 1 && (
+                  <div className={s.adventureRow}>
+                    {adventures.slice(1, 3).map((adventure, i) => (
+                      <AdventureTile key={adventure.id} adventure={adventure} index={i + 1} />
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className={s.sectionCta}>
+                <Button asChild variant="secondary" size="lg">
+                  <Link href="/adventures">View all adventures &rarr;</Link>
+                </Button>
+              </div>
+            </>
+          )}
 
-        {properties && properties.length === 0 && (
-          <Alert variant="warn" title="No properties found">
-            Check Phase 1 seed data — the umbrella site has nothing to
-            show without at least one row in <code>public.properties</code>.
-          </Alert>
-        )}
+          {adventures && adventures.length === 0 && (
+            <Alert variant="info" title="No adventures open right now">
+              Curated trips for the membership are listed here as they&rsquo;re
+              scheduled. Check back soon.
+            </Alert>
+          )}
+        </div>
       </section>
 
       {/* ───── How it works ──────────────────────────────────────── */}

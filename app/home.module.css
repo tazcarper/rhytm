@@ -215,6 +215,62 @@
   gap: 2rem;
 }
 
+/* Adventures — a full-bleed, feature-led moment. Breaks out of the
+   content-max sections around it; the photography carries it. Tiles live
+   in src/components/public/adventure-tile.module.css. */
+.adventureBand {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(5rem, 9vh, 7rem) 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 0%, rgba(184, 156, 115, 0.16) 0%, transparent 60%),
+    var(--cream);
+}
+
+.adventureBand::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(63, 74, 33, 0.06) 1px,
+    transparent 1px
+  );
+  background-size: 30px 30px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.adventureInner {
+  position: relative;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 4vw, 4rem);
+}
+
+.adventureCollection {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.25rem, 2.5vw, 2rem);
+}
+
+.adventureRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1.25rem, 2.5vw, 2rem);
+}
+
+@media (max-width: 700px) {
+  .adventureRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sectionCta {
+  text-align: center;
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+}
+
 .propertyCard {
   display: flex;
   flex-direction: column;

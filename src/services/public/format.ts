@@ -25,6 +25,29 @@ export function formatDateLong(iso: string): string {
   });
 }
 
+// Date-only range, collapsed like the adventures reference cards:
+//   same month  → "December 4–9, 2026"
+//   same year   → "December 30 – January 2, 2027"
+//   single day  → "December 4, 2026"
+// Inputs are 'YYYY-MM-DD' wall-clock dates (member_adventures.start_date /
+// end_date are `date` columns — no time, no timezone). Built with a local
+// Date so there's no UTC day-shift.
+export function formatDateRange(startIso: string, endIso: string): string {
+  const [y1, m1, d1] = startIso.split("-").map(Number);
+  const [y2, m2, d2] = endIso.split("-").map(Number);
+  const monthLong = (y: number, m: number): string =>
+    new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "long" });
+
+  if (y1 === y2 && m1 === m2) {
+    if (d1 === d2) return `${monthLong(y1, m1)} ${d1}, ${y1}`;
+    return `${monthLong(y1, m1)} ${d1}–${d2}, ${y1}`;
+  }
+  if (y1 === y2) {
+    return `${monthLong(y1, m1)} ${d1} – ${monthLong(y2, m2)} ${d2}, ${y1}`;
+  }
+  return `${monthLong(y1, m1)} ${d1}, ${y1} – ${monthLong(y2, m2)} ${d2}, ${y2}`;
+}
+
 export function formatMoney(n: number): string {
   return n.toLocaleString("en-US", {
     minimumFractionDigits: 0,
