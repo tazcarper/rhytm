@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "@/lib/auth/actions";
+import { canManageTeam } from "@/lib/auth/portal";
 import { Button, cn } from "@/lib/ui";
 import s from "./admin-nav.module.css";
 
@@ -35,6 +36,8 @@ export function AdminNav({ email, role, pendingBidCount }: AdminNavProps) {
     { label: "Properties", href: "/admin/properties" },
     { label: "FAQ & Gear", href: "/admin/templates" },
     { label: "Waivers", href: "/admin/settings/waivers" },
+    // Team management is super_admin + admin only.
+    ...(canManageTeam(role) ? [{ label: "Team", href: "/admin/team" }] : []),
     { label: "What's New", href: "/admin/release-notes" },
   ];
 
@@ -84,10 +87,10 @@ export function AdminNav({ email, role, pendingBidCount }: AdminNavProps) {
       </ul>
 
       <div className={s.identity}>
-        <div className={s.identityText}>
+        <Link href="/admin/profile" className={s.identityText} title="Your profile">
           <span className={s.identityEmail}>{email ?? "—"}</span>
           <span>{role ?? "—"}</span>
-        </div>
+        </Link>
         <form action={signOut}>
           <Button type="submit" variant="secondary" size="sm">
             Sign out

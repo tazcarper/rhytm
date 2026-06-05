@@ -1,6 +1,7 @@
 "use server";
 
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { hasAdminAccess } from "@/lib/auth/portal";
 import {
   createPublicBooking,
   type PublicBookingInput,
@@ -15,26 +16,31 @@ export type SubmitBookingResult =
 // those are computed server-side from the auth session here.
 export type SubmitBookingInput = Omit<
   PublicBookingInput,
-  "memberUserId" | "audienceType"
+  "memberUserId" | "audienceType" | "createdByAdminId"
 >;
 
 export async function submitBookingAction(
   input: SubmitBookingInput,
 ): Promise<SubmitBookingResult> {
-  // If a signed-in member is going through the public funnel, attribute
-  // the booking to them so it surfaces on /member/bookings. Only stamp
-  // for the member role — admins/PMs booking on the public surface stay
-  // anonymous (their on-behalf-of flow lives in /admin).
+  // Attribute the booking based on who's signed in:
+  //   member → member_user_id + audience 'member' (surfaces on /member)
+  //   staff  → created_by_admin_id (a staff member booking on behalf of a
+  //            call-in / walk-up customer); the booking stays a 'public'
+  //            guest booking, just attributed to the booker
+  //   else   → anonymous self-service public booking
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const isMember = user?.app_metadata?.role === "member";
+  const role = user?.app_metadata?.role as string | undefined;
+  const isMember = role === "member";
+  const isStaff = hasAdminAccess(role);
 
   const result = await createPublicBooking({
     ...input,
     memberUserId: isMember ? user!.id : null,
     audienceType: isMember ? "member" : "public",
+    createdByAdminId: isStaff ? user!.id : null,
   });
   if (!result.ok) {
     return { ok: false, reason: result.reason, message: result.message };

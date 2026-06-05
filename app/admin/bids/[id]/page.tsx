@@ -170,6 +170,20 @@ export default async function AdminBidDetail({
             <dd className={s.kvValue}>
               {AUDIENCE_LABEL[booking.audienceType] ?? booking.audienceType}
             </dd>
+
+            {booking.bookedByStaff && (
+              <>
+                <dt className={s.kvKey}>Booked by</dt>
+                <dd className={s.kvValue}>
+                  {booking.bookedByStaff.name}
+                  <br />
+                  <a href={`mailto:${booking.bookedByStaff.email}`}>
+                    {booking.bookedByStaff.email}
+                  </a>{" "}
+                  <em>(staff)</em>
+                </dd>
+              </>
+            )}
           </dl>
         </Card>
 

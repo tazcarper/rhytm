@@ -5,7 +5,7 @@ import {
   getAdminPropertiesList,
   type AdminProperty,
 } from "@/src/services/admin/properties";
-import { PropertySettingsForm } from "@/src/components/admin/property-settings-form";
+import { PropertiesWorkspace } from "@/src/components/admin/properties-workspace";
 import s from "./properties-page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -34,8 +34,8 @@ export default async function AdminPropertiesPage() {
           Property Settings
         </Heading>
         <Text variant="lead" className={s.lead}>
-          Per-property knobs: booking horizon, capacity, tagline, support contact.
-          Changes save per card and apply immediately.
+          Pick a property, then edit its booking rules, public info, and pre-visit details. Changes
+          save per property and apply immediately.
         </Text>
       </div>
 
@@ -47,15 +47,11 @@ export default async function AdminPropertiesPage() {
 
       {properties.length === 0 && !loadError && (
         <Alert variant="warn" title="No properties found">
-          Seed the properties table to see the settings cards.
+          Seed the properties table to see the settings.
         </Alert>
       )}
 
-      <div className={s.grid}>
-        {properties.map((property) => (
-          <PropertySettingsForm key={property.id} property={property} />
-        ))}
-      </div>
+      {properties.length > 0 && <PropertiesWorkspace properties={properties} />}
     </PageShell>
   );
 }

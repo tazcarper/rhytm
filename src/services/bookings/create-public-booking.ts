@@ -52,6 +52,11 @@ export const PublicBookingInputSchema = z.object({
   // Defaults preserve the prior anonymous-funnel behavior.
   memberUserId: z.uuid().nullable().default(null),
   audienceType: z.enum(["public", "member", "partner"]).default("public"),
+  // Set by the admin submit path when a staff member books on a customer's
+  // behalf — records who created it (audit trail). Stamped right after the
+  // RPC insert (create_public_booking predates this column). Null for
+  // self-service public/member bookings.
+  createdByAdminId: z.uuid().nullable().default(null),
 });
 
 export type PublicBookingInput = z.infer<typeof PublicBookingInputSchema>;
@@ -128,6 +133,22 @@ export async function createPublicBooking(
       reason: "unknown",
       message: "Booking created but no record returned. Please contact us.",
     };
+  }
+
+  // Stamp staff attribution — the create_public_booking RPC doesn't take
+  // it. Same service-role client; the booking + bid already committed, so a
+  // failure here only loses the "booked by" attribution (logged, not fatal).
+  if (parsed.data.createdByAdminId) {
+    const { error: stampError } = await supabase
+      .from("bookings")
+      .update({ created_by_admin_id: parsed.data.createdByAdminId })
+      .eq("id", row.booking_id);
+    if (stampError) {
+      console.error(
+        "[bookings/create-public-booking] created_by_admin_id stamp failed",
+        { bookingId: row.booking_id, stampError },
+      );
+    }
   }
 
   // Fire the bid/created Inngest event post-response. Best-effort: a

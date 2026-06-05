@@ -41,6 +41,79 @@ export interface ReleasePatch {
 // Newest patch first.
 export const RELEASE_PATCHES: ReleasePatch[] = [
   {
+    id: "patch-2",
+    label: "Patch 2",
+    title: "Your team & booking for customers",
+    date: "2026-06-04",
+    summary:
+      "Tools for running your team — invite staff, onboard them, and manage their access — plus a way for staff to book visits on behalf of call-in and walk-in customers, with every booking attributed to whoever made it.",
+    sections: [
+      {
+        title: "Your team",
+        changes: [
+          {
+            kind: "new",
+            title: "Invite teammates",
+            detail:
+              "Admins can add a staff member by email and role. They get an invite link and join the admin portal directly — no more behind-the-scenes setup.",
+          },
+          {
+            kind: "new",
+            title: "Everyone has a name",
+            detail:
+              "New staff set their name the first time they sign in (it's required), so bookings and records always show who did what.",
+          },
+          {
+            kind: "new",
+            title: "Manage access",
+            detail:
+              "Change a teammate's role, deactivate or remove their access, or resend their sign-in link — all from the new Team page.",
+          },
+          {
+            kind: "new",
+            title: "Profiles & passwords",
+            detail:
+              "Each staff member has a profile page to update their name and, if they like, set a password to sign in directly instead of waiting for an email link.",
+          },
+        ],
+      },
+      {
+        title: "Booking for customers",
+        changes: [
+          {
+            kind: "new",
+            title: "Book for a customer",
+            detail:
+              "Staff can now book a visit on behalf of a customer who calls in or walks up. Start from the Bookings page, enter the customer's details, and they get a link to review, sign, and pay — or you can confirm and collect it your way.",
+          },
+          {
+            kind: "new",
+            title: "Booked by",
+            detail:
+              "Every booking now records which staff member created it, so it's always clear who handled each reservation.",
+          },
+        ],
+      },
+      {
+        title: "Polish",
+        changes: [
+          {
+            kind: "improved",
+            title: "Cleaner property settings",
+            detail:
+              "The property settings page is reorganized — pick a property from the tabs at the top, then edit its booking rules, home-page info, notifications, and pre-visit details in clearly labeled sections.",
+          },
+          {
+            kind: "improved",
+            title: "Faster photos",
+            detail:
+              "Adventure and trip images now load faster and are automatically optimized and sized for each device.",
+          },
+        ],
+      },
+    ],
+  },
+  {
     id: "patch-1",
     label: "Patch 1",
     title: "Member Adventures, trip sharing & smarter communications",

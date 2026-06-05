@@ -397,7 +397,6 @@ export async function stampRole(formData: FormData) {
   const email = field(formData, "email").toLowerCase();
   const role = field(formData, "role");
   const propertyId = field(formData, "property_id") || null;
-  const partnerOrgId = field(formData, "partner_org_id") || null;
 
   if (!email || !VALID_ROLES.has(role)) {
     redirect("/dev?error=missing+or+invalid+role");
@@ -417,7 +416,6 @@ export async function stampRole(formData: FormData) {
 
   const app_metadata: Record<string, unknown> = { role };
   if (propertyId) app_metadata.property_id = propertyId;
-  if (partnerOrgId) app_metadata.partner_org_id = partnerOrgId;
 
   const { error } = await admin.auth.admin.updateUserById(user.id, {
     app_metadata,

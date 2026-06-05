@@ -3,6 +3,7 @@ import type {
   AdminBidStatus,
   AdminBookingType,
 } from "./bids";
+import { getStaffIdentity, type StaffIdentity } from "./staff-identity";
 
 export interface AdminBidGearItem {
   name: string;
@@ -67,6 +68,8 @@ export interface AdminBidDetail {
     guestNotes: string | null;
     audienceType: string;
     capacityReserved: number;
+    // Set when a staff member booked this on a customer's behalf.
+    bookedByStaff: StaffIdentity | null;
     estimatedPrice: number | null;
     confirmedPrice: number | null;
     // confirmedPrice ?? estimatedPrice — see BidBooking comment in get-bid.ts.
@@ -168,6 +171,7 @@ type AdminBidJoinedRow = {
     guest_notes: string | null;
     audience_type: string;
     capacity_reserved: number;
+    created_by_admin_id: string | null;
     estimated_price: string | number | null;
     confirmed_price: string | number | null;
     deposit_amount: string | number | null;
@@ -216,7 +220,7 @@ export async function getAdminBidDetail(
       bookings (
         id, booking_type, start_time, end_time, duration_hours,
         guest_name, guest_email, guest_phone, guest_count, guest_notes,
-        audience_type, capacity_reserved,
+        audience_type, capacity_reserved, created_by_admin_id,
         estimated_price, confirmed_price, deposit_amount, amount_paid, deposit_payment_intent_id,
         properties ( id, name, slug, timezone ),
         instructors ( id, name ),
@@ -255,6 +259,9 @@ export async function getAdminBidDetail(
     }));
 
   const waiverRow = data.waiver_documents ?? null;
+  const bookedByStaff = booking.created_by_admin_id
+    ? await getStaffIdentity(booking.created_by_admin_id)
+    : null;
 
   return {
     bid: {
@@ -290,6 +297,7 @@ export async function getAdminBidDetail(
       guestNotes: booking.guest_notes,
       audienceType: booking.audience_type,
       capacityReserved: booking.capacity_reserved,
+      bookedByStaff,
       estimatedPrice: toNumber(booking.estimated_price),
       confirmedPrice: toNumber(booking.confirmed_price),
       effectiveQuote:

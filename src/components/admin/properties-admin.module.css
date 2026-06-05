@@ -1,0 +1,150 @@
+/* Property settings — a property switcher (tabs) above a full-width,
+   single-property editor grouped into labeled sections. Replaces the old
+   three-thin-columns grid. */
+
+.workspace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+}
+
+/* ── Property switcher ─────────────────────────────────────── */
+.switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--space-4);
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  font-weight: 500;
+  color: var(--olive);
+  background: var(--paper-warm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: var(--space-2) var(--space-5);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+.tab:hover {
+  background: var(--cream);
+}
+.tabActive,
+.tabActive:hover {
+  background: var(--olive);
+  color: var(--cream);
+  border-color: var(--olive);
+}
+
+.tabDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--gray);
+  flex: none;
+}
+.tabDot[data-slug="horseshoe-bay"] {
+  background: #3f6e32;
+}
+.tabDot[data-slug="hog-heaven"] {
+  background: #b88240;
+}
+.tabDot[data-slug="packsaddle"] {
+  background: #325a8c;
+}
+/* Active override — keep last so it wins on equal specificity. */
+.tabActive .tabDot {
+  background: var(--cream);
+}
+
+/* ── Editor header ─────────────────────────────────────────── */
+.formHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+.formTitle {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--olive);
+  margin: 0;
+}
+
+/* ── Field groups ──────────────────────────────────────────── */
+.group {
+  padding-top: var(--space-5);
+  margin-top: var(--space-5);
+  border-top: 1px solid var(--border);
+}
+.group:first-of-type {
+  border-top: none;
+  margin-top: 0;
+  padding-top: var(--space-2);
+}
+.groupEyebrow {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--tan-deep);
+  margin-bottom: var(--space-1);
+}
+.groupDesc {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--gray);
+  margin: 0 0 var(--space-4);
+}
+.groupBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+@media (max-width: 640px) {
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Sticky save bar ───────────────────────────────────────── */
+.saveBar {
+  position: sticky;
+  bottom: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+  padding: var(--space-3) var(--space-4);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+}
+.savedNote {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--olive);
+}

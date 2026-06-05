@@ -25,3 +25,20 @@ export function portalHomeForRole(role: string | null | undefined): string {
 export function hasAdminAccess(role: string | null | undefined): boolean {
   return portalHomeForRole(role) === "/admin";
 }
+
+// The roles that live in the admin portal. Offered when inviting a teammate.
+export const STAFF_ROLES = [
+  "super_admin",
+  "admin",
+  "property_manager",
+  "concierge",
+  "membership_coordinator",
+] as const;
+
+export type StaffRole = (typeof STAFF_ROLES)[number];
+
+// Who may add/manage team members (invite staff, set roles). Matches the
+// DB-side is_admin() helper: super_admin + admin only.
+export function canManageTeam(role: string | null | undefined): boolean {
+  return role === "super_admin" || role === "admin";
+}

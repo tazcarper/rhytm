@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { Alert, Heading, PageShell } from "@/lib/ui";
+import { Alert, Button, Heading, PageShell } from "@/lib/ui";
 import { AdminBreadcrumb } from "@/src/components/admin/admin-breadcrumb";
 import {
   BookingsCalendar,
@@ -138,9 +139,14 @@ export default async function AdminBookingsCalendarPage({
       <AdminBreadcrumb
         segments={[{ label: "Admin", href: "/admin" }, { label: "Bookings" }]}
       />
-      <Heading level={1} size="h2" underline>
-        Bookings
-      </Heading>
+      <div className="flex items-end justify-between gap-4 flex-wrap">
+        <Heading level={1} size="h2" underline>
+          Bookings
+        </Heading>
+        <Button asChild variant="primary" size="sm">
+          <Link href="/book">Book for a customer</Link>
+        </Button>
+      </div>
 
       {error && (
         <div className="mt-4">

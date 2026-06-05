@@ -3,6 +3,7 @@ import type {
   AdminBookingStatus,
 } from "./bookings";
 import type { AdminBookingType } from "./bids";
+import { getStaffIdentity, type StaffIdentity } from "./staff-identity";
 
 export interface AdminBookingDetail {
   booking: {
@@ -32,6 +33,8 @@ export interface AdminBookingDetail {
     timezone: string;
   };
   bidId: string | null;
+  // Set when a staff member booked this on a customer's behalf.
+  bookedByStaff: StaffIdentity | null;
 }
 
 type BookingDetailRow = {
@@ -51,6 +54,7 @@ type BookingDetailRow = {
   estimated_price: number | null;
   confirmed_price: number | null;
   deposit_amount: number | null;
+  created_by_admin_id: string | null;
   created_at: string;
   updated_at: string;
   properties: {
@@ -74,7 +78,7 @@ export async function getAdminBookingDetail(
       guest_name, guest_email, guest_phone, guest_count, guest_notes,
       audience_type, capacity_reserved,
       estimated_price, confirmed_price, deposit_amount,
-      created_at, updated_at,
+      created_by_admin_id, created_at, updated_at,
       properties!inner ( id, name, slug, timezone ),
       bids ( id )
     `,
@@ -89,6 +93,9 @@ export async function getAdminBookingDetail(
 
   const row = data as unknown as BookingDetailRow;
   const bid = Array.isArray(row.bids) ? row.bids[0] : row.bids;
+  const bookedByStaff = row.created_by_admin_id
+    ? await getStaffIdentity(row.created_by_admin_id)
+    : null;
 
   return {
     booking: {
@@ -118,5 +125,6 @@ export async function getAdminBookingDetail(
       timezone: row.properties.timezone,
     },
     bidId: bid?.id ?? null,
+    bookedByStaff,
   };
 }

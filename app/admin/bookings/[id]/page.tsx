@@ -122,6 +122,15 @@ export default async function AdminBookingDetail({
             {AUDIENCE_LABEL[booking.audienceType] ?? booking.audienceType}
           </span>
         </div>
+        {detail.bookedByStaff && (
+          <div className={s.kv}>
+            <span className={s.kvKey}>Booked by</span>
+            <span className={s.kvValue}>
+              {detail.bookedByStaff.name} · {detail.bookedByStaff.email}{" "}
+              <em>(staff)</em>
+            </span>
+          </div>
+        )}
         <div className={s.kv}>
           <span className={s.kvKey}>Capacity reserved</span>
           <span className={s.kvValue}>{booking.capacityReserved}</span>

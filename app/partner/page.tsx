@@ -3,17 +3,17 @@ import { Card, Eyebrow, Heading, PageShell } from "@/lib/ui";
 
 export const dynamic = "force-dynamic";
 
-// Partner portal stub. Confirms the partner role claim is in place and
-// shows the partner_org_id / property_id claims that downstream RLS
-// policies will key off. Real concierge views (book-on-behalf-of-guest)
-// land with App 5.
+// Partner role/portal infrastructure exists (proxy allowlist, JWT claims),
+// but there is no partner product surface: the business has no outside
+// organizations booking on its behalf. Staff who book for call-in customers
+// use the admin "Book for a customer" flow instead. This stub just confirms
+// the role claim; build a real partner experience here only if a concrete
+// external-partner need appears.
 export default async function PartnerHome() {
   const supabase = await createServerSupabaseClient();
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
   const meta = user?.app_metadata ?? {};
 
   return (
@@ -36,16 +36,8 @@ export default async function PartnerHome() {
             role: <code className="font-mono">{(meta.role as string | undefined) ?? "—"}</code>
           </li>
           <li>
-            partner_org_id:{" "}
-            <code className="font-mono">
-              {(meta.partner_org_id as string | undefined) ?? "—"}
-            </code>
-          </li>
-          <li>
             property_id:{" "}
-            <code className="font-mono">
-              {(meta.property_id as string | undefined) ?? "—"}
-            </code>
+            <code className="font-mono">{(meta.property_id as string | undefined) ?? "—"}</code>
           </li>
         </ul>
       </Card>
