@@ -36,6 +36,7 @@ export function DetailsForm({
   const { state, setState } = useBookingFlow();
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [company, setCompany] = useState(""); // honeypot — empty for real users
   const [isPending, startTransition] = useTransition();
 
   if (!state.bookingType) return null;
@@ -108,19 +109,22 @@ export function DetailsForm({
     );
 
     startTransition(async () => {
-      const result = await submitBookingAction({
-        propertyId,
-        bookingType: nextState.bookingType,
-        date: nextState.date,
-        slotStart: nextState.slotStart,
-        durationHours: nextState.durationHours,
-        instructorId: nextState.instructorId ?? null,
-        guest: nextState.guest,
-        guestCount: nextState.guestCount,
-        estimatedPrice: summary.estimateTotal,
-        disciplineIds: nextState.disciplineSelections.map((d) => d.serviceId),
-        addOns: flatAddOns,
-      });
+      const result = await submitBookingAction(
+        {
+          propertyId,
+          bookingType: nextState.bookingType,
+          date: nextState.date,
+          slotStart: nextState.slotStart,
+          durationHours: nextState.durationHours,
+          instructorId: nextState.instructorId ?? null,
+          guest: nextState.guest,
+          guestCount: nextState.guestCount,
+          estimatedPrice: summary.estimateTotal,
+          disciplineIds: nextState.disciplineSelections.map((d) => d.serviceId),
+          addOns: flatAddOns,
+        },
+        company,
+      );
 
       if (!result.ok) {
         setSubmitError(result.message);
@@ -135,6 +139,17 @@ export function DetailsForm({
       <StepBackLink
         href={`/book/${propertySlug}/disciplines`}
         label="Change booking"
+      />
+      {/* Honeypot — hidden from real users; bots that autofill it are rejected. */}
+      <input
+        type="text"
+        name="company"
+        value={company}
+        onChange={(e) => setCompany(e.target.value)}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
       />
 
       {submitError && (

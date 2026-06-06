@@ -95,6 +95,29 @@ export const RELEASE_PATCHES: ReleasePatch[] = [
         ],
       },
       {
+        title: "Waivers",
+        changes: [
+          {
+            kind: "new",
+            title: "Walk-in waiver kiosk",
+            detail:
+              "Each property has a sign-in-person link you can open on an iPad and hand to a walk-in guest. They read the property's waiver, enter their name + email, and sign — no booking required. After signing it resets for the next person, so it's easy to run at an event.",
+          },
+          {
+            kind: "new",
+            title: "Collect a booking's waiver on the spot",
+            detail:
+              "From a booking, staff can have the guest sign their waiver in person; it's attached to that booking and marks it signed.",
+          },
+          {
+            kind: "new",
+            title: "Waivers list",
+            detail:
+              "A new Waivers area to search signed waivers by name or email, open the signed PDF, and grab each property's kiosk link.",
+          },
+        ],
+      },
+      {
         title: "Polish",
         changes: [
           {

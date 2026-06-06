@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -400,6 +401,8 @@ export default async function AdminBidDetail({
                   <code style={{ fontSize: "var(--text-micro)" }}>
                     {bid.dropboxSignEnvelopeId}
                   </code>
+                ) : bid.status === "confirmed" || bid.status === "paid" ? (
+                  <Link href={`/admin/bids/${bid.id}/sign`}>Sign in person →</Link>
                 ) : (
                   <span className={s.empty}>—</span>
                 )}
