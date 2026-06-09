@@ -21,6 +21,9 @@ export interface RecordStandaloneInput {
   signedIp: string | null;
   signedUserAgent: string | null;
   collectedByAdminId: string | null;
+  // Set for QR scan-to-sign party waivers — associates the waiver with a
+  // booking (multiple allowed). Null for a pure walk-in (no booking).
+  bookingId?: string | null;
 }
 
 export type RecordStandaloneResult =
@@ -92,6 +95,7 @@ export async function recordStandaloneSignature(
 
   const { error } = await supabase.from("waiver_documents").insert({
     bid_id: null,
+    booking_id: input.bookingId ?? null,
     property_id: input.propertyId,
     waiver_template_id: template.id,
     blob_url: stored.reference,

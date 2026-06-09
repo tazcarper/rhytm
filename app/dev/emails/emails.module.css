@@ -31,6 +31,44 @@
   border-radius: var(--radius-sharp);
 }
 
+/* Cross-link bar between the two dev email tools (outbox <-> gallery). */
+.toolNav {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.toolNavLink {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--olive);
+  text-decoration: none;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.toolNavLink:hover {
+  border-color: var(--tan-deep);
+  background: var(--paper-warm);
+}
+
+.toolNavLinkActive,
+.toolNavLinkActive:hover {
+  background: var(--olive);
+  color: var(--cream);
+  border-color: var(--olive);
+}
+
 /* Two-column master-detail. Below 720px the list stacks above the
    detail panel so the iframe still gets the full viewport width. */
 .layout {

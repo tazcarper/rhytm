@@ -12,6 +12,7 @@ const ROLE_TO_PORTAL: Record<string, string> = {
   membership_coordinator: "/admin",
   member: "/member",
   partner: "/partner",
+  instructor: "/instructor",
 };
 
 export function portalHomeForRole(role: string | null | undefined): string {
@@ -24,6 +25,12 @@ export function portalHomeForRole(role: string | null | undefined): string {
 // surfaces (SiteHeader) to decide whether to surface an admin shortcut.
 export function hasAdminAccess(role: string | null | undefined): boolean {
   return portalHomeForRole(role) === "/admin";
+}
+
+// True for the instructor role only. Instructors live in /instructor — a
+// read-only "gameplan" portal — and are NOT staff (no /admin access).
+export function isInstructor(role: string | null | undefined): boolean {
+  return role === "instructor";
 }
 
 // The roles that live in the admin portal. Offered when inviting a teammate.

@@ -1,5 +1,6 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -64,4 +65,55 @@ export async function signBidInPersonAction(
 
   revalidatePath(`/admin/bids/${bidId}`);
   return { ok: true };
+}
+
+// Mint (idempotent) the booking's scan-to-sign token and return the signing
+// URL. Staff-gated; the token authorizes anonymous signing of THIS booking's
+// waiver at /sign-waiver/<token>. The QR itself is drawn client-side from
+// this URL (qrcode.react) — no server-side image generation.
+export async function getBookingWaiverQrAction(
+  bidId: string,
+): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const role = user?.app_metadata?.role as string | undefined;
+  if (!user || !hasAdminAccess(role)) {
+    return { ok: false, error: "Not authorized." };
+  }
+
+  // RLS-scoped read authorizes the caller against this bid → its booking.
+  const { data: bid } = await supabase
+    .from("bids")
+    .select("id, booking_id")
+    .eq("id", bidId)
+    .maybeSingle<{ id: string; booking_id: string }>();
+  if (!bid) {
+    return { ok: false, error: "You can't act on this booking." };
+  }
+
+  const admin = createServiceRoleClient();
+  const { data: bookingRow } = await admin
+    .from("bookings")
+    .select("waiver_sign_token")
+    .eq("id", bid.booking_id)
+    .maybeSingle<{ waiver_sign_token: string | null }>();
+
+  let token = bookingRow?.waiver_sign_token ?? null;
+  if (!token) {
+    token = randomBytes(32).toString("base64url");
+    const { error } = await admin
+      .from("bookings")
+      .update({ waiver_sign_token: token })
+      .eq("id", bid.booking_id);
+    if (error) return { ok: false, error: "Couldn't create the QR link — try again." };
+  }
+
+  const requestHeaders = await headers();
+  const proto = requestHeaders.get("x-forwarded-proto") ?? "http";
+  const host = requestHeaders.get("host");
+  const origin = host ? `${proto}://${host}` : "";
+  const url = `${origin}/sign-waiver/${token}`;
+  return { ok: true, url };
 }

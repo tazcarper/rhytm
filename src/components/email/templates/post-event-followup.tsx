@@ -115,7 +115,7 @@ export function PostEventFollowup({
 
                   {membershipCtaUrl && (
                     <tr>
-                      <td style={{ padding: "8px 32px 0" }}>
+                      <td style={{ padding: "8px 32px 24px" }}>
                         <table
                           role="presentation"
                           cellPadding={0}

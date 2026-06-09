@@ -107,6 +107,10 @@ export default async function AdminWaiversPage({
                     <td className="py-2 pr-3">
                       {waiver.bidId ? (
                         <Link href={`/admin/bids/${waiver.bidId}`}>Booking →</Link>
+                      ) : waiver.bookingId ? (
+                        <Link href={`/admin/bookings/${waiver.bookingId}`}>
+                          Booking (party) →
+                        </Link>
                       ) : (
                         <span>Walk-in{waiver.propertyName ? ` · ${waiver.propertyName}` : ""}</span>
                       )}

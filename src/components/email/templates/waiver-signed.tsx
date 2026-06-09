@@ -234,7 +234,7 @@ export function WaiverSigned({
                   {/* Finalized: at-property balance note (terminal, no CTA) */}
                   {finalized && atPropertyAmount && (
                     <tr>
-                      <td style={{ padding: "16px 32px 0" }}>
+                      <td style={{ padding: "16px 32px 24px" }}>
                         <table
                           role="presentation"
                           cellPadding={0}

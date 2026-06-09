@@ -89,6 +89,7 @@ export default async function DevEmailsPage({
   return (
     <PageShell width="wide">
       <PageHeader />
+      <ToolNav />
 
       {rows.length === 0 ? (
         <Card padding="loose">
@@ -146,6 +147,24 @@ function PageHeader() {
         the rest of <code>/dev</code> pre-launch.
       </p>
     </header>
+  );
+}
+
+// Cross-link bar between the two dev email tools. The outbox (this page) is
+// the active tab; the template gallery is at /dev/email-templates.
+function ToolNav() {
+  return (
+    <nav className={s.toolNav} aria-label="Email dev tools">
+      <span
+        className={`${s.toolNavLink} ${s.toolNavLinkActive}`}
+        aria-current="page"
+      >
+        Outbox — sent
+      </span>
+      <Link href="/dev/email-templates" className={s.toolNavLink}>
+        Templates — gallery
+      </Link>
+    </nav>
   );
 }
 

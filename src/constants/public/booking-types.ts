@@ -10,6 +10,10 @@ export interface BookingTypeMeta {
   // and no duration selector has overridden it. Plan a Visit is fixed at 2;
   // the others use the range minimum until App 2.5 adds explicit selection.
   defaultDurationHours: number;
+  // When true, the WHEN step is instructor-first: the guest picks a qualified
+  // instructor and the calendar/slots reflect that instructor's availability.
+  // Drives all funnel branching (Open/Closed) — no scattered booking-type checks.
+  requiresInstructor?: boolean;
   bullets: ReadonlyArray<string>;
   notice?: string;
 }
@@ -37,9 +41,10 @@ export const BOOKING_TYPE_META: Record<BookingType, BookingTypeMeta> = {
       "One-on-one with an instructor. Sharpen technique on your terms.",
     durationLabel: "One to three hours",
     defaultDurationHours: 1,
+    requiresInstructor: true,
     bullets: [
       "Choose one, two, or three hours",
-      "Paired with an instructor on the day",
+      "Pick your instructor when you book",
       "Solo or with a guest",
     ],
   },

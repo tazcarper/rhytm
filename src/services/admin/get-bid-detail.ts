@@ -30,6 +30,17 @@ export interface AdminBidAddOn {
   unitPrice: number;
 }
 
+// A party member's signed waiver collected via the scan-to-sign QR. These are
+// the NON-primary signers (guests): standalone-shaped rows linked to the
+// booking (booking_id set, bid_id null). The primary/bid signer lives on
+// `waiver` instead. Each is viewable at /admin/waivers/[id].
+export interface AdminBidPartyWaiver {
+  id: string;
+  signedName: string;
+  signerEmail: string | null;
+  signedAt: string;
+}
+
 export interface AdminBidDetail {
   bid: {
     id: string;
@@ -92,6 +103,9 @@ export interface AdminBidDetail {
   // Lifecycle card links to /admin/bids/[id]/waiver, which streams the PDF
   // via a short-lived signed URL.
   waiver: { sha256: string; signedName: string } | null;
+  // Additional party members who signed via the scan-to-sign QR (oldest
+  // first). The primary signer is `waiver`; these are everyone else.
+  partyWaivers: AdminBidPartyWaiver[];
 }
 
 function parseGearList(gearListJson: unknown): AdminBidGearItem[] {
@@ -263,6 +277,24 @@ export async function getAdminBidDetail(
     ? await getStaffIdentity(booking.created_by_admin_id)
     : null;
 
+  // Party waivers: the scan-to-sign guests, linked to the booking (not the
+  // bid). Read through the caller's RLS scope — admins see all; property
+  // managers see their property's standalone rows.
+  const { data: partyRows, error: partyError } = await supabase
+    .from("waiver_documents")
+    .select("id, signed_name, signer_email, created_at")
+    .eq("booking_id", booking.id)
+    .order("created_at", { ascending: true });
+  if (partyError) {
+    throw new Error(`Admin bid party waivers failed: ${partyError.message}`);
+  }
+  const partyWaivers: AdminBidPartyWaiver[] = (partyRows ?? []).map((row) => ({
+    id: row.id as string,
+    signedName: row.signed_name as string,
+    signerEmail: (row.signer_email as string | null) ?? null,
+    signedAt: row.created_at as string,
+  }));
+
   return {
     bid: {
       id: data.id,
@@ -319,5 +351,6 @@ export async function getAdminBidDetail(
     waiver: waiverRow
       ? { sha256: waiverRow.pdf_sha256, signedName: waiverRow.signed_name }
       : null,
+    partyWaivers,
   };
 }

@@ -51,6 +51,39 @@
   letter-spacing: var(--tracking-tight);
 }
 
+/* Walk-in waiver quick-actions bar — pinned right under the header so the
+   scan-to-sign QR is the first thing staff reach when a party arrives. */
+.quickBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+  padding: var(--space-4) var(--space-5);
+  background: var(--paper-warm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.quickBarInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.quickBarStatus {
+  font-family: var(--serif);
+  font-size: var(--text-body-lg);
+  color: var(--olive);
+}
+
+.quickBarActions {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
 
 /* Two-column record layout: a wide content column + a narrow action/metadata
    rail. `align-items: start` keeps the rail cell from stretching so the rail
@@ -63,10 +96,11 @@
   align-items: start;
 }
 
-@media (min-width: 1000px) {
+/* Desktop only — the rail goes beside the content. iPad (≤1024, both
+   orientations) stays single-column so cards get full width + bigger touch
+   targets instead of three cramped columns. */
+@media (min-width: 1180px) {
   .layout {
-    /* Narrower content column, wider rail (~20% shift from the prior
-       1fr / 340px split). */
     grid-template-columns: minmax(0, 1fr) 410px;
   }
 }
@@ -96,7 +130,7 @@
   gap: var(--space-4);
 }
 
-@media (min-width: 1000px) {
+@media (min-width: 1180px) {
   .rail {
     position: sticky;
     top: var(--space-4);

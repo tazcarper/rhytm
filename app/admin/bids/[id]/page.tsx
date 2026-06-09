@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getBidUrlForAdmin } from "@/src/services/bids/get-bid-url-for-admin";
-import { Card, Divider, Heading, PageShell, Text } from "@/lib/ui";
+import { Button, Card, Divider, Heading, PageShell, Text } from "@/lib/ui";
 import { AdminBreadcrumb } from "@/src/components/admin/admin-breadcrumb";
 import {
   formatDateLongTz,
@@ -15,6 +15,8 @@ import { BidStatusBadge } from "@/src/components/admin/bid-status-badge";
 import { PaymentStatusBadge } from "@/src/components/admin/payment-status-badge";
 import { BidActions } from "@/src/components/admin/bid-actions";
 import { BidUrlCard } from "@/src/components/admin/bid-url-card";
+import { WaiverQrButton } from "@/src/components/admin/waiver-qr-button";
+import { BidWaiverRoster } from "@/src/components/admin/bid-waiver-roster";
 import { BidContentDrawer } from "@/src/components/admin/bid-content-drawer";
 import { PricingEditor } from "@/src/components/admin/pricing-editor";
 import {
@@ -105,6 +107,19 @@ export default async function AdminBidDetail({
     0,
   );
 
+  // Show the waiver roster once signing is in play (confirmed onward) or as
+  // soon as any waiver exists, so staff can track who in the party has signed.
+  const showWaiverRoster =
+    detail.waiver !== null ||
+    detail.partyWaivers.length > 0 ||
+    bid.status === "confirmed" ||
+    bid.status === "signed" ||
+    bid.status === "paid";
+
+  // Primary (bid) signer + each party guest who signed via the QR.
+  const signedWaiverCount =
+    (detail.waiver ? 1 : 0) + detail.partyWaivers.length;
+
   return (
     <PageShell width="xl">
       <div className={s.header}>
@@ -135,6 +150,29 @@ export default async function AdminBidDetail({
           </p>
         </div>
       </div>
+
+      {/* Walk-in waiver quick actions — surfaced up top since staff reach for
+          the QR most when a party arrives. */}
+      {(bid.status === "confirmed" || bid.status === "paid") && (
+        <div className={s.quickBar}>
+          <div className={s.quickBarInfo}>
+            <span className={s.kvKey}>Waiver</span>
+            <span className={s.quickBarStatus}>
+              {signedWaiverCount > 0
+                ? `${signedWaiverCount} of ${booking.guestCount} signed`
+                : "Not signed yet"}
+            </span>
+          </div>
+          <div className={s.quickBarActions}>
+            <WaiverQrButton bidId={bid.id} variant="primary" size="lg" />
+            {!detail.waiver && (
+              <Button asChild variant="secondary" size="lg">
+                <Link href={`/admin/bids/${bid.id}/sign`}>Sign in person</Link>
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className={s.layout}>
         <div className={s.main}>
@@ -222,6 +260,21 @@ export default async function AdminBidDetail({
             </>
           )}
         </Card>
+
+        {showWaiverRoster && (
+          <BidWaiverRoster
+            className={`${s.section} ${s.mainSpan2}`}
+            bidId={bid.id}
+            partySize={booking.guestCount}
+            timezone={tz}
+            primary={
+              detail.waiver
+                ? { signedName: detail.waiver.signedName, signedAt: bid.signedAt }
+                : null
+            }
+            partyWaivers={detail.partyWaivers}
+          />
+        )}
 
         <BidAddOnsEditor
           className={`${s.section} ${s.mainSpan2}`}

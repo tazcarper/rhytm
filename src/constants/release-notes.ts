@@ -41,6 +41,106 @@ export interface ReleasePatch {
 // Newest patch first.
 export const RELEASE_PATCHES: ReleasePatch[] = [
   {
+    id: "patch-4",
+    label: "Patch 4",
+    title: "Instructor scheduling & pick-your-instructor lessons",
+    date: "2026-06-09",
+    summary:
+      "Private lessons are now built around your instructors. Set what each instructor teaches and the hours they work, and guests booking a lesson choose their instructor and see only the times that person is actually free — with instructors able to manage their own profile and schedule.",
+    sections: [
+      {
+        title: "Instructors",
+        changes: [
+          {
+            kind: "new",
+            title: "Set what each instructor teaches",
+            detail:
+              "On an instructor's profile, choose the disciplines they're qualified to teach at each property. Guests booking a lesson in a discipline only see instructors who can teach it.",
+          },
+          {
+            kind: "new",
+            title: "Weekly schedules & time off",
+            detail:
+              "Give each instructor their working hours per property, day by day — with a one-click 'Fill week with 9–5' to start fast — plus time off (vacation days) and one-off extra hours outside their usual week. A new Schedule page lives on each instructor's profile.",
+          },
+          {
+            kind: "new",
+            title: "Instructors manage their own profile & schedule",
+            detail:
+              "Instructors signing in to their portal get a Profile page to update their photo, bio, and phone, and to set the hours they're available — so they can keep their own calendar current. You still control which properties and disciplines they cover.",
+          },
+        ],
+      },
+      {
+        title: "Booking a lesson",
+        changes: [
+          {
+            kind: "improved",
+            title: "Guests pick their instructor",
+            detail:
+              "When booking a private lesson, guests now choose their instructor — shown with photo and bio — defaulting to the first one available. The calendar and times update to that instructor's real availability: their working hours, their existing bookings, and any time off.",
+          },
+          {
+            kind: "improved",
+            title: "No impossible back-to-back bookings",
+            detail:
+              "If an instructor works at more than one property, the booking calendar automatically leaves travel time between properties, so they're never booked somewhere they couldn't physically reach in time.",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "patch-3",
+    label: "Patch 3",
+    title: "Waivers anywhere & stronger spam protection",
+    date: "2026-06-05",
+    summary:
+      "Collect liability waivers on the spot — a walk-in kiosk for guests who don't have a booking, plus in-person signing tied to a booking — and, behind the scenes, the public booking and waiver forms are now hardened against spam and bots.",
+    sections: [
+      {
+        title: "Waivers",
+        changes: [
+          {
+            kind: "new",
+            title: "Walk-in waiver kiosk",
+            detail:
+              "Each property has a sign-in-person link you can open on an iPad and hand to a walk-in guest. They read the property's waiver, enter their name + email, and sign — no booking required. After signing it resets for the next person, so it's easy to run at an event.",
+          },
+          {
+            kind: "new",
+            title: "Collect a booking's waiver on the spot",
+            detail:
+              "From a booking, staff can have the guest sign their waiver in person; it's attached to that booking and marks it signed.",
+          },
+          {
+            kind: "new",
+            title: "Scan-to-sign QR for a booking",
+            detail:
+              "On a booking, pop up a QR code on any screen — each guest scans it with their phone camera and signs their own waiver on the spot, all tied to that booking. Perfect for getting a whole group signed in fast when they arrive.",
+          },
+          {
+            kind: "new",
+            title: "Waivers list",
+            detail:
+              "A new Waivers area to search signed waivers by name or email, open the signed PDF, and grab each property's kiosk link.",
+          },
+        ],
+      },
+      {
+        title: "Security & reliability",
+        changes: [
+          {
+            kind: "improved",
+            title: "Spam & bot protection",
+            detail:
+              "The public booking form and the walk-in waiver kiosk now have rate limiting and a hidden bot trap, so automated abuse and junk submissions are stopped before they reach you.",
+          },
+        ],
+      },
+    ],
+  },
+  {
     id: "patch-2",
     label: "Patch 2",
     title: "Your team & booking for customers",
@@ -91,29 +191,6 @@ export const RELEASE_PATCHES: ReleasePatch[] = [
             title: "Booked by",
             detail:
               "Every booking now records which staff member created it, so it's always clear who handled each reservation.",
-          },
-        ],
-      },
-      {
-        title: "Waivers",
-        changes: [
-          {
-            kind: "new",
-            title: "Walk-in waiver kiosk",
-            detail:
-              "Each property has a sign-in-person link you can open on an iPad and hand to a walk-in guest. They read the property's waiver, enter their name + email, and sign — no booking required. After signing it resets for the next person, so it's easy to run at an event.",
-          },
-          {
-            kind: "new",
-            title: "Collect a booking's waiver on the spot",
-            detail:
-              "From a booking, staff can have the guest sign their waiver in person; it's attached to that booking and marks it signed.",
-          },
-          {
-            kind: "new",
-            title: "Waivers list",
-            detail:
-              "A new Waivers area to search signed waivers by name or email, open the signed PDF, and grab each property's kiosk link.",
           },
         ],
       },

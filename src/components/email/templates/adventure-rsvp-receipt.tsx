@@ -117,7 +117,7 @@ export function AdventureRsvpReceipt({
                   </tr>
 
                   <tr>
-                    <td style={{ padding: "8px 32px 8px" }}>
+                    <td style={{ padding: "8px 32px 24px" }}>
                       <table
                         role="presentation"
                         cellPadding={0}

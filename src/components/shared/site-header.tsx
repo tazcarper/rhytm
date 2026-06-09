@@ -8,9 +8,9 @@ import { StickyHeader } from "./sticky-header";
 import s from "./site-header.module.css";
 
 // Suppress the global header on portal surfaces that ship their own
-// chrome. /admin renders <AdminNav> (brand + nav + identity) and /dev
-// has its own tooling header — a second bar there would double up.
-const SUPPRESSED_PREFIXES = ["/admin", "/dev"] as const;
+// chrome. /admin renders <AdminNav>, /instructor renders <InstructorNav>,
+// and /dev has its own tooling header — a second bar there would double up.
+const SUPPRESSED_PREFIXES = ["/admin", "/instructor", "/dev"] as const;
 
 function shouldSuppress(pathname: string): boolean {
   return SUPPRESSED_PREFIXES.some(

@@ -1,0 +1,65 @@
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--olive);
+  border-bottom: 1px solid var(--olive-deep);
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.wordmark {
+  font-family: var(--serif);
+  font-size: var(--text-body-lg);
+  font-weight: 600;
+  color: var(--paper);
+}
+
+.scope {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: var(--tan);
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.name {
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  color: var(--paper);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 40vw;
+}
+
+.link {
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  color: var(--paper);
+  text-decoration: none;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+.link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}

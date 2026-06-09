@@ -308,6 +308,35 @@ function mapPgError(error: {
     };
   }
 
+  // P0003 — travel-buffer trigger: instructor too close to a booking at another
+  // property. P0004 — chosen instructor isn't qualified for the discipline.
+  // P0005 — chosen instructor isn't available for that slot. All three are
+  // "pick another instructor or time" from the guest's side.
+  if (code === "P0003") {
+    return {
+      ok: false,
+      reason: "instructor_unavailable",
+      message:
+        "That time is too close to another booking for this instructor — pick a later slot.",
+    };
+  }
+  if (code === "P0004") {
+    return {
+      ok: false,
+      reason: "instructor_unavailable",
+      message:
+        "That instructor doesn't teach the selected discipline — choose another instructor.",
+    };
+  }
+  if (code === "P0005") {
+    return {
+      ok: false,
+      reason: "instructor_unavailable",
+      message:
+        "That instructor isn't available then — pick another time or instructor.",
+    };
+  }
+
   // 23514 CHECK constraint
   if (code === "23514") {
     return {

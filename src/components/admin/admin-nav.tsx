@@ -31,6 +31,7 @@ export function AdminNav({ email, role, pendingBidCount }: AdminNavProps) {
       badgeCount: pendingBidCount > 0 ? pendingBidCount : undefined,
     },
     { label: "Bookings", href: "/admin/bookings" },
+    { label: "Instructors", href: "/admin/instructors" },
     { label: "Adventures", href: "/admin/adventures" },
     { label: "Members", href: "/admin/members" },
     { label: "Properties", href: "/admin/properties" },

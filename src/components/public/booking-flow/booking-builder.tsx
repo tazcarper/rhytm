@@ -23,6 +23,8 @@ import {
 import type { PublicService } from "@/src/services/public/services";
 import { getSlotAvailabilityAction } from "@/app/(public)/book/[property]/disciplines/availability-action";
 import type { DisciplineSelection } from "./booking-flow-types";
+import { InstructorWhenStep } from "./instructor-when-step";
+import { startOfDay, dateToISO, dateFromISO } from "./date-utils";
 import s from "./booking-builder.module.css";
 
 interface BookingBuilderProps {
@@ -62,6 +64,10 @@ export function BookingBuilder({
   const bookingType = state.bookingType;
   const meta = BOOKING_TYPE_META[bookingType];
   const isHost = bookingType === "host_an_occasion";
+  // Instructor-first WHEN step (private lessons today). When set, the standard
+  // calendar/slot path below is replaced by <InstructorWhenStep>, which sources
+  // availability from the selected instructor's schedule instead.
+  const requiresInstructor = meta.requiresInstructor ?? false;
 
   const selections = state.disciplineSelections;
   const guestCount = state.guestCount;
@@ -153,7 +159,9 @@ export function BookingBuilder({
   // out-of-order responses if the guest clicks dates quickly.
   const selectedDateISO = state.date;
   useEffect(() => {
-    if (selectedDateISO === undefined) {
+    // Instructor-required types compute availability per chosen instructor in
+    // <InstructorWhenStep>; the generic property-wide RPC doesn't apply here.
+    if (requiresInstructor || selectedDateISO === undefined) {
       setAvailability(null);
       setAvailabilityLoading(false);
       return;
@@ -176,7 +184,7 @@ export function BookingBuilder({
     return () => {
       active = false;
     };
-  }, [propertyId, selectedDateISO, bookingType, prospectiveDuration]);
+  }, [propertyId, selectedDateISO, bookingType, prospectiveDuration, requiresInstructor]);
 
   // If the slot the guest already picked is now reserved, drop it so they
   // can't advance with a dead selection.
@@ -216,7 +224,10 @@ export function BookingBuilder({
 
   const step1Valid = isHost || selections.length > 0;
   const step2Valid = true;
-  const step3Valid = state.date !== undefined && state.slotStart !== undefined;
+  const step3Valid =
+    state.date !== undefined &&
+    state.slotStart !== undefined &&
+    (!requiresInstructor || state.instructorId != null);
   const stepValid: ReadonlyArray<boolean> = [step1Valid, step2Valid, step3Valid];
 
   function canJumpTo(target: number): boolean {
@@ -426,7 +437,15 @@ export function BookingBuilder({
           )}
 
           {/* ===== Step 3: When ===== */}
-          {subStep === 3 && (
+          {subStep === 3 &&
+            (requiresInstructor ? (
+              <InstructorWhenStep
+                propertyId={propertyId}
+                slotsByDayOfWeek={slotsByDayOfWeek}
+                bookingHorizonDays={bookingHorizonDays}
+                durationHours={meta.defaultDurationHours}
+              />
+            ) : (
             <section className={s.section}>
               <header className={s.sectionHead}>
                 <p className={s.sectionEyebrow}>Pick a date & time</p>
@@ -500,7 +519,7 @@ export function BookingBuilder({
                 </div>
               </div>
             </section>
-          )}
+            ))}
 
           {/* ===== Bottom nav ===== */}
           <div className={s.stepNav} data-align={subStep === 1 ? "end" : undefined}>
@@ -530,22 +549,4 @@ export function BookingBuilder({
       </div>
     </>
   );
-}
-
-// -------- date helpers (shared with the deleted WhenPicker; inline here) --------
-
-function startOfDay(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-}
-
-function dateToISO(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function dateFromISO(iso: string): Date {
-  const [year, month, day] = iso.split("-").map(Number);
-  return new Date(year, month - 1, day);
 }

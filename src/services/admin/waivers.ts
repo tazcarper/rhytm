@@ -10,6 +10,7 @@ export interface WaiverRow {
   signerEmail: string | null;
   createdAt: string;
   bidId: string | null;
+  bookingId: string | null;
   propertyName: string | null;
 }
 
@@ -19,6 +20,7 @@ interface RawWaiverRow {
   signer_email: string | null;
   created_at: string;
   bid_id: string | null;
+  booking_id: string | null;
   property_id: string | null;
   properties: { name: string } | { name: string }[] | null;
 }
@@ -34,7 +36,9 @@ export async function getWaivers(
 ): Promise<WaiverRow[]> {
   let query = supabase
     .from("waiver_documents")
-    .select("id, signed_name, signer_email, created_at, bid_id, property_id, properties ( name )")
+    .select(
+      "id, signed_name, signer_email, created_at, bid_id, booking_id, property_id, properties ( name )",
+    )
     .order("created_at", { ascending: false })
     .limit(100);
 
@@ -50,6 +54,7 @@ export async function getWaivers(
     signerEmail: row.signer_email,
     createdAt: row.created_at,
     bidId: row.bid_id,
+    bookingId: row.booking_id,
     propertyName: pickOne(row.properties)?.name ?? null,
   }));
 }

@@ -7,6 +7,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { canManageTeam, STAFF_ROLES, type StaffRole } from "@/lib/auth/portal";
+import { recordDevAuthEmail } from "@/src/services/notifications/send-email";
 
 // Confirms the caller may manage the team; returns their own user id (so
 // actions can refuse to let someone change/disable/remove themselves).
@@ -117,6 +118,8 @@ export async function inviteTeamMember(input: {
   if (rowError) {
     return { ok: false, error: "Invite sent, but saving the profile failed." };
   }
+
+  await recordDevAuthEmail({ source: "team_invite", type: "invite", to: email });
 
   revalidatePath("/admin/team");
   return { ok: true };
@@ -240,5 +243,13 @@ export async function resendTeamInvite(input: {
   if (error || !link) {
     return { ok: false, error: error?.message ?? "Couldn't generate a sign-in link." };
   }
+
+  await recordDevAuthEmail({
+    source: "team_invite_resend",
+    type: "magic_link",
+    to: profile.email,
+    actionLink: link,
+  });
+
   return { ok: true, link };
 }

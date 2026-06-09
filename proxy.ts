@@ -14,6 +14,7 @@ const PORTAL_ALLOWLIST: Record<string, ReadonlySet<string>> = {
   ]),
   "/member": new Set(["member"]),
   "/partner": new Set(["partner"]),
+  "/instructor": new Set(["instructor"]),
 };
 
 function matchPortalPrefix(pathname: string): string | null {

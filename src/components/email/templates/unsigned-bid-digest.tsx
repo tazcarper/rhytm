@@ -174,7 +174,7 @@ export function UnsignedBidDigest({
 
                   {overflowCount > 0 && (
                     <tr>
-                      <td style={{ padding: "8px 32px 0" }}>
+                      <td style={{ padding: "8px 32px 24px" }}>
                         <p style={{ margin: 0, fontSize: "14px" }}>
                           <a href={bidsIndexUrl} style={{ color: COLOR_ACCENT }}>
                             &hellip; and {overflowCount} more &rarr;

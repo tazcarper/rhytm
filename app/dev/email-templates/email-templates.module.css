@@ -1,0 +1,216 @@
+/* Internal /dev/email-templates — template gallery for App 15.
+   Self-contained (not shared with /dev/emails) so the two dev email tools
+   can be dropped independently pre-launch. Layout mirrors emails.module.css. */
+
+.header {
+  text-align: center;
+  padding: var(--space-12) 0 var(--space-8);
+  margin-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border);
+}
+
+.header > * + * {
+  margin-top: var(--space-3);
+}
+
+.headerSubtitle {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: var(--text-body-lg);
+  color: var(--gray);
+  max-width: var(--content-prose);
+  margin: var(--space-4) auto 0;
+}
+
+.headerSubtitle code {
+  font-family: var(--sans);
+  font-style: normal;
+  font-size: 0.9em;
+  color: var(--olive);
+  background: rgba(63, 74, 33, 0.06);
+  padding: 2px 6px;
+  border-radius: var(--radius-sharp);
+}
+
+/* Cross-link bar between the two dev email tools (outbox <-> gallery). */
+.toolNav {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.toolNavLink {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--olive);
+  text-decoration: none;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.toolNavLink:hover {
+  border-color: var(--tan-deep);
+  background: var(--paper-warm);
+}
+
+.toolNavLinkActive,
+.toolNavLinkActive:hover {
+  background: var(--olive);
+  color: var(--cream);
+  border-color: var(--olive);
+}
+
+/* Two-column master-detail. Below the breakpoint the sidebar stacks above
+   the detail panel so the iframe still gets full viewport width. */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+}
+
+@media (min-width: 980px) {
+  .layout {
+    grid-template-columns: minmax(240px, 300px) 1fr;
+    align-items: start;
+  }
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-height: 78vh;
+  overflow-y: auto;
+  padding-right: var(--space-1);
+}
+
+@media (max-width: 979px) {
+  .sidebar {
+    max-height: none;
+    overflow-y: visible;
+  }
+}
+
+.sidebarGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebarGroupLabel {
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--gray);
+  padding: 0 var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.sidebarLink {
+  display: block;
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  color: var(--olive);
+  text-decoration: none;
+  border-radius: var(--radius-sharp);
+  padding: var(--space-2) var(--space-3);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.sidebarLink:hover {
+  background: var(--paper-warm);
+}
+
+.sidebarLink:focus-visible {
+  outline: 2px solid var(--olive);
+  outline-offset: 2px;
+}
+
+.sidebarLinkActive,
+.sidebarLinkActive:hover {
+  background: var(--olive);
+  color: var(--cream);
+  font-weight: 500;
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.metaGrid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+}
+
+.metaLabel {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--gray);
+  align-self: center;
+}
+
+.metaValue {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  color: var(--olive);
+  word-break: break-word;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.92em;
+  color: var(--gray);
+}
+
+.previewCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.iframe {
+  width: 100%;
+  /* Tall enough to show a full email without scrolling on desktop; the inner
+     content scrolls on mobile. */
+  height: clamp(480px, 78vh, 860px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sharp);
+  background: white;
+}
+
+.pre {
+  background: var(--paper-warm);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sharp);
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: var(--olive);
+  line-height: 1.5;
+  margin: var(--space-2) 0 0;
+  max-height: 320px;
+}

@@ -17,6 +17,9 @@
 --   - this table
 --   - the LoggingEmailService implementation
 --   - the /dev/emails route
+--   - the /dev/email-templates route + its sample-data registry
+--     (app/dev/email-templates/ — App 15 template gallery, no DB dependency,
+--     but dev-only and dropped with the rest of /dev)
 --   - this migration file (the rest of /dev gets the same treatment)
 --
 -- Security model: RLS enabled with NO policies. Mirrors the

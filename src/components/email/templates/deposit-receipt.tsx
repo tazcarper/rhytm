@@ -221,7 +221,7 @@ export function DepositReceipt({
                   </tr>
 
                   <tr>
-                    <td style={{ padding: "16px 32px 0" }}>
+                    <td style={{ padding: "16px 32px 24px" }}>
                       <table
                         role="presentation"
                         cellPadding={0}
