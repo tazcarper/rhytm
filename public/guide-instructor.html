@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rhythm Outdoors — Instructor Guide</title>
+<link rel="stylesheet" href="/guide.css" />
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+</head>
+<body class="theme-instructor">
+
+<nav class="guidebar" aria-label="Guide">
+  <a class="back" href="/guide.html">← All guides</a>
+  <span class="crumb"><b>Instructor</b> guide</span>
+  <details class="guideswitch">
+    <summary>Switch guide ▾</summary>
+    <div class="gs-menu">
+      <a href="/guide-public.html">Guests</a>
+      <a href="/guide-member.html">Members</a>
+      <a class="cur" href="/guide-instructor.html">Instructors</a>
+      <a href="/guide-staff.html">Staff</a>
+      <a href="/guide-admin.html">Admins &amp; super-admins</a>
+      <div class="sep"></div>
+      <a href="/guide.html">All guides ↗</a>
+    </div>
+  </details>
+  <span class="role-chip">Instructors · Gameplan</span>
+</nav>
+
+<div class="print-hint">📄 <strong>To save as PDF:</strong> press <code>Ctrl/Cmd&nbsp;+&nbsp;P</code>, choose “Save as PDF,” and enable “Background graphics.”</div>
+
+<div class="sheet">
+
+  <header class="cover">
+    <div class="kicker">Instructor Guide · “Gameplan”</div>
+    <h1>Teaching with Rhythm</h1>
+    <p class="sub">Your portal is a clean, read-only briefing of the lessons you’re teaching — plus the two things you keep current: your <strong>profile</strong> and your <strong>schedule</strong>. Designed for your phone, on the way to meet a guest.</p>
+  </header>
+
+  <nav class="toc">
+    <h2>In this guide</h2>
+    <ol>
+      <li><a href="#glance">How it works at a glance</a></li>
+      <li><a href="#access">Getting access &amp; signing in</a></li>
+      <li><a href="#profile">Setting up your profile</a></li>
+      <li><a href="#schedule">Setting your schedule</a></li>
+      <li><a href="#gameplan">Your gameplan (dashboard)</a></li>
+      <li><a href="#briefing">The event briefing</a></li>
+      <li><a href="#cando">What you can &amp; can’t do</a></li>
+      <li><a href="#situations">Common situations</a></li>
+      <li><a href="#faq">Frequently asked questions</a></li>
+    </ol>
+  </nav>
+
+  <div class="keyterms">
+    <h4>Key terms</h4>
+    <dl>
+      <dt>Gameplan</dt><dd>Your portal — a read-only briefing of the lessons you’re teaching.</dd>
+      <dt>Weekly hours</dt><dd>Your normal recurring availability, per property, per day.</dd>
+      <dt>Exception</dt><dd>A date-specific change — <strong>Time off</strong> (block) or <strong>Extra hours</strong> (open extra availability).</dd>
+      <dt>Discipline</dt><dd>An activity you’re qualified to teach (set by an admin).</dd>
+      <dt>Briefing</dt><dd>An event’s detail page — the guest, the activity, waivers, and logistics.</dd>
+    </dl>
+    <p class="more"><a href="/guide.html#glossary">Full glossary →</a></p>
+  </div>
+
+  <section>
+    <h3 id="glance">1. How it works at a glance</h3>
+    <div class="diagram" role="img" aria-label="Instructor flow: an admin adds you and sends an invite; you sign in at the usual login and are routed to the instructor portal; you set up your profile (name, bio, photo, phone) and your schedule (weekly hours plus time off); guests then book lessons that fit your schedule; each lesson appears on Your gameplan; you open its briefing and teach. The sections below restate every step.">
+      <pre class="mermaid">
+flowchart TD
+    A([Admin adds you<br/>&amp; sends an invite]) --> B[Sign in at the usual login<br/>→ routed to /instructor]
+    B --> C[Set up your profile<br/>name · bio · photo · phone]
+    C --> D[Set your schedule<br/>weekly hours + time off]
+    D --> E{{Guests book lessons<br/>that fit your schedule}}
+    E --> F[Lesson appears on<br/>'Your gameplan']
+    F --> G[Open the briefing<br/>guest · activity · waivers · logistics]
+    G --> H([Teach the lesson])
+    classDef home fill:#fff7ed,stroke:#d97706,color:#7c2d12;
+    class E home;
+      </pre>
+      <div class="diagram-cap">Invited → profile &amp; schedule → guests book you → briefing → teach</div>
+    </div>
+    <p>The portal is branded <strong>“Rhythm · Gameplan.”</strong> Everything you <em>see</em> about lessons is read-only — staff handle the bookings. The only things you <em>set</em> are your profile and your schedule.</p>
+  </section>
+
+  <section>
+    <h3 id="access">2. Getting access &amp; signing in</h3>
+    <p>You never sign yourself up. The flow is:</p>
+    <ol class="steps">
+      <li><span class="st">An admin creates your instructor record</span> and sends your invite in one step.</li>
+      <li><span class="st">Click the invite link</span> — it signs you in and links your account. From then on you’re routed straight to <strong>/instructor</strong>.</li>
+      <li><span class="st">Next time, sign in at the usual login</span> (the same page everyone uses) — there’s no separate instructor URL. You’ll land on your gameplan automatically.</li>
+    </ol>
+    <p>Instructors are <strong>not staff</strong> — you don’t have access to the admin, member, or partner areas, and you don’t need them.</p>
+    <blockquote class="dev"><p><i><strong>Heads up.</strong> If your invite email doesn’t arrive (email delivery is still being finalized), an admin can generate a fresh <strong>“Resend link”</strong> sign-in URL and hand it to you directly.</i></p></blockquote>
+  </section>
+
+  <section>
+    <h3 id="profile">3. Setting up your profile</h3>
+    <p>Open <strong>Profile</strong> (“Your profile”). This is what guests see when they pick an instructor for a lesson, so it’s worth filling in. You can use the portal right away — there’s no hard setup gate — but if your bio or photo is missing you’ll see a gentle <em>“Complete your profile”</em> nudge on your dashboard.</p>
+    <div class="cardgrid">
+      <div class="ocard"><div class="ico">🧑‍🏫</div><h4>Name</h4><p>Required — how you’re shown to guests and staff.</p></div>
+      <div class="ocard"><div class="ico">📝</div><h4>Bio</h4><p>A short guest-facing background — your experience, your style, what a lesson with you is like.</p></div>
+      <div class="ocard"><div class="ico">📷</div><h4>Photo</h4><p>A square headshot looks best. Upload any size — we resize &amp; compress to web-ready format automatically.</p></div>
+      <div class="ocard"><div class="ico">📞</div><h4>Phone</h4><p>Your contact number.</p></div>
+    </div>
+    <p>Tap <strong>Save profile</strong>. That’s it — guests booking a private lesson now see your bio and photo in the instructor picker.</p>
+  </section>
+
+  <section>
+    <h3 id="schedule">4. Setting your schedule</h3>
+    <p>Your schedule is the heart of the job — it decides which times guests can book with you. It’s on the same <strong>Profile</strong> page, under <strong>“Your schedule.”</strong> There are two parts.</p>
+
+    <h4>Weekly hours (your normal pattern)</h4>
+    <p>One box per property you teach at. For each <strong>day of the week</strong> you’ll see either <em>Unavailable</em> or one or more <strong>start–end</strong> time windows. Controls:</p>
+    <ul>
+      <li><strong>+ Add hours</strong> under a day to add a window (you can have several per day).</li>
+      <li><strong>Remove</strong> next to any window.</li>
+      <li><strong>Fill week with 9–5</strong> — a quick start that drops a 9:00–17:00 window on every weekday that doesn’t already have one. Then trim the days you don’t want.</li>
+      <li><strong>Save weekly schedule</strong> — saves the whole grid at once.</li>
+    </ul>
+
+    <h4>Time off &amp; one-off availability (exceptions)</h4>
+    <p>For specific dates that differ from your normal pattern. Use <strong>Add an exception</strong>:</p>
+    <ul>
+      <li><strong>Time off</strong> — block your availability on a date (whole day, or a time window; for one property or all of them). Add an optional reason like “Vacation.”</li>
+      <li><strong>Extra hours</strong> — open availability outside your normal pattern. These must name a <strong>specific property and a specific time window</strong>.</li>
+    </ul>
+    <p>Remove any exception with its <strong>Remove</strong> button.</p>
+
+    <blockquote><p><strong>What a guest actually sees.</strong> The booking system combines your weekly hours, your time off and extra hours, the discipline you’re qualified to teach, your existing bookings (with a travel buffer so you’re never double-booked too close together at two properties), and the property’s capacity — and only offers guests the slots that survive all of that.</p></blockquote>
+    <p>If you’re not assigned to any property yet, you’ll see “No properties assigned” — ask an admin to add you to a property first.</p>
+  </section>
+
+  <section>
+    <h3 id="gameplan">5. Your gameplan (dashboard)</h3>
+    <p>Your home screen is <strong>“Your gameplan”</strong> — <em>“Upcoming events you’re teaching. Tap one to see the guest, the activity, and anything they’ve asked for before you meet them.”</em></p>
+    <p>It lists your <strong>upcoming, confirmed lessons, soonest first.</strong> Each event card shows:</p>
+    <ul>
+      <li>The <strong>date</strong>, <strong>start time</strong> (Central Time), and <strong>duration</strong></li>
+      <li>The <strong>guest’s name</strong> and <strong>party size</strong></li>
+      <li><strong>Activity chips</strong> — the discipline(s) booked</li>
+      <li>The <strong>property</strong></li>
+    </ul>
+    <p>Only confirmed, future lessons appear — there’s nothing to prep for a pending, cancelled, or finished one. If you have none: <em>“No upcoming events. Anything new on your schedule will show up here.”</em></p>
+  </section>
+
+  <section>
+    <h3 id="briefing">6. The event briefing</h3>
+    <p>Tap any event to open its full briefing — everything you need before you meet the guests, in scan order. It’s entirely <strong>read-only</strong>.</p>
+    <table>
+      <thead><tr><th>Section</th><th>What’s in it</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Header</strong></td><td>Date · start–end time (CT), the primary guest’s name, party size, and property. The guest’s <strong>phone and email are tappable</strong> — call or email straight from your phone.</td></tr>
+        <tr><td><strong>Activity</strong></td><td>The discipline chips, plus any schedule notes staff added.</td></tr>
+        <tr><td><strong>Special requests</strong></td><td>Anything the guest typed when booking (shown only if present).</td></tr>
+        <tr><td><strong>Guests (waivers)</strong></td><td>A “X of N signed” counter. The primary guest shows “Signed” or “Awaiting signature”; anyone who signed via the scan-to-sign QR is listed too. Outstanding guests can sign on their own phone at arrival.</td></tr>
+        <tr><td><strong>Logistics</strong></td><td>Duration, on-arrival contact, parking, directions, and an “Open map” link — when the property has them filled in.</td></tr>
+      </tbody>
+    </table>
+    <p>You only ever see <em>your own</em> assigned events — there’s no way to see another instructor’s lessons.</p>
+  </section>
+
+  <section>
+    <h3 id="cando">7. What you can &amp; can’t do</h3>
+    <div class="cardgrid">
+      <div class="ocard"><div class="ico">✅</div><h4>You can</h4>
+        <ul>
+          <li>Edit your name, bio, photo, and phone</li>
+          <li>Set your weekly hours</li>
+          <li>Add time off and extra one-off hours</li>
+          <li>Read the briefing for every lesson you teach</li>
+        </ul>
+      </div>
+      <div class="ocard"><div class="ico">🚫</div><h4>An admin handles</h4>
+        <ul>
+          <li>Which <strong>properties</strong> you teach at</li>
+          <li>Which <strong>disciplines</strong> you’re qualified to teach</li>
+          <li>Whether your profile is <strong>active</strong> / visible</li>
+          <li>Creating, editing, or cancelling <strong>bookings</strong></li>
+        </ul>
+      </div>
+    </div>
+    <p>Need a change to any of the admin-handled items? Ask your property manager or an admin.</p>
+  </section>
+
+  <section>
+    <h3 id="situations">8. Common situations</h3>
+    <p class="lead">The handful of things you’ll actually do, step by step.</p>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">🌅</span>Your first day — get set up</p>
+      <p class="when"><b>When:</b> you’ve just accepted your invite.</p>
+      <ol>
+        <li>Open <strong>Profile</strong> and fill in your <strong>name, bio, photo,</strong> and <strong>phone</strong>; tap <strong>Save profile.</strong></li>
+        <li>Scroll to <strong>Your schedule.</strong> Tap <strong>Fill week with 9–5</strong> for a fast start, then trim the days and times you don’t teach.</li>
+        <li>Tap <strong>Save weekly schedule.</strong></li>
+      </ol>
+      <p class="result"><b>Result:</b> guests can now book lessons with you in the times you set.</p>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">🏖️</span>You’re taking time off</p>
+      <p class="when"><b>When:</b> you’ll be away on specific dates.</p>
+      <ol>
+        <li>On <strong>Profile → Your schedule</strong>, use <strong>Add an exception.</strong></li>
+        <li>Pick the <strong>date</strong>, set <strong>Type → Time off</strong>, leave <strong>Whole day</strong> checked (or set a window), add a reason if you like.</li>
+        <li>Tap <strong>Add exception.</strong> Repeat for each day.</li>
+      </ol>
+      <p class="result"><b>Result:</b> guests won’t be offered those times.</p>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">➕</span>You’re running a one-off clinic outside your usual hours</p>
+      <p class="when"><b>When:</b> you want to open extra availability for a special date.</p>
+      <ol>
+        <li>Use <strong>Add an exception</strong> and set <strong>Type → Extra hours.</strong></li>
+        <li>Choose the <strong>property</strong> and the <strong>From / To</strong> time window (extra hours need both).</li>
+        <li>Tap <strong>Add exception.</strong></li>
+      </ol>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">📋</span>Before you meet a guest</p>
+      <p class="when"><b>When:</b> you have a lesson coming up.</p>
+      <ol>
+        <li>On <strong>Your gameplan</strong>, tap the event to open its briefing.</li>
+        <li>Read the <strong>Activity</strong> and any <strong>Special requests</strong>, and check <strong>Logistics</strong> (arrival, parking, map).</li>
+        <li>Glance at the <strong>Guests</strong> roster to see who’s signed. Tap the guest’s <strong>phone</strong> or <strong>email</strong> to reach them if you need to.</li>
+      </ol>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">✍️</span>A guest hasn’t signed their waiver</p>
+      <p class="when"><b>When:</b> the briefing shows someone still “Awaiting signature.”</p>
+      <ul>
+        <li>Nothing to fix in the app — they sign on their own phone via the <strong>scan-to-sign QR</strong> at arrival (staff have it). Their status flips to “Signed” once they do.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h3 id="faq">9. Frequently asked questions</h3>
+    <h4>Do guests see my whole schedule?</h4>
+    <p>No — only your <em>open</em> slots, as bookable times. Your hours, time off, and other bookings stay private.</p>
+    <h4>How do I add a discipline I can teach?</h4>
+    <p>That’s an admin/roster decision — ask an admin to add it to your profile. Guests only see you for disciplines you’re qualified for.</p>
+    <h4>I’ll be away next week. What do I do?</h4>
+    <p>Add a <strong>Time off</strong> exception for those dates — whole-day or a window. Guests won’t be offered those times.</p>
+    <h4>Why isn’t a lesson on my gameplan yet?</h4>
+    <p>Only confirmed, upcoming lessons appear. A request that staff haven’t confirmed yet won’t show.</p>
+    <h4>I lost my sign-in link.</h4>
+    <p>Ask an admin to <strong>Resend link</strong> — they can generate a fresh one for you.</p>
+
+    <div class="relguides">
+      <a href="/guide.html">← All guides</a>
+      <a href="/guide-staff.html">Staff guide</a>
+    </div>
+    <p class="footer-note"><strong>Last updated 9 June 2026.</strong> Describes the platform as built.</p>
+  </section>
+
+</div>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Enlarged diagram">
+  <div class="lightbox-bar">
+    <span class="lightbox-title" id="lightbox-title"></span>
+    <button class="lightbox-close" type="button" id="lightbox-close">Close ✕</button>
+  </div>
+  <div class="lightbox-stage" id="lightbox-stage"></div>
+</div>
+
+<script src="/guide.js"></script>
+</body>
+</html>

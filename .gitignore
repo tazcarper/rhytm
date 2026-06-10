@@ -1,5 +1,6 @@
 node_modules/
 .claude/settings.local.json
+.claude/.developer-mode
 .env
 .env.local
 .env.*.local

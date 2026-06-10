@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rhythm Outdoors — Guest Guide</title>
+<link rel="stylesheet" href="/guide.css" />
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+</head>
+<body class="theme-public">
+
+<nav class="guidebar" aria-label="Guide">
+  <a class="back" href="/guide.html">← All guides</a>
+  <span class="crumb"><b>Guest</b> guide</span>
+  <details class="guideswitch">
+    <summary>Switch guide ▾</summary>
+    <div class="gs-menu">
+      <a class="cur" href="/guide-public.html">Guests</a>
+      <a href="/guide-member.html">Members</a>
+      <a href="/guide-instructor.html">Instructors</a>
+      <a href="/guide-staff.html">Staff</a>
+      <a href="/guide-admin.html">Admins &amp; super-admins</a>
+      <div class="sep"></div>
+      <a href="/guide.html">All guides ↗</a>
+    </div>
+  </details>
+  <span class="role-chip">Guests · Public</span>
+</nav>
+
+<div class="print-hint">📄 <strong>To save as PDF:</strong> press <code>Ctrl/Cmd&nbsp;+&nbsp;P</code>, choose “Save as PDF,” and enable “Background graphics.” Diagrams render automatically (needs internet for the diagram library).</div>
+
+<div class="sheet">
+
+  <header class="cover">
+    <div class="kicker">Guest Guide</div>
+    <h1>Booking a visit</h1>
+    <p class="sub">Everything a guest does on the public website — choose an experience, get a confirmed quote, sign your waiver, and pay your deposit. <strong>No account required.</strong></p>
+  </header>
+
+  <nav class="toc">
+    <h2>In this guide</h2>
+    <ol>
+      <li><a href="#glance">The guest journey at a glance</a></li>
+      <li><a href="#funnel">Building your booking, step by step</a></li>
+      <li><a href="#after">What happens after you submit</a></li>
+      <li><a href="#bid">Your bid page — sign &amp; pay</a></li>
+      <li><a href="#states">Bid states you might see</a></li>
+      <li><a href="#waivers">Signing a waiver</a></li>
+      <li><a href="#adventures">Member Adventures (a peek)</a></li>
+      <li><a href="#trip">Trip links you might be sent</a></li>
+      <li><a href="#scenarios">Common guest scenarios</a></li>
+      <li><a href="#faq">Frequently asked questions</a></li>
+    </ol>
+  </nav>
+
+  <div class="keyterms">
+    <h4>Key terms</h4>
+    <dl>
+      <dt>Bid</dt><dd>Your personal booking page — it holds your confirmed price, schedule, waiver, and deposit. You sign and pay here.</dd>
+      <dt>Booking type</dt><dd>Plan a Visit, Private Lesson, or Host an Occasion.</dd>
+      <dt>Deposit</dt><dd>Paid up front to lock your date; the balance settles at the property.</dd>
+      <dt>Add-on</dt><dd>An optional priced extra — ammunition, premium gear, an instructor upgrade.</dd>
+      <dt>Waiver</dt><dd>The liability form you sign electronically before your visit.</dd>
+    </dl>
+    <p class="more"><a href="/guide.html#glossary">Full glossary →</a></p>
+  </div>
+
+  <section>
+    <h3 id="glance">1. The guest journey at a glance</h3>
+    <div class="diagram" role="img" aria-label="Guest journey flow: from the landing page you pick a property, then a booking type, then build the booking (disciplines, guests, date and time). A private lesson adds a step to choose your instructor and a time that fits their schedule. You enter your details and submit, which creates a bid page in review. Staff either confirm it (then you sign the waiver and pay the deposit, in either order, and you're all set) or it is closed or expires. The numbered walkthrough below restates every step.">
+      <pre class="mermaid">
+flowchart TD
+    A([Landing page]) -->|Book an experience| B[Pick a property<br/>Horseshoe Bay · Hog Heaven · Packsaddle]
+    B --> C[Pick a booking type<br/>Plan a Visit · Private Lesson · Host an Occasion]
+    C --> D[Build the booking<br/>disciplines · guests · date &amp; time]
+    D -->|Private Lesson| D2[Choose your instructor<br/>&amp; a time that fits their schedule]
+    D --> E[Enter your details<br/>name · email · phone · notes]
+    D2 --> E
+    E -->|Submit| F[/Bid page created<br/>confirmation email sent/]
+    F --> G{{In review}}
+    G -.->|Staff confirms price &amp; details| H{{Confirmed}}
+    G -.->|Staff declines| X1{{Closed}}
+    G -.->|Window passes| X2{{Expired}}
+    H --> I[Sign the waiver<br/>typed e-signature]
+    H --> J[Pay the deposit<br/>card or bank · choose the amount]
+    I --> L([You're all set])
+    J --> L
+    L --> M[Save the bid page — it's your confirmation]
+    classDef state fill:#eef2ff,stroke:#6366f1,color:#1e1b4b;
+    classDef dead fill:#fef2f2,stroke:#ef4444,color:#7f1d1d;
+    class G,H state;
+    class X1,X2 dead;
+      </pre>
+      <div class="diagram-cap">Choose → build → (pick an instructor) → sign → pay → show up</div>
+    </div>
+  </section>
+
+  <section>
+    <h3 id="funnel">2. Building your booking, step by step</h3>
+    <p>From the homepage, tap <strong>Book an experience</strong>. The whole funnel takes about five minutes, with a running summary on the side so you always see what you’ve chosen and an estimated total.</p>
+
+    <ol class="steps">
+      <li><span class="st">Pick a property.</span> “Where shall we see you?” Choose one of the three clubs. Each card shows its name, locale, and a short tagline.</li>
+      <li><span class="st">Choose a booking type.</span>
+        <table>
+          <thead><tr><th>Type</th><th>Best for</th><th>Length</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Plan a Visit</strong></td><td>Open range time, casual — pick as many disciplines as you like</td><td>Two hours</td></tr>
+            <tr><td><strong>Private Lesson</strong></td><td>One-on-one with an instructor you choose</td><td>One to three hours</td></tr>
+            <tr><td><strong>Host an Occasion</strong></td><td>Exclusive use — tournaments, milestones, corporate days</td><td>Two to six hours</td></tr>
+          </tbody>
+        </table>
+        <p>Host an Occasion blocks all other guests at the property during your window, so the team tailors and quotes it after your inquiry.</p>
+      </li>
+      <li><span class="st">Build your booking.</span> A little three-part wizard — <strong>Disciplines → Guests → When</strong>:
+        <ul>
+          <li><strong>Disciplines &amp; add-ons.</strong> Pick your activities (several for a Visit; exactly one for a Lesson), then layer on optional <strong>add-ons</strong> — extra ammunition, premium gear, instructor upgrades — each with a price and a quantity stepper.</li>
+          <li><strong>Guests.</strong> Slide to set your party size; pricing tiers and per-person fees adjust automatically.</li>
+          <li><strong>When.</strong> Pick a date (only dates inside the property’s booking window appear) and a time. Already-reserved times are greyed out and labeled “reserved,” and availability is checked live as you look.</li>
+        </ul>
+      </li>
+      <li><span class="st">Private Lesson? Choose your instructor first. <span class="badge-new">New</span></span> For a lesson, the “When” step becomes <strong>“Choose your instructor &amp; time.”</strong> You’ll see a card for each instructor who teaches your discipline — with their photo, name, and bio — marked <em>Available</em> or <em>No openings in this window</em>. We pre-select the first available instructor; tap a different one to switch. The calendar and time slots then show only <em>that instructor’s</em> free times. Switching instructors clears your date/time, since availability differs per person.</li>
+      <li><span class="st">Enter your details.</span> Name and email are required; phone and any notes (“special requests, accessibility needs, who else is coming…”) are optional. Tap <strong>Submit booking →</strong>.</li>
+    </ol>
+
+    <blockquote><p><strong>If you refresh mid-funnel</strong>, your progress resets and you’ll see a friendly “Let’s start over” — just pick up from the property step again. It only takes a few minutes.</p></blockquote>
+  </section>
+
+  <section>
+    <h3 id="after">3. What happens after you submit</h3>
+    <p>The moment you submit, the system creates your booking and a <strong>bid</strong> (your private booking page) in one step, then emails you a confirmation. You land on your personal <strong>bid page</strong> at a private link (a unique web address + access code — no login, but keep the link safe).</p>
+    <p>At first the bid shows <strong>“In review.”</strong> Staff confirm the details and final price — typically <strong>within 24 hours</strong> — and you’ll get an email when it’s ready to sign and pay.</p>
+    <blockquote><p><strong>Why the wait?</strong> Pricing for some experiences is confirmed by a person, not a formula. This is the step where staff lock in your quote, schedule, gear list, and waiver.</p></blockquote>
+    <blockquote class="dev"><p><i><strong>Developer Note.</strong> Most or all of this <em>could</em> be automated if we build a pricing formula. Nothing stops it — it just has to be planned carefully.</i></p></blockquote>
+  </section>
+
+  <section>
+    <h3 id="bid">4. Your bid page — sign &amp; pay</h3>
+    <p>Your bid page is the home base for your booking. Once staff confirm it, the full page unlocks: a status badge up top, a small <strong>progress timeline</strong>, your itinerary, and the two things you need to do — <strong>sign</strong> and <strong>pay</strong>.</p>
+
+    <h4>Your itinerary</h4>
+    <p>A confirmed bid shows who it’s <strong>For</strong> (your name and party size), what you’re booked for (disciplines and add-ons), <strong>What we’ll bring</strong> (a gear list), the <strong>Schedule</strong> (arrive / wrap / duration / your instructor), <strong>Things to know</strong> (an expandable FAQ), and <strong>Getting there</strong>.</p>
+
+    <h4>Sign your waiver</h4>
+    <p>Tap <strong>Sign your waiver →</strong> to open the waiver. Scroll through the full text (or tap “Skip to bottom”), type your full legal name, check the consent box, and press <strong>Confirm &amp; sign</strong>. It’s instant — the section flips to <strong>“Signed ✓.”</strong></p>
+
+    <h4>Pay your deposit</h4>
+    <p>Pay by card or bank transfer, right on the page. If the team set a full quote above the deposit, you can <strong>choose any amount between the deposit and the full quote</strong> — there are quick <em>Deposit</em> and <em>Full</em> buttons. The remainder settles at the property.</p>
+    <blockquote><p>The amount <strong>locks once you start entering card details</strong> (“refresh the page to change it”). Signing and paying are independent — do them in either order. If no deposit is required, signing alone finalizes your booking.</p></blockquote>
+
+    <h4>You're all set</h4>
+    <p>When everything required is done, the page celebrates — <em>“You’re all set — we can’t wait to see you.”</em> — and locks in your date. <strong>Save this page; it’s your confirmation and everything you need is on it.</strong></p>
+    <blockquote class="dev"><p><i><strong>Developer Note.</strong> The waiver uses our own in-house e-signature — not a third-party service like DocuSign or Dropbox Sign. A single-signer liability waiver isn’t complex enough to justify a paid vendor. We render the signed PDF ourselves, store it privately, and keep a tamper-evidence hash plus an audit trail (typed name, timestamp, IP), which meets the ESIGN/UETA bar for a waiver. The old Dropbox Sign integration is retained but deprecated — flip one setting to switch it back on if a future need (multi-party signing, identity proofing) ever calls for it.</i></p></blockquote>
+  </section>
+
+  <section>
+    <h3 id="states">5. Bid states you might see</h3>
+    <table>
+      <thead><tr><th>State</th><th>What it means for you</th></tr></thead>
+      <tbody>
+        <tr><td><strong>In review</strong></td><td>Submitted; staff are preparing your quote. Nothing to do yet.</td></tr>
+        <tr><td><strong>Confirmed</strong></td><td>Ready to sign and pay.</td></tr>
+        <tr><td><strong>Signed</strong></td><td>Your waiver is on file; a deposit may still be owed.</td></tr>
+        <tr><td><strong>Booked</strong></td><td>Signed and paid — you’re set.</td></tr>
+        <tr><td><strong>Expired</strong></td><td>The bid sat unsigned/unpaid past its window. Reach out and we’ll send a fresh one.</td></tr>
+        <tr><td><strong>Closed</strong></td><td>The booking couldn’t be accommodated. Contact the team.</td></tr>
+        <tr><td><strong>Refunded</strong></td><td>A paid deposit was returned and the booking was cancelled.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h3 id="waivers">6. Signing a waiver</h3>
+    <p>There’s more than one place you might sign, but it’s always the same idea: read the property’s waiver, type your full legal name, check the consent box, and sign.</p>
+    <table>
+      <thead><tr><th>Where</th><th>When you’d use it</th></tr></thead>
+      <tbody>
+        <tr><td><strong>On your bid page</strong></td><td>The main way — the “Sign your waiver” step described above.</td></tr>
+        <tr><td><strong>Scan-to-sign QR</strong></td><td>At the property, each person in your party can scan a QR code and sign on their own phone. After you sign, tap <strong>Next person</strong> and hand the phone along.</td></tr>
+        <tr><td><strong>Walk-in iPad</strong></td><td>A staff member may hand you an iPad at the property to sign before you go out — no booking or login needed.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h3 id="adventures">7. Member Adventures (a peek)</h3>
+    <p>You can browse <strong>Member Adventures</strong> — curated, members-only trips — from the public site at <code>/adventures</code>. Anyone can read the beautiful trip pages, but <strong>reserving a spot requires a member account</strong> at the hosting club. If you’re not a member yet, you’ll see “Sign in to reserve”; reach out about membership and you’ll get the full experience described in the <a href="/guide-member.html">member guide</a>.</p>
+  </section>
+
+  <section>
+    <h3 id="trip">8. Trip links you might be sent</h3>
+    <p>If a member invites you on a trip they booked, you may receive a <strong>trip link</strong> (a web address starting with <code>/trip/</code>). It opens a clean, read-only overview — the date, location, what to expect, what to bring, and good-to-knows. It deliberately shows <strong>no pricing, payment, or contact details</strong>. You don’t need an account to view it.</p>
+  </section>
+
+  <section>
+    <h3 id="scenarios">9. Common guest scenarios</h3>
+    <p class="lead">Whatever you’re planning, here’s the quickest path through.</p>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">🎯</span>A casual afternoon on the range</p>
+      <p class="when"><b>When:</b> you just want open range time.</p>
+      <ol>
+        <li>Tap <strong>Book an experience</strong> and pick your property.</li>
+        <li>Choose <strong>Plan a Visit.</strong></li>
+        <li>Pick your <strong>disciplines</strong> (as many as you like) and any <strong>add-ons</strong>, set your <strong>guest count</strong>, then a <strong>date &amp; time.</strong></li>
+        <li>Enter your details and tap <strong>Submit booking →.</strong></li>
+      </ol>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">🧑‍🏫</span>A private lesson with the instructor you want</p>
+      <p class="when"><b>When:</b> you want one-on-one coaching.</p>
+      <ol>
+        <li>Book your property and choose <strong>Private Lesson.</strong></li>
+        <li>Pick the <strong>one discipline</strong> you’d like to learn.</li>
+        <li>On <strong>Choose your instructor &amp; time</strong>, pick the instructor you want — then a time that fits <em>their</em> schedule.</li>
+        <li>Enter your details and submit.</li>
+      </ol>
+      <p class="tip"><b>Tip:</b> if an instructor shows “No openings in this window,” try another — availability differs per person.</p>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">🎉</span>A corporate day or celebration</p>
+      <p class="when"><b>When:</b> you want the property to yourselves.</p>
+      <ol>
+        <li>Book your property and choose <strong>Host an Occasion.</strong></li>
+        <li>Set your <strong>group size</strong> and submit your details — no instant price.</li>
+        <li>The team builds a <strong>custom quote within 24 hours</strong> and sends your bid to sign &amp; pay.</li>
+      </ol>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">✅</span>Finish your booking once it’s confirmed</p>
+      <p class="when"><b>When:</b> you got the email that your bid is ready.</p>
+      <ol>
+        <li>Open your bid link and tap <strong>Sign your waiver →</strong> — scroll, type your name, check consent, <strong>Confirm &amp; sign.</strong></li>
+        <li>Tap into the <strong>deposit</strong> section and pay (choose any amount from the deposit up to the full quote).</li>
+        <li><strong>Save the page</strong> — it’s your confirmation.</li>
+      </ol>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">🖊️</span>Get your whole group signed at arrival</p>
+      <p class="when"><b>When:</b> several of you are coming and everyone needs a waiver.</p>
+      <ul>
+        <li>At the property, scan the <strong>QR code</strong> and sign on your phone, then tap <strong>Next person</strong> and hand it along — each guest signs their own.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h3 id="faq">10. Frequently asked questions</h3>
+    <h4>Do I need an account to book?</h4>
+    <p>No. Booking, signing, and paying all happen on your private bid link without logging in.</p>
+    <h4>Why didn’t a price show up instantly?</h4>
+    <p>Many experiences are priced by staff. You get an estimate while booking; the confirmed quote arrives when staff confirm your bid (usually within 24 hours).</p>
+    <h4>Can I choose my instructor?</h4>
+    <p>Yes — for a <strong>Private Lesson</strong>. You pick the instructor first, and the calendar then shows only the times that instructor is free.</p>
+    <h4>I lost my bid link. What now?</h4>
+    <p>Check your confirmation email, or contact the team — staff can re-send or re-issue your secure link.</p>
+    <h4>How do I become a member?</h4>
+    <p>Membership is invite-only. Contact the club and staff will add you to the roster.</p>
+
+    <div class="relguides">
+      <a href="/guide.html">← All guides</a>
+      <a href="/guide-member.html">Member guide →</a>
+    </div>
+    <p class="footer-note"><strong>Last updated 9 June 2026.</strong> Describes the platform as built.</p>
+  </section>
+
+</div>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Enlarged diagram">
+  <div class="lightbox-bar">
+    <span class="lightbox-title" id="lightbox-title"></span>
+    <button class="lightbox-close" type="button" id="lightbox-close">Close ✕</button>
+  </div>
+  <div class="lightbox-stage" id="lightbox-stage"></div>
+</div>
+
+<script src="/guide.js"></script>
+</body>
+</html>

@@ -1,5 +1,18 @@
 {
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": true
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit|MultiEdit|mcp__plugin_supabase_supabase__.*|mcp__plugin_stripe_stripe__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/client-guardrails.mjs\""
+          }
+        ]
+      }
+    ]
   }
 }

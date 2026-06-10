@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "@/lib/auth/actions";
 import { canManageTeam } from "@/lib/auth/portal";
 import { Button, cn } from "@/lib/ui";
+import { GuidesMenu } from "./guides-menu";
 import s from "./admin-nav.module.css";
 
 interface NavItem {
@@ -88,6 +89,7 @@ export function AdminNav({ email, role, pendingBidCount }: AdminNavProps) {
       </ul>
 
       <div className={s.identity}>
+        <GuidesMenu />
         <Link href="/admin/profile" className={s.identityText} title="Your profile">
           <span className={s.identityEmail}>{email ?? "—"}</span>
           <span>{role ?? "—"}</span>

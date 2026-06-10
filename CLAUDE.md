@@ -252,3 +252,39 @@ These rules exist because we hit every one of them as a real bug during Phase 4.
 6. **Every new RLS policy needs an explicit manual test** — run the actual query as the actual role against the live DB. Migration apply succeeding is not proof the policy works; RLS errors only surface at SELECT/INSERT/UPDATE time.
 
 7. **`FORCE ROW LEVEL SECURITY` is not applied to any project table.** This means service-role and SECURITY DEFINER functions bypass RLS as expected. If you ever add `FORCE`, every existing SECURITY DEFINER helper needs review.
+
+## Client Contribution Mode
+
+This repo can be driven by a **non-technical client** making layout / CSS / copy /
+front-end changes on their own machine. When you are in that mode, every change is
+delivered as a feature branch + pull request that a developer reviews — the client
+never edits `main`, never touches a live database, and never deploys.
+
+**How to tell which mode you're in:** if `.claude/.developer-mode` exists, you are on
+the developer's machine — work normally (this section does not apply). If it does
+**not** exist, you are in client-contributor mode: follow the workflow below.
+
+**In client-contributor mode:**
+- Follow the **`safe-change` skill** (`.claude/skills/safe-change/SKILL.md`) for the
+  mechanics of every change: branch off latest `origin/main` → edit → `npm run
+  typecheck` → `npm run dev` for the client to see → commit → push → `gh pr create`.
+  The **Client Change Driver** agent (`agents/client_change_driver.md`) captures the
+  tone and judgment.
+- **Stay in the front-end lane.** The foundation (packages, build config, auth, data
+  layer, schema, backend services) is already built and fixed. Client work is
+  presentation — layout, styling, copy, rearranging existing components. Don't add or
+  remove npm packages, and don't edit foundational files (`package.json`,
+  `next.config.*`, `tsconfig.json`, `middleware.ts`, `lib/supabase/*`, `lib/auth/*`,
+  `supabase/config.toml`); route those to the developer. The hook hard-blocks them too.
+- **Database changes never hit a live DB.** A schema change becomes a migration file
+  in the branch (`npx supabase migration new`, applied locally with `npx supabase db
+  reset`) plus a "Database changes" note in the PR for the developer to apply. Never
+  `supabase db push` / `link` / `--linked`, and never the Supabase MCP write tools.
+- The client works against a **local Supabase stack in Docker** — no production
+  credentials exist on their machine. See `docs/CLIENT_SETUP.md` for onboarding.
+
+**Enforcement is not optional.** `.claude/hooks/client-guardrails.mjs` (a PreToolUse
+hook, on by default, disabled only by the `.claude/.developer-mode` marker) hard-blocks
+remote DB writes, Stripe writes, pushes/commits to `main`, force-pushes, direct
+deploys, committing `.env` files, and edits to the guardrails themselves. Don't try to
+route around it — if it blocks something, that action belongs to the developer.

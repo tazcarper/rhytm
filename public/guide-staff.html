@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rhythm Outdoors — Staff Guide</title>
+<link rel="stylesheet" href="/guide.css" />
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+</head>
+<body class="theme-staff">
+
+<nav class="guidebar" aria-label="Guide">
+  <a class="back" href="/guide.html">← All guides</a>
+  <span class="crumb"><b>Staff</b> guide</span>
+  <details class="guideswitch">
+    <summary>Switch guide ▾</summary>
+    <div class="gs-menu">
+      <a href="/guide-public.html">Guests</a>
+      <a href="/guide-member.html">Members</a>
+      <a href="/guide-instructor.html">Instructors</a>
+      <a class="cur" href="/guide-staff.html">Staff</a>
+      <a href="/guide-admin.html">Admins &amp; super-admins</a>
+      <div class="sep"></div>
+      <a href="/guide.html">All guides ↗</a>
+    </div>
+  </details>
+  <span class="role-chip">Staff · Admin portal</span>
+</nav>
+
+<div class="print-hint">📄 <strong>To save as PDF:</strong> press <code>Ctrl/Cmd&nbsp;+&nbsp;P</code>, choose “Save as PDF,” and enable “Background graphics.”</div>
+
+<div class="sheet">
+
+  <header class="cover">
+    <div class="kicker">Staff Guide</div>
+    <h1>Running the day-to-day</h1>
+    <p class="sub">The admin portal is where staff price and confirm bids, manage bookings, instructors, members, adventures, properties, and waivers. This guide covers the work every staff role shares. A handful of controls are <span class="badge-admin">Admin only</span> — see the <a href="/guide-admin.html" style="color:inherit;text-decoration:underline;">admin guide</a>.</p>
+  </header>
+
+  <nav class="toc">
+    <h2>In this guide</h2>
+    <ol>
+      <li><a href="#glance">The admin journey at a glance</a></li>
+      <li><a href="#who">Who can sign in &amp; your role</a></li>
+      <li><a href="#setup">First sign-in &amp; your profile</a></li>
+      <li><a href="#dash">The dashboard</a></li>
+      <li><a href="#bids">Working a bid (the core job)</a></li>
+      <li><a href="#bookings">Bookings</a></li>
+      <li><a href="#instructors">Instructors</a></li>
+      <li><a href="#members">Members directory</a></li>
+      <li><a href="#adventures">Adventures</a></li>
+      <li><a href="#properties">Properties &amp; catalog</a></li>
+      <li><a href="#templates">FAQ &amp; Gear templates</a></li>
+      <li><a href="#waivers">Waivers</a></li>
+      <li><a href="#playbooks">Common workflows</a></li>
+      <li><a href="#whatsnew">What’s New</a></li>
+      <li><a href="#notes">Good to know</a></li>
+    </ol>
+  </nav>
+
+  <p class="jumpnote">▶ <strong>New to the portal?</strong> The fastest way to learn it is by doing — jump to <a href="#playbooks">Common workflows</a> for step-by-step recipes like “turn a new request into a confirmed bid.”</p>
+
+  <div class="keyterms">
+    <h4>Key terms</h4>
+    <dl>
+      <dt>Bid</dt><dd>A guest’s booking-in-progress that you price, fill with content, and confirm or deny. The spine of the workflow.</dd>
+      <dt>Quote vs deposit</dt><dd>The <strong>quote</strong> is the full price the guest sees; the <strong>deposit</strong> is the minimum due before the trip.</dd>
+      <dt>Horizon</dt><dd>How far ahead a property accepts bookings (a per-property setting).</dd>
+      <dt>Catalog</dt><dd>A property’s <strong>services</strong> (disciplines) and <strong>add-ons</strong> shown in the public funnel.</dd>
+      <dt>Template</dt><dd>A reusable FAQ/gear item (or waiver wording) that auto-fills onto bids.</dd>
+    </dl>
+    <p class="more"><a href="/guide.html#glossary">Full glossary →</a></p>
+  </div>
+
+  <section>
+    <h3 id="glance">1. The admin journey at a glance</h3>
+    <div class="diagram" role="img" aria-label="Admin work map: from sign-in you reach the dashboard, then the bids queue and bookings calendar. Opening a bid lets you edit its content and pricing, then confirm (which unlocks the guest's page and emails them) or deny with a reason; you can also copy or rotate the link, refund, and collect waivers. The dashboard also branches to Instructors, Members, Adventures, Properties and catalog, and FAQ/Gear and Waivers. The sections below cover each.">
+      <pre class="mermaid">
+flowchart TD
+    A([Sign in]) --> B([Dashboard /admin])
+    B --> D[Bids queue]
+    B --> E[Bookings calendar]
+    D --> G[Open a bid]
+    G --> H[Edit content &amp; pricing<br/>quote · deposit · gear · FAQ · notes]
+    G --> I{Decision}
+    I -->|Confirm| J[/Guest's bid unlocks<br/>email sent/]
+    I -->|Deny + reason| K[/Guest notified/]
+    G --> L[Copy / rotate link · refund · waivers]
+    B --> M[Instructors]
+    B --> N[Members]
+    B --> O[Adventures]
+    B --> P[Properties &amp; catalog]
+    B --> Q[FAQ &amp; Gear · Waivers]
+    classDef home fill:#eff6ff,stroke:#3b82f6,color:#1e3a8a;
+    class B home;
+      </pre>
+      <div class="diagram-cap">Staff work centers on bid curation, with operations spread across the nav</div>
+    </div>
+  </section>
+
+  <section>
+    <h3 id="who">2. Who can sign in &amp; your role</h3>
+    <p>Five staff roles share the admin portal. You all see the same screens; what differs is what your <strong>writes</strong> can touch (the system narrows your data and blocks out-of-scope actions behind the scenes).</p>
+    <table>
+      <thead><tr><th>Role</th><th>What it does day-to-day</th></tr></thead>
+      <tbody>
+        <tr><td><strong>super_admin</strong> / <strong>admin</strong></td><td>Everything in this guide, plus the <span class="badge-admin">Admin only</span> controls (team, creating instructors, waiver templates).</td></tr>
+        <tr><td><strong>property_manager</strong></td><td>The full day-to-day, <strong>scoped to their own property</strong> — they see and manage their property’s bids, bookings, instructors, adventures, and waivers.</td></tr>
+        <tr><td><strong>concierge</strong></td><td>Day-to-day bid, booking, and guest work.</td></tr>
+        <tr><td><strong>membership_coordinator</strong></td><td>Day-to-day work with a membership focus.</td></tr>
+      </tbody>
+    </table>
+    <blockquote><p>If you try something outside your scope, you’ll get a clear “You don’t have permission…” message rather than a broken page. That’s the system protecting data, not a bug. Admins intentionally do <strong>not</strong> sign in to the member or instructor portals — you see that data through admin screens.</p></blockquote>
+    <p><strong>A few features are reserved for admins.</strong> They’re marked <span class="badge-admin">Admin only</span> throughout this guide and covered fully in the <a href="/guide-admin.html">admin guide</a>: the <strong>Team</strong> roster, <strong>creating/deleting instructors</strong>, and <strong>waiver templates</strong>.</p>
+  </section>
+
+  <section>
+    <h3 id="setup">3. First sign-in &amp; your profile</h3>
+    <ol class="steps">
+      <li><span class="st">Accept your invite.</span> An admin invites you by email. Click the link to sign in. (You can set a password later to skip the email next time.)</li>
+      <li><span class="st">Set your name on the Welcome screen.</span> The first time in, you’re asked to enter your <strong>Full name</strong> and tap <strong>“Continue to the portal.”</strong> You can’t use the portal until you do — it’s a one-time step.</li>
+      <li><span class="st">Tweak your profile anytime.</span> Click your email/role at the top-right to open <strong>Your profile</strong>: edit your <strong>name</strong>, and optionally set a <strong>password</strong> (“you can always use the link as a backup”).</li>
+    </ol>
+    <p>The top nav holds everything: <strong>Dashboard, Bids</strong> (with a badge counting bids awaiting review), <strong>Bookings, Instructors, Adventures, Members, Properties, FAQ &amp; Gear, Waivers</strong>, <strong>Team</strong> <span class="badge-admin">Admin only</span>, and <strong>What’s New</strong>. Sign out from the top-right.</p>
+  </section>
+
+  <section>
+    <h3 id="dash">4. The dashboard</h3>
+    <p>The landing screen is a read-only operations snapshot. Four cards:</p>
+    <ul>
+      <li><strong>Pending review</strong> — a count plus the most recent waiting bids. “Open queue →” jumps to the bids list filtered to pending.</li>
+      <li><strong>Recent activity</strong> — the latest bids by update time, color-coded by status.</li>
+      <li><strong>Confirmed · next 24 hours</strong> — a per-property schedule for today and tomorrow.</li>
+      <li><strong>Upcoming · next 7 days</strong> — one column per property.</li>
+    </ul>
+    <p>Every row links into a detail page. All times are Central Time (CT).</p>
+  </section>
+
+  <section>
+    <h3 id="bids">5. Working a bid — the core job</h3>
+    <p>A <strong>bid</strong> is a guest’s booking-in-progress. Staff price it, fill in its content, and either <strong>Confirm</strong> it (which unlocks signing &amp; paying for the guest) or <strong>Deny</strong> it.</p>
+
+    <h4>The queue</h4>
+    <p>From <strong>Bids</strong>, filter with the workflow pills — <strong>All · Needs review · Active · Closed</strong> — and refine Active by <em>Awaiting guest / Signed / Paid</em>. There’s also search (guest name/email), a property dropdown, and a date range. The table shows guest, booking, when, property, status, and created time; whole rows are clickable.</p>
+
+    <h4>Inside a bid</h4>
+    <p>Open a bid to see the full picture: the booking, guest contact, disciplines &amp; add-ons, the pricing breakdown, lifecycle timestamps, the waiver roster, and internal staff notes. Two editors and a set of actions live here.</p>
+
+    <h4>Edit the content (the slide-over drawer)</h4>
+    <p><strong>Edit bid content</strong> opens a drawer where you set what the guest sees: <strong>Schedule notes</strong>, a <strong>Gear list</strong>, and <strong>FAQ</strong> entries (all support markdown), plus internal <strong>Staff notes</strong>. You can <strong>pull from the library</strong> (the FAQ &amp; Gear templates) to auto-fill, or “Re-pull from library” to refresh.</p>
+
+    <h4>Set the price</h4>
+    <p>In the <strong>Pricing</strong> editor, set the <strong>Confirmed quote</strong> (what the guest pays — overrides the auto-estimate), the <strong>Deposit</strong> (minimum due before the trip), and a <strong>Quote note</strong> explaining any change. If add-ons changed since the last quote, you’ll see the delta and a one-click <strong>“Apply suggested quote.”</strong></p>
+
+    <h4>Act on the bid</h4>
+    <table>
+      <thead><tr><th>Action</th><th>When</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Confirm</strong></td><td>Bid is in review</td><td>Unlocks the schedule, waiver, and deposit on the guest’s page; emails the guest.</td></tr>
+        <tr><td><strong>Deny</strong></td><td>Bid is in review</td><td>Marks it denied with an internal reason (the guest sees only “closed,” not the reason).</td></tr>
+        <tr><td><strong>Copy / Rotate URL</strong></td><td>Active bids</td><td>Copy the guest’s secure link, or rotate it to issue a new one and invalidate the old (use only if a link leaked).</td></tr>
+        <tr><td><strong>Refund deposit</strong></td><td>Deposit was paid</td><td>Refunds via Stripe (full or partial), which moves the bid to refunded and <strong>cancels the booking</strong> (the slot frees up).</td></tr>
+      </tbody>
+    </table>
+    <blockquote><p>Always verify the price and content <strong>before</strong> confirming — confirming is what reveals it all to the guest.</p></blockquote>
+
+    <h4>Waivers on a bid</h4>
+    <p>For a confirmed or paid bid, the page shows a “X of N signed” roster and lets you collect waivers three ways: a <strong>Scan-to-sign QR</strong> (each guest signs on their own phone), <strong>Sign in person</strong> (open it on an iPad and hand it over), and a link to view any signed PDF.</p>
+
+    <h4 id="status">Bid status, end to end</h4>
+    <p>Every bid moves through a fixed set of statuses. Here’s what each means — and the friendlier label the guest sees on their own page. (The queue’s <strong>Needs review / Active / Closed</strong> pills group these: Active = confirmed, signed, or paid; Closed = denied, expired, or refunded.)</p>
+    <table>
+      <thead><tr><th>Status (what you see)</th><th>Meaning</th><th>Guest sees</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Pending review</strong></td><td>Submitted by a guest; waiting for you to price and confirm.</td><td>“In review”</td></tr>
+        <tr><td><strong>Confirmed</strong></td><td>You approved and priced it; the guest can now sign and pay.</td><td>“Confirmed”</td></tr>
+        <tr><td><strong>Signed</strong></td><td>Waiver signed; a deposit may still be owed.</td><td>“Signed”</td></tr>
+        <tr><td><strong>Paid / Booked</strong></td><td>Deposit paid and waiver signed — fully finalized.</td><td>“Booked”</td></tr>
+        <tr><td><strong>Denied</strong></td><td>You couldn’t accommodate it; your reason stays internal.</td><td>“Closed”</td></tr>
+        <tr><td><strong>Expired</strong></td><td>Sat unsigned/unpaid past its window.</td><td>“Expired”</td></tr>
+        <tr><td><strong>Refunded</strong></td><td>A paid deposit was returned; the booking is cancelled.</td><td>“Refunded”</td></tr>
+      </tbody>
+    </table>
+    <div class="diagram" role="img" aria-label="Bid status lifecycle: a guest submits to Pending review. From there staff confirm (to Confirmed), deny (to Denied), or it times out (to Expired). From Confirmed the guest signs (Signed) and pays (Paid); both done makes it Booked. A Booked bid can become Refunded on cancellation. The table above defines each status.">
+      <pre class="mermaid">
+flowchart LR
+    G[Guest submits] --> P[(Pending review)]
+    P -->|confirm| C[(Confirmed)]
+    P -->|deny| D[(Denied)]
+    P -->|times out| E[(Expired)]
+    C -->|signs| S[(Signed)]
+    C -->|pays| PD[(Paid)]
+    S --> B[(Booked)]
+    PD --> B
+    B -->|cancellation| R[(Refunded)]
+      </pre>
+      <div class="diagram-cap">How a bid moves through the system</div>
+    </div>
+  </section>
+
+  <section>
+    <h3 id="bookings">6. Bookings</h3>
+    <p>A calendar-first view of all bookings, with a property filter and a two-month calendar colored by how busy each day is. Pick a day to see its per-property schedule. There’s a <strong>“Book for a customer”</strong> button that walks you through the normal booking funnel on a customer’s behalf (the booking is attributed to you).</p>
+    <p>Most bookings have a bid — opening one takes you straight to its bid detail, which is where the work happens. The standalone booking page is read-only and rarely needed.</p>
+  </section>
+
+  <section>
+    <h3 id="instructors">7. Instructors</h3>
+    <p>The <strong>Instructors</strong> area manages the roster and the read-only “Gameplan” portal instructors sign into. Any staff role can view it; managing requires being an admin or the property manager for that instructor’s property.</p>
+    <ul>
+      <li><strong>Edit a profile</strong> — photo, bio, the properties they teach at, the disciplines they’re qualified for, an <strong>Active</strong> toggle, and display order. (Photo + bio appear in the guest’s lesson picker.)</li>
+      <li><strong>Schedule</strong> — “Weekly schedule &amp; time off”: set per-property weekly hours and date exceptions (the same editor instructors use themselves).</li>
+      <li><strong>Portal access</strong> — <strong>Send invite</strong> to a new instructor, <strong>Resend link</strong> if theirs was lost, or <strong>Revoke</strong> to cut off access (keeps their record and history).</li>
+    </ul>
+    <p><span class="badge-admin">Admin only</span> Creating a brand-new instructor and deleting one are reserved for admins. To retire someone with bookings, toggle them <strong>inactive</strong> rather than deleting — history is preserved. See the <a href="/guide-admin.html#instructors">admin guide</a>.</p>
+  </section>
+
+  <section>
+    <h3 id="members">8. Members directory</h3>
+    <p>A <strong>read-only</strong> directory of memberships — you don’t sign in as a member. Filter by status, search by name/email/member number, and filter by property or tier. Open a person to see their <strong>memberships</strong> (per property, with member #, status, role, household size, join date), their <strong>bookings</strong>, and their <strong>adventure RSVPs</strong>.</p>
+  </section>
+
+  <section>
+    <h3 id="adventures">9. Adventures</h3>
+    <p>Curated, members-only trips. The index lists each adventure with its property, dates, status, payment mode, and how many spots are booked. <strong>New adventure</strong> opens a rich editor:</p>
+    <ul>
+      <li><strong>Basics</strong> — property, title, description, dates, capacity, max guests per reservation.</li>
+      <li><strong>Pricing &amp; payment</strong> — price, per-guest fee, deposit, a <strong>payment mode</strong> (Instant / Deposit / Inquire), and the free-cancellation window.</li>
+      <li><strong>Visibility</strong> — Draft vs Published, and “Mark as sold out.”</li>
+      <li><strong>Display</strong> — card &amp; hero imagery (auto-optimized), category, location, highlights, and chapters.</li>
+    </ul>
+    <p>On a saved adventure, the <strong>roster</strong> lists reservations. You can <strong>Confirm</strong> an inquiry lead, <strong>Refund &amp; cancel</strong> (full refund), or <strong>Cancel</strong> (no refund), and <strong>Export CSV</strong> of the party list. An adventure with reservations can’t be hard-deleted — set it to draft/cancelled instead.</p>
+  </section>
+
+  <section>
+    <h3 id="properties">10. Properties &amp; catalog</h3>
+    <p><strong>Property Settings</strong> has one editable card per property:</p>
+    <ul>
+      <li><strong>Booking rules</strong> — the <em>horizon</em> (how far ahead guests may book, 1–365 days) and <em>max concurrent groups</em> (capacity ceiling per slot).</li>
+      <li><strong>Home page</strong> — the public tagline.</li>
+      <li><strong>Notifications</strong> — the staff inbox that gets “new booking request” alerts (blank turns it off).</li>
+      <li><strong>Support contact</strong> and <strong>pre-visit details</strong> (map link, directions, parking, arrival contact) included in reminder emails.</li>
+    </ul>
+    <p>Each property’s <strong>catalog</strong> (“Manage catalog →”) has two panels:</p>
+    <ul>
+      <li><strong>Services</strong> (the disciplines guests can book) — add, edit, reorder, or deactivate. When editing a service you choose which add-ons are offered with it (and can create new add-ons inline).</li>
+      <li><strong>Add-ons</strong> (priced extras) — add, edit the price, reorder, or deactivate.</li>
+    </ul>
+    <p>Active items appear in the public funnel; inactive ones don’t. You can’t hard-delete a service or add-on that a booking ever used — deactivate it instead. Catalog changes flow straight through to what guests see.</p>
+  </section>
+
+  <section>
+    <h3 id="templates">11. FAQ &amp; Gear templates</h3>
+    <p>This is the reusable <strong>content library</strong> that auto-fills onto new bids. Manage two tabs — <strong>FAQ</strong> and <strong>Gear</strong> — each item scoped to Global, a property, a discipline, or a booking type, so the right items land on the right bids automatically.</p>
+    <blockquote><p>Editing an item here only changes <strong>future</strong> bids — already-sent bids keep the copy they were created with.</p></blockquote>
+  </section>
+
+  <section>
+    <h3 id="waivers">12. Waivers</h3>
+    <p>The <strong>Waivers</strong> page is the signed-waiver record. It has:</p>
+    <ul>
+      <li><strong>Walk-in kiosk links</strong> — a per-property “Open kiosk” button to launch the iPad sign-in-person page at the property (no login needed).</li>
+      <li>A <strong>searchable table</strong> of every signed waiver — name, email, source (the booking or walk-in it came from), signed time, and a <strong>View PDF</strong> link.</li>
+    </ul>
+    <p><span class="badge-admin">Admin only</span> Editing the waiver <strong>templates</strong> (the wording each property uses) is reserved for admins — see the <a href="/guide-admin.html#waiver-templates">admin guide</a>. Property managers see their own property’s waivers; admins see all.</p>
+  </section>
+
+  <section>
+    <h3 id="playbooks">13. Common workflows</h3>
+    <p class="lead">The everyday jobs, step by step, using the real button names. Start here when you’re learning the portal.</p>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">⭐</span>Turn a new request into a confirmed bid</p>
+      <p class="when"><b>When:</b> a guest just submitted a booking — it’s sitting in <em>Needs review</em>.</p>
+      <ol>
+        <li>Open <strong>Bids</strong>, click the <strong>Needs review</strong> pill, and open the new bid.</li>
+        <li>Read the booking, guest contact, and any <strong>guest notes / special requests</strong>.</li>
+        <li>Tap <strong>Edit bid content</strong>. Add <strong>schedule notes</strong>, then <strong>pull from the library</strong> for the gear list and FAQ; adjust as needed and <strong>Save changes.</strong></li>
+        <li>In <strong>Pricing</strong>, set the <strong>Confirmed quote</strong> and <strong>Deposit</strong>, and add a <strong>quote note</strong> if it differs from the estimate.</li>
+        <li>Re-read it all (this is exactly what the guest will see), then tap <strong>Confirm → Confirm bid.</strong></li>
+      </ol>
+      <p class="result"><b>Result:</b> the guest’s page unlocks signing &amp; paying and they get an email. The bid moves to <em>Active · Awaiting guest.</em></p>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">📞</span>Book for a guest who called in</p>
+      <p class="when"><b>When:</b> someone phones or emails instead of using the website.</p>
+      <ol>
+        <li>From <strong>Bookings</strong>, tap <strong>Book for a customer.</strong></li>
+        <li>Walk the funnel as if you were them — property, type, disciplines, guests, and date/time (or instructor, for a lesson).</li>
+        <li>On the details step, enter the <strong>customer’s</strong> name, email, and phone (a banner reminds you you’re booking on their behalf).</li>
+        <li>Submit. It creates their bid, attributed to you — then price &amp; confirm it like any other.</li>
+      </ol>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">🚫</span>Decline a request you can’t accommodate</p>
+      <p class="when"><b>When:</b> the date’s full, or it isn’t something the property can host.</p>
+      <ol>
+        <li>Open the bid (it must still be in review).</li>
+        <li>Tap <strong>Deny</strong> and type an internal <strong>reason</strong> — for your records; the guest won’t see it.</li>
+        <li>Tap <strong>Deny bid.</strong> The guest is notified the bid is closed.</li>
+      </ol>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">💸</span>Refund a guest who has to cancel</p>
+      <p class="when"><b>When:</b> a guest paid a deposit but can no longer come.</p>
+      <ol>
+        <li>Open their (paid) bid and tap <strong>Refund deposit.</strong></li>
+        <li>Confirm the <strong>amount</strong> (full by default; edit it for a partial) and add a reason.</li>
+        <li>Tap <strong>Refund $X.</strong></li>
+      </ol>
+      <p class="result"><b>Result:</b> Stripe returns the money, the bid moves to <em>refunded</em>, and the booking cancels — the slot frees up automatically.</p>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">🔗</span>A bid link got shared too widely</p>
+      <p class="when"><b>When:</b> you suspect a guest’s private link has leaked.</p>
+      <ol>
+        <li>Open the bid and tap <strong>Rotate</strong> on the <strong>Bid URL</strong> card, then confirm.</li>
+        <li>Copy the new link (shown once) and send it to the guest.</li>
+      </ol>
+      <p class="result"><b>Result:</b> the old link stops working immediately; only the new one opens the bid.</p>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">🧭</span>Stand up a new Adventure and fill it</p>
+      <p class="when"><b>When:</b> the team has lined up a curated member trip.</p>
+      <ol>
+        <li><strong>Adventures → New adventure.</strong> Fill in basics, pricing &amp; payment mode, hero/gallery images, and chapters.</li>
+        <li>Leave it <strong>Draft</strong> while you polish (only staff can see it via “View public page”); flip to <strong>Published</strong> when it’s ready.</li>
+        <li>As members reserve, work the <strong>roster</strong>: <strong>Confirm</strong> inquiry leads, <strong>Refund &amp; cancel</strong> or <strong>Cancel</strong> as needed, and <strong>Export CSV ↓</strong> for the property.</li>
+      </ol>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">🎯</span>Add a new discipline or add-on to a property</p>
+      <p class="when"><b>When:</b> a property starts offering a new activity or upsell.</p>
+      <ol>
+        <li><strong>Properties → [property] → Manage catalog.</strong></li>
+        <li><strong>+ Add service</strong>, name it, write the guest-facing description, and mark it <strong>Active.</strong></li>
+        <li>In the service editor, tick the <strong>add-ons</strong> offered with it — or create a new add-on inline.</li>
+      </ol>
+      <p class="result"><b>Result:</b> it appears in the public booking funnel right away.</p>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">🖊️</span>Collect waivers at the property</p>
+      <p class="when"><b>When:</b> a booked group is arriving, or a walk-in shows up.</p>
+      <ul>
+        <li><strong>For a booking:</strong> open the bid → <strong>Scan-to-sign QR</strong>; each guest scans and signs on their own phone (tap <strong>Next person</strong> between them). Or <strong>Sign in person</strong> on an iPad.</li>
+        <li><strong>For a walk-in (no booking):</strong> <strong>Waivers → Open [property] kiosk</strong> on an iPad, hand it over, then <strong>Sign another</strong> for the next guest.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h3 id="whatsnew">14. What’s New</h3>
+    <p>A running, client-facing changelog of everything the team has added and improved, newest first. Read-only — handy for catching up on recent releases.</p>
+  </section>
+
+  <section>
+    <h3 id="notes">15. Good to know</h3>
+    <ul>
+      <li><strong>Times are Central Time (CT)</strong> everywhere — all three properties share one timezone.</li>
+      <li><strong>The bid is the spine.</strong> A booking with a bid always routes to the bid detail; that’s where editing happens.</li>
+      <li><strong>Money flows through Stripe.</strong> Refunding a bid’s deposit cancels the booking and frees the slot.</li>
+      <li><strong>Waivers are versioned.</strong> Editing a template never alters an already-signed waiver.</li>
+      <li><strong>Destructive deletes are guarded.</strong> Instructors, services, add-ons, and adventures can’t be hard-deleted once a booking/RSVP references them — the system steers you to deactivate/retire instead.</li>
+      <li><strong>“You don’t have permission” is by design</strong> — it means the action is outside your role’s scope, not that something broke.</li>
+    </ul>
+
+    <div class="relguides">
+      <a href="/guide.html">← All guides</a>
+      <a href="/guide-admin.html">Admin &amp; super-admin guide →</a>
+      <a href="/guide-instructor.html">Instructor guide</a>
+    </div>
+    <p class="footer-note"><strong>Last updated 9 June 2026.</strong> Describes the platform as built. <em>Shared sections are mirrored in the admin guide — update both.</em></p>
+  </section>
+
+</div>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Enlarged diagram">
+  <div class="lightbox-bar">
+    <span class="lightbox-title" id="lightbox-title"></span>
+    <button class="lightbox-close" type="button" id="lightbox-close">Close ✕</button>
+  </div>
+  <div class="lightbox-stage" id="lightbox-stage"></div>
+</div>
+
+<script src="/guide.js"></script>
+</body>
+</html>

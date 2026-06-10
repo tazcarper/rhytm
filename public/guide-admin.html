@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rhythm Outdoors — Admin &amp; Super-admin Guide</title>
+<link rel="stylesheet" href="/guide.css" />
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+</head>
+<body class="theme-admin">
+
+<nav class="guidebar" aria-label="Guide">
+  <a class="back" href="/guide.html">← All guides</a>
+  <span class="crumb"><b>Admin</b> &amp; super-admin guide</span>
+  <details class="guideswitch">
+    <summary>Switch guide ▾</summary>
+    <div class="gs-menu">
+      <a href="/guide-public.html">Guests</a>
+      <a href="/guide-member.html">Members</a>
+      <a href="/guide-instructor.html">Instructors</a>
+      <a href="/guide-staff.html">Staff</a>
+      <a class="cur" href="/guide-admin.html">Admins &amp; super-admins</a>
+      <div class="sep"></div>
+      <a href="/guide.html">All guides ↗</a>
+    </div>
+  </details>
+  <span class="role-chip">Admins</span>
+</nav>
+
+<div class="print-hint">📄 <strong>To save as PDF:</strong> press <code>Ctrl/Cmd&nbsp;+&nbsp;P</code>, choose “Save as PDF,” and enable “Background graphics.”</div>
+
+<div class="sheet">
+
+  <header class="cover">
+    <div class="kicker">Admin &amp; Super-admin Guide</div>
+    <h1>The keys to the platform</h1>
+    <p class="sub">Everything staff do, plus the controls reserved for admins: the <strong>team roster</strong>, <strong>creating instructors</strong>, and <strong>waiver templates</strong>. This guide stands alone — you won’t need to flip to the staff guide.</p>
+  </header>
+
+  <nav class="toc">
+    <h2>In this guide</h2>
+    <ol>
+      <li><a href="#you">Super-admin vs admin</a></li>
+      <li><a href="#setup">First sign-in &amp; the nav</a></li>
+      <li><a href="#perm">The permission model</a></li>
+      <li><a href="#daily">The shared day-to-day (quick tour)</a>
+        <ol>
+          <li><a href="#dash">Dashboard</a></li>
+          <li><a href="#bids">Working a bid</a></li>
+          <li><a href="#ops">Bookings · Members · Adventures · Properties · Templates · Waivers</a></li>
+        </ol>
+      </li>
+      <li><a href="#admin-only">Admin-only powers</a>
+        <ol>
+          <li><a href="#team">Team management</a></li>
+          <li><a href="#instructors">Creating &amp; deleting instructors</a></li>
+          <li><a href="#waiver-templates">Waiver templates</a></li>
+        </ol>
+      </li>
+      <li><a href="#playbooks">Common workflows</a></li>
+      <li><a href="#notes">Good to know</a></li>
+    </ol>
+  </nav>
+
+  <p class="jumpnote">▶ <strong>Looking for step-by-step recipes?</strong> Jump to <a href="#playbooks">Common workflows</a> — including <a href="#playbooks">“When a new instructor joins.”</a></p>
+
+  <div class="keyterms">
+    <h4>Key terms</h4>
+    <dl>
+      <dt>Bid</dt><dd>A guest’s booking-in-progress that staff price, fill, and confirm or deny — the spine of the workflow.</dd>
+      <dt>Quote vs deposit</dt><dd>The <strong>quote</strong> is the full price; the <strong>deposit</strong> is the minimum due before the trip.</dd>
+      <dt>Role &amp; scope</dt><dd>A teammate’s role sets what they can do; a property manager is scoped to one property.</dd>
+      <dt>Version</dt><dd>Saving a waiver template creates a new version; already-signed waivers keep theirs.</dd>
+      <dt>Catalog</dt><dd>A property’s services (disciplines) and add-ons shown in the public funnel.</dd>
+    </dl>
+    <p class="more"><a href="/guide.html#glossary">Full glossary →</a></p>
+  </div>
+
+  <section>
+    <h3 id="you">1. Super-admin vs admin</h3>
+    <p>Both <strong>super_admin</strong> and <strong>admin</strong> have full access — in practice the two are <strong>interchangeable</strong>. There’s no control one has that the other lacks; the labels just record seniority. Throughout this guide, “admin” means either.</p>
+    <p>You hold every capability in the staff guide <em>plus</em> three privileged areas the other staff roles can’t touch: the <strong>Team</strong> roster, <strong>creating/deleting instructors</strong>, and <strong>waiver templates</strong>.</p>
+  </section>
+
+  <section>
+    <h3 id="setup">2. First sign-in &amp; the nav</h3>
+    <ol class="steps">
+      <li><span class="st">Accept your invite</span> by email, then on the <strong>Welcome</strong> screen set your <strong>Full name</strong> and tap “Continue to the portal” (a one-time step).</li>
+      <li><span class="st">Your profile</span> (top-right) lets you edit your name and set an optional password.</li>
+    </ol>
+    <p>Your nav carries the full set: <strong>Dashboard, Bids</strong> (badged with the pending count), <strong>Bookings, Instructors, Adventures, Members, Properties, FAQ &amp; Gear, Waivers, Team</strong>, and <strong>What’s New</strong>. The <strong>Team</strong> link is visible only to admins.</p>
+  </section>
+
+  <section>
+    <h3 id="perm">3. The permission model</h3>
+    <p>Two gates protect every action — understanding them helps you reason about what each teammate can do.</p>
+    <ol class="steps">
+      <li><span class="st">The portal gate.</span> Each role is allowed into exactly one portal. The five staff roles land in <code>/admin</code>; members in <code>/member</code>; instructors in <code>/instructor</code>. A role can’t cross into another portal.</li>
+      <li><span class="st">The data gate.</span> Inside <code>/admin</code>, the database itself narrows what each role can read and write. That’s why a concierge sees the same screens as you but gets “You don’t have permission…” on actions outside their lane — the data, not the page, is what’s protected.</li>
+    </ol>
+    <table>
+      <thead><tr><th>Capability</th><th>super_admin / admin</th><th>property_manager</th><th>concierge / membership_coordinator</th></tr></thead>
+      <tbody>
+        <tr><td>Work bids, bookings, waivers</td><td>✅ all properties</td><td>✅ own property</td><td>✅ in scope</td></tr>
+        <tr><td>Edit properties &amp; catalog</td><td>✅</td><td>✅ own property</td><td>—</td></tr>
+        <tr><td>Manage adventures</td><td>✅</td><td>✅ own property</td><td>—</td></tr>
+        <tr><td>Invite/revoke instructor access</td><td>✅</td><td>✅ own property</td><td>—</td></tr>
+        <tr><td><strong>Create / delete instructors</strong></td><td>✅</td><td>—</td><td>—</td></tr>
+        <tr><td><strong>Edit waiver templates</strong></td><td>✅</td><td>—</td><td>—</td></tr>
+        <tr><td><strong>Manage the team</strong></td><td>✅</td><td>—</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h3 id="daily">4. The shared day-to-day (quick tour)</h3>
+    <p>This is the same work every staff role does — summarized here so this guide stands alone. (The <a href="/guide-staff.html">staff guide</a> covers it in full depth.)</p>
+
+    <h4 id="dash">Dashboard</h4>
+    <p>A read-only ops snapshot: <strong>Pending review</strong>, <strong>Recent activity</strong>, <strong>Confirmed · next 24 hours</strong>, and <strong>Upcoming · next 7 days</strong> by property. Every row links into detail. Times are Central (CT).</p>
+
+    <h4 id="bids">Working a bid</h4>
+    <p>The core job. From <strong>Bids</strong>, filter (Needs review / Active / Closed, plus search, property, dates) and open a bid. Then:</p>
+    <ul>
+      <li><strong>Edit bid content</strong> — schedule notes, gear list, FAQ (markdown), and internal staff notes; pull from the FAQ &amp; Gear library.</li>
+      <li><strong>Pricing</strong> — set the confirmed quote, deposit, and a quote note; “Apply suggested quote” when add-ons changed.</li>
+      <li><strong>Confirm</strong> (unlocks signing &amp; paying and emails the guest) or <strong>Deny</strong> (with an internal reason).</li>
+      <li><strong>Copy / Rotate</strong> the secure link, <strong>Refund</strong> a paid deposit (refunding cancels the booking and frees the slot), and collect <strong>waivers</strong> (scan-to-sign QR, in-person iPad, view PDFs).</li>
+    </ul>
+    <blockquote><p>Verify price and content <strong>before</strong> confirming — confirming reveals everything to the guest.</p></blockquote>
+    <p>A bid moves through a fixed set of statuses — and the guest sees a friendlier label on their own page:</p>
+    <table>
+      <thead><tr><th>Status (what you see)</th><th>Meaning</th><th>Guest sees</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Pending review</strong></td><td>Submitted; waiting for you to price and confirm.</td><td>“In review”</td></tr>
+        <tr><td><strong>Confirmed</strong></td><td>Approved and priced; the guest can sign and pay.</td><td>“Confirmed”</td></tr>
+        <tr><td><strong>Signed</strong></td><td>Waiver signed; a deposit may still be owed.</td><td>“Signed”</td></tr>
+        <tr><td><strong>Paid / Booked</strong></td><td>Deposit paid and waiver signed — finalized.</td><td>“Booked”</td></tr>
+        <tr><td><strong>Denied</strong></td><td>Couldn’t accommodate; the reason stays internal.</td><td>“Closed”</td></tr>
+        <tr><td><strong>Expired</strong></td><td>Sat unsigned/unpaid past its window.</td><td>“Expired”</td></tr>
+        <tr><td><strong>Refunded</strong></td><td>A paid deposit was returned; booking cancelled.</td><td>“Refunded”</td></tr>
+      </tbody>
+    </table>
+
+    <h4 id="ops">Bookings · Members · Adventures · Properties · Templates · Waivers</h4>
+    <ul>
+      <li><strong>Bookings</strong> — a calendar by property; “Book for a customer” runs the funnel on someone’s behalf. Bookings with a bid route to the bid.</li>
+      <li><strong>Members</strong> — a read-only directory of memberships, households, bookings, and adventure RSVPs (no impersonation).</li>
+      <li><strong>Adventures</strong> — create/edit curated trips (basics, pricing &amp; payment mode, visibility, imagery, chapters); manage the roster (confirm / refund &amp; cancel / cancel) and export CSV.</li>
+      <li><strong>Properties &amp; catalog</strong> — booking horizon, capacity, tagline, notification email, pre-visit details; services &amp; add-ons (reorder, link, deactivate). Active items show in the public funnel.</li>
+      <li><strong>FAQ &amp; Gear</strong> — the content library that auto-fills bids; edits affect future bids only.</li>
+      <li><strong>Waivers</strong> — the signed-waiver record, kiosk launch links, and PDF views.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h3 id="admin-only">5. Admin-only powers</h3>
+    <p>These three areas are what set an admin apart.</p>
+
+    <div class="diagram" role="img" aria-label="Admin powers: an admin does everything staff do (bids, bookings, members, adventures, catalog, waivers), plus three privileged areas only admins can touch — Team (invite, roles, deactivate, remove), Instructors (create and auto-invite, delete or retire), and Waiver templates (per-property, versioned on save). Each is detailed below.">
+      <pre class="mermaid">
+flowchart TD
+    A([Admin]) --> S[Everything staff do<br/>bids · bookings · members · adventures · catalog · waivers]
+    A --> T[Team<br/>invite · roles · deactivate · remove]
+    A --> I[Instructors<br/>create + auto-invite · delete/retire]
+    A --> W[Waiver templates<br/>per-property · versioned on save]
+    classDef priv fill:#f5f3ff,stroke:#7c3aed,color:#4c1d95;
+    class T,I,W priv;
+      </pre>
+      <div class="diagram-cap">The shared day-to-day, plus three privileged areas only admins can touch</div>
+    </div>
+
+    <h3 id="team">5.1 Team management</h3>
+    <p>The <strong>Team</strong> nav item (admins only) is where you add and manage staff.</p>
+    <ul>
+      <li><strong>Invite a teammate</strong> — enter their <strong>email</strong>, pick a <strong>role</strong> (the five staff roles), and a <strong>property</strong> (for property managers). They set their own name on first sign-in.</li>
+      <li><strong>Edit role</strong> — change someone’s role (and property) later.</li>
+      <li><strong>Deactivate / Reactivate</strong> — a reversible soft-revoke that clears their access but keeps the record.</li>
+      <li><strong>Resend link</strong> — generate a fresh sign-in link for someone who hasn’t signed in yet.</li>
+      <li><strong>Remove</strong> — permanently delete the account (immediate cut-off).</li>
+    </ul>
+    <blockquote><p>You can’t change, deactivate, or remove <strong>your own</strong> row. And note: someone already signed in keeps access until their session refreshes — deactivation isn’t always instant for an active session.</p></blockquote>
+
+    <h3 id="instructors">5.2 Creating &amp; deleting instructors</h3>
+    <p>Viewing and scheduling instructors is open to all staff (and the property manager for their own property), but <strong>creating</strong> and <strong>deleting</strong> instructors are admin-only.</p>
+    <ul>
+      <li><strong>Add an instructor</strong> — enter their name, email (required), optional phone, and the properties they’re “Available at.” One click <strong>creates the record and sends their portal invite</strong>. (If the email’s already in use, the record is still created — just retry the invite.)</li>
+      <li>From there, build their <strong>profile</strong> (photo, bio, disciplines, active/visibility, order) and their <strong>schedule</strong> — see the <a href="/guide-instructor.html">instructor guide</a> for what they’ll experience.</li>
+      <li><strong>Delete instructor</strong> — removes the profile and login, but is <strong>blocked if they have any bookings</strong>. To retire someone with history, toggle them <strong>inactive</strong> instead — they vanish from the public picker and auto-assignment while their past lessons stay intact.</li>
+    </ul>
+
+    <h3 id="waiver-templates">5.3 Waiver templates</h3>
+    <p>The wording guests agree to. Under <strong>Waivers → Edit waiver templates</strong>, there’s one editor card per property with a <strong>Title</strong>, <strong>Body</strong>, and <strong>Consent text</strong> (all required).</p>
+    <blockquote><p><strong>Saving creates a new immutable version and activates it.</strong> Every previously signed waiver keeps the exact version its guest agreed to — frozen into that signed PDF. You’re never rewriting history, only changing what future signers see.</p></blockquote>
+    <p>Admins see <strong>all</strong> properties’ signed waivers; property managers see only their own.</p>
+    <blockquote class="dev"><p><i><strong>Developer Note.</strong> Waivers are signed with our own in-house e-signature, not a paid vendor — a rendered PDF plus a tamper-evidence hash and audit trail (typed name, time, IP). The old Dropbox Sign path is retained but deprecated behind a single switch, for if a future need (multi-party signing, identity proofing) ever arises.</i></p></blockquote>
+  </section>
+
+  <section>
+    <h3 id="playbooks">6. Common workflows</h3>
+    <p class="lead">Step-by-step recipes for the things admins do most. Each one uses the real button names so you can follow along on screen.</p>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">🧑‍🏫</span>When a new instructor joins</p>
+      <p class="when"><b>When:</b> you’re bringing a new lesson instructor onto the platform.</p>
+      <ol>
+        <li>Go to <strong>Instructors → Add an instructor.</strong> Enter their <strong>name</strong>, <strong>email</strong> (required), optional <strong>phone</strong>, and tick every property under <strong>“Available at.”</strong> One click <strong>creates their record and emails their portal invite</strong>.</li>
+        <li>Open their profile with <strong>Edit profile →</strong>. Add a <strong>photo</strong> and <strong>bio</strong> (guests see these in the lesson picker), then tick the <strong>disciplines</strong> they’re qualified to teach at each property.</li>
+        <li>Set <strong>Active</strong> on, and a <strong>display order</strong> if you want them to sort first.</li>
+        <li>Decide who sets the hours: the instructor can set their own <strong>weekly hours &amp; time off</strong> when they sign in, or you can do it now via <strong>Weekly schedule &amp; time off →</strong>.</li>
+        <li>Make sure they actually got in. If the invite email didn’t arrive, use <strong>Resend link</strong> on their roster row and send them that sign-in URL directly.</li>
+      </ol>
+      <p class="result"><b>Result:</b> the instructor now appears in the private-lesson picker for their disciplines, guests can book times that fit their schedule, and the instructor sees their lessons in the Gameplan portal.</p>
+      <p class="tip"><b>Tip:</b> created the wrong record after they already have a booking? Don’t delete it — toggle <strong>Active</strong> off instead, which preserves history.</p>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">👋</span>Onboard a new staff member</p>
+      <p class="when"><b>When:</b> a new teammate needs access to the admin portal.</p>
+      <ol>
+        <li><strong>Team → Add a team member.</strong> Enter their <strong>email</strong>, pick a <strong>role</strong>, and (for a property manager) their <strong>property</strong>.</li>
+        <li>Tap <strong>Send invite.</strong> They click the link, set their own <strong>Full name</strong> on the Welcome screen, and they’re in.</li>
+      </ol>
+      <p class="tip"><b>Tip:</b> pick the narrowest role that fits — <em>concierge</em> or <em>membership_coordinator</em> for day-to-day, <em>property_manager</em> to scope someone to one club, and <em>admin</em> only for full trust.</p>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">🔁</span>Change someone’s role or property</p>
+      <p class="when"><b>When:</b> a teammate’s responsibilities change.</p>
+      <ol>
+        <li><strong>Team →</strong> find their row → <strong>Edit role.</strong></li>
+        <li>Choose the new role (and property), then <strong>Save.</strong></li>
+      </ol>
+      <p class="tip"><b>Note:</b> if they’re currently signed in, the change takes effect when their session refreshes — not always instantly.</p>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">🚪</span>Someone leaves the team</p>
+      <p class="when"><b>When:</b> offboarding a staff member.</p>
+      <ul>
+        <li><strong>Reversible:</strong> <strong>Deactivate</strong> their row — clears access but keeps the record; <strong>Reactivate</strong> later.</li>
+        <li><strong>Permanent:</strong> <strong>Remove</strong> — deletes the account and cuts access immediately.</li>
+      </ul>
+      <p class="tip"><b>Note:</b> you can’t deactivate or remove your own row.</p>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">🎯</span>An instructor stops teaching</p>
+      <p class="when"><b>When:</b> an instructor is leaving or pausing.</p>
+      <ul>
+        <li><strong>Keep their history:</strong> open their profile and toggle <strong>Active</strong> off — they drop out of the picker and auto-assignment, past lessons intact.</li>
+        <li><strong>Cut portal access only:</strong> <strong>Revoke</strong> on their row removes the login but keeps the record for an easy re-invite.</li>
+        <li><strong>Delete</strong> only works if they never had a booking.</li>
+      </ul>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">📄</span>Update a property’s waiver wording</p>
+      <p class="when"><b>When:</b> legal hands you new waiver language.</p>
+      <ol>
+        <li><strong>Waivers → Edit waiver templates →</strong> the property’s card.</li>
+        <li>Edit the <strong>Title</strong>, <strong>Body</strong>, and <strong>Consent text</strong>, then <strong>Save.</strong></li>
+      </ol>
+      <p class="result"><b>Result:</b> a new version activates for future signers. Everyone who already signed keeps the exact version they agreed to — nothing is rewritten.</p>
+    </div>
+  </section>
+
+  <section>
+    <h3 id="notes">7. Good to know</h3>
+    <ul>
+      <li><strong>Times are Central Time (CT)</strong> across all three properties.</li>
+      <li><strong>The bid is the spine.</strong> Bookings with a bid route to the bid detail — that’s where curation and pricing happen.</li>
+      <li><strong>Refunds cancel.</strong> Refunding a deposit moves the bid to refunded and releases the slot.</li>
+      <li><strong>Versioned waivers &amp; future-only templates</strong> mean edits never alter what someone already signed or was already quoted.</li>
+      <li><strong>Destructive deletes are guarded</strong> — once a booking, RSVP, or quote references something, the system makes you deactivate rather than delete, preserving history.</li>
+      <li><strong>Operational knobs live in the app,</strong> not in code — horizons, capacities, taglines, contacts, payment modes are all editable by admins on the relevant screens.</li>
+    </ul>
+
+    <div class="relguides">
+      <a href="/guide.html">← All guides</a>
+      <a href="/guide-staff.html">Staff guide</a>
+      <a href="/guide-instructor.html">Instructor guide</a>
+    </div>
+    <p class="footer-note"><strong>Last updated 9 June 2026.</strong> Describes the platform as built. <em>Shared sections are mirrored in the staff guide — update both.</em></p>
+  </section>
+
+</div>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Enlarged diagram">
+  <div class="lightbox-bar">
+    <span class="lightbox-title" id="lightbox-title"></span>
+    <button class="lightbox-close" type="button" id="lightbox-close">Close ✕</button>
+  </div>
+  <div class="lightbox-stage" id="lightbox-stage"></div>
+</div>
+
+<script src="/guide.js"></script>
+</body>
+</html>

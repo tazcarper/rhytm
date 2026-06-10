@@ -1,0 +1,373 @@
+/* ============================================================
+   Rhythm Outdoors — Platform Manual
+   Shared stylesheet for the guide hub + all role guides.
+   Each role page sets its accent via a <body class="theme-…">.
+   ============================================================ */
+
+:root {
+  --ink: #1a1d24;
+  --muted: #5b6472;
+  --line: #e3e7ee;
+  --bg: #ffffff;
+  --soft: #f6f8fb;
+  --danger: #ef4444;
+  --accent: #b4632b;           /* warm outdoors clay — brand constant */
+
+  /* Audience palette (also used as section chips on the hub) */
+  --public: #6366f1;           /* indigo */
+  --member: #10b981;           /* emerald */
+  --instructor: #d97706;       /* amber */
+  --staff: #3b82f6;            /* blue */
+  --admin: #7c3aed;            /* violet — elevated privilege */
+
+  /* --theme is the active page color; default to clay (hub). */
+  --theme: #b4632b;
+  --theme-soft: #fbf3ec;
+}
+
+/* ---- Per-page themes ---- */
+body.theme-hub        { --theme: #b4632b; --theme-soft: #fbf3ec; }
+body.theme-public     { --theme: #6366f1; --theme-soft: #eef2ff; }
+body.theme-member     { --theme: #10b981; --theme-soft: #ecfdf5; }
+body.theme-instructor { --theme: #d97706; --theme-soft: #fff7ed; }
+body.theme-staff      { --theme: #3b82f6; --theme-soft: #eff6ff; }
+body.theme-admin      { --theme: #7c3aed; --theme-soft: #f5f3ff; }
+
+* { box-sizing: border-box; }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; scroll-behavior: smooth; }
+/* Offset so a jumped-to heading isn't flush against the top of the window */
+h2[id], h3[id] { scroll-margin-top: 80px; }
+body {
+  margin: 0;
+  color: var(--ink);
+  background: #eef1f6;
+  font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.6;
+  font-size: 16px;
+}
+.sheet {
+  max-width: 880px;
+  margin: 32px auto;
+  background: var(--bg);
+  padding: 56px 72px 72px;
+  box-shadow: 0 10px 40px rgba(20,30,50,.12);
+  border-radius: 6px;
+}
+
+/* ---- Slim top nav bar (role pages) ---- */
+.guidebar {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; gap: 16px;
+  max-width: 880px; margin: 0 auto;
+  background: rgba(255,255,255,.92); backdrop-filter: blur(6px);
+  border: 1px solid var(--line); border-top: none;
+  border-radius: 0 0 10px 10px;
+  padding: 10px 22px;
+  box-shadow: 0 4px 18px rgba(20,30,50,.06);
+}
+.guidebar .back {
+  font-size: 13.5px; font-weight: 600; text-decoration: none;
+  color: var(--muted); white-space: nowrap;
+}
+.guidebar .back:hover { color: var(--theme); }
+.guidebar .crumb { font-size: 13.5px; color: var(--muted); font-weight: 600; }
+.guidebar .crumb b { color: var(--ink); }
+.guidebar .role-chip {
+  margin-left: auto; font-size: 12px; font-weight: 700; letter-spacing: .04em;
+  text-transform: uppercase; padding: 5px 13px; border-radius: 999px;
+  color: #fff; background: var(--theme);
+}
+
+/* ---- Cover ---- */
+.cover {
+  text-align: center;
+  padding: 36px 0 48px;
+  border-bottom: 3px solid var(--theme);
+  margin-bottom: 8px;
+}
+.cover .kicker {
+  text-transform: uppercase;
+  letter-spacing: .32em;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--theme);
+}
+.cover h1 {
+  font-size: 50px;
+  line-height: 1.05;
+  margin: 18px 0 10px;
+  letter-spacing: -.02em;
+}
+.cover .sub {
+  color: var(--muted);
+  font-size: 18px;
+  max-width: 580px;
+  margin: 0 auto;
+}
+.portal-chips { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 26px; }
+.chip {
+  font-size: 13px; font-weight: 600; padding: 7px 16px; border-radius: 999px;
+  border: 1.5px solid; background: #fff;
+}
+.chip.p { color: var(--public); border-color: var(--public); }
+.chip.m { color: var(--member); border-color: var(--member); }
+.chip.i { color: var(--instructor); border-color: var(--instructor); }
+.chip.s { color: var(--staff); border-color: var(--staff); }
+.chip.a { color: var(--admin);  border-color: var(--admin);  }
+
+/* ---- Typography ---- */
+h2 {
+  font-size: 29px; letter-spacing: -.01em; margin: 54px 0 6px;
+  padding-bottom: 10px; border-bottom: 1px solid var(--line);
+}
+h2 .num {
+  display: inline-block; width: 38px; height: 38px; line-height: 38px; text-align: center;
+  border-radius: 9px; color: #fff; font-size: 17px; margin-right: 12px; vertical-align: 2px;
+  background: var(--theme);
+}
+/* Hub keeps per-audience colored chips */
+.sec-public h2 .num { background: var(--public); }
+.sec-member h2 .num { background: var(--member); }
+.sec-instructor h2 .num { background: var(--instructor); }
+.sec-staff  h2 .num { background: var(--staff); }
+.sec-admin  h2 .num { background: var(--admin);  }
+.sec-ref    h2 .num { background: var(--accent); }
+h3 { font-size: 21px; margin: 34px 0 8px; letter-spacing: -.01em; }
+h4 { margin: 22px 0 4px; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; font-size: 13px; }
+p { margin: 10px 0; }
+a { color: var(--theme); }
+strong { color: var(--ink); }
+blockquote {
+  margin: 20px 0; padding: 14px 20px; background: var(--soft);
+  border-left: 4px solid var(--accent); border-radius: 0 6px 6px 0; color: #3a414d;
+}
+blockquote p { margin: 0; }
+blockquote.dev { background: var(--theme-soft); border-left-color: var(--theme); }
+code { background: #eef1f6; padding: 1px 6px; border-radius: 4px; font-size: .88em; font-family: "SFMono-Regular", Consolas, monospace; }
+ul, ol { margin: 10px 0; padding-left: 24px; }
+li { margin: 5px 0; }
+
+/* ---- Lead / intro ---- */
+.lead { font-size: 18px; color: var(--muted); font-style: italic; }
+
+/* ---- Tables ---- */
+table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14.5px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { background: var(--soft); font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+tr:last-child td { border-bottom: none; }
+
+/* ---- TOC ---- */
+.toc { background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 24px 32px; margin: 28px 0; }
+.toc h2 { border: none; margin: 0 0 14px; font-size: 22px; padding: 0; }
+.toc ol { margin: 0; padding-left: 22px; }
+.toc > ol > li { margin: 9px 0; font-weight: 600; }
+.toc ol ol { padding-left: 18px; margin: 4px 0 0; }
+.toc ol ol li { font-weight: 400; color: var(--muted); font-size: 14.5px; }
+.toc a { text-decoration: none; color: var(--ink); }
+.toc a:hover { color: var(--theme); }
+.toc-overview { list-style: none; margin: 0 0 14px; padding: 0 0 14px; border-bottom: 1px solid var(--line); }
+.toc-overview li { margin: 0; font-weight: 600; color: var(--muted); }
+.toc-overview a { font-weight: 600; }
+
+/* ---- Badges & pills ---- */
+.badge-admin {
+  display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .03em;
+  text-transform: uppercase; color: #fff; background: var(--admin);
+  border-radius: 999px; padding: 2px 9px; vertical-align: middle; margin-left: 6px;
+  white-space: nowrap;
+}
+.badge-new {
+  display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .03em;
+  text-transform: uppercase; color: var(--theme); background: var(--theme-soft);
+  border: 1px solid var(--theme); border-radius: 999px; padding: 1px 9px;
+  vertical-align: middle; margin-left: 6px; white-space: nowrap;
+}
+.pill {
+  display: inline-block; font-size: 12.5px; font-weight: 600;
+  padding: 3px 11px; border-radius: 999px; background: var(--theme-soft);
+  color: var(--theme); border: 1px solid var(--theme);
+}
+
+/* ---- Step list ---- */
+.steps { list-style: none; counter-reset: step; padding: 0; margin: 18px 0; }
+.steps > li {
+  counter-increment: step; position: relative;
+  padding: 4px 0 16px 50px; margin: 0;
+}
+.steps > li::before {
+  content: counter(step);
+  position: absolute; left: 0; top: 0;
+  width: 32px; height: 32px; line-height: 32px; text-align: center;
+  background: var(--theme); color: #fff; border-radius: 8px;
+  font-weight: 700; font-size: 15px;
+}
+.steps > li:not(:last-child)::after {
+  content: ""; position: absolute; left: 15px; top: 36px; bottom: 4px;
+  width: 2px; background: var(--line);
+}
+.steps .st { font-weight: 700; color: var(--ink); }
+
+/* ---- Setup / feature cards ---- */
+.cardgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+.cardgrid.one { grid-template-columns: 1fr; }
+.ocard {
+  border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px;
+  background: #fff;
+}
+.ocard h4 { margin-top: 0; }
+.ocard .ico { font-size: 22px; line-height: 1; }
+
+/* ---- Playbooks (task recipes) ---- */
+.jumpnote {
+  margin: 18px 0; padding: 12px 18px; border-radius: 10px;
+  background: var(--theme-soft); border: 1px solid var(--theme);
+  font-size: 14.5px; color: #3a414d;
+}
+.jumpnote a { font-weight: 700; }
+.play {
+  border: 1px solid var(--line); border-left: 4px solid var(--theme);
+  border-radius: 12px; padding: 16px 22px 18px; margin: 18px 0; background: #fff;
+}
+.play-title { font-size: 17px; font-weight: 700; color: var(--ink); margin: 0 0 3px; }
+.play-title .pico { margin-right: 8px; }
+.play .when { font-size: 13.5px; color: var(--muted); margin: 0 0 8px; }
+.play .when b { color: var(--theme); font-weight: 600; }
+.play ol, .play ul { margin: 6px 0 0; padding-left: 22px; }
+.play li { margin: 6px 0; }
+.play .result {
+  margin: 12px 0 0; font-size: 13.5px; background: var(--theme-soft);
+  border-radius: 8px; padding: 9px 13px; color: #3a414d;
+}
+.play .result b { color: var(--theme); }
+.play .tip { margin: 10px 0 0; font-size: 13.5px; color: var(--muted); }
+.play .tip b { color: var(--accent); }
+
+/* ---- Key terms box (per-guide mini glossary) ---- */
+.keyterms { background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 14px 20px 16px; margin: 22px 0; }
+.keyterms h4 { margin: 0 0 8px; color: var(--theme); }
+.keyterms dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 5px 16px; font-size: 14.5px; }
+.keyterms dt { font-weight: 700; color: var(--ink); }
+.keyterms dd { margin: 0; color: #3a414d; }
+.keyterms .more { margin: 11px 0 0; font-size: 13px; }
+@media (max-width: 560px) {
+  .keyterms dl { grid-template-columns: 1fr; gap: 1px; }
+  .keyterms dd { margin: 0 0 7px; }
+}
+
+/* ---- Guide switcher (no-JS native dropdown) ---- */
+.guideswitch { position: relative; font-size: 13px; }
+.guideswitch > summary {
+  cursor: pointer; list-style: none; font-weight: 600; color: var(--muted);
+  padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; white-space: nowrap;
+}
+.guideswitch > summary::-webkit-details-marker { display: none; }
+.guideswitch[open] > summary { color: var(--theme); border-color: var(--theme); }
+.gs-menu {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 60;
+  background: #fff; border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(20,30,50,.14); padding: 6px; min-width: 188px;
+  display: flex; flex-direction: column;
+}
+.gs-menu a { padding: 7px 12px; border-radius: 7px; text-decoration: none; color: var(--ink); font-weight: 600; }
+.gs-menu a:hover { background: var(--theme-soft); color: var(--theme); }
+.gs-menu a.cur { background: var(--theme-soft); color: var(--theme); }
+.gs-menu .sep { border-top: 1px solid var(--line); margin: 5px 4px; }
+
+/* ---- "Choose your guide" cards (hub) ---- */
+.guide-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 24px 0; }
+.guide-card {
+  display: block; text-decoration: none; color: inherit;
+  border: 1px solid var(--line); border-left: 5px solid var(--gc, var(--accent));
+  border-radius: 12px; padding: 20px 22px; background: #fff;
+  transition: box-shadow .15s, transform .15s;
+}
+.guide-card:hover { box-shadow: 0 8px 24px rgba(20,30,50,.10); transform: translateY(-2px); }
+.guide-card .gc-eyebrow { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--gc, var(--accent)); }
+.guide-card h3 { margin: 6px 0 6px; font-size: 20px; }
+.guide-card p { margin: 0; color: var(--muted); font-size: 14.5px; }
+.guide-card .gc-go { display: inline-block; margin-top: 12px; font-weight: 700; font-size: 14px; color: var(--gc, var(--accent)); }
+.gc-public     { --gc: var(--public); }
+.gc-member     { --gc: var(--member); }
+.gc-instructor { --gc: var(--instructor); }
+.gc-staff      { --gc: var(--staff); }
+.gc-admin      { --gc: var(--admin); }
+
+/* ---- Cross-link footer ---- */
+.relguides { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 4px; }
+.relguides a {
+  text-decoration: none; font-size: 13.5px; font-weight: 600;
+  border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px;
+  color: var(--ink); background: #fff;
+}
+.relguides a:hover { border-color: var(--theme); color: var(--theme); }
+
+/* ---- Diagram cards ---- */
+.diagram {
+  background: #fbfcfe; border: 1px solid var(--line); border-radius: 12px;
+  padding: 24px; margin: 24px 0; text-align: center;
+  cursor: zoom-in; position: relative;
+}
+.diagram .mermaid { display: flex; justify-content: center; }
+.diagram-cap { font-size: 12.5px; color: var(--muted); margin-top: 10px; text-transform: uppercase; letter-spacing: .06em; }
+.diagram .zoom-tag {
+  position: absolute; top: 12px; right: 14px; font-size: 11px; font-weight: 600;
+  color: var(--muted); background: #fff; border: 1px solid var(--line);
+  border-radius: 999px; padding: 3px 10px; letter-spacing: .04em;
+}
+
+/* ---- Lightbox ---- */
+.lightbox {
+  display: none; position: fixed; inset: 0; z-index: 1000;
+  background: rgba(15,20,30,.82); backdrop-filter: blur(2px);
+  padding: 3vh 3vw; cursor: zoom-out;
+}
+.lightbox.open { display: flex; flex-direction: column; }
+.lightbox-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  color: #fff; margin-bottom: 12px; flex: 0 0 auto;
+}
+.lightbox-title { font-size: 15px; font-weight: 600; letter-spacing: .02em; }
+.lightbox-close {
+  cursor: pointer; border: 1px solid rgba(255,255,255,.4); background: transparent;
+  color: #fff; border-radius: 8px; padding: 6px 14px; font-size: 14px; font-weight: 600;
+}
+.lightbox-close:hover { background: rgba(255,255,255,.12); }
+.lightbox-stage {
+  flex: 1 1 auto; background: #fff; border-radius: 10px; overflow: auto;
+  display: flex; align-items: center; justify-content: center; padding: 24px; cursor: default;
+}
+.lightbox-stage svg { width: 100% !important; max-width: 100% !important; height: auto !important; }
+
+.callout { display: flex; gap: 14px; align-items: flex-start; }
+
+hr { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
+.footer-note { color: var(--muted); font-size: 14px; font-style: italic; margin-top: 8px; }
+
+.print-hint {
+  max-width: 880px; margin: 16px auto -8px; padding: 12px 18px;
+  background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px;
+  color: #9a3412; font-size: 14px;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 720px) {
+  .sheet { padding: 32px 22px 48px; }
+  .cover h1 { font-size: 38px; }
+  .guide-cards, .cardgrid { grid-template-columns: 1fr; }
+  /* Wide tables scroll horizontally instead of squashing on phones */
+  table { display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
+/* ---- Print ---- */
+@media print {
+  body { background: #fff; font-size: 11.5pt; }
+  .sheet { box-shadow: none; margin: 0; max-width: none; padding: 0 12mm; border-radius: 0; }
+  .print-hint, .zoom-tag, .lightbox, .guidebar { display: none !important; }
+  .diagram { cursor: default; }
+  h2 { page-break-after: avoid; }
+  h3, h4 { page-break-after: avoid; }
+  table, .diagram, blockquote, .ocard, .guide-card, .play { page-break-inside: avoid; }
+  .sec-public, .sec-member, .sec-instructor, .sec-staff, .sec-admin, .sec-ref { page-break-before: always; }
+  .cover { page-break-after: always; }
+  @page { margin: 16mm 0; }
+}

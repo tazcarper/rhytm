@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rhythm Outdoors — Contributor Setup</title>
+<link rel="stylesheet" href="/guide.css" />
+<style>
+  /* Command blocks (guide.css styles inline <code> but not <pre>). */
+  pre { background:#0f172a; color:#e2e8f0; padding:14px 16px; border-radius:8px; overflow-x:auto; font-size:13px; line-height:1.6; font-family:"SFMono-Regular", Consolas, monospace; margin:14px 0; }
+  pre code { background:none; padding:0; color:inherit; font-size:inherit; }
+  .cando { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:18px 0; }
+  .cando .col { border:1px solid var(--line); border-radius:12px; padding:16px 18px; }
+  .cando h4 { margin:0 0 8px; }
+  .cando ul { margin:0; padding-left:18px; }
+  .cando li { margin:6px 0; }
+  .yes h4 { color:#15803d; } .no h4 { color:#b45309; }
+  @media (max-width:720px){ .cando { grid-template-columns:1fr; } }
+</style>
+</head>
+<body class="theme-hub">
+
+<div class="print-hint">📄 <strong>To save as PDF:</strong> press <code>Ctrl/Cmd&nbsp;+&nbsp;P</code>, choose “Save as PDF,” enable “Background graphics,” and set margins to “Default.”</div>
+
+<div class="sheet">
+
+  <!-- COVER -->
+  <header class="cover">
+    <div class="kicker">Contributor Setup</div>
+    <h1>Make changes to the site</h1>
+    <p class="sub">Set up your Mac to edit the Rhythm Outdoors website with Claude — by just talking to it. You don’t need to be a programmer, and you can’t break anything live.</p>
+    <div class="portal-chips">
+      <span class="chip p">Branch &amp; preview</span>
+      <span class="chip m">Local &amp; safe</span>
+      <span class="chip a">Reviewed before publish</span>
+    </div>
+  </header>
+
+  <!-- HOW IT WORKS -->
+  <section>
+    <h2 id="how"><span class="num">i</span>How this works (60 seconds)</h2>
+    <p class="lead">You describe a change. Claude does it on a safe copy, shows it to you instantly, and packages it up for your developer to publish.</p>
+    <ol class="steps">
+      <li><span class="st">You ask.</span> “Make the booking page hero bigger.”</li>
+      <li><span class="st">Claude works on a branch.</span> A separate, safe copy — never the live site.</li>
+      <li><span class="st">You see it right away.</span> On your own computer at <code>http://localhost:3000</code>.</li>
+      <li><span class="st">Claude opens a pull request.</span> And shares a <strong>preview link</strong> you can pass around.</li>
+      <li><span class="st">Your developer reviews &amp; publishes.</span> That’s the safety gate — on purpose.</li>
+    </ol>
+    <div class="callout">
+      <span style="font-size:22px;">🛡️</span>
+      <div>You never touch the live database, never deploy, and can’t push to the live site. If you ask for something that would, Claude simply tells you it’s been handed to your developer — and keeps going with the rest.</div>
+    </div>
+  </section>
+
+  <!-- WHAT YOU CAN / CAN'T DO -->
+  <section>
+    <h2 id="scope"><span class="num">1</span>What you can &amp; can’t do</h2>
+    <div class="cando">
+      <div class="col yes">
+        <h4>✓ You can freely</h4>
+        <ul>
+          <li>Change layout, spacing, colors, fonts, styling</li>
+          <li>Edit text and content</li>
+          <li>Move existing sections and components around</li>
+          <li>Add new pages built from what’s there</li>
+        </ul>
+      </div>
+      <div class="col no">
+        <h4>→ Handled by your developer</h4>
+        <ul>
+          <li>Adding new software libraries or changing the app's <strong>foundation</strong> (build setup, login, how data is stored) — that's already built</li>
+          <li>Anything that changes the <strong>database</strong> (Claude writes it into your pull request automatically)</li>
+          <li>Publishing / deploying to the live site</li>
+          <li>Anything touching live payments or customer data</li>
+        </ul>
+      </div>
+    </div>
+    <p class="footer-note">You don’t have to memorize this — the workspace enforces it for you.</p>
+  </section>
+
+  <!-- ONE-TIME SETUP -->
+  <section>
+    <h2 id="setup"><span class="num">2</span>One-time setup</h2>
+    <p class="lead">Do this once. If you get stuck on any step, paste the message to Claude and ask — it can help.</p>
+
+    <div class="callout" style="background:#eef2ff; border:1px solid #c7d2fe; border-radius:12px; padding:16px 18px;">
+      <span style="font-size:22px;">⚡</span>
+      <div>
+        <strong>Fastest way — one command.</strong> First make a free GitHub account and accept your invite (step 2.1 below), and make sure you have Claude Code. Then open the <strong>Terminal</strong> app and paste this single line — it installs everything, signs you in, downloads the project, and opens Claude for you:
+        <pre><code id="oneliner">curl -fsSL https://YOUR-SITE/setup.sh -o ~/rhythm-setup.sh &amp;&amp; bash ~/rhythm-setup.sh</code></pre>
+        It pauses with clear instructions at the few steps only you can do (signing in, approving Docker the first time). Prefer to go step by step instead? Just follow 2.1–2.5 below.
+      </div>
+    </div>
+    <script>
+      // Fill in the correct absolute URL for whatever site this page is served from.
+      (function () {
+        var el = document.getElementById('oneliner');
+        if (el) el.textContent = 'curl -fsSL ' + location.origin + '/setup.sh -o ~/rhythm-setup.sh && bash ~/rhythm-setup.sh';
+      })();
+    </script>
+
+    <h3>2.1 — Get a GitHub account &amp; accept the invite</h3>
+    <ol class="steps">
+      <li>Sign up (free) at <strong>github.com</strong>.</li>
+      <li>Send your GitHub username to your developer.</li>
+      <li>They invite you to the project — check your email and <strong>accept the invitation</strong>.</li>
+    </ol>
+
+    <h3>2.2 — Install the tools</h3>
+    <p>Open the <strong>Terminal</strong> app (press <code>Cmd+Space</code>, type “Terminal”, hit Enter), then run these one at a time:</p>
+    <p><strong>Homebrew</strong> — an installer for the other tools. Paste it and follow the prompts:</p>
+    <pre><code>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</code></pre>
+    <p><strong>Node, Git, and the GitHub CLI:</strong></p>
+    <pre><code>brew install node@24 git gh</code></pre>
+    <p><strong>Docker Desktop</strong> — runs the practice database on your Mac. Download from
+      <strong>docker.com/products/docker-desktop</strong>, install it like any app, then <strong>open it once</strong>
+      so it’s running (look for the whale icon 🐳 in your menu bar). Leave it running whenever you work on the site.</p>
+    <div class="callout">
+      <span style="font-size:22px;">🐳</span>
+      <div><strong>What’s Docker for?</strong> It quietly runs a private copy of the website’s database on your own Mac, filled with sample data, so every page looks real while you design. Because it’s all local, you physically can’t touch real customer data. You never use Docker directly — Claude does.</div>
+    </div>
+    <p><strong>Claude Code</strong> — you already have this and are logged in. (If you ever need to reinstall: <code>npm install -g @anthropic-ai/claude-code</code>.)</p>
+
+    <h3>2.3 — Sign in to GitHub from the terminal</h3>
+    <pre><code>gh auth login</code></pre>
+    <p>Choose <strong>GitHub.com → HTTPS → Login with a web browser</strong> and follow the prompts. This is what lets Claude save your work and open pull requests for you.</p>
+
+    <h3>2.4 — Get the project onto your computer</h3>
+    <pre><code>gh repo clone tazcarper/rhytm
+cd rhytm</code></pre>
+
+    <h3>2.5 — Let Claude finish setup</h3>
+    <p>Start Claude inside that folder (type <code>claude</code>) and say:</p>
+    <blockquote>“Set me up to work on this project for the first time.”</blockquote>
+    <p>Claude installs everything, starts your local database, fills in your local settings, creates sample logins, and opens the site at <strong>http://localhost:3000</strong>. That’s it — you’re ready.</p>
+    <div class="callout">
+      <span style="font-size:22px;">🔐</span>
+      <div><strong>About settings &amp; keys:</strong> your local settings are generated on your machine — <strong>no production secrets are ever sent to you.</strong> If your developer ever needs to give you a test key, they’ll send it as a one-time secret link, never plain email or chat. Never paste anything anyone calls “live” or “production.”</div>
+    </div>
+  </section>
+
+  <!-- DAILY WORKFLOW -->
+  <section>
+    <h2 id="daily"><span class="num">3</span>Your day-to-day</h2>
+    <p class="lead">Just talk to Claude. For example:</p>
+    <blockquote>“On the homepage, make the hero image full-width and move the ‘Book Now’ button above the description.”</blockquote>
+    <p>Claude starts a branch, makes the edit, shows it to you at <code>localhost:3000</code>, and iterates with you. Useful things to say:</p>
+    <ul>
+      <li><strong>“Show me that page”</strong> — makes sure the local site is running.</li>
+      <li><strong>“I’m done with this one”</strong> — opens the pull request &amp; shares the preview link.</li>
+      <li><strong>“Start something new”</strong> — begins a fresh branch.</li>
+    </ul>
+
+    <h3>Test logins (for the signed-in pages)</h3>
+    <p>After setup you can sign in locally to design the member / partner / admin areas. These exist only on your machine:</p>
+    <table>
+      <thead><tr><th>Area</th><th>Email</th><th>Password</th></tr></thead>
+      <tbody>
+        <tr><td>Member</td><td><code>member@example.test</code></td><td><code>password123</code></td></tr>
+        <tr><td>Partner</td><td><code>partner@example.test</code></td><td><code>password123</code></td></tr>
+        <tr><td>Admin</td><td><code>admin@example.test</code></td><td><code>password123</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- SEEING / DONE -->
+  <section>
+    <h2 id="seeing"><span class="num">4</span>Seeing your changes &amp; finishing up</h2>
+    <ul>
+      <li><strong>On your computer:</strong> <code>http://localhost:3000</code> — instant, your main view.</li>
+      <li><strong>Preview link:</strong> after Claude pushes, a preview of your branch builds automatically and Claude shares the URL — great for showing your developer.</li>
+    </ul>
+    <div class="callout">
+      <span style="font-size:22px;">💡</span>
+      <div>If a change involves the database, the <em>preview link</em> might not show it until your developer applies it — but your <strong>local</strong> site always shows it. Trust the local view.</div>
+    </div>
+    <p>When you’re happy, say <strong>“I’m done”</strong> and Claude opens a pull request. Your developer reviews and publishes it. You don’t merge or publish anything yourself — that’s the safety gate.</p>
+  </section>
+
+  <!-- TROUBLESHOOTING -->
+  <section>
+    <h2 id="trouble"><span class="num">5</span>If something goes wrong</h2>
+    <table>
+      <thead><tr><th>You see…</th><th>Do this</th></tr></thead>
+      <tbody>
+        <tr><td>“Cannot connect to the Docker daemon” / database won’t start</td><td>Open Docker Desktop, wait for the 🐳 icon to settle, then ask Claude to try again.</td></tr>
+        <tr><td>Claude says something is “blocked”</td><td>That’s the guardrail — that action belongs to your developer. Claude already captured it in your pull request. Just continue.</td></tr>
+        <tr><td>The site looks broken after getting new changes</td><td>Ask Claude to “reset the local database and restart.”</td></tr>
+        <tr><td>Anything else</td><td>Paste the message to Claude and ask what it means.</td></tr>
+      </tbody>
+    </table>
+    <hr />
+    <p class="footer-note">Developer setup notes (branch protection, collaborator invite, preview visibility, applying database changes) live in <code>docs/CLIENT_SETUP.md</code> in the repo.</p>
+  </section>
+
+</div>
+</body>
+</html>

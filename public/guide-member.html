@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rhythm Outdoors — Member Guide</title>
+<link rel="stylesheet" href="/guide.css" />
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+</head>
+<body class="theme-member">
+
+<nav class="guidebar" aria-label="Guide">
+  <a class="back" href="/guide.html">← All guides</a>
+  <span class="crumb"><b>Member</b> guide</span>
+  <details class="guideswitch">
+    <summary>Switch guide ▾</summary>
+    <div class="gs-menu">
+      <a href="/guide-public.html">Guests</a>
+      <a class="cur" href="/guide-member.html">Members</a>
+      <a href="/guide-instructor.html">Instructors</a>
+      <a href="/guide-staff.html">Staff</a>
+      <a href="/guide-admin.html">Admins &amp; super-admins</a>
+      <div class="sep"></div>
+      <a href="/guide.html">All guides ↗</a>
+    </div>
+  </details>
+  <span class="role-chip">Members</span>
+</nav>
+
+<div class="print-hint">📄 <strong>To save as PDF:</strong> press <code>Ctrl/Cmd&nbsp;+&nbsp;P</code>, choose “Save as PDF,” and enable “Background graphics.”</div>
+
+<div class="sheet">
+
+  <header class="cover">
+    <div class="kicker">Member Guide</div>
+    <h1>Your member portal</h1>
+    <p class="sub">For people who belong to one of the clubs. See your memberships and household, manage bookings, reserve curated Adventures, and share trips with your party. Membership is <strong>invite-only</strong>.</p>
+  </header>
+
+  <nav class="toc">
+    <h2>In this guide</h2>
+    <ol>
+      <li><a href="#glance">The member journey at a glance</a></li>
+      <li><a href="#login">Signing in</a></li>
+      <li><a href="#dash">Your dashboard &amp; memberships</a></li>
+      <li><a href="#bookings">Booking a visit &amp; your bookings</a></li>
+      <li><a href="#share">Sharing a trip with your party</a></li>
+      <li><a href="#adventures">Member Adventures</a></li>
+      <li><a href="#profile">Your profile</a></li>
+      <li><a href="#scenarios">Common scenarios</a></li>
+      <li><a href="#faq">Frequently asked questions</a></li>
+    </ol>
+  </nav>
+
+  <div class="keyterms">
+    <h4>Key terms</h4>
+    <dl>
+      <dt>Membership</dt><dd>Your belonging at a club, identified by a <strong>member number</strong> and a <strong>tier</strong> (level).</dd>
+      <dt>Household</dt><dd>Several people sharing one membership (e.g. a couple on the same member number, with different emails).</dd>
+      <dt>Adventure</dt><dd>A curated, members-only trip you can browse, reserve, and pay for in the portal.</dd>
+      <dt>Bid</dt><dd>The booking page where a trip is signed and paid — its status drives your booking’s status.</dd>
+    </dl>
+    <p class="more"><a href="/guide.html#glossary">Full glossary →</a></p>
+  </div>
+
+  <section>
+    <h3 id="glance">1. The member journey at a glance</h3>
+    <div class="diagram" role="img" aria-label="Member journey flow: from the Members' Entrance login you sign in by magic link, password, or Google. If your email is on the invite roster you reach the member dashboard; if not, you're signed out with 'invite not found.' From the dashboard you reach your memberships and household, your bookings (with booking detail and trip sharing), and Adventures (reserve, pay, waitlist, name guests). The sections below restate each path.">
+      <pre class="mermaid">
+flowchart TD
+    A([Members' Entrance /login]) --> B{Sign-in method}
+    B -->|Magic link| C[Enter invited email]
+    B -->|Password| P[Email + password]
+    B -->|Google| D[Google sign-in]
+    C --> E[/auth callback/]
+    P --> E
+    D --> E
+    E --> F{Email on the<br/>invite roster?}
+    F -->|No| G[Signed out<br/>'invite not found']
+    F -->|Yes| I([Dashboard /member])
+    I --> J[Memberships<br/>tier · number · household]
+    I --> K[My bookings]
+    I --> AD[Adventures]
+    I --> L[Profile]
+    K --> M[Booking detail<br/>schedule · gear · billing]
+    K --> SH[Share a trip link]
+    AD --> R[Reserve · pay · waitlist · manifest]
+    classDef home fill:#ecfdf5,stroke:#10b981,color:#064e3b;
+    classDef dead fill:#fef2f2,stroke:#ef4444,color:#7f1d1d;
+    class I home;
+    class G dead;
+      </pre>
+      <div class="diagram-cap">Invite-only sign-in, then your household’s memberships, bookings, and Adventures</div>
+    </div>
+  </section>
+
+  <section>
+    <h3 id="login">2. Signing in</h3>
+    <p>Go to <strong>/login</strong> (“Members’ Entrance”). Membership is <strong>invite-only</strong> — staff add you from the roster, and you sign in with the exact email you were invited under. There are three ways in:</p>
+    <table>
+      <thead><tr><th>Method</th><th>How it works</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Magic link</strong> (default)</td><td>Enter your email, leave the password blank, and tap <strong>“Email me a sign-in link.”</strong> Click the link in your inbox — no password to remember. It stays valid for a few days.</td></tr>
+        <tr><td><strong>Password</strong> (optional)</td><td>Set a password in your profile once, then sign in directly next time. The magic link still works as a backup.</td></tr>
+        <tr><td><strong>Google</strong></td><td>Tap <strong>“Continue with Google.”</strong> The Google account’s email must be on the roster.</td></tr>
+      </tbody>
+    </table>
+    <p>If your email isn’t on the roster (or an invite expired), you’re signed out with an <em>“invite not found”</em> message — reach your property’s membership coordinator to be added.</p>
+  </section>
+
+  <section>
+    <h3 id="dash">3. Your dashboard &amp; memberships</h3>
+    <p>After signing in you land on <strong>/member</strong> — “Welcome back.” The dashboard shows <strong>Your memberships</strong>. Each card shows the <strong>property</strong>, your <strong>member number</strong> and <strong>tier</strong>, the <strong>status</strong>, your <strong>role</strong> (e.g. primary), and your <strong>household</strong> — “Also on this membership” lists the other people who share it.</p>
+    <p>One person can belong to several memberships — across properties, or shared in a household — and they all appear here.</p>
+    <blockquote><p><strong>What is a household?</strong> An optional feature for memberships that include family members. John and Jane can share one member number with different emails — they’re a “household,” and they see each other’s bookings.</p></blockquote>
+    <blockquote class="dev"><p><i><strong>Developer Note.</strong> The membership dashboard is intentionally light on personal data. It’s a place to see planned trips, your memberships, and to customize the name on your reservations — not a heavy “profile” full of personal information.</i></p></blockquote>
+  </section>
+
+  <section>
+    <h3 id="bookings">4. Booking a visit &amp; your bookings</h3>
+
+    <h4>How to book a visit</h4>
+    <p>Members book through the <strong>same booking flow guests use</strong> — there’s no separate “new booking” button in the member portal. Start from <strong>Book an experience</strong> on the main site. Because you’re signed in, your <strong>name and email are pre-filled</strong> (you can still change them), so it’s a few taps faster for you.</p>
+    <p>Pick your property, booking type, disciplines, guests, and time exactly as described in the <a href="/guide-public.html#funnel">guest guide’s step-by-step</a>. When you submit, your new booking appears here under <strong>My bookings</strong>, and you finish by <strong>signing your waiver and paying any deposit on its bid page</strong> (see <a href="/guide-public.html#bid">Sign &amp; pay</a>).</p>
+    <blockquote><p>Booking for your household? Anyone on your membership can book — the trip shows up for everyone, labeled “Booked by …”.</p></blockquote>
+
+    <h4>My bookings</h4>
+    <p>The <strong>My bookings</strong> tab lists every booking made by anyone in your household, across all your memberships — date, time, property, type, status, party size, instructor, totals, and who booked it (“Booked by …” when it was someone else on your membership).</p>
+    <p>Tap a booking for its <strong>detail page</strong> (“Your trip”): <strong>What to expect</strong> (the team’s schedule notes), <strong>What you’re booked for</strong> (disciplines + add-ons), <strong>What to bring</strong> (gear list, with “required” flags), <strong>Good to know</strong> (FAQ), and a <strong>Billing</strong> breakdown (total, deposit, amount paid).</p>
+  </section>
+
+  <section>
+    <h3 id="share">5. Sharing a trip with your party <span class="badge-new">New</span></h3>
+    <p>On a <strong>finalized</strong> booking you made (waiver signed and deposit paid), a <strong>“Share this trip”</strong> card appears. Add an optional personal note, tap <strong>Create share link</strong>, and copy the link to send to your group.</p>
+    <p>Anyone you send it to — even non-members — can open it to see the dates, location, what to bring, and good-to-knows. <strong>They won’t see pricing or payment.</strong> You can update the note or <strong>Revoke link</strong> at any time (everyone you shared it with then loses access).</p>
+  </section>
+
+  <section>
+    <h3 id="adventures">6. Member Adventures</h3>
+    <p>Adventures are curated, members-only trips the team organizes. Browse them on the public <code>/adventures</code> pages; reserving happens inside your member account. Your reserved and waitlisted trips live under the <strong>Adventures</strong> tab (“Your adventures”).</p>
+
+    <h4>How reserving works</h4>
+    <ol class="steps">
+      <li><span class="st">Browse &amp; open a trip.</span> Each adventure has an immersive page — hero image, “at a glance” (when, duration, host, member price), what’s included, and chapters of detail.</li>
+      <li><span class="st">Reserve from the bottom bar.</span> The reserve bar adapts to the trip: <strong>Reserve &amp; pay</strong> (pay in full now), <strong>Reserve · deposit</strong> (pay a deposit, balance settles with the concierge), or <strong>Request to reserve</strong> (no payment now — your concierge follows up).</li>
+      <li><span class="st">Pick your party size,</span> then continue to payment. Reserving <strong>holds your spot for 30 minutes</strong> with a live countdown.</li>
+      <li><span class="st">Pay</span> with card or bank (a free trip skips payment). On success: <em>“You’re all set — Payment received.”</em></li>
+    </ol>
+    <blockquote><p><strong>If your hold lapses</strong>, the spot reopens and you’ll see “Your hold was released” with a <strong>Reserve again</strong> button (the 30-minute timer starts over).</p></blockquote>
+
+    <h4>Sold out? Join the waitlist</h4>
+    <p>If a trip is full, the bar reads <strong>“Fully reserved — Join the waitlist.”</strong> We email you the moment a spot opens — it’s first-come, so reserve quickly.</p>
+
+    <h4>Your guest manifest</h4>
+    <p>For a confirmed trip with more than one in your party, expand <strong>“Your guests”</strong> to name everyone joining you (“2 of 4 named”), then <strong>Save guests</strong> — so we can prepare for your whole party.</p>
+
+    <h4>Cancelling</h4>
+    <p>Each adventure card has a <strong>Cancel</strong> action. The confirmation tells you the outcome based on the cancellation window: outside the window you’re refunded; inside the <em>free-cancellation window</em> your payment is non-refundable. Either way, cancelling frees your spot.</p>
+  </section>
+
+  <section>
+    <h3 id="profile">7. Your profile</h3>
+    <p>The <strong>Profile</strong> tab lets you set your <strong>display name</strong> — the name the portal uses in the header, on membership cards, and as “booked by” on bookings. It’s an app-only nickname; it doesn’t change your login email or Google name.</p>
+    <p>You can also set a <strong>password</strong> here to sign in directly next time instead of waiting for an emailed link. Sign out anytime from the header.</p>
+    <blockquote><p>Names already captured on existing bids and bookings stay as they were — changing your display name doesn’t rewrite past trips.</p></blockquote>
+  </section>
+
+  <section>
+    <h3 id="scenarios">8. Common scenarios</h3>
+    <p class="lead">A few things members do most, start to finish.</p>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">🔑</span>Signing in for the first time</p>
+      <p class="when"><b>When:</b> staff just invited you.</p>
+      <ol>
+        <li>Go to <strong>/login</strong> and enter the email you were invited under.</li>
+        <li>Leave the password blank and tap <strong>“Email me a sign-in link.”</strong> Click the link in your inbox.</li>
+        <li>Optional: open <strong>Profile</strong> and set a <strong>password</strong> so you can sign in directly next time.</li>
+      </ol>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">⛺</span>Grab a spot before an Adventure sells out</p>
+      <p class="when"><b>When:</b> a trip you want is open and filling up.</p>
+      <ol>
+        <li>Open the adventure and use the bottom bar — <strong>Reserve &amp; pay</strong>, <strong>Reserve · deposit</strong>, or <strong>Request to reserve.</strong></li>
+        <li>Pick your <strong>party size</strong> and continue. Your spot is <strong>held for 30 minutes</strong> with a countdown.</li>
+        <li>Pay before the timer runs out. If it lapses, the spot reopens and you can <strong>Reserve again.</strong></li>
+      </ol>
+      <p class="result"><b>Result:</b> “You’re all set — Payment received,” and your trip appears under <strong>Adventures.</strong></p>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">👥</span>Name the guests coming with you</p>
+      <p class="when"><b>When:</b> you reserved more than one spot on a trip.</p>
+      <ol>
+        <li>Go to <strong>Adventures →</strong> your trip and expand <strong>“Your guests.”</strong></li>
+        <li>Type a name for each additional seat, then tap <strong>Save guests.</strong></li>
+      </ol>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">📨</span>Invite friends to a trip you booked</p>
+      <p class="when"><b>When:</b> your booking is finalized (signed and paid) and you want to share the plan.</p>
+      <ol>
+        <li>Open the booking and find <strong>“Share this trip.”</strong></li>
+        <li>Add an optional <strong>personal note</strong>, tap <strong>Create share link</strong>, and <strong>Copy</strong> it to send.</li>
+        <li>Change your mind later? <strong>Revoke link</strong> — anyone you shared it with loses access.</li>
+      </ol>
+      <p class="result"><b>Result:</b> friends see the date, location, and what to bring — but never pricing or payment.</p>
+    </div>
+
+    <div class="play">
+      <p class="play-title"><span class="pico">↩️</span>Cancel an Adventure</p>
+      <p class="when"><b>When:</b> you can no longer make a trip.</p>
+      <ol>
+        <li>Go to <strong>Adventures →</strong> the trip card → <strong>Cancel.</strong></li>
+        <li>Read the refund outcome — it depends on the free-cancellation window — then confirm.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <h3 id="faq">9. Frequently asked questions</h3>
+    <h4>How do I get a membership?</h4>
+    <p>By invitation only. Staff add your email to the roster; you sign in with that exact email.</p>
+    <h4>I’m on a household — whose bookings do I see?</h4>
+    <p>Everyone’s on your membership. Bookings made by another household member are labeled “Booked by …”.</p>
+    <h4>Can I reserve an Adventure if I’m not a member at that club?</h4>
+    <p>No — Adventures are reserved for members of the hosting property. You’ll see “Members only.” Reach the concierge about joining.</p>
+    <h4>Do I have to set a password?</h4>
+    <p>No. The emailed magic link works forever; a password is just a shortcut.</p>
+
+    <div class="relguides">
+      <a href="/guide.html">← All guides</a>
+      <a href="/guide-public.html">Guest guide</a>
+    </div>
+    <p class="footer-note"><strong>Last updated 9 June 2026.</strong> Describes the platform as built.</p>
+  </section>
+
+</div>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Enlarged diagram">
+  <div class="lightbox-bar">
+    <span class="lightbox-title" id="lightbox-title"></span>
+    <button class="lightbox-close" type="button" id="lightbox-close">Close ✕</button>
+  </div>
+  <div class="lightbox-stage" id="lightbox-stage"></div>
+</div>
+
+<script src="/guide.js"></script>
+</body>
+</html>
