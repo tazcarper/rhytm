@@ -55,17 +55,23 @@ ok "macOS detected"
 
 # ---- 2. Homebrew ----------------------------------------------------------
 step "Step 1 of 6 — Homebrew (the tool installer)"
+# If Homebrew is already installed but not yet on this shell's PATH (common on
+# Apple Silicon), load it first so we DETECT it instead of reinstalling.
+if ! command -v brew >/dev/null 2>&1; then
+  if [ -x /opt/homebrew/bin/brew ]; then eval "$(/opt/homebrew/bin/brew shellenv)"
+  elif [ -x /usr/local/bin/brew ]; then eval "$(/usr/local/bin/brew shellenv)"; fi
+fi
 if command -v brew >/dev/null 2>&1; then
-  ok "Homebrew already installed"
+  ok "Homebrew already installed ($(brew --version 2>/dev/null | head -1))"
 else
   say "Installing Homebrew. It may ask for your Mac password — that's normal."
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" < /dev/tty \
     || fail "Homebrew install failed. Re-run this script to try again."
+  # Load the freshly-installed brew onto PATH for the rest of this run.
+  if [ -x /opt/homebrew/bin/brew ]; then eval "$(/opt/homebrew/bin/brew shellenv)"
+  elif [ -x /usr/local/bin/brew ]; then eval "$(/usr/local/bin/brew shellenv)"; fi
   ok "Homebrew installed"
 fi
-# Make sure brew is on PATH for this run (Apple Silicon vs Intel).
-if [ -x /opt/homebrew/bin/brew ]; then eval "$(/opt/homebrew/bin/brew shellenv)"
-elif [ -x /usr/local/bin/brew ]; then eval "$(/usr/local/bin/brew shellenv)"; fi
 command -v brew >/dev/null 2>&1 || fail "Homebrew is installed but not on PATH. Close Terminal, reopen it, and run the script again."
 
 # ---- 3. Node 24, Git, GitHub CLI -----------------------------------------
