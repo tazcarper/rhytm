@@ -14,6 +14,12 @@ const supabaseHostname = (() => {
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Ship the client setup guide markdown alongside the /admin/setup serverless
+  // function so the page can read docs/CLIENT_SETUP.md at runtime (single source
+  // of truth — the same file the client follows).
+  outputFileTracingIncludes: {
+    "/admin/setup": ["./docs/CLIENT_SETUP.md"],
+  },
   // Hosts next/image is allowed to optimize. Keep in sync with the
   // OPTIMIZABLE_HOSTS allowlist in src/components/public/adventure-image.tsx
   // (which falls back to a plain <img> for any host not listed here, so an

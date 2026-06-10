@@ -87,9 +87,13 @@
     <div class="callout" style="background:#eef2ff; border:1px solid #c7d2fe; border-radius:12px; padding:16px 18px;">
       <span style="font-size:22px;">⚡</span>
       <div>
-        <strong>Fastest way — one command.</strong> First make a free GitHub account and accept your invite (step 2.1 below), and make sure you have Claude Code. Then open the <strong>Terminal</strong> app and paste this single line — it installs everything, signs you in, downloads the project, and opens Claude for you:
+        <strong>Fastest way — one command.</strong> First make a free GitHub account and accept your invite (step 2.1 below), and make sure you have Claude Code. Then open the <strong>Terminal</strong> app (press <code>⌘ + Space</code>, type “Terminal”, press Enter).
+        <br><br><strong>Move into the folder where you want the project to live</strong> — if you’re not sure, your Documents folder is fine (the project lands in a <code>rhythm-outdoors</code> subfolder right where you are):
+        <pre><code>cd ~/Documents</code></pre>
+        Now paste this single line — it installs everything, signs you in, downloads the project, and opens Claude for you:
         <pre><code id="oneliner">curl -fsSL https://rhytm-one.vercel.app/setup.sh -o ~/rhythm-setup.sh &amp;&amp; bash ~/rhythm-setup.sh</code></pre>
-        It pauses with clear instructions at the few steps only you can do (signing in, approving Docker the first time). Prefer to go step by step instead? Just follow 2.1–2.5 below.
+        <strong style="color:#b45309;">⚠️ Run this inside the Terminal app.</strong> Don’t click the link or double-click a downloaded <code>.sh</code> file — that just opens it in a text editor. The command above downloads <em>and</em> runs it for you.
+        <br><br>It pauses with clear instructions at the few steps only you can do (signing in, approving Docker the first time). Prefer to go step by step instead? Just follow 2.1–2.5 below.
       </div>
     </div>
     <script>

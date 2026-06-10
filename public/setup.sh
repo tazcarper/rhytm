@@ -27,7 +27,8 @@ else
 fi
 
 REPO="tazcarper/rhytm"
-REPO_DIR="$HOME/rhythm-outdoors"
+# Created inside whatever folder you run this from (cd there first).
+REPO_DIR="$(pwd)/rhythm-outdoors"
 
 step()  { printf "\n${BOLD}${BLUE}== %s ==${RESET}\n" "$*"; }
 say()   { printf "   %s\n" "$*"; }
@@ -44,8 +45,10 @@ pause() {
 # ---- 0. intro -------------------------------------------------------------
 clear 2>/dev/null || true
 printf "${BOLD}Rhythm Outdoors — contributor setup${RESET}\n"
-printf "This will set up everything you need to edit the website with Claude.\n"
-printf "It takes about 10–15 minutes, mostly waiting on downloads.\n"
+printf "This installs everything you need to edit the website with Claude.\n"
+printf "It takes about 10–15 minutes, mostly waiting on downloads.\n\n"
+printf "The project will be created in this folder:\n   ${BOLD}%s${RESET}\n\n" "$REPO_DIR"
+printf "Not the right place? Press Ctrl-C, 'cd' into the folder you want,\nthen run the command again.\n"
 pause "Press Enter to begin…"
 
 # ---- 1. macOS check -------------------------------------------------------

@@ -52,12 +52,27 @@ Do this once. If you get stuck on any step, paste the error to Claude — it can
 
 ### ⚡ Fastest way — one command
 First create a free GitHub account and accept your invite (3.1 below), and make sure
-you have Claude Code. Then open **Terminal** and paste this one line — it installs
-everything, signs you in, downloads the project, and opens Claude:
+you have Claude Code. Then open the **Terminal** app (press ⌘ + Space, type
+"Terminal", press Enter).
+
+**Move into the folder where you want the project to live.** If you're not sure, your
+Documents folder is fine — the project is created in a `rhythm-outdoors` subfolder
+right where you are:
+
+```bash
+cd ~/Documents
+```
+
+Now paste this one line — it installs everything, signs you in, downloads the project,
+and opens Claude:
 
 ```bash
 curl -fsSL https://rhytm-one.vercel.app/setup.sh -o ~/rhythm-setup.sh && bash ~/rhythm-setup.sh
 ```
+
+**⚠️ Run this inside Terminal.** Don't click the link or double-click a downloaded
+`.sh` file — that only opens it in a text editor. The command above downloads *and*
+runs it for you.
 
 It pauses with clear instructions at the few steps only you can do (GitHub sign-in,
 approving Docker the first time). Prefer to do it by hand? Follow 3.1–3.5 below instead.
@@ -99,8 +114,9 @@ Choose **GitHub.com → HTTPS → Login with a web browser**, and follow the pro
 This is what lets Claude push your work and open pull requests for you.
 
 ### 3.4 Get the project onto your computer
-Pick a folder (e.g. your home folder) and clone the repo:
+Move into the folder where you want the project to live, then clone the repo:
 ```bash
+cd ~/Documents          # or wherever you want it
 gh repo clone tazcarper/rhytm
 cd rhytm
 ```
