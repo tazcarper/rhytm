@@ -56,13 +56,11 @@ you have Claude Code. Then open **Terminal** and paste this one line — it inst
 everything, signs you in, downloads the project, and opens Claude:
 
 ```bash
-curl -fsSL https://<your-deployed-site>/setup.sh -o ~/rhythm-setup.sh && bash ~/rhythm-setup.sh
+curl -fsSL https://rhytm-one.vercel.app/setup.sh -o ~/rhythm-setup.sh && bash ~/rhythm-setup.sh
 ```
 
 It pauses with clear instructions at the few steps only you can do (GitHub sign-in,
 approving Docker the first time). Prefer to do it by hand? Follow 3.1–3.5 below instead.
-
-> Your developer will give you the exact command with the real web address.
 
 ### 3.1 Get a GitHub account and accept the invite
 1. Go to **https://github.com** and sign up (free).
@@ -221,8 +219,8 @@ Do these once so the client's workspace is safe and previews work:
    apply the migration locally to verify (`npx supabase db reset`), confirm it's
    safe per the PR's "Database changes" runbook, then apply to production and merge.
 7. **The one-command installer:** `public/setup.sh` is served at `/setup.sh` on the
-   deployed site. Give the client this exact line (with your real domain):
-   `curl -fsSL https://<your-domain>/setup.sh -o ~/rhythm-setup.sh && bash ~/rhythm-setup.sh`.
+   deployed site. Give the client this exact line:
+   `curl -fsSL https://rhytm-one.vercel.app/setup.sh -o ~/rhythm-setup.sh && bash ~/rhythm-setup.sh`.
    It's Mac-only and idempotent — installs the tools, signs them in, clones the repo,
    and hands off to Claude. The web page at `/client-setup.html` shows the correct URL
    automatically. (Heads-up: a fresh deploy serves the latest `setup.sh`, so test the

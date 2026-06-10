@@ -11,7 +11,7 @@
 # It is safe to run more than once — it skips anything already done.
 #
 # Run it like this (copy the whole line into the Terminal app):
-#   curl -fsSL https://YOUR-DOMAIN/setup.sh -o ~/rhythm-setup.sh && bash ~/rhythm-setup.sh
+#   curl -fsSL https://rhytm-one.vercel.app/setup.sh -o ~/rhythm-setup.sh && bash ~/rhythm-setup.sh
 #
 # (Download-then-run — not "curl | bash" — so the sign-in prompts work.)
 
