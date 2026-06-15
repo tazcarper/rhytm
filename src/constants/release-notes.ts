@@ -8,13 +8,27 @@
 // Each patch is organized into thematic SECTIONS (e.g. "Member Adventures",
 // "Emails & notifications"); every change carries a kind tag
 // (new / improved / fixed) rendered as a chip.
+//
+// When a change introduces a new page or feature the reader can open, give it
+// a `link` pointing at the in-app destination (an admin route — the changelog
+// lives in the admin portal). It renders as a "go to" call-to-action beneath
+// the detail.
 
 export type ReleaseChangeKind = "new" | "improved" | "fixed";
+
+export interface ReleaseChangeLink {
+  /** In-app destination, e.g. "/admin/team". */
+  href: string;
+  /** Call-to-action label, e.g. "Open the Team page". */
+  label: string;
+}
 
 export interface ReleaseChange {
   kind: ReleaseChangeKind;
   title: string;
   detail?: string;
+  /** Optional link to the page/feature this change introduces. */
+  link?: ReleaseChangeLink;
 }
 
 export interface ReleaseSection {
@@ -56,6 +70,7 @@ export const RELEASE_PATCHES: ReleasePatch[] = [
             title: "Set what each instructor teaches",
             detail:
               "On an instructor's profile, choose the disciplines they're qualified to teach at each property. Guests booking a lesson in a discipline only see instructors who can teach it.",
+            link: { href: "/admin/instructors", label: "Manage instructors" },
           },
           {
             kind: "new",
@@ -124,6 +139,7 @@ export const RELEASE_PATCHES: ReleasePatch[] = [
             title: "Waivers list",
             detail:
               "A new Waivers area to search signed waivers by name or email, open the signed PDF, and grab each property's kiosk link.",
+            link: { href: "/admin/waivers", label: "Open Waivers" },
           },
         ],
       },
@@ -168,12 +184,14 @@ export const RELEASE_PATCHES: ReleasePatch[] = [
             title: "Manage access",
             detail:
               "Change a teammate's role, deactivate or remove their access, or resend their sign-in link — all from the new Team page.",
+            link: { href: "/admin/team", label: "Open the Team page" },
           },
           {
             kind: "new",
             title: "Profiles & passwords",
             detail:
               "Each staff member has a profile page to update their name and, if they like, set a password to sign in directly instead of waiting for an email link.",
+            link: { href: "/admin/profile", label: "Open your profile" },
           },
         ],
       },
@@ -185,6 +203,7 @@ export const RELEASE_PATCHES: ReleasePatch[] = [
             title: "Book for a customer",
             detail:
               "Staff can now book a visit on behalf of a customer who calls in or walks up. Start from the Bookings page, enter the customer's details, and they get a link to review, sign, and pay — or you can confirm and collect it your way.",
+            link: { href: "/admin/bookings", label: "Go to Bookings" },
           },
           {
             kind: "new",
@@ -202,6 +221,7 @@ export const RELEASE_PATCHES: ReleasePatch[] = [
             title: "Cleaner property settings",
             detail:
               "The property settings page is reorganized — pick a property from the tabs at the top, then edit its booking rules, home-page info, notifications, and pre-visit details in clearly labeled sections.",
+            link: { href: "/admin/properties", label: "Open property settings" },
           },
           {
             kind: "improved",
@@ -265,6 +285,7 @@ export const RELEASE_PATCHES: ReleasePatch[] = [
             title: "Adventure management for staff",
             detail:
               "A new Adventures area in the admin portal to create and edit trips: rich descriptions, photo galleries, type-of-stay icons, pricing and capacity, a free-cancellation window, and a per-trip roster you can export to CSV. Trips stay in Draft (staff-only) until you publish them.",
+            link: { href: "/admin/adventures", label: "Open Adventures" },
           },
           {
             kind: "new",
@@ -357,12 +378,14 @@ export const RELEASE_PATCHES: ReleasePatch[] = [
             title: "Reusable FAQ & gear templates",
             detail:
               "Build a library of FAQ answers and gear-list items that auto-fill onto new bids — scoped to every bid, or to a specific property, discipline, or booking type. Editing a template only affects future bids.",
+            link: { href: "/admin/templates", label: "Open Templates" },
           },
           {
             kind: "improved",
             title: "Bids dashboard",
             detail:
               "Cleaner bid filtering, clearer status signals, and tidied-up bid pages.",
+            link: { href: "/admin/bids", label: "Open Bids" },
           },
         ],
       },
@@ -374,18 +397,21 @@ export const RELEASE_PATCHES: ReleasePatch[] = [
             title: "Members directory",
             detail:
               "A read-only directory of memberships and households, with each member’s people and bookings, for quick staff reference.",
+            link: { href: "/admin/members", label: "Open the Members directory" },
           },
           {
             kind: "improved",
             title: "Bookings: filters & calendar",
             detail:
               "The admin bookings area gained filtering and a calendar / day-schedule view for seeing the day at a glance.",
+            link: { href: "/admin/bookings", label: "Go to Bookings" },
           },
           {
             kind: "new",
             title: "Per-property settings",
             detail:
               "Add a map/directions link and a notifications email address for each property.",
+            link: { href: "/admin/properties", label: "Open property settings" },
           },
         ],
       },

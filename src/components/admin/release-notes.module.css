@@ -175,6 +175,39 @@
   margin-top: 0.3rem;
 }
 
+/* "Go to" call-to-action for changes that introduce a page/feature. */
+.itemLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  margin-top: 0.55rem;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--olive);
+  text-decoration: none;
+  border-bottom: 1px solid var(--tan);
+  padding-bottom: 1px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.itemLink::after {
+  content: "→";
+  font-size: 13px;
+  transition: transform 0.15s ease;
+}
+
+.itemLink:hover {
+  color: var(--olive-deep, var(--olive));
+  border-color: var(--olive);
+}
+
+.itemLink:hover::after {
+  transform: translateX(2px);
+}
+
 @media (max-width: 640px) {
   .head {
     padding: 1.25rem 1.25rem 1rem;

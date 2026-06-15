@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type {
   ReleaseChange,
   ReleaseChangeKind,
@@ -61,6 +62,11 @@ export function ReleaseNotesView({ patches }: { patches: ReleasePatch[] }) {
                         <span className={s.itemTitle}>{change.title}</span>
                         {change.detail && (
                           <span className={s.itemDetail}>{change.detail}</span>
+                        )}
+                        {change.link && (
+                          <Link className={s.itemLink} href={change.link.href}>
+                            {change.link.label}
+                          </Link>
                         )}
                       </span>
                     </li>
