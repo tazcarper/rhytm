@@ -36,6 +36,7 @@ export function AdminNav({ email, role, pendingBidCount }: AdminNavProps) {
     { label: "Adventures", href: "/admin/adventures" },
     { label: "Members", href: "/admin/members" },
     { label: "Properties", href: "/admin/properties" },
+    { label: "Homepage", href: "/admin/homepage" },
     { label: "FAQ & Gear", href: "/admin/templates" },
     { label: "Waivers", href: "/admin/waivers" },
     // Team management is super_admin + admin only.
