@@ -19,6 +19,7 @@ import { WaiverQrButton } from "@/src/components/admin/waiver-qr-button";
 import { BidWaiverRoster } from "@/src/components/admin/bid-waiver-roster";
 import { BidContentDrawer } from "@/src/components/admin/bid-content-drawer";
 import { PricingEditor } from "@/src/components/admin/pricing-editor";
+import { BidLineItemsCard } from "@/src/components/admin/bid-line-items-card";
 import {
   BidAddOnsEditor,
   type AvailableAddOn,
@@ -402,6 +403,8 @@ export default async function AdminBidDetail({
             paid={bid.paidAt !== null}
             addOnTotal={addOnTotal}
           />
+
+          <BidLineItemsCard lineItems={detail.lineItems} />
 
           <Card padding="loose" elevation="soft" className={s.section}>
             <h2 className={s.sectionTitle}>Lifecycle</h2>

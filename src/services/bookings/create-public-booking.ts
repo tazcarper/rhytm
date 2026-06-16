@@ -5,6 +5,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service";
 import { inngest } from "@/lib/inngest/client";
 import { bidCreated } from "@/lib/inngest/events";
 import { buildBidUrl } from "@/src/services/bids/bid-url";
+import { materializeBidLineItems } from "@/src/services/bids/bid-line-items";
 import type { BookingType } from "@/src/components/public/booking-flow/booking-flow-types";
 
 // Atomic booking creation. Calls the `create_public_booking` Postgres
@@ -149,6 +150,19 @@ export async function createPublicBooking(
         { bookingId: row.booking_id, stampError },
       );
     }
+  }
+
+  // Materialize the bid's line-item breakdown (base, guest fee, add-ons).
+  // Best-effort: the bid's headline totals come from estimated_price either
+  // way, so a failure here only delays the itemized breakdown (which
+  // ensureBidLineItems self-heals on first admin view). Never fatal.
+  try {
+    await materializeBidLineItems(supabase, row.booking_id);
+  } catch (lineErr) {
+    console.error(
+      "[bookings/create-public-booking] bid line-item materialization failed",
+      { bookingId: row.booking_id, lineErr },
+    );
   }
 
   // Fire the bid/created Inngest event post-response. Best-effort: a

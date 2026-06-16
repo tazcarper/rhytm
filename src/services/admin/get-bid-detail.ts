@@ -4,6 +4,10 @@ import type {
   AdminBookingType,
 } from "./bids";
 import { getStaffIdentity, type StaffIdentity } from "./staff-identity";
+import {
+  getOrMaterializeBidLineItems,
+  type BidLineItem,
+} from "@/src/services/bids/bid-line-items";
 
 export interface AdminBidGearItem {
   name: string;
@@ -106,6 +110,9 @@ export interface AdminBidDetail {
   // Additional party members who signed via the scan-to-sign QR (oldest
   // first). The primary signer is `waiver`; these are everyone else.
   partyWaivers: AdminBidPartyWaiver[];
+  // The materialized quote breakdown (base, guest fee, add-ons). Self-heals
+  // on first read for bids created before the line-items foundation.
+  lineItems: BidLineItem[];
 }
 
 function parseGearList(gearListJson: unknown): AdminBidGearItem[] {
@@ -295,6 +302,9 @@ export async function getAdminBidDetail(
     signedAt: row.created_at as string,
   }));
 
+  // Materialized line breakdown (self-heals old bids on first view).
+  const lineItems = await getOrMaterializeBidLineItems(booking.id);
+
   return {
     bid: {
       id: data.id,
@@ -352,5 +362,6 @@ export async function getAdminBidDetail(
       ? { sha256: waiverRow.pdf_sha256, signedName: waiverRow.signed_name }
       : null,
     partyWaivers,
+    lineItems,
   };
 }
