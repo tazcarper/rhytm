@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useRef,
   useState,
   useTransition,
   type FormEvent,
@@ -8,10 +9,20 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Card } from "@/lib/ui";
-import { updateHomepageHeroAction } from "@/app/admin/homepage/actions";
+import {
+  updateHomepageHeroAction,
+  uploadHomepageHeroImageAction,
+} from "@/app/admin/homepage/actions";
 import type { HomepageHero } from "@/src/services/public/homepage-hero";
+import { downscaleImage } from "./downscale-image";
 import s from "./bid-editor-form.module.css";
 import h from "./homepage-hero-form.module.css";
+
+// The hero spans full-bleed, so it gets the most pixels. Uploads are
+// downscaled + re-encoded to WebP in the browser before they leave the
+// machine, so a straight-from-phone photo arrives web-ready at a predictable
+// size. Tune in one place.
+const HERO_MAX_EDGE = 2400;
 
 interface HomepageHeroFormProps {
   hero: HomepageHero;
@@ -39,6 +50,31 @@ export function HomepageHeroForm({ hero }: HomepageHeroFormProps) {
   const [secondaryCtaHref, setSecondaryCtaHref] = useState(
     hero.secondaryCtaHref ?? "",
   );
+
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [isUploading, startUpload] = useTransition();
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // Upload path: downscale in the browser, hand the file to the admin action,
+  // then drop the returned public URL into the same `imageUrl` field a pasted
+  // URL fills. Save is still a separate step — uploading only fills the field.
+  const handlePickFile = (files: FileList | null) => {
+    const file = files?.[0];
+    if (!file) return;
+    setUploadError(null);
+    startUpload(async () => {
+      const optimized = await downscaleImage(file, { maxEdge: HERO_MAX_EDGE });
+      const formData = new FormData();
+      formData.append("file", optimized);
+      const result = await uploadHomepageHeroImageAction(formData);
+      if (!result.ok) {
+        setUploadError(result.error);
+        return;
+      }
+      setImageUrl(result.url);
+    });
+    if (fileRef.current) fileRef.current.value = "";
+  };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -177,8 +213,41 @@ export function HomepageHeroForm({ hero }: HomepageHeroFormProps) {
 
         <Group
           eyebrow="Background image"
-          desc="Optional. Paste a link to an image and it shows behind the hero text. Leave blank to keep the plain background."
+          desc="Optional. Upload an image from your computer or paste a link to one, and it shows behind the hero text. Leave blank to keep the plain background."
         >
+          <div className={h.uploadRow}>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className={h.fileInputHidden}
+              onChange={(event) => handlePickFile(event.target.files)}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={isUploading}
+              onClick={() => fileRef.current?.click()}
+            >
+              {isUploading
+                ? "Uploading…"
+                : imageUrl.trim() !== ""
+                  ? "Replace image"
+                  : "Upload image"}
+            </Button>
+            <span className={s.help}>
+              JPEG, PNG, or WebP up to 10&nbsp;MB. Landscape works best (around
+              2400&nbsp;×&nbsp;1400&nbsp;px); larger images are resized
+              automatically.
+            </span>
+          </div>
+
+          {uploadError && (
+            <p className={h.uploadError}>{uploadError}</p>
+          )}
+
+          <p className={h.orDivider}>or paste a link</p>
+
           <label className={s.field}>
             <span className={s.label}>Image link (URL)</span>
             <input
