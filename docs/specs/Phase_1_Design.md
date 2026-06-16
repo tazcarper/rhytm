@@ -1,6 +1,6 @@
 # Phase 1 — Per-line Override Bidder · Design Sketch
 
-**Status** Design for review — prose only, no code. Implementation begins only after Nicholas approves (a) the Phase 0 merge and (b) this sketch.
+**Status** Design **approved 2026-06-16** — all five rulings locked (§7). Implementation is cleared to begin **once Phase 0 (#6) merges**; the implementation PR is surfaced for review before merge.
 **Builds on** Phase 0 (`bid_line_items`, PR #6). **Adapts** Build Spec §2.2 / §4.2 to the real codebase.
 **Author** Claude Code session, 2026-06-16.
 
@@ -37,7 +37,24 @@ A new `bid_line_overrides` table, append-only (audit-immutable), keyed on `booki
 
 **Immutability.** No `UPDATE`/`DELETE` path is exposed, and there's no `updated_at`. A mistaken comp is corrected by appending a **reversing override** on the same line (a `new_amount` back to `original_amount`, reason "reversing prior comp — keyed wrong"). This preserves the audit trail rather than erasing it. *(Open question Q1: do we want a `super_admin`-only void instead? The spec says strictly immutable; the reversing-entry approach honors that.)*
 
-**One active override per line?** The build spec implies a single waive per line. The reversing-entry model means a line can have multiple override rows over time; the **effective** override for a line is its **most recent** row. The total math (below) must therefore sum only the latest override per line, not every row. *(Alternatively enforce one row per line and allow a guarded delete — Q1.)*
+**One active override per line?** The build spec implies a single waive per line. The reversing-entry model means a line can have multiple override rows over time; the **effective** override for a line is its **most recent** row. The total math (below) must therefore sum only the latest override per line, not every row. **Locked (Q1): strict append-only with reversing entries — never a void.** A mistake is corrected by appending a reversing override; the social-pressure "undo button" is removed entirely.
+
+---
+
+## 1a. Source-tagged pricing audit — manual vs. line override (Q2 addendum)
+
+Under Option A, **two distinct mechanisms write the same field** `bookings.confirmed_price`:
+
+1. **Manual** — `PricingEditor` → `update-bid-pricing.ts` sets a confirmed price directly.
+2. **Line override** — `applyLineOverride` writes a `bid_line_overrides` row and re-derives `confirmed_price`.
+
+Today the **manual path leaves no audit at all** — `update-bid-pricing` just UPDATEs the column. So a price-change timeline can't currently tell the two apart, which is exactly the unlabeled-timeline failure to avoid. Fix:
+
+- A lightweight append-only **`bid_pricing_events`** table: `id`, `booking_id`, **`source` enum (`manual` · `line_override`)**, `line_override_id` (nullable → `bid_line_overrides.id`), `old_total`, `new_total`, `actor_id`, `actor_email`, `note` (nullable), `created_at`. RLS mirrors `bid_line_overrides` (staff read, service-role write).
+- **Both** paths append one event: `update-bid-pricing` writes `source = manual`; `applyLineOverride` writes `source = line_override` linked to its override row.
+- The admin **Pricing history** timeline (in the audit panel, §6) renders every entry with a visible **`source: manual` / `source: line override`** tag; line-override entries expand to the per-line detail (line, label, reason) from the linked row.
+
+This is the "cheap affordance now" — it also closes a real pre-existing gap (manual price edits were unaudited). Net-new for Phase 1, small, and it makes `confirmed_price`'s full mutation history legible by mechanism.
 
 ---
 
@@ -77,14 +94,12 @@ This is the crux and the main thing to rule on.
 
 **Spec's intent:** `customer total = sum(line original_amounts) + sum(override deltas)`.
 
-**Proposed Phase 1 model:**
-- Define the **adjusted subtotal** = `sum(line_amount) + sum(latest override delta per line)`.
-- On the **customer bid page**, render: line items → **Subtotal** (pre-discount) → **"Discount applied: −$X"** (or the concierge label) → **net total** = adjusted subtotal → deposit/balance as today.
-- **Reconciliation choice (Q2 — needs your ruling):**
-  - **(A) Overrides drive the quote.** `applyLineOverride` writes the adjusted subtotal into the booking's effective quote (so deposit/balance math and the existing payment flow keep working off one number). Cleanest single-source-of-truth; the PricingEditor's "confirmed price" becomes the adjusted subtotal.
-  - **(B) Overrides are presentational; `confirmed_price` still rules.** The discount line is shown for transparency, but the charged total stays `confirmed_price`. Simpler to ship, but risks the displayed discount not matching what's actually charged unless staff also update `confirmed_price`.
+**LOCKED — Option A: overrides mutate `confirmed_price`.** The audit settled it: the effective total is re-derived independently at **15 reader sites** — including the **Stripe deposit charge ceiling** (`create-deposit-session.ts`), the **payment webhook** (`handle-payment-intent-succeeded.ts`), and **two customer emails** — none routed through a shared helper. Under a presentational model every one would have to learn about override deltas or charge/show the undiscounted price; centralizing them is the far larger refactor and lands on the money path. So:
 
-  **Recommendation: (A)** — the number the customer sees discounted must be the number they're charged, or the "gesture" is hollow. (A) keeps display and charge identical. I'd have `applyLineOverride` set `confirmed_price` (and re-derive deposit if it was a % ) to the adjusted subtotal, with the PricingEditor showing the adjusted figure.
+- `applyLineOverride` computes the **adjusted total** = current effective base (`confirmed_price ?? estimated_price`) **− Σ (latest override delta per line)** and **writes it into `bookings.confirmed_price`**. Every existing reader (Stripe, webhook, emails, admin, member, bid page) then shows/charges the discounted number with **zero changes**.
+- **`confirmed_price` semantics shift** from "original quote" to **"current effective total to charge."** The forensic record of what each line was originally quoted at is preserved in **`bid_line_items.original_amount`** (and each override's `original_amount`), which is now the authoritative original-quote record.
+- On the **customer bid page**, render: line items → **Subtotal** (pre-discount) → **"Discount applied: −$X"** (or the concierge label) → **net total** = `confirmed_price` → deposit/balance as today. Display and charge are provably identical because they're the same number.
+- If the original deposit was a percentage of the quote, re-derive it from the adjusted total.
 
 ---
 
@@ -115,29 +130,31 @@ Your quote
 
 **Bid detail `/admin/bids/[uuid]`:**
 - **Per-line "Waive" action** on each row of the Phase 0 *Quote breakdown* card → a `WaiveDialog` (new amount or "waive in full", required reason ≥ 10 chars, optional customer-facing label). Visible only on `pending_review`.
-- **"Overrides applied" audit panel** beneath the breakdown, above the bid actions. Each entry:
+- **"Pricing history" audit panel** beneath the breakdown, above the bid actions — a single timeline of every `confirmed_price` change (from `bid_pricing_events`, §1a), each entry **tagged by source**:
 
 ```
-Overrides applied
-  Ammunition Pack          $150.00 → $0.00   (−$150.00)
-  "VIP comp"  ·  comped by cassi@hsbsportingclub.com  ·  Jun 16, 3:42 PM
-  Reason: comp for VIP wedding party
+Pricing history
+  [line override]  Ammunition Pack   $150.00 → $0.00   (−$150.00)
+                   "VIP comp"  ·  cassi@hsbsportingclub.com  ·  Jun 16, 3:42 PM
+                   Reason: comp for VIP wedding party
+  [manual]         Quote   $515.00 → $480.00   (−$35.00)
+                   adam@hsbsportingclub.com  ·  Jun 16, 2:10 PM
 ```
-  Shows actor + timestamp + line + delta + **reason** (admin-only context). Empty state: "No overrides applied to this bid."
+  Line-override entries show actor + timestamp + line + delta + **reason** (admin-only). Manual entries show actor + timestamp + old→new total. The `source` tag means an investigator can always tell which mechanism made a given price change. Empty state: "No pricing changes on this bid."
 
 **Bids queue `/admin/bids`:** a small flag icon in a new column when any override exists, hover-text "Override applied −$X".
 
-**Dashboard `/admin`:** an "Overrides this week" card — count + total $ waived (current week, all properties) → links to `/admin/bids?has_override=true`.
+**Dashboard `/admin`:** an "Overrides this week" card — count + total $ waived (current week, all properties) → links to `/admin/bids?has_override=true`. **Locked (Q5):** any bid whose total comp exceeds **25% of its subtotal** gets a **red flag** on this card — **detection only, no hard cap** (staff can still apply a >25% comp; it's just surfaced for review). Threshold to be recalibrated after ~3 months.
 
 ---
 
-## 7. Open questions for Nicholas / Taz
+## 7. Locked decisions (Nicholas, 2026-06-16)
 
-- **Q1 — immutability vs. correction.** Strict append-only with reversing entries (proposed), or a `super_admin`-only void? The spec says immutable; the reversing-entry model honors that while staying recoverable.
-- **Q2 — total reconciliation (§4).** Option (A) overrides drive `confirmed_price` (recommended) or (B) presentational-only?
-- **Q3 — line breakdown on the public page.** Phase 1 surfaces the itemized lines to the customer (needed to make a discount legible). Confirm that added transparency is wanted on every bid, or only when a discount exists.
-- **Q4 — who can waive.** `super_admin` + `admin` + `property_manager` (scoped)? Or also a `concierge` role? (The roster's "events concierge" maps to which app role today?)
-- **Q5 — comp ceiling.** Any cap on a single comp or a per-bid total (e.g. flag if > X% of subtotal)? Spec defers this; we can ship uncapped audit-and-flag and add a threshold later.
+- **Q1 — Immutability → LOCKED: strict append-only with reversing entries.** Honor the spec verbatim; recovery via a reversing entry, never a void. No undo button.
+- **Q2 — Total reconciliation → LOCKED: Option A.** Overrides mutate `confirmed_price` ("current effective total to charge"); `bid_line_items.original_amount` is the authoritative original-quote record. See §4 + §1a (source-tagged audit).
+- **Q3 — Public line breakdown → LOCKED: always show.** The itemized base + per-guest + add-ons renders on **every** bid, same structure; the discount line appears only when an override exists. Consistency builds trust.
+- **Q4 — Who can waive → LOCKED: existing roles.** `super_admin` + `admin` (cross-property; the events-concierge/Cassi maps to `admin`) + `property_manager` (scoped to their property). No new `events_concierge` role for Phase 1 — add later only if `admin` proves too privileged.
+- **Q5 — Comp ceiling → LOCKED: threshold flag, no hard cap.** >25% of subtotal raises a red flag on the dashboard card (detection only). Recalibrate after ~3 months.
 
 ---
 
@@ -148,7 +165,10 @@ Overrides applied
 - **Customer bid page** shows the line at its original amount, a "VIP comp: −$150" line, and the lower total. It does **not** show actor, timestamp, or the reason text.
 - Bids queue row shows the override flag with "−$150"; dashboard card shows "1 override this week · −$150".
 - Admin audit panel shows actor + time + line + delta + reason.
-- A non-admin (member/partner) cannot read `bid_line_overrides` — especially `reason` (RLS test).
+- **Pricing history distinguishes source:** a manual `PricingEditor` change appears tagged `source: manual`; the line waive appears tagged `source: line override` — never collapsed into an unlabeled timeline.
+- **A reversing entry** restores a line to its original amount and is itself recorded; no override is ever edited or deleted.
+- **A comp > 25% of subtotal** raises the red flag on the dashboard "Overrides this week" card; the comp still applies (no hard cap).
+- A non-admin (member/partner) cannot read `bid_line_overrides` or `bid_pricing_events` — especially `reason` (RLS test).
 - No `customer_facing_label` → customer page defaults to "Discount applied".
 - Typecheck clean; migration applies via `db reset`; no regressions to the existing pricing/deposit/payment flow.
 
