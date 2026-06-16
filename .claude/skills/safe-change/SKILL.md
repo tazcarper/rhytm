@@ -18,10 +18,24 @@ flow proactively so the client never hits a wall.
 ## Stay in the front-end lane (read this first)
 
 The foundation of this app — its **packages, build config, authentication, data
-layer, database schema, and backend services** — is already built and deliberately
-fixed. The overwhelming majority of a client's work is **presentation**: layout,
-spacing, styling, fonts, colors, copy, and rearranging existing components. Treat
-foundational change as out of scope and steer toward a front-end solution.
+layer, and existing backend services** — is already built and deliberately fixed.
+The majority of a client's work is **presentation**: layout, spacing, styling,
+fonts, colors, copy, and rearranging existing components. This skill covers all of
+that.
+
+**Two supported paths, by size of request:**
+
+- **A presentation tweak** (restyle, re-copy, move components) → just run the loop
+  below.
+- **A well-scoped feature** — something the client wants to *control* that needs a
+  new place to store data plus an admin screen (e.g. "let me edit the homepage
+  banner myself", "add a section staff can manage") → use the **`build-a-feature`
+  skill** first to scope and build it (it adds a migration + RLS + an admin page +
+  a service, following the project's patterns), then this skill's loop ships it.
+  *Adding new* editable content and an admin control for it is in scope. See the
+  worked example in `docs/examples/editable-homepage-hero.md`.
+
+What stays off-limits in **both** paths is the foundation and live systems:
 
 **Heavily discourage — and do not do — the following. Route them to the developer:**
 
@@ -35,13 +49,17 @@ foundational change as out of scope and steer toward a front-end solution.
 - **Changing backend / build / auth setup** — `package.json`, `next.config.*`,
   `tsconfig.json`, `middleware.ts`, `lib/supabase/*`, `lib/auth/*`,
   `supabase/config.toml`. These are the foundation; the hook blocks edits to them.
-- **Restructuring data fetching, services, or RLS.** Move and restyle the components
-  that *use* a service — don't rewrite the service or change how it queries.
+- **Rewriting or restructuring EXISTING data fetching, services, or RLS.** Move and
+  restyle the components that *use* a service — don't rewrite an existing service or
+  change how it queries. (Note the difference: *adding a new* table/policy/service
+  for a new feature is the `build-a-feature` path and is fine; *changing how an
+  existing one works* is the developer's job.)
+- **Auth, payments, or anything touching live customer/money data.** New roles,
+  Stripe behavior, webhook logic — always the developer.
 
-When you must say no to one of these, say it kindly and offer the nearest
-front-end-only alternative: *"That would need new backend plumbing, which is your
-developer's area — but I can get the same look by restyling the existing component.
-Want me to do that?"*
+When you must say no to one of these, say it kindly and offer the nearest safe
+alternative: *"That part changes the app's foundation, which is your developer's
+area — but I can [the in-scope alternative]. Want me to do that?"*
 
 ## The loop — run this for every change request
 
