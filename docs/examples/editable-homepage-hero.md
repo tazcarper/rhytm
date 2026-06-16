@@ -37,9 +37,16 @@ That single sentence is enough. Claude will create a place in the database to st
 the banner, build the admin page with a form, make the homepage read from it, and
 tell you it needs a "database change" that your developer applies.
 
-### Looking at it
-> "Show me the homepage so I can see the banner."
-> "Now open the admin homepage page so I can try editing it."
+### Looking at it — in your own browser
+You look at the page yourself in your web browser, not by asking Claude to show you.
+Claude keeps the local site running at `http://localhost:3000`; open it and refresh
+to see each change.
+
+- The banner → `http://localhost:3000`
+- The editor → sign in, then `http://localhost:3000/admin/homepage`
+
+If the page won't load, ask Claude to make sure the local site is running:
+> "The site isn't loading — can you make sure it's running so I can look at it?"
 
 ### Iterating on the look
 > "The headline is too big — can you make it a bit smaller?"

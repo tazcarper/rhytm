@@ -100,7 +100,7 @@ export function AdminNav({ email, role, pendingBidCount }: AdminNavProps) {
       </ul>
 
       <div className={s.identity}>
-        <GuidesMenu />
+        <GuidesMenu role={role} />
         <Button asChild variant="secondary" size="sm">
           <a href="/" target="_blank" rel="noopener noreferrer">
             View site ↗

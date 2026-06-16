@@ -2,12 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/ui";
+import { canManageTeam } from "@/lib/auth/portal";
 import s from "./guides-menu.module.css";
 
 interface GuideLink {
   label: string;
   href: string;
   hint: string;
+}
+
+interface GuidesMenuProps {
+  role: string | undefined;
 }
 
 // The published manual lives as static HTML in /public (served at /guide*.html),
@@ -23,8 +28,17 @@ const GUIDE_LINKS: ReadonlyArray<GuideLink> = [
   { label: "Guest guide", href: "/guide-public.html", hint: "Public booking" },
 ];
 
-export function GuidesMenu() {
+// Site-editing guides for contributors. Only admins / super-admins build features
+// or edit the site with Claude, so these are gated to those roles and set apart
+// visually from the shareable audience manuals above.
+const CONTRIBUTOR_LINKS: ReadonlyArray<GuideLink> = [
+  { label: "Editing the site", href: "/client-setup.html", hint: "Set up your Mac + the safe workflow" },
+  { label: "Building a feature", href: "/guide-build-a-feature.html", hint: "Worked example: ask → built → reviewed" },
+];
+
+export function GuidesMenu({ role }: GuidesMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const showContributorGuides = canManageTeam(role);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -77,6 +91,27 @@ export function GuidesMenu() {
               <span className={s.menuLinkHint}>{guide.hint}</span>
             </a>
           ))}
+
+          {showContributorGuides && (
+            <>
+              <div className={s.menuDivider} role="separator" />
+              <p className={cn(s.menuHead, s.menuHeadContrib)}>Editing the site</p>
+              {CONTRIBUTOR_LINKS.map((guide) => (
+                <a
+                  key={guide.href}
+                  className={cn(s.menuLink, s.menuLinkContrib)}
+                  href={guide.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  role="menuitem"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <span className={s.menuLinkLabel}>{guide.label}</span>
+                  <span className={s.menuLinkHint}>{guide.hint}</span>
+                </a>
+              ))}
+            </>
+          )}
         </div>
       )}
     </div>

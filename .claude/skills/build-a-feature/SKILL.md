@@ -36,6 +36,25 @@ it. Tell-tale phrasings:
 The clean test: **adding new** editable content + an admin control for it is in
 scope. **Changing how existing foundation works** is not.
 
+## Before you build anything — is it already editable?
+
+The cheapest feature is the one you don't build. Before scoping anything, check
+whether the thing the client wants to change is **already editable in `/admin`**. A
+lot is: property info and taglines, pricing, services & add-ons, adventures, FAQ &
+gear templates, waiver wording, instructors, members.
+
+- **Already dashboard-editable** → write no code. Point the client to where they
+  change it in the admin area and let them do it **live** — no branch, no PR, no
+  developer. (e.g. "That's already editable — go to Admin → Properties and edit the
+  tagline; it saves instantly.")
+- **Hardcoded, and they'll change it again and again** → this skill: make it
+  dashboard-editable **once**, then it's the case above forever.
+- **Hardcoded and genuinely one-off** → a small `safe-change` copy/style edit is
+  enough; don't build a whole feature.
+
+Never hardcode a value the client will keep tweaking — that drags a developer in
+every single time. Graduate it into the dashboard instead.
+
 ## The method
 
 Work through these in order. Narrate each step to the client in plain language.

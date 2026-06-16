@@ -82,6 +82,28 @@
   color: var(--gray);
 }
 
+/* Contributor group — site-editing guides, shown to admins/super-admins only,
+   set apart with an indigo accent that matches the contributor cards. */
+.menuDivider {
+  height: 1px;
+  background: var(--border);
+  margin: var(--space-2) var(--space-2);
+}
+
+.menuHeadContrib {
+  color: #6366f1;
+}
+
+.menuLinkContrib {
+  border-left: 2px solid #6366f1;
+  border-radius: 0 var(--radius-card) var(--radius-card) 0;
+  color: #6366f1;
+}
+
+.menuLinkContrib:hover {
+  background: #eef2ff;
+}
+
 @media (max-width: 720px) {
   .menu {
     right: auto;

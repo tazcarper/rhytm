@@ -107,12 +107,15 @@ npm run typecheck
 ```
 Fix any type errors before continuing.
 
-### 5. Let the client see it
+### 5. Let the client see it (in their own browser)
 Start the local app so they can view the change:
 ```bash
 npm run dev   # http://localhost:3000
 ```
-Point them at the relevant page. Iterate with them until they're happy.
+The client looks at it **themselves in their web browser** — you don't render it for
+them. Give them the exact URL to open (e.g. `http://localhost:3000/admin/homepage`)
+and have them refresh as you iterate. If the page won't load, the server isn't
+running — start it. Iterate until they're happy.
 
 ### 6. Commit and push the branch
 ```bash
