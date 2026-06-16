@@ -51,8 +51,7 @@ export function AdminNav({ email, role, pendingBidCount }: AdminNavProps) {
   ];
 
   const companyItems: ReadonlyArray<NavDropdownItem> = [
-    // Static org chart served from /public, opens in its own tab.
-    { label: "Accountability Chart", href: "/rhythm-accountability.html", external: true },
+    { label: "Accountability Chart", href: "/admin/accountability" },
     { label: "What's New", href: "/admin/release-notes" },
   ];
 
