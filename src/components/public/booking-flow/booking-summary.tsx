@@ -34,6 +34,8 @@ export function BookingSummary({ services, pricing, cta }: BookingSummaryProps) 
 
   const selections = state.disciplineSelections;
   const guestCount = state.guestCount;
+  const juniorGuestCount = Math.min(state.juniorGuestCount, guestCount);
+  const adultGuestCount = guestCount - juniorGuestCount;
   const durationHours =
     state.durationHours ?? BOOKING_TYPE_META[state.bookingType].defaultDurationHours;
 
@@ -41,10 +43,16 @@ export function BookingSummary({ services, pricing, cta }: BookingSummaryProps) 
     bookingType: state.bookingType,
     pricing,
     guestCount,
+    juniorGuestCount,
     durationHours,
     selections,
     services,
   });
+
+  const partyLine =
+    juniorGuestCount > 0
+      ? `${adultGuestCount} ${adultGuestCount === 1 ? "adult" : "adults"} · ${juniorGuestCount} ${juniorGuestCount === 1 ? "junior" : "juniors"}`
+      : `${guestCount} ${guestCount === 1 ? "guest" : "guests"}`;
 
   function removeAddOn(serviceId: string, addOnId: string) {
     setState({
@@ -70,7 +78,7 @@ export function BookingSummary({ services, pricing, cta }: BookingSummaryProps) 
       <div className={s.section}>
         <p className={s.fact}>{BOOKING_TYPE_META[state.bookingType].title}</p>
         <p className={s.factSub}>
-          {guestCount} {guestCount === 1 ? "guest" : "guests"}
+          {partyLine}
           {whenLine && ` · ${whenLine}`}
         </p>
       </div>

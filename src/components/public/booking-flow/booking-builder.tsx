@@ -12,6 +12,7 @@ import { BookingSummary } from "./booking-summary";
 import { BOOKING_TYPE_META } from "@/src/constants/public/booking-types";
 import {
   computeMaxGuestCount,
+  hasJuniorPricing,
   type PricingModel,
 } from "@/src/services/public/pricing";
 import {
@@ -71,7 +72,12 @@ export function BookingBuilder({
 
   const selections = state.disciplineSelections;
   const guestCount = state.guestCount;
+  const juniorGuestCount = state.juniorGuestCount;
   const maxGuestCount = computeMaxGuestCount(bookingType, pricing);
+  // Only offer the junior control where the property actually prices
+  // juniors differently (HSB). Host-an-occasion is team-quoted, so the
+  // adult/junior split doesn't affect its estimate.
+  const showJuniorControl = !isHost && hasJuniorPricing(pricing);
 
   // -------- discipline & add-on edits --------
 
@@ -125,17 +131,32 @@ export function BookingBuilder({
   // -------- guest count --------
 
   function setGuestCount(n: number) {
-    setState({ guestCount: Math.max(1, Math.min(maxGuestCount, n)) });
+    const nextGuests = Math.max(1, Math.min(maxGuestCount, n));
+    // Juniors can never exceed the party size.
+    const patch: { guestCount: number; juniorGuestCount?: number } = {
+      guestCount: nextGuests,
+    };
+    if (juniorGuestCount > nextGuests) patch.juniorGuestCount = nextGuests;
+    setState(patch);
+  }
+
+  function setJuniorCount(n: number) {
+    setState({ juniorGuestCount: Math.max(0, Math.min(guestCount, n)) });
   }
 
   // Re-clamp if the booking type changed and the prior count is now over the
   // new max (e.g., 12-guest visit → 4-guest lesson via back-nav). The base
-  // default of 1 is set by BookingFlowProvider, not here.
+  // default of 1 is set by BookingFlowProvider, not here. Keep juniors ≤ guests.
   useEffect(() => {
     if (guestCount > maxGuestCount) {
-      setState({ guestCount: maxGuestCount });
+      const next = maxGuestCount;
+      setState(
+        juniorGuestCount > next
+          ? { guestCount: next, juniorGuestCount: next }
+          : { guestCount: next },
+      );
     }
-  }, [guestCount, maxGuestCount, setState]);
+  }, [guestCount, juniorGuestCount, maxGuestCount, setState]);
 
   // -------- date + time --------
 
@@ -433,6 +454,26 @@ export function BookingBuilder({
                 onChange={setGuestCount}
                 label="Guest count"
               />
+
+              {showJuniorControl && (
+                <div className={s.juniorRow}>
+                  <div className={s.juniorText}>
+                    <p className={s.juniorLabel}>Juniors (15 &amp; under)</p>
+                    <p className={s.juniorHint}>
+                      Of your {guestCount}{" "}
+                      {guestCount === 1 ? "guest" : "guests"}, how many are 15 or
+                      under? Juniors are priced at a reduced guest fee.
+                    </p>
+                  </div>
+                  <QtyStepper
+                    value={juniorGuestCount}
+                    min={0}
+                    max={guestCount}
+                    onChange={setJuniorCount}
+                    label="Junior guest count"
+                  />
+                </div>
+              )}
             </section>
           )}
 
