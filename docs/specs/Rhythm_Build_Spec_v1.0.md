@@ -474,6 +474,8 @@ For Phase 4 specifically:
 
 ## 9. Open questions for taz
 
+> **Tracked as a live checklist in [Issue #9 — "Questions for Taz — open architecture decisions"](https://github.com/tazcarper/rhytm/issues/9).** That issue is the single canonical place to see what Nicholas needs from Taz and to tick items off as they're decided; this section is the narrative source. (As of 2026-06-16: §9.4 is resolved by Phase 1 ruling Q5, and the Phase 1 design Q1–Q5 are all locked — see `docs/specs/Phase_1_Design.md`.)
+
 These need taz's answer before the work begins. Listed in priority order:
 
 1. **LLM provider for AI chat (§5.1).** Is there one wired in already? If not, taz picks before Phase 4.
