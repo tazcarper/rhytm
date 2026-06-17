@@ -125,7 +125,9 @@ async function computeLines(
 ): Promise<LineInsert[] | null> {
   const { data: booking, error } = await supabase
     .from("bookings")
-    .select("id, booking_type, guest_count, duration_hours, property_id")
+    .select(
+      "id, booking_type, guest_count, junior_guest_count, duration_hours, property_id",
+    )
     .eq("id", bookingId)
     .single();
   if (error || !booking) return null;
@@ -143,6 +145,7 @@ async function computeLines(
     bookingType,
     pricing,
     guestCount: booking.guest_count as number,
+    juniorGuestCount: (booking.junior_guest_count as number | null) ?? 0,
     durationHours: booking.duration_hours as number,
     selections: [],
     services: [],

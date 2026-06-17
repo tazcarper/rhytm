@@ -85,15 +85,54 @@
 }
 
 
+/* Wrapper the BidSectionNav puts around the layout to drive which section is
+   visible on tablet/mobile. `display: contents` makes it layout-invisible, so
+   desktop is exactly as if it weren't here. */
+.scope {
+  display: contents;
+}
+
 /* Two-column record layout: a wide content column + a narrow action/metadata
-   rail. `align-items: start` keeps the rail cell from stretching so the rail
-   can stick while the main column scrolls. */
+   rail. `align-items: start` keeps each column cell from stretching to the
+   tallest sibling, so both columns scroll together as one page. */
 .layout {
   display: grid;
   gap: var(--space-4);
   margin-top: var(--space-6);
   grid-template-columns: 1fr;
   align-items: start;
+}
+
+/* ---- Tablet/mobile section system ----
+   Each card/component is tagged with one section marker class (.secInfo, …).
+   The nav sets `data-active-section` on .scope; below the desktop breakpoint we
+   hide every section except the active one, so the long page shows one group at
+   a time. Above 1180px none of this applies — the full layout renders. */
+@media (max-width: 1179.98px) {
+  .scope[data-active-section="info"]
+    :is(.secQuote, .secBidpage, .secWaiver, .secActivity, .secActions) {
+    display: none;
+  }
+  .scope[data-active-section="quote"]
+    :is(.secInfo, .secBidpage, .secWaiver, .secActivity, .secActions) {
+    display: none;
+  }
+  .scope[data-active-section="bidpage"]
+    :is(.secInfo, .secQuote, .secWaiver, .secActivity, .secActions) {
+    display: none;
+  }
+  .scope[data-active-section="waiver"]
+    :is(.secInfo, .secQuote, .secBidpage, .secActivity, .secActions) {
+    display: none;
+  }
+  .scope[data-active-section="activity"]
+    :is(.secInfo, .secQuote, .secBidpage, .secWaiver, .secActions) {
+    display: none;
+  }
+  .scope[data-active-section="actions"]
+    :is(.secInfo, .secQuote, .secBidpage, .secWaiver, .secActivity) {
+    display: none;
+  }
 }
 
 /* Desktop only — the rail goes beside the content. iPad (≤1024, both
@@ -128,13 +167,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-}
-
-@media (min-width: 1180px) {
-  .rail {
-    position: sticky;
-    top: var(--space-4);
-  }
 }
 
 /* Action buttons stack full-width inside the rail's Actions card. */

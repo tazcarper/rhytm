@@ -21,6 +21,10 @@ import { BidContentDrawer } from "@/src/components/admin/bid-content-drawer";
 import { PricingEditor } from "@/src/components/admin/pricing-editor";
 import { BidLineItemsCard } from "@/src/components/admin/bid-line-items-card";
 import {
+  BidSectionNav,
+  type BidSection,
+} from "@/src/components/admin/bid-section-nav";
+import {
   BidAddOnsEditor,
   type AvailableAddOn,
 } from "@/src/components/admin/bid-add-ons-editor";
@@ -121,6 +125,17 @@ export default async function AdminBidDetail({
   const signedWaiverCount =
     (detail.waiver ? 1 : 0) + detail.partyWaivers.length;
 
+  // Tablet/mobile section nav. Each entry maps to the .sec* marker classes on
+  // the cards below; the Waiver tab only appears when there's a roster to show.
+  const sections: BidSection[] = [
+    { id: "info", label: "Info" },
+    { id: "quote", label: "Quote" },
+    { id: "bidpage", label: "Bid page" },
+    ...(showWaiverRoster ? [{ id: "waiver", label: "Waiver" }] : []),
+    { id: "activity", label: "Activity" },
+    { id: "actions", label: "Actions" },
+  ];
+
   return (
     <PageShell width="xl">
       <div className={s.header}>
@@ -175,9 +190,10 @@ export default async function AdminBidDetail({
         </div>
       )}
 
+      <BidSectionNav sections={sections} scopeClassName={s.scope}>
       <div className={s.layout}>
         <div className={s.main}>
-        <Card padding="loose" elevation="soft" className={s.section}>
+        <Card padding="loose" elevation="soft" className={`${s.section} ${s.secInfo}`}>
           <h2 className={s.sectionTitle}>Booking</h2>
           <dl className={s.kv}>
             <dt className={s.kvKey}>Type</dt>
@@ -227,7 +243,7 @@ export default async function AdminBidDetail({
           </dl>
         </Card>
 
-        <Card padding="loose" elevation="soft" className={s.section}>
+        <Card padding="loose" elevation="soft" className={`${s.section} ${s.secInfo}`}>
           <h2 className={s.sectionTitle}>Guest</h2>
           <dl className={s.kv}>
             <dt className={s.kvKey}>Name</dt>
@@ -264,7 +280,7 @@ export default async function AdminBidDetail({
 
         {showWaiverRoster && (
           <BidWaiverRoster
-            className={`${s.section} ${s.mainSpan2}`}
+            className={`${s.section} ${s.mainSpan2} ${s.secWaiver}`}
             bidId={bid.id}
             partySize={booking.guestCount}
             timezone={tz}
@@ -278,7 +294,7 @@ export default async function AdminBidDetail({
         )}
 
         <BidAddOnsEditor
-          className={`${s.section} ${s.mainSpan2}`}
+          className={`${s.section} ${s.mainSpan2} ${s.secQuote}`}
           bidId={bid.id}
           bookingId={booking.id}
           editable={addOnsEditable}
@@ -287,7 +303,7 @@ export default async function AdminBidDetail({
           availableByService={availableByService}
         />
 
-        <Card padding="loose" elevation="soft" className={`${s.section} ${s.mainSpan2}`}>
+        <Card padding="loose" elevation="soft" className={`${s.section} ${s.mainSpan2} ${s.secBidpage}`}>
           <h2 className={s.sectionTitle}>Bid content</h2>
 
           <Text variant="caption" className="text-gray">
@@ -340,7 +356,7 @@ export default async function AdminBidDetail({
           )}
         </Card>
 
-        <Card padding="loose" elevation="soft" className={`${s.section} ${s.mainSpan2}`}>
+        <Card padding="loose" elevation="soft" className={`${s.section} ${s.mainSpan2} ${s.secBidpage}`}>
           <h2 className={s.sectionTitle}>Staff notes</h2>
           <p className={s.privateBanner}>Internal — not shown to the guest.</p>
           {bid.staffNotes ? (
@@ -366,7 +382,7 @@ export default async function AdminBidDetail({
         </div>
 
         <aside className={s.rail}>
-          <Card padding="loose" elevation="soft" className={s.section}>
+          <Card padding="loose" elevation="soft" className={`${s.section} ${s.secActions}`}>
             <h2 className={s.sectionTitle}>Actions</h2>
             <div className={s.railActions}>
               <BidContentDrawer
@@ -388,25 +404,31 @@ export default async function AdminBidDetail({
             </div>
           </Card>
 
-          <BidUrlCard bidId={bid.id} status={bid.status} bidUrl={bidUrl} />
+          <div className={s.secBidpage}>
+            <BidUrlCard bidId={bid.id} status={bid.status} bidUrl={bidUrl} />
+          </div>
 
-          <PricingEditor
-            bidId={bid.id}
-            bookingId={booking.id}
-            estimatedPrice={booking.estimatedPrice}
-            confirmedPrice={booking.confirmedPrice}
-            depositAmount={booking.depositAmount}
-            amountPaid={booking.amountPaid}
-            effectiveQuote={booking.effectiveQuote}
-            quoteNote={bid.quoteNote}
-            refundAmount={bid.refundAmount}
-            paid={bid.paidAt !== null}
-            addOnTotal={addOnTotal}
-          />
+          <div className={s.secQuote}>
+            <PricingEditor
+              bidId={bid.id}
+              bookingId={booking.id}
+              estimatedPrice={booking.estimatedPrice}
+              confirmedPrice={booking.confirmedPrice}
+              depositAmount={booking.depositAmount}
+              amountPaid={booking.amountPaid}
+              effectiveQuote={booking.effectiveQuote}
+              quoteNote={bid.quoteNote}
+              refundAmount={bid.refundAmount}
+              paid={bid.paidAt !== null}
+              addOnTotal={addOnTotal}
+            />
+          </div>
 
-          <BidLineItemsCard lineItems={detail.lineItems} />
+          <div className={s.secQuote}>
+            <BidLineItemsCard lineItems={detail.lineItems} />
+          </div>
 
-          <Card padding="loose" elevation="soft" className={s.section}>
+          <Card padding="loose" elevation="soft" className={`${s.section} ${s.secActivity}`}>
             <h2 className={s.sectionTitle}>Lifecycle</h2>
             <dl className={s.kv}>
               <dt className={s.kvKey}>Created</dt>
@@ -485,6 +507,7 @@ export default async function AdminBidDetail({
           </Card>
         </aside>
       </div>
+      </BidSectionNav>
     </PageShell>
   );
 }
