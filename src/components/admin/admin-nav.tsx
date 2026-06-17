@@ -39,6 +39,7 @@ export function AdminNav({ email, role, pendingBidCount }: AdminNavProps) {
   const programmingItems: ReadonlyArray<NavDropdownItem> = [
     { label: "Adventures", href: "/admin/adventures" },
     { label: "Properties", href: "/admin/properties" },
+    { label: "Homepage", href: "/admin/homepage" },
     { label: "FAQ & Gear", href: "/admin/templates" },
     { label: "Waivers", href: "/admin/waivers" },
   ];
