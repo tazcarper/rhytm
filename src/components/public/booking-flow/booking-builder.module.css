@@ -543,3 +543,37 @@
 .instructorCard[data-unavailable] .instructorMeta {
   color: var(--gray);
 }
+
+/* ===== Junior guest control (Step 2) ===== */
+.juniorRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--paper);
+}
+
+.juniorText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.juniorLabel {
+  font-family: var(--sans);
+  font-weight: 600;
+  color: var(--olive);
+  margin: 0;
+}
+
+.juniorHint {
+  font-family: var(--serif);
+  font-size: 0.9rem;
+  color: var(--gray);
+  margin: 0;
+  max-width: 42ch;
+}

@@ -28,6 +28,7 @@ const BookingFlowContext = createContext<BookingFlowContextValue | null>(null);
 function buildInitialState(initialGuest: Partial<GuestInfo> | null): BookingFlowState {
   const base: BookingFlowState = {
     guestCount: 1,
+    juniorGuestCount: 0,
     disciplineSelections: [],
   };
   if (initialGuest) {

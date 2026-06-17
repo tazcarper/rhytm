@@ -19,6 +19,9 @@ export interface TieredRate {
   minGuests: number;
   maxGuests: number;
   ratePerPerson: number;
+  // Junior (15 & under) per-person rate. Null when this property/booking
+  // type has no age-tiered fee — juniors then pay the adult ratePerPerson.
+  juniorRatePerPerson: number | null;
 }
 
 export type PricingModel =
@@ -27,6 +30,8 @@ export type PricingModel =
       ratePerUnit: number;
       unit: string;
       perGuestFee: number | null;
+      // Junior counterpart to perGuestFee; null → juniors pay perGuestFee.
+      juniorPerGuestFee: number | null;
       minimumFee: number | null;
     }
   | { kind: "tiered"; tiers: ReadonlyArray<TieredRate>; minimumFee: number | null }
@@ -38,12 +43,14 @@ type PricingRow = {
   tiers: unknown;
   minimum_fee: string | number | null;
   per_guest_fee: string | number | null;
+  junior_per_guest_fee: string | number | null;
 };
 
 type TierRow = {
   min_guests: number;
   max_guests: number;
   rate_per_person: string | number;
+  junior_rate_per_person?: string | number | null;
 };
 
 export type PricingByBookingType = Partial<Record<BookingType, PricingModel | null>>;
@@ -55,7 +62,7 @@ export async function getPublicPricingForProperty(
   const { data, error } = await supabase
     .from("pricing_rules")
     .select(
-      "booking_type, rate_per_unit, unit, tiers, minimum_fee, per_guest_fee",
+      "booking_type, rate_per_unit, unit, tiers, minimum_fee, per_guest_fee, junior_per_guest_fee",
     )
     .eq("property_id", propertyId)
     .eq("audience_type", "public");
@@ -84,6 +91,7 @@ function rowToPricingModel(row: PricingRow, bookingType: BookingType): PricingMo
         typeof t.rate_per_person === "string"
           ? parseFloat(t.rate_per_person)
           : t.rate_per_person,
+      juniorRatePerPerson: parseNumeric(t.junior_rate_per_person),
     }));
     return { kind: "tiered", tiers, minimumFee };
   }
@@ -95,6 +103,7 @@ function rowToPricingModel(row: PricingRow, bookingType: BookingType): PricingMo
       ratePerUnit,
       unit: row.unit,
       perGuestFee: parseNumeric(row.per_guest_fee),
+      juniorPerGuestFee: parseNumeric(row.junior_per_guest_fee),
       minimumFee,
     };
   }
@@ -129,6 +138,22 @@ export function computeMaxGuestCount(
   }
 }
 
+// True when this rule carries a distinct junior (15 & under) rate — i.e.
+// the funnel should offer a "how many are juniors?" control. Tiered rules
+// expose it per tier; flat rules via junior_per_guest_fee. Properties
+// without a configured junior rate (HH/Packsaddle placeholders) return
+// false and the funnel stays adult-only.
+export function hasJuniorPricing(pricing: PricingModel | null): boolean {
+  if (!pricing) return false;
+  if (pricing.kind === "tiered") {
+    return pricing.tiers.some((t) => t.juniorRatePerPerson !== null);
+  }
+  if (pricing.kind === "flat") {
+    return pricing.juniorPerGuestFee !== null;
+  }
+  return false;
+}
+
 // =============================================================
 // Full booking summary — view model for the /details right rail
 // and the /disciplines estimate bar.
@@ -147,12 +172,15 @@ export interface BookingAddOnLine {
 export interface BookingSummaryData {
   bookingType: BookingType;
   guestCount: number;
+  juniorGuestCount: number;
   durationHours: number;
   disciplineNames: ReadonlyArray<string>;
   baseLabel: string;
   baseAmount: number | null;
   // Per-guest fee (flat pricing only — null/zero everywhere else).
-  // Computed as `perGuestFee × max(0, guestCount - 1)`.
+  // On the public funnel every attendee is a non-member, so it's
+  // computed across every head (the booker pays too), split into adult
+  // and junior rates where the rule carries a junior fee.
   guestFeeLabel: string | null;
   guestFeeAmount: number;
   addOns: ReadonlyArray<BookingAddOnLine>;
@@ -166,6 +194,8 @@ export interface BuildSummaryArgs {
   bookingType: BookingType;
   pricing: PricingModel | null;
   guestCount: number;
+  // How many of guestCount are juniors (15 & under). Adults = the rest.
+  juniorGuestCount: number;
   durationHours: number;
   selections: ReadonlyArray<DisciplineSelection>;
   services: ReadonlyArray<PublicService>;
@@ -180,6 +210,10 @@ export function buildBookingSummary(args: BuildSummaryArgs): BookingSummaryData 
     selections,
     services,
   } = args;
+
+  // Juniors can't exceed the party size; adults are the remainder.
+  const juniorGuestCount = Math.max(0, Math.min(args.juniorGuestCount, guestCount));
+  const adultGuestCount = guestCount - juniorGuestCount;
 
   const servicesById = new Map(services.map((svc) => [svc.id, svc]));
   const disciplineNames = selections
@@ -210,24 +244,35 @@ export function buildBookingSummary(args: BuildSummaryArgs): BookingSummaryData 
   const { baseLabel, baseAmount, isTeamQuoted, minimumApplied } = computeBase({
     pricing,
     bookingType,
-    guestCount,
+    adultGuestCount,
+    juniorGuestCount,
     durationHours,
   });
 
   // Per-guest fee — currently only applies to flat pricing (private_lesson).
-  // Renders as a separate line in the summary so the guest sees what they're
-  // paying for (base experience vs. extra heads).
+  // This is the public (non-member) funnel, so the club guest fee applies to
+  // every attendee including the booker: a solo non-member lesson is the
+  // $200 lesson + one $85 guest fee = $285. (The member path, where dues
+  // cover the member's own access, lives elsewhere and is not this rule.)
+  // Juniors (15 & under) pay the reduced rate when one is configured.
+  // Renders as a separate line so the guest sees the lesson vs. entry split.
   let guestFeeAmount = 0;
   let guestFeeLabel: string | null = null;
   if (
     pricing?.kind === "flat" &&
     pricing.perGuestFee !== null &&
     pricing.perGuestFee > 0 &&
-    guestCount > 1
+    guestCount > 0
   ) {
-    const extras = guestCount - 1;
-    guestFeeAmount = pricing.perGuestFee * extras;
-    guestFeeLabel = `${extras} extra ${extras === 1 ? "guest" : "guests"} × $${pricing.perGuestFee.toFixed(0)}`;
+    const adultFee = pricing.perGuestFee;
+    const juniorFee = pricing.juniorPerGuestFee ?? adultFee;
+    guestFeeAmount = adultFee * adultGuestCount + juniorFee * juniorGuestCount;
+    guestFeeLabel = formatGuestFeeLabel(
+      adultGuestCount,
+      adultFee,
+      juniorGuestCount,
+      juniorFee,
+    );
   }
 
   const estimateTotal = isTeamQuoted
@@ -237,6 +282,7 @@ export function buildBookingSummary(args: BuildSummaryArgs): BookingSummaryData 
   return {
     bookingType,
     guestCount,
+    juniorGuestCount,
     durationHours,
     disciplineNames,
     baseLabel,
@@ -251,6 +297,25 @@ export function buildBookingSummary(args: BuildSummaryArgs): BookingSummaryData 
   };
 }
 
+// "3 adults × $85 + 2 juniors × $55" — drops a side when its count is 0,
+// and stays singular/plural correct. Used for both the flat guest-fee
+// line and the tiered base line so they read consistently.
+function formatGuestFeeLabel(
+  adults: number,
+  adultRate: number,
+  juniors: number,
+  juniorRate: number,
+): string {
+  const parts: string[] = [];
+  if (adults > 0) {
+    parts.push(`${adults} ${adults === 1 ? "adult" : "adults"} × $${adultRate.toFixed(0)}`);
+  }
+  if (juniors > 0) {
+    parts.push(`${juniors} ${juniors === 1 ? "junior" : "juniors"} × $${juniorRate.toFixed(0)}`);
+  }
+  return parts.join(" + ");
+}
+
 interface BaseResult {
   baseLabel: string;
   baseAmount: number | null;
@@ -261,10 +326,12 @@ interface BaseResult {
 function computeBase(args: {
   pricing: PricingModel | null;
   bookingType: BookingType;
-  guestCount: number;
+  adultGuestCount: number;
+  juniorGuestCount: number;
   durationHours: number;
 }): BaseResult {
-  const { pricing, bookingType, guestCount, durationHours } = args;
+  const { pricing, bookingType, adultGuestCount, juniorGuestCount, durationHours } = args;
+  const guestCount = adultGuestCount + juniorGuestCount;
 
   if (!pricing) {
     return {
@@ -299,20 +366,27 @@ function computeBase(args: {
     };
   }
 
-  // tiered
+  // tiered — pick the tier by total party size, then price adults and
+  // juniors separately (juniors fall back to the adult rate when the tier
+  // carries no junior rate).
   const tier =
     pricing.tiers.find(
       (t) => guestCount >= t.minGuests && guestCount <= t.maxGuests,
     ) ?? pricing.tiers[pricing.tiers.length - 1];
-  const rate = tier?.ratePerPerson ?? 0;
-  let amount = rate * guestCount;
+  const adultRate = tier?.ratePerPerson ?? 0;
+  const juniorRate = tier?.juniorRatePerPerson ?? adultRate;
+  let amount = adultRate * adultGuestCount + juniorRate * juniorGuestCount;
   let minimumApplied = false;
   if (pricing.minimumFee !== null && amount < pricing.minimumFee) {
     amount = pricing.minimumFee;
     minimumApplied = true;
   }
+  const countsLabel =
+    juniorGuestCount > 0
+      ? formatGuestFeeLabel(adultGuestCount, adultRate, juniorGuestCount, juniorRate)
+      : `${guestCount} ${guestCount === 1 ? "guest" : "guests"} × $${adultRate.toFixed(0)}`;
   return {
-    baseLabel: `${bookingTypeLabel(bookingType)} — ${guestCount} ${guestCount === 1 ? "guest" : "guests"} × $${rate.toFixed(0)}`,
+    baseLabel: `${bookingTypeLabel(bookingType)} — ${countsLabel}`,
     baseAmount: amount,
     isTeamQuoted: false,
     minimumApplied,
