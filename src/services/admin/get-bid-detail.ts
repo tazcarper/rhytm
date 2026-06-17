@@ -4,6 +4,10 @@ import type {
   AdminBookingType,
 } from "./bids";
 import { getStaffIdentity, type StaffIdentity } from "./staff-identity";
+import {
+  getBidLineItems,
+  type BidLineItem,
+} from "@/src/services/bids/bid-line-items";
 
 export interface AdminBidGearItem {
   name: string;
@@ -106,6 +110,9 @@ export interface AdminBidDetail {
   // Additional party members who signed via the scan-to-sign QR (oldest
   // first). The primary signer is `waiver`; these are everyone else.
   partyWaivers: AdminBidPartyWaiver[];
+  // The materialized quote breakdown (base, guest fee, add-ons). Read-only
+  // here; materialized at write time and backfilled for legacy bids.
+  lineItems: BidLineItem[];
 }
 
 function parseGearList(gearListJson: unknown): AdminBidGearItem[] {
@@ -295,6 +302,11 @@ export async function getAdminBidDetail(
     signedAt: row.created_at as string,
   }));
 
+  // Materialized line breakdown — pure read through the admin's RLS scope.
+  // Never materializes on the read path; old bids are backfilled by
+  // backfill_bid_line_items(). New/edited bids materialize at write time.
+  const lineItems = await getBidLineItems(supabase, booking.id);
+
   return {
     bid: {
       id: data.id,
@@ -352,5 +364,6 @@ export async function getAdminBidDetail(
       ? { sha256: waiverRow.pdf_sha256, signedName: waiverRow.signed_name }
       : null,
     partyWaivers,
+    lineItems,
   };
 }

@@ -5,6 +5,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service";
 import { inngest } from "@/lib/inngest/client";
 import { bidCreated } from "@/lib/inngest/events";
 import { buildBidUrl } from "@/src/services/bids/bid-url";
+import { materializeBidLineItems } from "@/src/services/bids/bid-line-items";
 import type { BookingType } from "@/src/components/public/booking-flow/booking-flow-types";
 
 // Atomic booking creation. Calls the `create_public_booking` Postgres
@@ -32,6 +33,9 @@ export const PublicBookingInputSchema = z.object({
     notes: z.string().max(1000).default(""),
   }),
   guestCount: z.number().int().min(1).max(200),
+  // How many of guestCount are juniors (15 & under). The DB CHECK also
+  // enforces 0 ≤ junior ≤ guest_count; this is the first line of defense.
+  juniorGuestCount: z.number().int().min(0).max(200).default(0),
   estimatedPrice: z.number().nonnegative().nullable(),
   disciplineIds: z.array(z.uuid()).default([]),
   // unit_price intentionally NOT in the payload — the Postgres function
@@ -57,6 +61,9 @@ export const PublicBookingInputSchema = z.object({
   // RPC insert (create_public_booking predates this column). Null for
   // self-service public/member bookings.
   createdByAdminId: z.uuid().nullable().default(null),
+}).refine((v) => v.juniorGuestCount <= v.guestCount, {
+  message: "Junior guests can't exceed the total party size.",
+  path: ["juniorGuestCount"],
 });
 
 export type PublicBookingInput = z.infer<typeof PublicBookingInputSchema>;
@@ -107,6 +114,7 @@ export async function createPublicBooking(
     p_guest_email: parsed.data.guest.email,
     p_guest_phone: parsed.data.guest.phone,
     p_guest_count: parsed.data.guestCount,
+    p_junior_guest_count: parsed.data.juniorGuestCount,
     p_guest_notes: parsed.data.guest.notes,
     p_estimated_price: parsed.data.estimatedPrice,
     p_discipline_ids: parsed.data.disciplineIds,
@@ -149,6 +157,38 @@ export async function createPublicBooking(
         { bookingId: row.booking_id, stampError },
       );
     }
+  }
+
+  // Materialize the bid's line-item breakdown (base, guest fee, add-ons).
+  // Best-effort: the bid's headline totals come from estimated_price either
+  // way, so a failure here only delays the itemized breakdown (backfilled by
+  // backfill_bid_line_items() otherwise). Never fatal.
+  try {
+    const lineResult = await materializeBidLineItems(supabase, row.booking_id);
+    // Reconcile the materialized breakdown against the quoted estimate. At
+    // creation they must agree (same pricing model produced both); a mismatch
+    // means the line model and the stored total disagree at the moment of
+    // sale — a pricing bug worth surfacing, never silent.
+    const estimate = parsed.data.estimatedPrice;
+    if (
+      lineResult.ok &&
+      estimate !== null &&
+      Math.abs(lineResult.subtotal - estimate) > 0.01
+    ) {
+      console.warn(
+        "[bookings/create-public-booking] bid line subtotal != estimated_price",
+        {
+          bookingId: row.booking_id,
+          lineSubtotal: lineResult.subtotal,
+          estimatedPrice: estimate,
+        },
+      );
+    }
+  } catch (lineErr) {
+    console.error(
+      "[bookings/create-public-booking] bid line-item materialization failed",
+      { bookingId: row.booking_id, lineErr },
+    );
   }
 
   // Fire the bid/created Inngest event post-response. Best-effort: a

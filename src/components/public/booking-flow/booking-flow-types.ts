@@ -31,6 +31,9 @@ export interface GuestInfo {
 export interface BookingFlowState {
   // ---- always defaulted ----
   guestCount: number;
+  // How many of guestCount are juniors (15 & under). Defaulted to 0 by the
+  // provider; always ≤ guestCount (the guest step enforces this).
+  juniorGuestCount: number;
   disciplineSelections: ReadonlyArray<DisciplineSelection>;
 
   // ---- progressively set ----
