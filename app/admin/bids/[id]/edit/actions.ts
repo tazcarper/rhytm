@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getStaffIdentity } from "@/src/services/admin/staff-identity";
 import {
   updateBidPricing,
   UpdateBidPricingInputSchema,
@@ -37,7 +38,13 @@ export async function updateBidPricingAction(
   }
 
   const supabase = await createServerSupabaseClient();
-  const result = await updateBidPricing(supabase, parsed.data);
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (!user) return { ok: false, error: "Sign in required." };
+  const identity = await getStaffIdentity(user.id);
+  const actor = { id: user.id, email: identity?.email ?? user.email ?? "unknown" };
+
+  const result = await updateBidPricing(supabase, parsed.data, actor);
 
   if (result.ok) {
     revalidatePath(`/admin/bids/${parsed.data.bidId}`);

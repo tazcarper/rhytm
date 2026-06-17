@@ -8,6 +8,8 @@ import {
   getBidLineItems,
   type BidLineItem,
 } from "@/src/services/bids/bid-line-items";
+import { getLineOverrides, type BidLineOverride } from "./overrides";
+import { getPricingEvents, type PricingEvent } from "./pricing-events";
 
 export interface AdminBidGearItem {
   name: string;
@@ -113,6 +115,11 @@ export interface AdminBidDetail {
   // The materialized quote breakdown (base, guest fee, add-ons). Read-only
   // here; materialized at write time and backfilled for legacy bids.
   lineItems: BidLineItem[];
+  // Phase 1 per-line waive/comp overrides (all rows, newest first). The card
+  // takes the latest per line; the figures are admin-only (reason is sensitive).
+  overrides: BidLineOverride[];
+  // Source-tagged history of every confirmed_price change (manual + override).
+  pricingEvents: PricingEvent[];
 }
 
 function parseGearList(gearListJson: unknown): AdminBidGearItem[] {
@@ -307,6 +314,13 @@ export async function getAdminBidDetail(
   // backfill_bid_line_items(). New/edited bids materialize at write time.
   const lineItems = await getBidLineItems(supabase, booking.id);
 
+  // Phase 1 — per-line overrides + the source-tagged pricing history. Both read
+  // through the admin's (staff-only) RLS scope.
+  const [overrides, pricingEvents] = await Promise.all([
+    getLineOverrides(supabase, booking.id),
+    getPricingEvents(supabase, booking.id),
+  ]);
+
   return {
     bid: {
       id: data.id,
@@ -365,5 +379,7 @@ export async function getAdminBidDetail(
       : null,
     partyWaivers,
     lineItems,
+    overrides,
+    pricingEvents,
   };
 }

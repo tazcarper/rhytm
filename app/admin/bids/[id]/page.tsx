@@ -20,6 +20,7 @@ import { BidWaiverRoster } from "@/src/components/admin/bid-waiver-roster";
 import { BidContentDrawer } from "@/src/components/admin/bid-content-drawer";
 import { PricingEditor } from "@/src/components/admin/pricing-editor";
 import { BidLineItemsCard } from "@/src/components/admin/bid-line-items-card";
+import { BidPricingHistoryCard } from "@/src/components/admin/bid-pricing-history-card";
 import {
   BidSectionNav,
   type BidSection,
@@ -79,6 +80,17 @@ export default async function AdminBidDetail({
 
   const { bid, booking, property, disciplines, addOns, instructor } = detail;
   const tz = property.timezone;
+
+  // A line can be waived only while the bid is in review, and only by a
+  // waive-eligible role (super_admin / admin / property_manager). The Server
+  // Action enforces this again — this just hides the controls otherwise.
+  const { data: userData } = await supabase.auth.getUser();
+  const viewerRole =
+    (userData.user?.app_metadata as { role?: string } | undefined)?.role ?? null;
+  const canWaive =
+    bid.status === "pending_review" &&
+    viewerRole !== null &&
+    ["super_admin", "admin", "property_manager"].includes(viewerRole);
 
   const origin = siteOriginFromHeaders(await headers());
   const { url: bidUrl } = await getBidUrlForAdmin(supabase, bid.id, origin);
@@ -425,7 +437,17 @@ export default async function AdminBidDetail({
           </div>
 
           <div className={s.secQuote}>
-            <BidLineItemsCard lineItems={detail.lineItems} />
+            <BidLineItemsCard
+              bidId={bid.id}
+              bookingId={booking.id}
+              lineItems={detail.lineItems}
+              overrides={detail.overrides}
+              canWaive={canWaive}
+            />
+          </div>
+
+          <div className={s.secQuote}>
+            <BidPricingHistoryCard events={detail.pricingEvents} timezone={tz} />
           </div>
 
           <Card padding="loose" elevation="soft" className={`${s.section} ${s.secActivity}`}>
