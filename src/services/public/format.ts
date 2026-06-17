@@ -55,6 +55,17 @@ export function formatMoney(n: number): string {
   });
 }
 
+// Money with cents — for itemized financial surfaces (e.g. the bid quote
+// breakdown) where the displayed lines must visibly sum to the displayed
+// subtotal. formatMoney rounds to whole dollars for headline figures and can
+// make a line-item list appear not to add up.
+export function formatMoneyExact(n: number): string {
+  return n.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
 // Module-level formatter caches. Intl.DateTimeFormat instantiation is
 // the expensive part (>1ms); .format() on an existing instance is
 // effectively free. With one timezone in use today this map degenerates

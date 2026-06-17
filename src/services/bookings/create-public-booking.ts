@@ -5,6 +5,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service";
 import { inngest } from "@/lib/inngest/client";
 import { bidCreated } from "@/lib/inngest/events";
 import { buildBidUrl } from "@/src/services/bids/bid-url";
+import { materializeBidLineItems } from "@/src/services/bids/bid-line-items";
 import type { BookingType } from "@/src/components/public/booking-flow/booking-flow-types";
 
 // Atomic booking creation. Calls the `create_public_booking` Postgres
@@ -156,6 +157,38 @@ export async function createPublicBooking(
         { bookingId: row.booking_id, stampError },
       );
     }
+  }
+
+  // Materialize the bid's line-item breakdown (base, guest fee, add-ons).
+  // Best-effort: the bid's headline totals come from estimated_price either
+  // way, so a failure here only delays the itemized breakdown (backfilled by
+  // backfill_bid_line_items() otherwise). Never fatal.
+  try {
+    const lineResult = await materializeBidLineItems(supabase, row.booking_id);
+    // Reconcile the materialized breakdown against the quoted estimate. At
+    // creation they must agree (same pricing model produced both); a mismatch
+    // means the line model and the stored total disagree at the moment of
+    // sale — a pricing bug worth surfacing, never silent.
+    const estimate = parsed.data.estimatedPrice;
+    if (
+      lineResult.ok &&
+      estimate !== null &&
+      Math.abs(lineResult.subtotal - estimate) > 0.01
+    ) {
+      console.warn(
+        "[bookings/create-public-booking] bid line subtotal != estimated_price",
+        {
+          bookingId: row.booking_id,
+          lineSubtotal: lineResult.subtotal,
+          estimatedPrice: estimate,
+        },
+      );
+    }
+  } catch (lineErr) {
+    console.error(
+      "[bookings/create-public-booking] bid line-item materialization failed",
+      { bookingId: row.booking_id, lineErr },
+    );
   }
 
   // Fire the bid/created Inngest event post-response. Best-effort: a

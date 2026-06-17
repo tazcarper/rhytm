@@ -1,0 +1,122 @@
+/* Page-scoped section nav. Desktop (≥1180px) keeps the two-column layout and
+   never shows this nav; the tab/dropdown UI is tablet + mobile only. */
+.nav {
+  display: none;
+}
+
+@media (max-width: 1179.98px) {
+  .nav {
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    margin-bottom: var(--space-4);
+    padding: var(--space-1);
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+  }
+
+  /* ---- Tab bar (shown when the tabs fit) ---- */
+  .tabs {
+    display: flex;
+    gap: var(--space-1);
+    align-items: stretch;
+  }
+
+  .tab {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--gray);
+    font-family: var(--sans);
+    font-size: var(--text-micro);
+    font-weight: 600;
+    letter-spacing: var(--tracking-tight);
+    padding: var(--space-2) var(--space-3);
+    border-radius: calc(var(--radius-card) - 2px);
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
+  }
+
+  .tab:hover {
+    color: var(--ink);
+  }
+
+  .tabActive {
+    background: var(--paper-warm);
+    color: var(--ink);
+  }
+
+  .tabIcon {
+    display: inline-flex;
+  }
+
+  .tabIcon svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+  }
+
+  /* ---- Dropdown (shown when the tabs can't fit) ---- */
+  /* Keep the tab row measurable but out of view so the fit check stays stable. */
+  .nav[data-overflow="true"] .tabs {
+    position: absolute;
+    visibility: hidden;
+    pointer-events: none;
+    top: 0;
+    left: 0;
+  }
+
+  .nav[data-overflow="false"] .select {
+    display: none;
+  }
+
+  .select {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+    padding: var(--space-1) var(--space-2);
+  }
+
+  .selectIcon {
+    display: inline-flex;
+    color: var(--olive);
+  }
+
+  .selectIcon svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+  }
+
+  .selectControl {
+    flex: 1 1 auto;
+    appearance: none;
+    border: none;
+    background: transparent;
+    font-family: var(--sans);
+    font-size: var(--text-body);
+    font-weight: 600;
+    color: var(--ink);
+    padding: var(--space-2) 0;
+    cursor: pointer;
+  }
+
+  .selectControl:focus {
+    outline: none;
+  }
+
+  .selectCaret {
+    color: var(--gray);
+    pointer-events: none;
+  }
+}
