@@ -249,6 +249,13 @@ export async function getBidContentLibrary(
 // =============================================================================
 
 const uuidSchema = z.string().uuid();
+// A template's own primary key may be a seeded placeholder id (e.g.
+// 'f0000000-0000-0000-0000-000000000001'). Postgres accepts these in a uuid
+// column, but they're not valid RFC 9562 UUIDs (zero version/variant nibbles),
+// so the strict z.uuid() rejects them and editing a seeded item fails with
+// "id: Invalid UUID". z.guid() validates the 8-4-4-4-12 shape without checking
+// the version bits — correct for matching an existing row's id.
+const idSchema = z.guid();
 const dedupeKeySchema = z
   .string()
   .trim()
@@ -286,7 +293,7 @@ export type CreateFaqTemplateInput = z.infer<typeof CreateFaqTemplateInputSchema
 export type CreateFaqTemplateRawInput = z.input<typeof CreateFaqTemplateInputSchema>;
 
 export const UpdateFaqTemplateInputSchema = CreateFaqTemplateInputSchema.extend({
-  id: uuidSchema,
+  id: idSchema,
   isActive: z.boolean(),
 });
 export type UpdateFaqTemplateInput = z.infer<typeof UpdateFaqTemplateInputSchema>;
@@ -313,7 +320,7 @@ export type CreateGearTemplateInput = z.infer<typeof CreateGearTemplateInputSche
 export type CreateGearTemplateRawInput = z.input<typeof CreateGearTemplateInputSchema>;
 
 export const UpdateGearTemplateInputSchema = CreateGearTemplateInputSchema.extend({
-  id: uuidSchema,
+  id: idSchema,
   isActive: z.boolean(),
 });
 export type UpdateGearTemplateInput = z.infer<typeof UpdateGearTemplateInputSchema>;

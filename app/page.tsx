@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getPublicAdventures } from "@/src/services/public/adventures";
+import { getHomepageHero } from "@/src/services/public/homepage-hero";
 import { AdventureTile } from "@/src/components/public/adventure-tile";
 import { Alert, Button } from "@/lib/ui";
 import s from "./home.module.css";
@@ -9,29 +10,43 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const supabase = await createServerSupabaseClient();
-  const { data: adventures, error } = await getPublicAdventures(supabase);
+  const [{ data: adventures, error }, hero] = await Promise.all([
+    getPublicAdventures(supabase),
+    getHomepageHero(supabase),
+  ]);
+
+  // An optional background image layers over the existing gradient.
+  const heroStyle = hero.imageUrl
+    ? {
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url(${hero.imageUrl})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }
+    : undefined;
 
   return (
     <main>
-      {/* ───── Hero ───────────────────────────────────────────────── */}
-      <section className={s.hero}>
+      {/* ───── Hero (editable from /admin/homepage) ──────────────── */}
+      <section className={s.hero} style={heroStyle}>
         <div className={s.heroInner}>
-          <span className={s.heroEstablished}>Est. 2026</span>
-          <h1 className={s.heroTitle}>
-            Your day in the <br/><em>Texas Hill Country</em> starts here.
-          </h1>
-          <p className={s.heroLead}>
-            Sporting clays, private instruction, and unforgettable
-            gatherings across three storied properties — reserved
-            online in minutes.
-          </p>
+          {hero.eyebrow && (
+            <span className={s.heroEstablished}>{hero.eyebrow}</span>
+          )}
+          <h1 className={s.heroTitle}>{hero.title}</h1>
+          {hero.lead && <p className={s.heroLead}>{hero.lead}</p>}
           <div className={s.heroActions}>
-            <Button asChild variant="primary" size="lg">
-              <Link href="/book">Plan your visit</Link>
-            </Button>
-            <Button asChild variant="secondary" size="lg">
-              <Link href="/login">Members&rsquo; Entrance</Link>
-            </Button>
+            {hero.primaryCtaLabel && hero.primaryCtaHref && (
+              <Button asChild variant="primary" size="lg">
+                <Link href={hero.primaryCtaHref}>{hero.primaryCtaLabel}</Link>
+              </Button>
+            )}
+            {hero.secondaryCtaLabel && hero.secondaryCtaHref && (
+              <Button asChild variant="secondary" size="lg">
+                <Link href={hero.secondaryCtaHref}>
+                  {hero.secondaryCtaLabel}
+                </Link>
+              </Button>
+            )}
           </div>
           {/* <div className={s.heroMeta}>
             <div>
@@ -40,7 +55,7 @@ export default async function Home() {
             </div>
             <div>
               <strong>Hog Heaven</strong>
-              Driftwood
+              Dripping Springs
             </div>
             <div>
               <strong>Packsaddle</strong>
