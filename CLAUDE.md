@@ -265,6 +265,15 @@ the developer's machine — work normally (this section does not apply). If it d
 **not** exist, you are in client-contributor mode: follow the workflow below.
 
 **In client-contributor mode:**
+- **First, before writing any code or SQL: is the thing already editable in `/admin`?**
+  Most of the app's content and settings — FAQ & gear, property info/hours, experiences
+  & add-ons, pricing, adventures, waiver wording, instructors, team, plus the live
+  bids/bookings/members records — are editable by the client themselves in the admin
+  dashboard, and they usually don't know it. If the request is to *change existing
+  content like that*, use the **`dashboard-first` skill**
+  (`.claude/skills/dashboard-first/SKILL.md`): point them to the right admin page instead
+  of writing code/SQL. A migration that edits managed content is the wrong tool — the
+  `dashboard-content-guard` hook blocks it.
 - Follow the **`safe-change` skill** (`.claude/skills/safe-change/SKILL.md`) for the
   mechanics of every change: branch off latest `origin/main` → edit → `npm run
   typecheck` → `npm run dev` for the client to see → commit → push → `gh pr create`.
@@ -283,8 +292,16 @@ the developer's machine — work normally (this section does not apply). If it d
 - The client works against a **local Supabase stack in Docker** — no production
   credentials exist on their machine. See `docs/CLIENT_SETUP.md` for onboarding.
 
-**Enforcement is not optional.** `.claude/hooks/client-guardrails.mjs` (a PreToolUse
-hook, on by default, disabled only by the `.claude/.developer-mode` marker) hard-blocks
-remote DB writes, Stripe writes, pushes/commits to `main`, force-pushes, direct
-deploys, committing `.env` files, and edits to the guardrails themselves. Don't try to
-route around it — if it blocks something, that action belongs to the developer.
+**Enforcement is not optional.** Two PreToolUse hooks, both on by default and both
+disabled only by the `.claude/.developer-mode` marker:
+- `.claude/hooks/client-guardrails.mjs` hard-blocks remote DB writes, Stripe writes,
+  pushes/commits to `main`, force-pushes, direct deploys, committing `.env` files, and
+  edits to the guardrails themselves.
+- `.claude/hooks/dashboard-content-guard.mjs` blocks migrations/SQL that edit content
+  the admin dashboard manages (INSERT/UPDATE/DELETE on FAQ, gear, properties, catalog,
+  pricing, adventures, waivers, instructors, team, bids, bookings, members), and points
+  at the admin page to use instead. It allows DDL (CREATE/ALTER) — new structure for a
+  real feature is fine. Its table→page map mirrors `src/components/admin/admin-nav.tsx`.
+
+Don't try to route around either — if a hook blocks something, that action belongs in
+the dashboard or with the developer, as its message explains.

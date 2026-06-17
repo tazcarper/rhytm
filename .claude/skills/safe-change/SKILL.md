@@ -23,6 +23,16 @@ The majority of a client's work is **presentation**: layout, spacing, styling,
 fonts, colors, copy, and rearranging existing components. This skill covers all of
 that.
 
+**First, before any path: is it already editable in `/admin`?**
+A huge amount of this app's content and settings — FAQ & gear, property info/hours,
+experiences & add-ons, pricing, adventures, waiver wording, instructors, team, plus
+the live bids/bookings/members records — is already editable by the client themselves
+in the admin dashboard. They usually don't know that. If the request is to *change
+existing content like that*, **don't write code or SQL** — use the **`dashboard-first`
+skill** to recognize it and point them to the right admin page. (A SQL migration that
+edits managed content is the wrong tool, and the `dashboard-content-guard` hook blocks
+it.) Only when it genuinely isn't dashboard-editable do you fall into the paths below.
+
 **Two supported paths, by size of request:**
 
 - **A presentation tweak** (restyle, re-copy, move components) → just run the loop
@@ -83,8 +93,13 @@ Front-end / layout / CSS / copy / moving existing components — normal edits un
 `app/` and `src/`. Keep to the project's conventions (see `CLAUDE.md`).
 
 ### 3. If the change needs the DATABASE to change — STOP and do this instead
-Adding a column, table, enum value, policy, or any schema change. You must **never**
-push to a live database. Instead:
+First sanity-check **what kind** of database change this is. If you're about to write
+a migration that *edits existing content* (INSERT/UPDATE/DELETE on FAQ, gear, property
+info, prices, adventures, waivers, instructors, bids, bookings, members, …), stop —
+that content is editable in `/admin` and belongs in the **`dashboard-first`** skill, not
+a migration. Migrations are only for **structure** — adding a column, table, enum value,
+or policy. For genuine structure changes you must **never** push to a live database.
+Instead:
 1. Create a migration file: `npx supabase migration new <description>`
 2. Write the SQL into the new file under `supabase/migrations/`.
 3. Apply it **locally only** so the client can see it work:
