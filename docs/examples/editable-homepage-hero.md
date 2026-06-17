@@ -1,42 +1,41 @@
 # Worked example — "Let me edit the homepage banner myself"
 
-This is a **permanent reference feature** that lives on the branch
-`feature/editable-homepage-hero`. It exists to answer one question for both
-the **non-technical client** and the **developer**:
+This is a **permanent reference feature**. The finished code lives on the branch
+`feature/editable-homepage-hero` (intentionally **not merged** — it's a teaching
+artifact). This doc lives on `main` so it's always discoverable, and the
+**`build-a-feature` skill** points here as its canonical pattern.
 
-> *What does it look like when a client asks Claude for a real feature — one
-> that needs a new admin screen AND a database change — and turns it into a
-> pull request?*
+It answers one question for both the **non-technical client** and the **developer**:
 
-It's a small full-stack feature: an **admin page where staff can edit the
-homepage hero banner** (the big welcome block at the top of the public site) —
-the eyebrow, headline, supporting text, both buttons, and an optional
-background image — with the homepage reading those values live.
+> *What does it look like when a client asks Claude for a real feature — one that
+> needs a new admin screen AND a database change — and turns it into a pull request?*
 
-Keep this branch around. Don't merge it into `main` and delete it; it's a
-teaching artifact, linked from the README.
+It's a small full-stack feature: an **admin page where staff can edit the homepage
+hero banner** (the big welcome block at the top of the public site) — the eyebrow,
+headline, supporting text, both buttons, and an optional background image — with the
+homepage reading those values live.
+
+To study the code: `git diff main..feature/editable-homepage-hero`.
 
 ---
 
 ## 1. For the client — how you'd actually ask for this
 
 You don't need to know the words "migration", "RLS", or "service". You describe
-**what you want to be able to do**, in plain language, and Claude figures out
-the pieces. Here are real prompts you could paste, start to finish.
+**what you want to be able to do**, in plain language, and Claude figures out the
+pieces. Here are real prompts you could paste, start to finish.
 
 ### The opening ask
-> "On the homepage there's a big welcome banner at the top — the 'Your day in
-> the Texas Hill Country starts here' part. Right now I have to ask a developer
-> every time I want to change that wording. I'd like to be able to edit it
-> myself. Can you add a page in the admin area where I can change the little
-> label, the big headline, the paragraph under it, and the two buttons? And let
-> me put a background image behind it too."
+> "On the homepage there's a big welcome banner at the top — the 'Your day in the
+> Texas Hill Country starts here' part. Right now I have to ask a developer every
+> time I want to change that wording. I'd like to be able to edit it myself. Can you
+> add a page in the admin area where I can change the little label, the big headline,
+> the paragraph under it, and the two buttons? And let me put a background image
+> behind it too."
 
-That single sentence is enough. Claude will:
-- create a place in the database to store the banner,
-- build the admin page with a form,
-- make the homepage read from it,
-- and tell you it needs a "database change" that your developer applies.
+That single sentence is enough. Claude will create a place in the database to store
+the banner, build the admin page with a form, make the homepage read from it, and
+tell you it needs a "database change" that your developer applies.
 
 ### Asking for an image upload (a follow-up feature)
 At first the banner image was "paste a link only" — fine if your photo already
@@ -60,45 +59,50 @@ Everyday use afterward:
 > "Replace the banner photo — here, let me upload this one."
 > "Actually go back to pasting a link; here's the URL."
 
-### Looking at it
-> "Show me the homepage so I can see the banner."
-> "Now open the admin homepage page so I can try editing it."
+### Looking at it — in your own browser
+You look at the page yourself in your web browser, not by asking Claude to show you.
+Claude keeps the local site running at `http://localhost:3000`; open it and refresh
+to see each change.
+
+- The banner → `http://localhost:3000`
+- The editor → sign in, then `http://localhost:3000/admin/homepage`
+
+If the page won't load, ask Claude to make sure the local site is running:
+> "The site isn't loading — can you make sure it's running so I can look at it?"
 
 ### Iterating on the look
 > "The headline is too big — can you make it a bit smaller?"
 > "Put more space between the two buttons."
-> "When I add a background image the text is hard to read — can you darken the
-> image a little so white text shows up?"
+> "When I add a background image the text is hard to read — can you darken the image
+> a little so white text shows up?"
 
-### Changing the actual content (this is the everyday use, after it ships)
+### Changing the actual content (the everyday use, after it ships)
 > "Change the headline to 'Your Hill Country weekend starts here.'"
 > "Make the first button say 'Book a visit' and point it at the booking page."
 > "Hide the second button for now."
 
 ### When you're happy
-> "This looks great. I'm done — open the pull request so my developer can
-> review it."
+> "This looks great. I'm done — open the pull request so my developer can review it."
 
-Claude opens the pull request, and (once the preview finishes building) shares
-a **Vercel preview link**. Note: because this feature adds a database change,
-the preview may not show the banner correctly until your developer applies that
-change — but your **local** site at `http://localhost:3000` always shows it.
-Trust the local view.
+Claude opens the pull request and (once the preview finishes building) shares a
+**Vercel preview link**. Because this feature adds a database change, the preview may
+not show the banner correctly until your developer applies that change — but your
+**local** site at `http://localhost:3000` always shows it. Trust the local view.
 
 ### If you get stuck
 > "Claude says something is blocked — what does that mean?"
 
-That's the safety guardrail. It means the action belongs to your developer (for
-example, anything that would touch the real live website or its database).
-Claude has already captured it in your pull request. Just keep going.
+That's the safety guardrail: the action belongs to your developer (anything touching
+the real live website or its database). Claude has already captured it in your pull
+request. Just keep going.
 
 ---
 
 ## 2. What a non-engineer is really asking for (the translation)
 
-The point of this example is that **plain-language requests map cleanly onto
-real engineering pieces.** You (the client) only write the left column. Claude
-produces the right column.
+The point of this example: **plain-language requests map cleanly onto real
+engineering pieces.** You (the client) only write the left column. Claude produces
+the right column.
 
 | What you say | What Claude builds |
 |---|---|

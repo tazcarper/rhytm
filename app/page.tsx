@@ -55,7 +55,7 @@ export default async function Home() {
             </div>
             <div>
               <strong>Hog Heaven</strong>
-              Driftwood
+              Dripping Springs
             </div>
             <div>
               <strong>Packsaddle</strong>

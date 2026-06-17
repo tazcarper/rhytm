@@ -134,24 +134,22 @@ The Dropbox Sign integration is kept intact as a revivable fallback — see [`sr
 
 Hosted on **Vercel**. Set the same environment variables from `.env.local` in the Vercel project. A fresh/production Supabase project needs the migrations applied (`supabase db push`) so its schema — including the `waivers` storage bucket — matches.
 
-### Worked example — a client-built feature, end to end
+### Client-built features (worked example)
 
-The branch **`feature/editable-homepage-hero`** is a **permanent reference**
-(intentionally not merged): it shows a non-technical client asking Claude for a
-real feature — an admin page to edit the homepage hero banner, backed by a new
-database table — and turning it into a reviewable pull request. It captures the
-plain-language prompts a client would actually type, the translation into
-engineering pieces (migration, RLS, admin form, service), and the developer's
-review/merge runbook.
+Non-technical clients drive front-end changes through Claude Code as branch + PR
+(see `docs/CLIENT_SETUP.md`). They can also build **well-scoped full features** — a
+new editable thing plus an admin screen — with the **`build-a-feature` skill**
+(scopes the request in plain language, then `safe-change` ships it). The permanent
+reference is the editable homepage hero:
 
-- Read it: [`docs/examples/editable-homepage-hero.md`](./docs/examples/editable-homepage-hero.md)
-- See the code: `git diff main..feature/editable-homepage-hero`
+- Read it: [`docs/examples/editable-homepage-hero.md`](./docs/examples/editable-homepage-hero.md) — the client prompts that produced it + the developer review runbook.
+- See the code: `git diff main..feature/editable-homepage-hero` (branch kept unmerged as the example).
 
 ### Further reading
 
 - [`CLAUDE.md`](./CLAUDE.md) — full project guide: structure, SOLID, RLS rules, client-state rules, architecture decisions.
 - [`docs/CLIENT_SETUP.md`](./docs/CLIENT_SETUP.md) — non-technical contributor onboarding (local Docker stack, branch + PR workflow).
-- [`docs/examples/editable-homepage-hero.md`](./docs/examples/editable-homepage-hero.md) — worked example: a client-built feature with the prompts that produced it.
+- [`docs/examples/editable-homepage-hero.md`](./docs/examples/editable-homepage-hero.md) — worked example of a client-built feature and the prompts behind it.
 - [`TRACKER.md`](./TRACKER.md) — phase/feature status (what's done, in progress, next).
 - [`public/guide.html`](./public/guide.html) — end-user + staff walkthrough.
 - [`src/services/dropbox-sign/DEPRECATED.md`](./src/services/dropbox-sign/DEPRECATED.md) — reviving the vendor e-sign path.

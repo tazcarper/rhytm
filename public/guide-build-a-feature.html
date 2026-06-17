@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rhythm Outdoors — Building a Feature</title>
+<link rel="stylesheet" href="/guide.css" />
+<style>
+  /* Command blocks (guide.css styles inline <code> but not <pre>). */
+  pre { background:#0f172a; color:#e2e8f0; padding:14px 16px; border-radius:8px; overflow-x:auto; font-size:13px; line-height:1.6; font-family:"SFMono-Regular", Consolas, monospace; margin:14px 0; }
+  pre code { background:none; padding:0; color:inherit; font-size:inherit; }
+  /* A "thing you'd type to Claude" card. */
+  .prompt { background:#f1f5f9; border-left:3px solid #6366f1; border-radius:8px; padding:12px 14px; margin:10px 0; }
+  .prompt::before { content:"You ask Claude"; display:block; font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:#6366f1; margin-bottom:5px; }
+  .prompt p { margin:0; }
+  .prompt + .prompt { margin-top:8px; }
+  /* Two-column "who does what". */
+  .split { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:18px 0; }
+  .split .col { border:1px solid var(--line); border-radius:12px; padding:16px 18px; }
+  .split h4 { margin:0 0 8px; }
+  .split ul { margin:0; padding-left:18px; }
+  .split li { margin:6px 0; }
+  .you h4 { color:#15803d; } .dev h4 { color:#6366f1; }
+  @media (max-width:720px){ .split { grid-template-columns:1fr; } }
+  .callout { background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:14px 16px; margin:16px 0; }
+  .callout strong { color:#92400e; }
+</style>
+</head>
+<body class="theme-hub">
+
+<div class="print-hint">📄 <strong>To save as PDF:</strong> press <code>Ctrl/Cmd&nbsp;+&nbsp;P</code>, choose “Save as PDF,” enable “Background graphics,” and set margins to “Default.”</div>
+
+<div class="sheet">
+
+  <!-- COVER -->
+  <header class="cover">
+    <div class="kicker">Building a Feature</div>
+    <h1>Build a feature by just asking</h1>
+    <p class="sub">A real, start-to-finish example of a non-technical person adding a feature to the site with Claude — not a layout tweak, but a new admin screen backed by the database. You describe what you want to <em>be able to do</em>; Claude builds it and packages it for your developer to review.</p>
+    <div class="portal-chips">
+      <span class="chip p">Plain language</span>
+      <span class="chip m">Local &amp; safe</span>
+      <span class="chip a">Reviewed before publish</span>
+    </div>
+  </header>
+
+  <p><a href="/guide.html">← All guides</a></p>
+
+  <!-- 1. WHAT THIS SHOWS -->
+  <section>
+    <h2 id="what"><span class="num">1</span>What this example shows</h2>
+    <p>Most of the changes you make are <strong>presentation</strong> — wording, spacing, colors, moving things around. This example is bigger: a <strong>feature</strong>. It answers one question:</p>
+    <blockquote><p>What does it look like when you ask Claude for something you want to <em>control yourself</em> — something that needs a new admin screen <em>and</em> a place in the database — and turn it into a reviewable change?</p></blockquote>
+    <p>The example feature: an <strong>admin page where staff can edit the homepage hero banner</strong> — the big welcome block at the top of the public site. The label, the headline, the supporting text, the two buttons, and an optional background image — all editable, with the homepage showing whatever you set. No developer needed every time the wording changes.</p>
+
+    <div class="callout">
+      <p><strong>First, though — is it already editable in the dashboard?</strong> Before asking Claude to change anything, check the admin area. A lot is already editable there — <strong>property info, pricing, services &amp; add-ons, adventures, FAQ &amp; gear, waiver wording</strong>, and more. If what you want to change is one of those, <strong>just change it in <code>/admin</code></strong> — it's live and instant, with no code change, no review, and no developer. You only need this “build a feature” path when the thing is <em>hardcoded</em> and you want to be able to change it yourself going forward — like the banner below.</p>
+    </div>
+  </section>
+
+  <!-- DECISION -->
+  <section>
+    <h2 id="decide"><span class="num">2</span>Which path is my change?</h2>
+    <p>Three kinds of change, three different paths. Figuring out which one you're in saves everyone time.</p>
+    <table>
+      <thead><tr><th>If your change is…</th><th>Do this</th><th>Who's involved</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Already editable in the dashboard</strong> (pricing, property info, adventures, FAQ, waiver text…)</td><td>Just edit it in <code>/admin</code></td><td>Only you — live &amp; instant</td></tr>
+        <tr><td><strong>Hardcoded, but you'll change it again and again</strong> (like this banner)</td><td>Build a feature so it becomes dashboard-editable (this guide)</td><td>You + Claude build it; developer reviews once</td></tr>
+        <tr><td><strong>Hardcoded and genuinely one-off</strong> (a layout tweak, a fixed bit of copy)</td><td>A small change Claude makes directly</td><td>You + Claude; developer reviews</td></tr>
+      </tbody>
+    </table>
+    <p>The trap to avoid: using the third row for something that's really the second. If you'll keep tweaking it, don't hardcode it — graduate it into the dashboard once, and you'll never need a developer for it again.</p>
+  </section>
+
+  <!-- 2. HOW YOU'D ASK -->
+  <section>
+    <h2 id="ask"><span class="num">3</span>How you'd actually ask for it</h2>
+    <p>You don’t need the words “database,” “migration,” or “security rule.” You describe what you want to be able to do. Here’s the whole conversation, paste by paste.</p>
+
+    <h3>The opening ask</h3>
+    <div class="prompt"><p>“On the homepage there’s a big welcome banner at the top — the ‘Your day in the Texas Hill Country starts here’ part. Right now I have to ask a developer every time I want to change that wording. I’d like to edit it myself. Can you add a page in the admin area where I can change the little label, the big headline, the paragraph under it, and the two buttons? And let me put a background image behind it too.”</p></div>
+    <p>That single message is enough. Claude creates a place to store the banner, builds the admin page with a form, makes the homepage read from it, and tells you the one part your developer will need to apply.</p>
+
+    <h3>Seeing it — look in your own browser</h3>
+    <p>You don’t ask Claude to “show you” the page — you look at it yourself in your web browser. Claude keeps the local copy of the site running at <code>http://localhost:3000</code>; open that and refresh to see every change as you go.</p>
+    <ul>
+      <li>The banner → visit <code>http://localhost:3000</code></li>
+      <li>The editor → sign in, then visit <code>http://localhost:3000/admin/homepage</code></li>
+    </ul>
+    <p>If the site isn’t running (the page won’t load), just say so and Claude will start it for you:</p>
+    <div class="prompt"><p>“The site isn’t loading — can you make sure it’s running so I can look at it in my browser?”</p></div>
+
+    <h3>Iterating on the look</h3>
+    <div class="prompt"><p>“The headline is too big — can you make it a bit smaller?”</p></div>
+    <div class="prompt"><p>“Put more space between the two buttons.”</p></div>
+    <div class="prompt"><p>“When I add a background image the text is hard to read — can you darken the image a little so white text shows up?”</p></div>
+
+    <h3>Changing the content (the everyday use, once it’s live)</h3>
+    <div class="prompt"><p>“Change the headline to ‘Your Hill Country weekend starts here.’”</p></div>
+    <div class="prompt"><p>“Make the first button say ‘Book a visit’ and point it at the booking page.”</p></div>
+    <div class="prompt"><p>“Hide the second button for now.”</p></div>
+
+    <h3>When you’re happy</h3>
+    <div class="prompt"><p>“This looks great. I’m done — open the pull request so my developer can review it.”</p></div>
+
+    <h3>If you get stuck</h3>
+    <div class="prompt"><p>“Claude says something is blocked — what does that mean?”</p></div>
+    <p>That’s the safety guardrail: the action belongs to your developer (anything touching the real live website or its data). Claude has already captured it in your pull request. Just keep going.</p>
+  </section>
+
+  <!-- 3. THE TRANSLATION -->
+  <section>
+    <h2 id="translate"><span class="num">4</span>What you're really asking for</h2>
+    <p>The point of the example: <strong>plain-language requests map cleanly onto real engineering pieces.</strong> You only ever write the left column. Claude produces the right column.</p>
+    <table>
+      <thead><tr><th>What you say</th><th>What Claude builds</th></tr></thead>
+      <tbody>
+        <tr><td>“store the banner so I can edit it”</td><td>a place in the database for the banner (a “migration”)</td></tr>
+        <tr><td>“only staff should be able to change it”</td><td>a security rule: the public can view it, only admins can edit it</td></tr>
+        <tr><td>“a page in the admin area to edit it”</td><td>a new <code>/admin/homepage</code> screen with a form</td></tr>
+        <tr><td>“the homepage should show what I set”</td><td>the homepage reads the saved values and displays them</td></tr>
+        <tr><td>“let me put an image behind it”</td><td>an image field, plus a subtle darkening so the text stays readable</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 4. WHO DOES WHAT -->
+  <section>
+    <h2 id="who"><span class="num">5</span>Who does what</h2>
+    <div class="split">
+      <div class="col you">
+        <h4>Your part</h4>
+        <ul>
+          <li>Describe what you want to be able to do</li>
+          <li>Look at it on your own computer and say whether it’s right</li>
+          <li>Iterate on wording and look with Claude</li>
+          <li>Say “I’m done” so Claude opens the pull request</li>
+        </ul>
+      </div>
+      <div class="col dev">
+        <h4>Your developer's part</h4>
+        <ul>
+          <li>Review the change</li>
+          <li>Apply the one “database change” to the live site</li>
+          <li>Publish it</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p><strong>One thing to expect:</strong> because this feature includes a database change, you’ll see it working right away on your own computer (<code>localhost:3000</code>), but the shared <strong>preview link won’t show it correctly</strong> until your developer applies that change. Trust your local view — that’s the source of truth while you work.</p>
+    </div>
+  </section>
+
+  <!-- 5. UNDER THE HOOD -->
+  <section>
+    <h2 id="hood"><span class="num">6</span>Under the hood (for your developer)</h2>
+    <p>For the curious — and for the developer reviewing it — the feature is a small, standard full-stack slice that follows the project’s existing patterns (the same “config in the database” approach as the per-property taglines). It adds:</p>
+    <ul>
+      <li>a <strong>migration</strong> creating the <code>homepage_hero</code> row, with security rules (public read, admin-only write), seeded with the current wording;</li>
+      <li>a small <strong>read service</strong> and an admin <strong>write service</strong> (with input validation);</li>
+      <li>a thin <strong>admin page</strong> + edit form + a “Homepage” nav link;</li>
+      <li>the <strong>homepage</strong> reading those values instead of fixed text.</li>
+    </ul>
+    <p>The finished code is kept as a permanent example on its own branch (deliberately not merged), so anyone can study the exact diff:</p>
+    <pre><code>git diff main..feature/editable-homepage-hero</code></pre>
+    <p>The developer’s review checklist — apply the migration locally, test the admin edit, hand-test the security rule (a non-admin must not be able to write), then apply to production and publish — lives with the code.</p>
+
+    <hr />
+    <p class="footer-note">The full write-up (every file, the prompt library, and the developer review runbook) lives in <code>docs/examples/editable-homepage-hero.md</code> in the repo. New to making changes at all? Start with the <a href="/client-setup.html">Contributor setup guide</a>.</p>
+  </section>
+
+</div>
+</body>
+</html>

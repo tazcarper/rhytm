@@ -61,7 +61,20 @@ the parts you can do.
   (`supabase start` / local `db reset`).
 - Create branches, commit, push branches, and open pull requests with `gh`.
 
-If a request is genuinely beyond front-end/layout work (a real feature with new
-data, auth, or payment behavior), build the front-end part you safely can, write any
-needed schema change as a migration file, and flag the rest clearly for the developer
-in the pull request.
+## When the request is a feature, not a tweak
+
+Some asks are bigger than presentation — the client wants to *control* something
+that needs a new place to store data plus an admin screen ("let me edit the
+homepage banner myself", "add a section staff can manage"). That is **in scope**,
+and you can build it end-to-end as a pull request: a migration file (the developer
+applies it), an admin page, a small service, and the public page reading it.
+
+For these, **use the `build-a-feature` skill** to scope and build it — it walks the
+client through the request in plain language and follows the project's patterns.
+The `safe-change` skill still handles the branch/PR mechanics. Worked example:
+`docs/examples/editable-homepage-hero.md`.
+
+The line that does **not** move: anything touching the **foundation** (packages,
+build/auth/data-layer config, rewriting existing services or RLS) or **live systems**
+(auth roles, payments, real customer data). For those, build the safe slice you can
+and flag the rest clearly for the developer — the guardrail hook blocks them anyway.

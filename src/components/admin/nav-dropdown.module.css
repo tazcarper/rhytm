@@ -3,13 +3,15 @@
   display: flex;
 }
 
+/* Matches the plain nav link in admin-nav.module.css so a dropdown trigger
+   reads as a peer of the flat links, not as a separate button. */
 .trigger {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border);
-  background: var(--paper);
+  border: none;
+  background: transparent;
   border-radius: var(--radius-card);
   font-family: var(--sans);
   font-size: var(--text-body);
@@ -23,18 +25,28 @@
   background: var(--paper-warm);
 }
 
+.triggerActive,
+.triggerActive:hover {
+  background: var(--olive);
+  color: var(--paper);
+}
+
 .caret {
   font-size: 0.7em;
   color: var(--gray);
   line-height: 1;
 }
 
+.triggerActive .caret {
+  color: var(--paper);
+}
+
 .menu {
   position: absolute;
   top: calc(100% + var(--space-2));
-  right: 0;
+  left: 0;
   z-index: 50;
-  min-width: 256px;
+  min-width: 220px;
   padding: var(--space-2);
   background: var(--paper);
   border: 1px solid var(--border);
@@ -45,24 +57,17 @@
   gap: 1px;
 }
 
-.menuHead {
-  margin: 0;
-  padding: var(--space-2) var(--space-3) var(--space-1);
-  font-family: var(--sans);
-  font-size: var(--text-micro);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--gray);
-}
-
 .menuLink {
   display: flex;
-  flex-direction: column;
-  gap: 1px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-card);
   text-decoration: none;
   color: var(--olive);
+  font-family: var(--sans);
+  font-size: var(--text-body);
   transition: background var(--motion-fast) ease;
 }
 
@@ -70,43 +75,12 @@
   background: var(--paper-warm);
 }
 
-.menuLinkLabel {
-  font-family: var(--sans);
-  font-size: var(--text-body);
+.menuLinkActive {
+  background: var(--paper-warm);
   font-weight: 500;
 }
 
-.menuLinkHint {
-  font-family: var(--sans);
-  font-size: var(--text-micro);
+.externalIcon {
+  font-size: 0.8em;
   color: var(--gray);
-}
-
-/* Contributor group — site-editing guides, shown to admins/super-admins only,
-   set apart with an indigo accent that matches the contributor cards. */
-.menuDivider {
-  height: 1px;
-  background: var(--border);
-  margin: var(--space-2) var(--space-2);
-}
-
-.menuHeadContrib {
-  color: #6366f1;
-}
-
-.menuLinkContrib {
-  border-left: 2px solid #6366f1;
-  border-radius: 0 var(--radius-card) var(--radius-card) 0;
-  color: #6366f1;
-}
-
-.menuLinkContrib:hover {
-  background: #eef2ff;
-}
-
-@media (max-width: 720px) {
-  .menu {
-    right: auto;
-    left: 0;
-  }
 }

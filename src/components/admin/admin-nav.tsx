@@ -6,12 +6,12 @@ import { signOut } from "@/lib/auth/actions";
 import { canManageTeam } from "@/lib/auth/portal";
 import { Button, cn } from "@/lib/ui";
 import { GuidesMenu } from "./guides-menu";
+import { NavDropdown, type NavDropdownItem } from "./nav-dropdown";
 import s from "./admin-nav.module.css";
 
-interface NavItem {
+interface FlatNavItem {
   label: string;
   href: string;
-  disabled?: boolean;
   badgeCount?: number;
 }
 
@@ -24,7 +24,8 @@ interface AdminNavProps {
 export function AdminNav({ email, role, pendingBidCount }: AdminNavProps) {
   const pathname = usePathname();
 
-  const items: ReadonlyArray<NavItem> = [
+  // High-traffic destinations stay one click away as flat links.
+  const flatItems: ReadonlyArray<FlatNavItem> = [
     { label: "Dashboard", href: "/admin" },
     {
       label: "Bids",
@@ -32,15 +33,27 @@ export function AdminNav({ email, role, pendingBidCount }: AdminNavProps) {
       badgeCount: pendingBidCount > 0 ? pendingBidCount : undefined,
     },
     { label: "Bookings", href: "/admin/bookings" },
-    { label: "Instructors", href: "/admin/instructors" },
+  ];
+
+  // The rest collapse into grouped dropdowns by the job staff are doing.
+  const programmingItems: ReadonlyArray<NavDropdownItem> = [
     { label: "Adventures", href: "/admin/adventures" },
-    { label: "Members", href: "/admin/members" },
     { label: "Properties", href: "/admin/properties" },
     { label: "Homepage", href: "/admin/homepage" },
     { label: "FAQ & Gear", href: "/admin/templates" },
     { label: "Waivers", href: "/admin/waivers" },
+  ];
+
+  const peopleItems: ReadonlyArray<NavDropdownItem> = [
+    { label: "Instructors", href: "/admin/instructors" },
+    { label: "Members", href: "/admin/members" },
     // Team management is super_admin + admin only.
     ...(canManageTeam(role) ? [{ label: "Team", href: "/admin/team" }] : []),
+  ];
+
+  const companyItems: ReadonlyArray<NavDropdownItem> = [
+    // Static org chart served from /public, opens in its own tab.
+    { label: "Accountability Chart", href: "/rhythm-accountability.html", external: true },
     { label: "What's New", href: "/admin/release-notes" },
   ];
 
@@ -57,40 +70,43 @@ export function AdminNav({ email, role, pendingBidCount }: AdminNavProps) {
       </Link>
 
       <ul className={s.links}>
-        {items.map((item) => {
-          const active = !item.disabled && isActive(item.href);
-          const cls = cn(
-            s.link,
-            active && s.linkActive,
-            item.disabled && s.linkDisabled,
-          );
+        {flatItems.map((item) => {
+          const active = isActive(item.href);
 
           return (
             <li key={item.href} className={s.linkItem}>
-              {item.disabled ? (
-                <span className={cls} aria-disabled="true">
-                  {item.label}
-                  <span className={s.comingSoon}>soon</span>
-                </span>
-              ) : (
-                <Link
-                  href={item.href}
-                  className={cls}
-                  aria-current={active ? "page" : undefined}
-                >
-                  {item.label}
-                  {item.badgeCount !== undefined && (
-                    <span className={s.badge}>{item.badgeCount}</span>
-                  )}
-                </Link>
-              )}
+              <Link
+                href={item.href}
+                className={cn(s.link, active && s.linkActive)}
+                aria-current={active ? "page" : undefined}
+              >
+                {item.label}
+                {item.badgeCount !== undefined && (
+                  <span className={s.badge}>{item.badgeCount}</span>
+                )}
+              </Link>
             </li>
           );
         })}
+
+        <li className={s.linkItem}>
+          <NavDropdown label="Programming" items={programmingItems} />
+        </li>
+        <li className={s.linkItem}>
+          <NavDropdown label="People" items={peopleItems} />
+        </li>
+        <li className={s.linkItem}>
+          <NavDropdown label="Company" items={companyItems} />
+        </li>
       </ul>
 
       <div className={s.identity}>
-        <GuidesMenu />
+        <GuidesMenu role={role} />
+        <Button asChild variant="secondary" size="sm">
+          <a href="/" target="_blank" rel="noopener noreferrer">
+            View site ↗
+          </a>
+        </Button>
         <Link href="/admin/profile" className={s.identityText} title="Your profile">
           <span className={s.identityEmail}>{email ?? "—"}</span>
           <span>{role ?? "—"}</span>

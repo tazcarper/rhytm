@@ -10,7 +10,7 @@ export const PROPERTY_COPY: Record<string, PropertyEditorialCopy> = {
       "Clays, helice, and instruction on the lake — book a visit, a private lesson, or take the property for the day.",
   },
   "hog-heaven": {
-    locale: "Driftwood, Texas",
+    locale: "Dripping Springs, Texas",
     tagline:
       "Wing-shooting and wedding weekends on six hundred acres, paired with Camp Lucy when the occasion asks for it.",
   },
