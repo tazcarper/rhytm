@@ -1,5 +1,5 @@
 import { Card } from "@/lib/ui";
-import { formatMoney } from "@/src/services/public/format";
+import { formatMoneyExact } from "@/src/services/public/format";
 import type { BidLineItem } from "@/src/services/bids/bid-line-items";
 import s from "./bid-detail.module.css";
 
@@ -10,7 +10,7 @@ import s from "./bid-detail.module.css";
 export function BidLineItemsCard({ lineItems }: { lineItems: BidLineItem[] }) {
   if (lineItems.length === 0) return null;
 
-  const subtotal = lineItems.reduce((sum, l) => sum + l.lineAmount, 0);
+  const subtotal = lineItems.reduce((sum, line) => sum + line.lineAmount, 0);
 
   return (
     <Card padding="loose" elevation="soft" className={s.section}>
@@ -24,12 +24,12 @@ export function BidLineItemsCard({ lineItems }: { lineItems: BidLineItem[] }) {
                 <span className={s.lineItemTag}> · tax-exempt</span>
               )}
             </span>
-            <span className={s.lineItemAmount}>${formatMoney(line.lineAmount)}</span>
+            <span className={s.lineItemAmount}>${formatMoneyExact(line.lineAmount)}</span>
           </li>
         ))}
         <li className={`${s.lineItem} ${s.lineItemSubtotal}`}>
           <span className={s.lineItemLabel}>Subtotal</span>
-          <span className={s.lineItemAmount}>${formatMoney(subtotal)}</span>
+          <span className={s.lineItemAmount}>${formatMoneyExact(subtotal)}</span>
         </li>
       </ul>
     </Card>

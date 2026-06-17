@@ -1,5 +1,4 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createServiceRoleClient } from "@/lib/supabase/service";
 import {
   getPublicPricingForProperty,
   buildBookingSummary,
@@ -8,15 +7,36 @@ import type { BookingType } from "@/src/components/public/booking-flow/booking-f
 
 // A bid's price, materialized as real lines.
 //
-// Today a bid stores opaque totals (bookings.estimated_price / confirmed_price)
-// plus booking_add_ons. This service decomposes a bid into bid_line_items rows
-// using the SAME computation the public funnel shows (buildBookingSummary) for
-// the base + guest-fee lines, and the booking_add_ons snapshots for add-on
-// lines. One materialization path, reused by:
-//   * the creation hook (new bids get lines immediately), and
-//   * ensureBidLineItems (idempotent backfill the first time a bid is read).
+// A bid stores opaque totals (bookings.estimated_price / confirmed_price) plus
+// booking_add_ons. This service decomposes a bid into bid_line_items rows using
+// the SAME computation the public funnel shows (buildBookingSummary) for the
+// base + guest-fee lines, and the booking_add_ons snapshots for add-on lines.
+//
+// The lines are a point-in-time SNAPSHOT of the quote, not a live view:
+//   * The base + guest-fee lines are built ONCE at creation, while the bid is
+//     pending_review, from the pricing model the customer was quoted against.
+//     They are never recomputed afterward — recomputing would re-read live
+//     pricing and silently drift from what the guest saw. See FULL_BUILD_*.
+//   * The add-on lines mirror booking_add_ons, which staff can edit through
+//     `confirmed`. They are rebuilt from those price snapshots on each edit
+//     (drift-free — the unit price is the stored snapshot, not live). See the
+//     ADD_ON_EDIT window, which matches ADD_ON_EDITABLE_STATUSES in the
+//     add-ons Server Action.
+//   * Reads NEVER materialize (no write-on-read). Old bids are backfilled by
+//     the backfill_bid_line_items() SQL function (see the RLS+backfill
+//     migration), not lazily on view.
 //
 // Writes require the service role (bid_line_items is service-role-write only).
+
+// Full (re)build — base + guest-fee from the pricing model — only at creation.
+const FULL_BUILD_STATUSES: ReadonlySet<string> = new Set(["pending_review"]);
+
+// Add-on lines may change while staff can still edit the bid's add-ons. Keep
+// in sync with ADD_ON_EDITABLE_STATUSES in app/admin/bids/[id]/add-ons-actions.
+const ADD_ON_EDIT_STATUSES: ReadonlySet<string> = new Set([
+  "pending_review",
+  "confirmed",
+]);
 
 export type LineItemKind =
   | "base_experience"
@@ -54,9 +74,51 @@ type LineInsert = {
 
 const round2 = (n: number): number => Math.round(n * 100) / 100;
 
-// Compute the line rows for a booking from its stored shape. Returns the
-// rows to insert (does not write). Returns [] when the booking can't be
-// priced into lines (e.g. team-quoted host bookings with no add-ons).
+// add_on lines start after the base (0) and guest-fee (1) lines.
+const ADD_ON_SORT_OFFSET = 2;
+
+// PostgREST returns an embedded to-one relation as either an object or a
+// single-element array depending on the relationship metadata; normalize both.
+function addOnName(embedded: unknown): string {
+  const rel = Array.isArray(embedded) ? embedded[0] : embedded;
+  const name = (rel as { name?: unknown } | null)?.name;
+  return typeof name === "string" && name.length > 0 ? name : "Add-on";
+}
+
+// The add-on portion of a bid's lines, sourced from the booking_add_ons price
+// snapshots (authoritative — never live pricing, so drift-free). Used both in
+// the full creation build and in the add-on-only rebuild on edit.
+async function computeAddOnLines(
+  supabase: SupabaseClient,
+  bookingId: string,
+): Promise<LineInsert[]> {
+  const { data: addOnRows } = await supabase
+    .from("booking_add_ons")
+    .select("service_id, add_on_id, quantity, unit_price_at_booking, add_ons(name)")
+    .eq("booking_id", bookingId);
+
+  return (addOnRows ?? []).map((row, index) => {
+    const unit = Number(row.unit_price_at_booking) || 0;
+    const qty = Number(row.quantity) || 0;
+    return {
+      booking_id: bookingId,
+      kind: "add_on" as const,
+      label: addOnName(row.add_ons),
+      quantity: qty,
+      unit_amount: round2(unit),
+      line_amount: round2(unit * qty),
+      tax_status: "taxable" as const,
+      source_service_id: (row.service_id as string) ?? null,
+      source_add_on_id: (row.add_on_id as string) ?? null,
+      sort_order: ADD_ON_SORT_OFFSET + index,
+    };
+  });
+}
+
+// Compute the FULL line set for a booking from its stored shape — base +
+// guest-fee (from the pricing model, captured at creation as the quote
+// snapshot) plus the add-on lines. Returns the rows to insert (does not
+// write). Returns null when the booking row can't be loaded.
 async function computeLines(
   supabase: SupabaseClient,
   bookingId: string,
@@ -117,67 +179,102 @@ async function computeLines(
   }
 
   // ---- add-on lines (from the booking_add_ons snapshots — authoritative) ----
-  const { data: addOnRows } = await supabase
-    .from("booking_add_ons")
-    .select("service_id, add_on_id, quantity, unit_price_at_booking, add_ons(name)")
-    .eq("booking_id", bookingId);
-
-  let sort = 2;
-  for (const row of addOnRows ?? []) {
-    const unit = Number(row.unit_price_at_booking) || 0;
-    const qty = Number(row.quantity) || 0;
-    const name =
-      (row.add_ons as { name?: string } | { name?: string }[] | null) &&
-      (Array.isArray(row.add_ons) ? row.add_ons[0]?.name : (row.add_ons as { name?: string })?.name);
-    lines.push({
-      booking_id: bookingId,
-      kind: "add_on",
-      label: name || "Add-on",
-      quantity: qty,
-      unit_amount: round2(unit),
-      line_amount: round2(unit * qty),
-      tax_status: "taxable",
-      source_service_id: (row.service_id as string) ?? null,
-      source_add_on_id: (row.add_on_id as string) ?? null,
-      sort_order: sort++,
-    });
-  }
+  lines.push(...(await computeAddOnLines(supabase, bookingId)));
 
   return lines;
 }
 
-// Force-(re)materialize a booking's line items: delete any existing rows and
-// insert a freshly computed set. Idempotent. Service-role client required.
+// The outcome of a (re)materialization. `subtotal` is the sum of the freshly
+// computed lines — the caller (e.g. the creation hook) reconciles it against
+// the stored estimate. `skipped` distinguishes the two no-op cases from a
+// genuine write failure.
+export interface MaterializeResult {
+  ok: boolean;
+  count: number;
+  subtotal: number;
+  skipped?: "frozen" | "unpriceable";
+}
+
+// The bid's current workflow status, or null when no bid row exists yet
+// (shouldn't happen post-create). Centralizing this read keeps the snapshot
+// lifecycle rules in one place — callers don't reason about statuses.
+async function getBidStatus(
+  supabase: SupabaseClient,
+  bookingId: string,
+): Promise<string | null> {
+  const { data } = await supabase
+    .from("bids")
+    .select("status")
+    .eq("booking_id", bookingId)
+    .maybeSingle<{ status: string }>();
+  return data?.status ?? null;
+}
+
+// Full materialize of a booking's line items: delete any existing rows and
+// insert a freshly computed set (base + guest-fee + add-ons). The creation
+// path. No-ops (leaving existing rows untouched) once the bid is past
+// pending_review, so a stray later call can't recompute base/guest-fee from
+// live pricing and silently rewrite the quoted snapshot.
 export async function materializeBidLineItems(
   supabase: SupabaseClient,
   bookingId: string,
-): Promise<{ ok: boolean; count: number }> {
+): Promise<MaterializeResult> {
+  const status = await getBidStatus(supabase, bookingId);
+  // A missing bid row is treated as buildable so creation is never blocked.
+  if (status !== null && !FULL_BUILD_STATUSES.has(status)) {
+    return { ok: false, count: 0, subtotal: 0, skipped: "frozen" };
+  }
+
   const lines = await computeLines(supabase, bookingId);
-  if (lines === null) return { ok: false, count: 0 };
+  if (lines === null) {
+    return { ok: false, count: 0, subtotal: 0, skipped: "unpriceable" };
+  }
+
+  const subtotal = round2(
+    lines.reduce((sum, line) => sum + line.line_amount, 0),
+  );
 
   await supabase.from("bid_line_items").delete().eq("booking_id", bookingId);
-  if (lines.length === 0) return { ok: true, count: 0 };
+  if (lines.length === 0) return { ok: true, count: 0, subtotal: 0 };
 
   const { error } = await supabase.from("bid_line_items").insert(lines);
-  if (error) return { ok: false, count: 0 };
-  return { ok: true, count: lines.length };
+  if (error) return { ok: false, count: 0, subtotal };
+  return { ok: true, count: lines.length, subtotal };
 }
 
-// Materialize only if the booking has no line items yet — the backfill path
-// for bids created before this foundation. Cheap existence check first.
-export async function ensureBidLineItems(
+// Rebuild ONLY the add_on lines from the current booking_add_ons snapshots,
+// leaving the base/guest-fee snapshot intact. Called after an add-on edit.
+// Drift-free: add-on amounts come from the stored unit_price_at_booking, never
+// live pricing. No-ops once the bid is past the add-on edit window.
+export async function rematerializeAddOnLines(
   supabase: SupabaseClient,
   bookingId: string,
-): Promise<void> {
-  const { count } = await supabase
+): Promise<MaterializeResult> {
+  const status = await getBidStatus(supabase, bookingId);
+  if (status !== null && !ADD_ON_EDIT_STATUSES.has(status)) {
+    return { ok: false, count: 0, subtotal: 0, skipped: "frozen" };
+  }
+
+  const addOnLines = await computeAddOnLines(supabase, bookingId);
+  const subtotal = round2(
+    addOnLines.reduce((sum, line) => sum + line.line_amount, 0),
+  );
+
+  await supabase
     .from("bid_line_items")
-    .select("id", { count: "exact", head: true })
-    .eq("booking_id", bookingId);
-  if ((count ?? 0) > 0) return;
-  await materializeBidLineItems(supabase, bookingId);
+    .delete()
+    .eq("booking_id", bookingId)
+    .eq("kind", "add_on");
+  if (addOnLines.length === 0) return { ok: true, count: 0, subtotal: 0 };
+
+  const { error } = await supabase.from("bid_line_items").insert(addOnLines);
+  if (error) return { ok: false, count: 0, subtotal };
+  return { ok: true, count: addOnLines.length, subtotal };
 }
 
-// Read the materialized lines for a booking, ordered for display.
+// Read the materialized lines for a booking, ordered for display. Pure read —
+// never materializes (see backfill_bid_line_items() for old bids). Reads
+// through the caller's RLS scope.
 export async function getBidLineItems(
   supabase: SupabaseClient,
   bookingId: string,
@@ -188,25 +285,14 @@ export async function getBidLineItems(
     .eq("booking_id", bookingId)
     .order("sort_order", { ascending: true });
   if (error || !data) return [];
-  return data.map((r) => ({
-    id: r.id as string,
-    kind: r.kind as LineItemKind,
-    label: r.label as string,
-    quantity: Number(r.quantity),
-    unitAmount: Number(r.unit_amount),
-    lineAmount: Number(r.line_amount),
-    taxStatus: r.tax_status as LineItemTaxStatus,
-    sortOrder: r.sort_order as number,
+  return data.map((row) => ({
+    id: row.id as string,
+    kind: row.kind as LineItemKind,
+    label: row.label as string,
+    quantity: Number(row.quantity),
+    unitAmount: Number(row.unit_amount),
+    lineAmount: Number(row.line_amount),
+    taxStatus: row.tax_status as LineItemTaxStatus,
+    sortOrder: row.sort_order as number,
   }));
-}
-
-// Convenience: ensure-then-read using a fresh service-role client. For
-// surfaces (admin bid detail) that want the breakdown without threading a
-// service client through. Self-heals old bids on first view.
-export async function getOrMaterializeBidLineItems(
-  bookingId: string,
-): Promise<BidLineItem[]> {
-  const supabase = createServiceRoleClient();
-  await ensureBidLineItems(supabase, bookingId);
-  return getBidLineItems(supabase, bookingId);
 }

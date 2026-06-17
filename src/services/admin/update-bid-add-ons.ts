@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { rematerializeAddOnLines } from "@/src/services/bids/bid-line-items";
 
 // Mutations against booking_add_ons line items for a single bid's booking.
 //
@@ -38,6 +39,25 @@ export type RemoveBidAddOnRawInput = z.input<typeof RemoveBidAddOnInputSchema>;
 export interface BidAddOnMutationResult {
   ok: boolean;
   error?: string;
+}
+
+// Rebuild the add-on portion of the bid's quote breakdown after the add-on set
+// changed. Leaves the base/guest-fee snapshot intact. Best-effort: the add-on
+// mutation already committed, so a rebuild failure must not fail the admin
+// action — the lines self-correct on the next edit or backfill. No-ops when the
+// bid is past the add-on edit window (rematerializeAddOnLines gates on status).
+async function rebuildLineItems(
+  supabase: SupabaseClient,
+  bookingId: string,
+): Promise<void> {
+  try {
+    await rematerializeAddOnLines(supabase, bookingId);
+  } catch (lineErr) {
+    console.error(
+      "[admin/update-bid-add-ons] line-item rebuild failed",
+      { bookingId, lineErr },
+    );
+  }
 }
 
 export async function addBidAddOn(
@@ -84,6 +104,7 @@ export async function addBidAddOn(
     return { ok: false, error: `Couldn't add the add-on: ${error.message}` };
   }
 
+  await rebuildLineItems(supabase, input.bookingId);
   return { ok: true };
 }
 
@@ -101,5 +122,7 @@ export async function removeBidAddOn(
   if (error) {
     return { ok: false, error: `Couldn't remove the add-on: ${error.message}` };
   }
+
+  await rebuildLineItems(supabase, input.bookingId);
   return { ok: true };
 }

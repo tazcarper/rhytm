@@ -5,7 +5,7 @@ import type {
 } from "./bids";
 import { getStaffIdentity, type StaffIdentity } from "./staff-identity";
 import {
-  getOrMaterializeBidLineItems,
+  getBidLineItems,
   type BidLineItem,
 } from "@/src/services/bids/bid-line-items";
 
@@ -110,8 +110,8 @@ export interface AdminBidDetail {
   // Additional party members who signed via the scan-to-sign QR (oldest
   // first). The primary signer is `waiver`; these are everyone else.
   partyWaivers: AdminBidPartyWaiver[];
-  // The materialized quote breakdown (base, guest fee, add-ons). Self-heals
-  // on first read for bids created before the line-items foundation.
+  // The materialized quote breakdown (base, guest fee, add-ons). Read-only
+  // here; materialized at write time and backfilled for legacy bids.
   lineItems: BidLineItem[];
 }
 
@@ -302,8 +302,10 @@ export async function getAdminBidDetail(
     signedAt: row.created_at as string,
   }));
 
-  // Materialized line breakdown (self-heals old bids on first view).
-  const lineItems = await getOrMaterializeBidLineItems(booking.id);
+  // Materialized line breakdown — pure read through the admin's RLS scope.
+  // Never materializes on the read path; old bids are backfilled by
+  // backfill_bid_line_items(). New/edited bids materialize at write time.
+  const lineItems = await getBidLineItems(supabase, booking.id);
 
   return {
     bid: {
