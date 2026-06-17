@@ -1,6 +1,6 @@
 # Phase 1 — Per-line Override Bidder · Design Sketch
 
-**Status** Design **approved 2026-06-16** — all five rulings locked (§7). Implementation is cleared to begin **once Phase 0 (#6) merges**; the implementation PR is surfaced for review before merge.
+**Status** Design **approved 2026-06-16** — all five rulings locked (§7); **manual-markdown reconciliation addendum (R1–R3) locked 2026-06-17** (§7 addendum). Phase 0 (#6) **merged to `main` 2026-06-16**; implementation cleared to begin, surfaced for review before merge. *(2026-06-17 review also corrected a column reference: the original-quote record is `bid_line_items.line_amount`, not a non-existent `original_amount` — see §4.)*
 **Builds on** Phase 0 (`bid_line_items`, PR #6). **Adapts** Build Spec §2.2 / §4.2 to the real codebase.
 **Author** Claude Code session, 2026-06-16.
 
@@ -97,7 +97,7 @@ This is the crux and the main thing to rule on.
 **LOCKED — Option A: overrides mutate `confirmed_price`.** The audit settled it: the effective total is re-derived independently at **15 reader sites** — including the **Stripe deposit charge ceiling** (`create-deposit-session.ts`), the **payment webhook** (`handle-payment-intent-succeeded.ts`), and **two customer emails** — none routed through a shared helper. Under a presentational model every one would have to learn about override deltas or charge/show the undiscounted price; centralizing them is the far larger refactor and lands on the money path. So:
 
 - `applyLineOverride` computes the **adjusted total** = current effective base (`confirmed_price ?? estimated_price`) **− Σ (latest override delta per line)** and **writes it into `bookings.confirmed_price`**. Every existing reader (Stripe, webhook, emails, admin, member, bid page) then shows/charges the discounted number with **zero changes**.
-- **`confirmed_price` semantics shift** from "original quote" to **"current effective total to charge."** The forensic record of what each line was originally quoted at is preserved in **`bid_line_items.original_amount`** (and each override's `original_amount`), which is now the authoritative original-quote record.
+- **`confirmed_price` semantics shift** from "original quote" to **"current effective total to charge."** The forensic record of what each line was originally quoted at is preserved in **`bid_line_items.line_amount`** (the materialized per-line amount; Phase 0's table has no `original_amount` column) and in each override's snapshotted `original_amount`. `bid_line_items.line_amount` is immutable from Phase 1's perspective — overrides live in the separate append-only `bid_line_overrides` table and never mutate the line rows — so it remains the authoritative original-quote record.
 - On the **customer bid page**, render: line items → **Subtotal** (pre-discount) → **"Discount applied: −$X"** (or the concierge label) → **net total** = `confirmed_price` → deposit/balance as today. Display and charge are provably identical because they're the same number.
 - If the original deposit was a percentage of the quote, re-derive it from the adjusted total.
 
@@ -119,10 +119,19 @@ Your quote
   Deposit due now                                         $100.00
 ```
 
-- **Shown:** each line at its **original** amount, the subtotal, the discount (label + dollar value), the net total, the deposit. The customer feels the comp.
+**The discount line is derived arithmetically, not from override rows.** This is a deliberate change from the first draft (which gated the line on "an override exists") and exists to honor a product requirement: when staff lower a price the *old* way — the manual `PricingEditor`, **no override row** — the customer page must *still* reconcile. The rule:
+
+- `subtotal = Σ bid_line_items.line_amount` (always shown, per Q3).
+- `total = effectiveQuote = confirmed_price ?? estimated_price`.
+- `discount = subtotal − total`. Render a discount line **whenever `discount > 0`**, for **any** reason the total is below the line sum — line override, manual markdown, or a mix.
+
+Because Option A (§4) means `confirmed_price` already reflects *both* manual edits and overrides, this single rule reconciles every case by construction: `subtotal − discount = total` always holds. The customer page needs only the line items and `effectiveQuote` to render — override deltas are **not** required for the math; they only inform the *label*.
+
+- **Shown:** each line at its **original** amount (`line_amount`), the subtotal, the discount (label + dollar value), the net total, the deposit. The customer feels the comp.
 - **Never shown:** `reason`, `actor`, `timestamp`. Those have no code path to this page (§2).
-- If multiple lines are comped, they roll up into a **single "Discount applied" line** by default; if every comp on the bid shares one concierge label, that label is used, otherwise the generic "Discount applied."
-- Renders only when at least one override exists; otherwise the page looks exactly as it does today (plus the new line-item breakdown, which is itself a transparency improvement we should confirm is wanted — Q3).
+- **Label (single rolled-up line — Nicholas, 2026-06-17).** All discounts collapse into **one** line. If the bid's override deltas fully account for `discount` *and* every comp shares one `customer_facing_label`, that label is used; otherwise — including any manual-markdown component, or mixed labels — the generic **"Discount applied"**. A manual-only markdown therefore always shows "Discount applied: −$X".
+- **Edge — total ≥ subtotal (manual price *increase*) → clamp at zero (Nicholas, 2026-06-17).** If a manual edit raises `confirmed_price` to or above the line sum, show **no** discount/surcharge line — just the (higher) total. Line items are the baseline; `confirmed_price` is authoritative. No negative-discount or "surcharge" line.
+- A bid with no override and no manual markdown shows `discount = 0`, no discount line — the page looks as it does today **plus** the new always-on line-item breakdown (Q3).
 
 ---
 
@@ -146,15 +155,27 @@ Pricing history
 
 **Dashboard `/admin`:** an "Overrides this week" card — count + total $ waived (current week, all properties) → links to `/admin/bids?has_override=true`. **Locked (Q5):** any bid whose total comp exceeds **25% of its subtotal** gets a **red flag** on this card — **detection only, no hard cap** (staff can still apply a >25% comp; it's just surfaced for review). Threshold to be recalibrated after ~3 months.
 
+**Scope — these three admin surfaces are override-only (Nicholas, 2026-06-17).** The queue flag, the "Overrides this week" card, and the 25% threshold all count **`bid_line_overrides` only** — a manual `PricingEditor` markdown does *not* trip them. Manual price changes are still fully audited in the **Pricing history** panel (`source: manual`) and reconciled on the customer page (§5); they simply aren't counted as "overrides." The new customer-page reconciliation requirement does not widen these override metrics.
+
 ---
 
 ## 7. Locked decisions (Nicholas, 2026-06-16)
 
 - **Q1 — Immutability → LOCKED: strict append-only with reversing entries.** Honor the spec verbatim; recovery via a reversing entry, never a void. No undo button.
-- **Q2 — Total reconciliation → LOCKED: Option A.** Overrides mutate `confirmed_price` ("current effective total to charge"); `bid_line_items.original_amount` is the authoritative original-quote record. See §4 + §1a (source-tagged audit).
-- **Q3 — Public line breakdown → LOCKED: always show.** The itemized base + per-guest + add-ons renders on **every** bid, same structure; the discount line appears only when an override exists. Consistency builds trust.
+- **Q2 — Total reconciliation → LOCKED: Option A.** Overrides mutate `confirmed_price` ("current effective total to charge"); `bid_line_items.line_amount` is the authoritative original-quote record (Phase 0's table has no `original_amount` column). See §4 + §1a (source-tagged audit).
+- **Q3 — Public line breakdown → LOCKED: always show.** The itemized base + per-guest + add-ons renders on **every** bid, same structure; the discount line appears whenever `subtotal > total` (§5 — derived arithmetically, covering overrides *and* manual markdowns). Consistency builds trust.
 - **Q4 — Who can waive → LOCKED: existing roles.** `super_admin` + `admin` (cross-property; the events-concierge/Cassi maps to `admin`) + `property_manager` (scoped to their property). No new `events_concierge` role for Phase 1 — add later only if `admin` proves too privileged.
 - **Q5 — Comp ceiling → LOCKED: threshold flag, no hard cap.** >25% of subtotal raises a red flag on the dashboard card (detection only). Recalibrate after ~3 months.
+
+### Addendum — manual-markdown reconciliation (Nicholas, 2026-06-17)
+
+Folded into **PR-2**. A product requirement layered on top of the five rulings: when staff lower a price the *old* way (manual `PricingEditor`, no override row), the customer's itemized bid page must still reconcile. Resolutions:
+
+- **R1 — Single rolled-up discount line, derived arithmetically.** The public discount = `subtotal − effectiveQuote`, shown whenever `> 0`, regardless of whether the gap came from an override, a manual markdown, or both. One line. Label = the shared override `customer_facing_label` only when overrides fully account for the gap; otherwise generic "Discount applied." See §5.
+- **R2 — Manual price *increase* clamps at zero.** If a manual edit pushes the total at or above the line sum, no discount/surcharge line renders; the higher total stands. See §5.
+- **R3 — Override-specific admin surfaces stay override-only.** Queue flag, "Overrides this week" card, and the 25% threshold count `bid_line_overrides` only; manual markdowns live in Pricing history (`source: manual`) and the customer page, not these metrics. See §6.
+
+No new infrastructure — R1/R2 ride on the line-item fetch PR-2 already adds to `get-bid.ts`, and Option A means `effectiveQuote` already carries manual edits.
 
 ---
 
@@ -170,6 +191,9 @@ Pricing history
 - **A comp > 25% of subtotal** raises the red flag on the dashboard "Overrides this week" card; the comp still applies (no hard cap).
 - A non-admin (member/partner) cannot read `bid_line_overrides` or `bid_pricing_events` — especially `reason` (RLS test).
 - No `customer_facing_label` → customer page defaults to "Discount applied".
+- **Manual-markdown reconciliation (R1):** staff lower a bid's price via the manual `PricingEditor` with **no** override row; the customer page shows the full line-item subtotal, a single generic "Discount applied: −$X" line, and the lower total — the itemized list reconciles (`subtotal − discount = total`).
+- **Manual price increase (R2):** staff raise `confirmed_price` above the line sum; the customer page shows the higher total and **no** discount/surcharge line.
+- **Override-only admin metrics (R3):** a manual markdown does **not** increment the queue flag, the "Overrides this week" card, or the 25% threshold; it appears only in Pricing history as `source: manual`.
 - Typecheck clean; migration applies via `db reset`; no regressions to the existing pricing/deposit/payment flow.
 
 ---
