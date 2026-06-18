@@ -60,6 +60,9 @@ export function PricingEditor({
   const [isPending, startTransition] = useTransition();
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // A conflict is a price that moved under the editor since it loaded — shown
+  // with a Reload affordance rather than the generic error, and drafts are kept.
+  const [conflict, setConflict] = useState(false);
 
   const [confirmedDraft, setConfirmedDraft] = useState(
     moneyToString(confirmedPrice),
@@ -84,16 +87,27 @@ export function PricingEditor({
     setDepositDraft(moneyToString(depositAmount));
     setQuoteNoteDraft(quoteNote ?? "");
     setError(null);
+    setConflict(false);
     setEditing(true);
   };
 
   const cancelEditing = () => {
     setEditing(false);
     setError(null);
+    setConflict(false);
+  };
+
+  // Pull the latest server state after a conflict, keeping the admin's drafts
+  // (router.refresh() re-renders without remounting) so they can re-save.
+  const reloadLatest = () => {
+    setError(null);
+    setConflict(false);
+    router.refresh();
   };
 
   const save = () => {
     setError(null);
+    setConflict(false);
     startTransition(async () => {
       const result = await updateBidPricingAction({
         bidId,
@@ -101,9 +115,11 @@ export function PricingEditor({
         confirmedPrice: confirmedDraft,
         depositAmount: depositDraft,
         quoteNote: quoteNoteDraft.trim() || null,
+        expectedConfirmedPrice: confirmedPrice,
       });
       if (!result.ok) {
         setError(result.error ?? "Couldn't save pricing.");
+        setConflict(result.conflict ?? false);
         return;
       }
       // Saving a quote acknowledges the current add-ons — clear the delta.
@@ -118,6 +134,7 @@ export function PricingEditor({
   const applySuggested = () => {
     if (suggestedQuote === null) return;
     setError(null);
+    setConflict(false);
     startTransition(async () => {
       const result = await updateBidPricingAction({
         bidId,
@@ -125,9 +142,11 @@ export function PricingEditor({
         confirmedPrice: String(suggestedQuote),
         depositAmount: moneyToString(depositAmount),
         quoteNote,
+        expectedConfirmedPrice: confirmedPrice,
       });
       if (!result.ok) {
         setError(result.error ?? "Couldn't apply the suggested quote.");
+        setConflict(result.conflict ?? false);
         return;
       }
       setReflectedAddOnTotal(addOnTotal);
@@ -284,8 +303,23 @@ export function PricingEditor({
       )}
 
       {error && (
-        <Alert variant="error" title="Couldn't save">
-          {error}
+        <Alert
+          variant="error"
+          title={conflict ? "Price changed" : "Couldn't save"}
+        >
+          <p>{error}</p>
+          {conflict && (
+            <div className={s.editActions}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={reloadLatest}
+                disabled={isPending}
+              >
+                Reload latest
+              </Button>
+            </div>
+          )}
         </Alert>
       )}
 
