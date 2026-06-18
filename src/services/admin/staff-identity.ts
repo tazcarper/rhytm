@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 
 // Resolves a staff/admin auth user id (e.g. bookings.created_by_admin_id) to
@@ -8,6 +9,28 @@ import { createServiceRoleClient } from "@/lib/supabase/service";
 export interface StaffIdentity {
   name: string;
   email: string;
+}
+
+// The signed-in staff member stamped onto an audit record (pricing events,
+// override rows). id is the auth user id; email is denormalized at write time so
+// the audit reads without a join back to auth.users.
+export interface StaffActor {
+  id: string;
+  email: string;
+}
+
+// Resolve the current session's staff actor from a request-scoped Supabase
+// client. Returns null when no user is signed in. One definition for the
+// "who is doing this?" resolution shared by every admin write action, so the
+// id/email pair is assembled the same way everywhere.
+export async function resolveStaffActor(
+  supabase: SupabaseClient,
+): Promise<StaffActor | null> {
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (!user) return null;
+  const identity = await getStaffIdentity(user.id);
+  return { id: user.id, email: identity?.email ?? user.email ?? "unknown" };
 }
 
 export async function getStaffIdentity(userId: string): Promise<StaffIdentity | null> {
