@@ -2,6 +2,45 @@
 
 Status: proposed · Scope: follow-up to Phase 1 PR-1 (per-line override bidder)
 
+## Picking this up in a fresh session (cold-start context)
+
+- **Branch:** `feature/phase-1-override-bidder-backend`. The work this plan
+  follows lives in commits `e172aaf` (PR-1: per-line override bidder) and
+  `f54d5d9` (PR-1 follow-up: atomic pricing writes + comp auto-reversal).
+- **What already exists** (don't rebuild it): `bookings.confirmed_price` is now
+  mutated atomically by two SECURITY DEFINER Postgres functions under a
+  `SELECT … FOR UPDATE` booking lock — `apply_line_override()` (per-line comp)
+  and `reverse_add_on_comps_and_clear()` (add-on edit auto-reverses comps).
+  Migrations `supabase/migrations/20260617130000_*` (enum) and `…130100_*`
+  (functions). The **manual** PricingEditor path (`updateBidPricing`) is the only
+  confirmed_price writer NOT yet serialized — that is what this plan fixes.
+- **This plan deliberately does NOT use a locked RPC** for the manual path (it
+  would force relocating authorization out of RLS). It uses optimistic
+  concurrency. See "Decision" below before changing approach.
+- **Preconditions:** the two new migrations must be applied to the linked DB
+  (`npx supabase db push`) and smoke-tested before/while doing this work. The
+  developer applies migrations against a LINKED cloud Supabase (no local Docker)
+  — use `db push`, not `db reset`.
+- **Dev environment / guardrails:** Node 24 via nvm (already on PATH). Run
+  `npm run typecheck` to validate; it must stay clean. Do **not** start the
+  Next.js dev server — hand anything that needs the running app (clicking through
+  the PricingEditor) to the user. Working tree has pre-existing CRLF drift on
+  unrelated files; touch only the files in this plan and keep them LF.
+- **Key files to read first:** `src/services/admin/update-bid-pricing.ts`,
+  `app/admin/bids/[id]/edit/actions.ts`, `src/components/admin/pricing-editor.tsx`,
+  and `src/services/admin/apply-line-override.ts` (for the result-shape pattern).
+
+## Acceptance criteria
+
+- A manual price save whose loaded `confirmed_price` no longer matches the DB
+  (because a comp/auto-reversal landed in between) is rejected with a `conflict`
+  result and a "reload" message — `confirmed_price` is left untouched (the comp
+  is preserved). After reload + re-save it succeeds.
+- Deposit-only and quote-note-only saves still succeed. The
+  `depositExceedsTotal` warn-and-fix flow from PR-1 still works.
+- The `manual` pricing-audit event's `oldTotal` is accurate (no stale snapshot).
+- `npm run typecheck` clean. No new migration, no auth-model change.
+
 ## Problem
 
 After PR-1, the per-line comp path (`apply_line_override`) and the add-on
