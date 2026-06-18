@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rhythm Outdoors — Designing the Look</title>
+<link rel="stylesheet" href="/guide.css" />
+<style>
+  /* Command blocks (guide.css styles inline <code> but not <pre>). */
+  pre { background:#0f172a; color:#e2e8f0; padding:14px 16px; border-radius:8px; overflow-x:auto; font-size:13px; line-height:1.6; font-family:"SFMono-Regular", Consolas, monospace; margin:14px 0; }
+  pre code { background:none; padding:0; color:inherit; font-size:inherit; }
+  /* A "thing you'd type to Claude" card. */
+  .prompt { background:#f1f5f9; border-left:3px solid #6366f1; border-radius:8px; padding:12px 14px; margin:10px 0; }
+  .prompt::before { content:"You ask Claude"; display:block; font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:#6366f1; margin-bottom:5px; }
+  .prompt p { margin:0; }
+  .prompt + .prompt { margin-top:8px; }
+  /* Two-column "who does what". */
+  .split { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:18px 0; }
+  .split .col { border:1px solid var(--line); border-radius:12px; padding:16px 18px; }
+  .split h4 { margin:0 0 8px; }
+  .split ul { margin:0; padding-left:18px; }
+  .split li { margin:6px 0; }
+  .you h4 { color:#15803d; } .dev h4 { color:#6366f1; }
+  @media (max-width:720px){ .split { grid-template-columns:1fr; } }
+  .callout { background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:14px 16px; margin:16px 0; }
+  .callout strong { color:#92400e; }
+  /* "Optional / nice to know" aside — set apart from the main amber callout. */
+  .aside { background:#f5f3ff; border:1px solid #ddd6fe; border-radius:10px; padding:14px 16px; margin:16px 0; }
+  .aside strong { color:#5b21b6; }
+</style>
+</head>
+<body class="theme-hub">
+
+<div class="print-hint">📄 <strong>To save as PDF:</strong> press <code>Ctrl/Cmd&nbsp;+&nbsp;P</code>, choose “Save as PDF,” enable “Background graphics,” and set margins to “Default.”</div>
+
+<div class="sheet">
+
+  <!-- COVER -->
+  <header class="cover">
+    <div class="kicker">Designing the Look</div>
+    <h1>Design and polish how things look — just by asking</h1>
+    <p class="sub">How to shape a new piece of the site — a section, a card, a pop-up — and fine-tune how it looks, all in plain language with Claude. You describe what you want; Claude builds it to match the rest of the site, you look at it in your browser, and you nudge it until it feels right.</p>
+    <div class="portal-chips">
+      <span class="chip p">On-brand automatically</span>
+      <span class="chip m">See it as you go</span>
+      <span class="chip a">Reviewed before publish</span>
+    </div>
+  </header>
+
+  <p><a href="/guide.html">← All guides</a></p>
+
+  <!-- 1. WHAT THIS IS FOR -->
+  <section>
+    <h2 id="what"><span class="num">1</span>What this is for</h2>
+    <p>This is the <strong>look-and-feel</strong> workflow: designing a new visual piece, or refining how an existing one looks. Wording, spacing, layout, a new pop-up, a nicer card — the things you can <em>see</em>.</p>
+    <p>It’s a companion to two others:</p>
+    <table>
+      <thead><tr><th>If you want to…</th><th>Use…</th></tr></thead>
+      <tbody>
+        <tr><td>Change content that’s already in the dashboard (pricing, FAQ, property info, adventures, waiver text…)</td><td>Just edit it in <code>/admin</code> — live &amp; instant</td></tr>
+        <tr><td>Design or polish how something <em>looks</em> (this guide)</td><td>Describe it to Claude, then tweak it in your browser</td></tr>
+        <tr><td>Add a whole new thing you can manage yourself (a new admin screen + somewhere to store it)</td><td>The <a href="/guide-build-a-feature.html">Building a feature</a> guide</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 2. THE SECRET: IT'S ALREADY ON-BRAND -->
+  <section>
+    <h2 id="onbrand"><span class="num">2</span>The part that makes this easy</h2>
+    <p>The site has a written <strong>design system</strong> — its colours (the deep olive, the leather tan, the warm-paper background), its fonts, its spacing, the way buttons and cards look. Claude reads it before it designs anything, so <strong>new work matches the rest of the site automatically.</strong></p>
+    <p>What that means for you: <strong>you don’t have to pick colours or fonts.</strong> Describe what you want in everyday words and it comes out looking like Rhythm Outdoors. If you ever want to be explicit, just say:</p>
+    <div class="prompt"><p>“Keep it on-brand — match the rest of the site.”</p></div>
+    <p>You can ask for a <em>feel</em> rather than specifics, too — “calmer,” “a bit more elegant,” “make it feel premium.” Claude knows what those mean for this brand.</p>
+  </section>
+
+  <!-- 3. THE WORKFLOW -->
+  <section>
+    <h2 id="workflow"><span class="num">3</span>The workflow, step by step</h2>
+
+    <h3>1 · Describe what you want</h3>
+    <p>Plain language. Say what it’s for and what should be in it — not how to build it.</p>
+    <div class="prompt"><p>“When someone’s picking add-ons during booking, I want a little pop-up that shows a photo of the add-on and a short description, so they understand what they’re getting before they choose it.”</p></div>
+
+    <h3>2 · Let Claude build it</h3>
+    <p>Claude designs and builds it using the site’s own look and its existing building blocks. You don’t need to do anything here except wait a moment.</p>
+
+    <h3>3 · Look at it in your browser</h3>
+    <p>You don’t ask Claude to “show” you — you look yourself. Claude keeps a private copy of the site running on your own computer at <code>http://localhost:3000</code>. Open it and refresh to see every change.</p>
+    <p>If the page won’t load, the site just isn’t running — say so and Claude will start it:</p>
+    <div class="prompt"><p>“The site isn’t loading — can you make sure it’s running so I can look at it in my browser?”</p></div>
+
+    <h3>4 · Tweak it until it’s right</h3>
+    <p>This is the fun part — say what you’d change, in plain words, and refresh.</p>
+    <div class="prompt"><p>“The photo’s too small — make it bigger and put it at the top.”</p></div>
+    <div class="prompt"><p>“There’s too much going on. Calm it down and give it more space.”</p></div>
+    <div class="prompt"><p>“On a phone, have it slide up from the bottom instead of floating in the middle.”</p></div>
+
+    <h3>5 · When you’re happy</h3>
+    <div class="prompt"><p>“This looks great. I’m done — open the pull request so my developer can review it.”</p></div>
+  </section>
+
+  <!-- 4. TWO WAYS TO TWEAK -->
+  <section>
+    <h2 id="tweak"><span class="num">4</span>Two ways to fine-tune the look</h2>
+    <p>Step 4 above can happen two ways. Both are fine — pick whichever feels natural.</p>
+    <div class="split">
+      <div class="col you">
+        <h4>Just ask in chat</h4>
+        <ul>
+          <li>Type what you’d change; refresh your browser to see it.</li>
+          <li>Best for clear, specific changes (“smaller headline,” “more space”).</li>
+          <li>Nothing to set up — it’s the default.</li>
+        </ul>
+      </div>
+      <div class="col dev">
+        <h4>Live mode (point &amp; pick)</h4>
+        <ul>
+          <li>A visual mode: you <strong>point at a thing on the page</strong> and Claude shows a few versions side by side to choose from.</li>
+          <li>Little sliders let you fine-tune — tighter/looser spacing, more/less of a colour — without re-asking.</li>
+          <li>Best when you’re not sure what you want and want to <em>see options</em>. Ask: <em>“Let’s use live mode to try a few versions of this.”</em></li>
+        </ul>
+      </div>
+    </div>
+    <p>Either way, the changes land in the same place and ship the same way — through the pull request your developer reviews.</p>
+  </section>
+
+  <!-- 5. OPTIONAL: SKETCH A LOOK FIRST -->
+  <section>
+    <h2 id="sketch"><span class="num">5</span>Optional: sketch a look first</h2>
+    <p>Most of the time, describing it to Claude and tweaking in your browser is the fastest path — start there. But if you’d like to <strong>see a few looks before anything is built</strong> — say, to show someone and agree on a direction — there’s a free web tool from Google called <strong>Stitch</strong> (<code>stitch.withgoogle.com</code>) that turns a description into a picture of a screen.</p>
+    <ul>
+      <li>Ask Claude for a “Stitch prompt” for your idea — it’ll write the description for you, already matched to the brand.</li>
+      <li>Paste it into Stitch, in your web browser, and look at what it draws. Refine by chatting with it.</li>
+      <li>Bring the picture back to Claude as a reference: <em>“build something like this, on-brand.”</em></li>
+    </ul>
+    <div class="aside">
+      <p><strong>Treat Stitch as a sketch, not the finished thing.</strong> It’s a separate website that lives in your browser only — it can’t change the real site, and its drawing isn’t the actual code. The real piece still gets built (and shipped) by Claude in the steps above. If you just want it built, you can skip Stitch entirely.</p>
+    </div>
+  </section>
+
+  <!-- 6. WHO DOES WHAT -->
+  <section>
+    <h2 id="who"><span class="num">6</span>Who does what</h2>
+    <div class="split">
+      <div class="col you">
+        <h4>Your part</h4>
+        <ul>
+          <li>Describe what you want it to look like / do</li>
+          <li>Look at it on your own computer and react</li>
+          <li>Tweak the look with Claude until it feels right</li>
+          <li>Say “I’m done” so Claude opens the pull request</li>
+        </ul>
+      </div>
+      <div class="col dev">
+        <h4>Your developer's part</h4>
+        <ul>
+          <li>Review the change</li>
+          <li>Apply anything that touches the live site or its data</li>
+          <li>Publish it</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p><strong>Look-only changes vs. ones with data.</strong> A pure look change (spacing, wording, a restyle) shows up correctly on the shared preview link right away. But if your new piece needs to <em>store</em> something — like a photo and description for each add-on — that part only shows on the shared link after your developer applies it. On your own computer (<code>localhost:3000</code>) you always see the real thing. Trust your local view while you work.</p>
+    </div>
+
+    <hr />
+    <p class="footer-note">New to making changes at all? Start with the <a href="/client-setup.html">Contributor setup guide</a>. Want to add something you can manage yourself, not just restyle? See <a href="/guide-build-a-feature.html">Building a feature</a>.</p>
+  </section>
+
+</div>
+</body>
+</html>

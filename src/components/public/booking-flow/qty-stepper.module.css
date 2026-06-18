@@ -26,6 +26,23 @@
   font-size: 25px;
 }
 
+/* Compact — inline in add-on list rows. */
+.qtySm {
+  gap: 0.25rem;
+  padding: 0.25rem 0.4rem;
+}
+
+.qtySm .qtyBtn {
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+}
+
+.qtySm .qtyValue,
+.qtySm .qtyInput {
+  font-size: 16px;
+}
+
 .qtyBtn {
   width: 38px;
   height: 38px;

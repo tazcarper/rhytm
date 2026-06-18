@@ -106,10 +106,41 @@
 
 /* ============ discipline list ============ */
 
+/* Editorial header for the disciplines step only — a small eyebrow over a
+   large serif title, closed by a hairline rule. The guests/when steps keep the
+   shared .sectionHead treatment, so this stays scoped here. */
+.disciplineHead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.disciplineEyebrow {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--tan-deep);
+  margin: 0;
+}
+
+.disciplineHeadTitle {
+  font-family: var(--serif);
+  font-size: var(--text-h2);
+  font-weight: 500;
+  line-height: 1.05;
+  color: var(--olive-deep);
+  margin: 0;
+}
+
 .disciplineList {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 1rem;
 }
 
 .disciplineCard {
@@ -135,13 +166,15 @@
   box-shadow: var(--shadow-lift);
 }
 
+/* Photo card: [media] [name + description] [select toggle]. The media is flush
+   to the card edges (the card clips it via overflow:hidden); text and toggle
+   carry their own padding. */
 .disciplineHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1.25rem;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr) auto;
+  align-items: stretch;
   width: 100%;
-  padding: 1.1rem 1.25rem;
+  padding: 0;
   background: transparent;
   border: none;
   color: inherit;
@@ -155,23 +188,56 @@
   outline-offset: -2px;
 }
 
+/* Aspect-sized, positioned box for AdventureImage's `fill`, stretched to the
+   card's full height by the grid. */
+.disciplineMedia {
+  position: relative;
+  overflow: hidden;
+  min-height: 132px;
+  align-self: stretch;
+  background: var(--cream);
+}
+
+.disciplineImage {
+  object-fit: cover;
+}
+
+/* Branded fallback when a discipline has no photo yet — a serif monogram on a
+   deep-olive field, so the card never ships an empty/broken image box. */
+.disciplinePlaceholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(150deg, var(--olive-deep), var(--olive-darker));
+  color: var(--tan);
+  font-family: var(--serif);
+  font-size: 40px;
+  font-weight: 500;
+}
+
 .disciplineHeaderText {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  justify-content: center;
+  gap: 0.4rem;
   min-width: 0;
+  padding: 1.3rem 1.35rem;
 }
 
 .disciplineTitle {
+  display: block;
   font-family: var(--serif);
-  font-size: 19px;
-  font-weight: 600;
-  color: var(--olive);
-  line-height: 1.2;
+  font-size: var(--text-h3);
+  font-weight: 500;
+  color: var(--olive-deep);
+  line-height: 1.15;
   margin: 0;
 }
 
 .disciplineDescription {
+  display: block;
   font-family: var(--sans);
   font-size: 13px;
   line-height: 1.5;
@@ -179,30 +245,59 @@
   margin: 0;
 }
 
+/* Circular select toggle — an empty ring when unselected, filled olive with a
+   check when selected. */
 .mark {
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
+  align-self: center;
+  width: 30px;
+  height: 30px;
+  margin-right: 1.35rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: var(--paper-warm);
-  color: var(--tan-deep);
-  font-family: var(--sans);
-  font-size: 16px;
-  font-weight: 600;
-  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--paper);
+  border: 1.5px solid var(--border-strong);
   transition:
     background var(--transition-fast),
     color var(--transition-fast),
     border-color var(--transition-fast);
 }
 
+.disciplineCard:hover .mark {
+  border-color: var(--tan-deep);
+}
+
 .disciplineCard[data-selected] .mark {
   background: var(--olive);
   color: var(--paper);
   border-color: var(--olive);
+}
+
+/* Stack the photo above the text on narrow viewports. */
+@media (max-width: 560px) {
+  .disciplineHeader {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "media media"
+      "text toggle";
+  }
+
+  .disciplineMedia {
+    grid-area: media;
+    aspect-ratio: 16 / 9;
+    min-height: 0;
+  }
+
+  .disciplineHeaderText {
+    grid-area: text;
+  }
+
+  .mark {
+    grid-area: toggle;
+  }
 }
 
 /* ============ add-on rows inside a card ============ */
@@ -223,69 +318,61 @@
   margin: 0 0 0.65rem;
 }
 
+/* Refined-ledger list: hairline-separated rows, no per-row card. */
 .addOnList {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
 }
 
+/* Grid row: [select] [name/trigger] [price] [fixed slot]. The slot is a fixed
+   width so the price column never moves when the ⓘ swaps to the stepper. */
 .addOnRow {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  flex-wrap: wrap;
-}
-
-.addOnToggle {
-  flex: 1;
-  min-width: 200px;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr) auto 7rem;
   align-items: center;
-  gap: 0.85rem;
-  padding: 0.6rem 0.85rem;
-  background: var(--paper);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    border-color var(--transition-fast),
-    background var(--transition-fast);
+  column-gap: 0.85rem;
+  padding: 0.3rem 0;
+  border-top: 1px solid var(--border);
 }
 
-.addOnToggle:hover {
-  border-color: rgba(184, 156, 115, 0.5);
+.addOnRow:first-child {
+  border-top: 0;
 }
 
-.addOnToggle:focus-visible {
-  outline: 2px solid var(--olive);
-  outline-offset: 2px;
-}
-
-.addOnRow[data-selected] .addOnToggle {
-  border-color: var(--tan-deep);
-  background: var(--paper-warm);
-}
-
-.addOnMark {
-  width: 20px;
-  height: 20px;
+/* Select / deselect — the square mark is the toggle. */
+.addOnSelect {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background: var(--paper-warm);
+  padding: 0.4rem;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sharp);
+  cursor: pointer;
+  color: inherit;
+}
+
+.addOnSelect:focus-visible {
+  outline: 2px solid var(--olive);
+  outline-offset: 0;
+}
+
+.addOnMark {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sharp);
+  background: var(--paper);
   color: var(--tan-deep);
   font-family: var(--sans);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   transition:
     background var(--transition-fast),
     color var(--transition-fast),
@@ -298,19 +385,45 @@
   border-color: var(--olive);
 }
 
-.addOnBody {
+/* Name + description — the tooltip trigger (hover desktop, tap touch). The
+   dotted underline appears on hover/focus to signal "more info" without an
+   always-on icon competing with the row. */
+.addOnTrigger {
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
   min-width: 0;
+  padding: 0.55rem 0;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sharp);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.addOnTrigger:focus-visible {
+  outline: 2px solid var(--olive);
+  outline-offset: -2px;
 }
 
 .addOnName {
   font-family: var(--serif);
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--olive);
-  line-height: 1.3;
+  line-height: 1.25;
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+  transition: text-decoration-color var(--transition-fast);
+}
+
+.addOnTrigger:hover .addOnName,
+.addOnTrigger:focus-visible .addOnName {
+  text-decoration-color: var(--tan-deep);
 }
 
 .addOnDescription {
@@ -323,8 +436,50 @@
 .addOnPrice {
   font-family: var(--serif);
   font-style: italic;
-  font-size: 14px;
+  font-size: 18px;
+  font-weight: 600;
   color: var(--olive);
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* Fixed-width right slot — the learn-more ⓘ when unselected, the quantity
+   stepper when selected (and the add-on allows more than one). Reserving the
+   width is what keeps the price from shifting on the swap. */
+.addOnSlot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 42px;
+}
+
+.addOnInfo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: var(--tan-deep);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.addOnInfo:hover {
+  color: var(--olive);
+  background: var(--paper);
+  border-color: rgba(184, 156, 115, 0.5);
+}
+
+.addOnInfo:focus-visible {
+  outline: 2px solid var(--olive);
+  outline-offset: 2px;
 }
 
 /* ============ date + time layout ============ */

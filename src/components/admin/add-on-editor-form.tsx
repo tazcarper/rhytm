@@ -1,16 +1,22 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Card } from "@/lib/ui";
 import {
   deleteAddOnAction,
   listAllBookingsForAddOnAction,
   updateAddOnAction,
+  uploadAddOnImageAction,
 } from "@/app/admin/properties/[id]/catalog/actions";
 import type { AdminCatalogAddOn } from "@/src/services/admin/catalog";
 import { DeleteCatalogItemConfirm } from "./delete-catalog-item-confirm";
+import { downscaleImage } from "./downscale-image";
 import s from "./catalog.module.css";
+
+// Detail photo shows in the funnel pop-up at ~440px wide (cinematic crop), so
+// a 1600px max edge is plenty; downscale in the browser before upload.
+const ADDON_IMAGE_MAX_EDGE = 1600;
 
 interface AddOnEditorFormProps {
   propertyId: string;
@@ -32,7 +38,39 @@ export function AddOnEditorForm({
   const [description, setDescription] = useState(addOn.description ?? "");
   const [price, setPrice] = useState(String(addOn.price));
   const [isActive, setIsActive] = useState(addOn.isActive);
+  const [includedDetail, setIncludedDetail] = useState(
+    addOn.includedDetail ?? "",
+  );
+  const [imageUrl, setImageUrl] = useState(addOn.imageUrl ?? "");
+  const [maxQuantity, setMaxQuantity] = useState(String(addOn.maxQuantity));
   const [showDelete, setShowDelete] = useState(false);
+
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [isUploading, startUpload] = useTransition();
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // Upload path: downscale in the browser, hand the file to the admin action,
+  // then drop the returned public URL into the same `imageUrl` field a pasted
+  // URL fills. Save is still a separate step — uploading only fills the field.
+  const handlePickFile = (files: FileList | null) => {
+    const file = files?.[0];
+    if (!file) return;
+    setUploadError(null);
+    startUpload(async () => {
+      const optimized = await downscaleImage(file, {
+        maxEdge: ADDON_IMAGE_MAX_EDGE,
+      });
+      const formData = new FormData();
+      formData.append("file", optimized);
+      const result = await uploadAddOnImageAction(formData);
+      if (!result.ok) {
+        setUploadError(result.error);
+        return;
+      }
+      setImageUrl(result.url);
+    });
+    if (fileRef.current) fileRef.current.value = "";
+  };
 
   const handleDelete = async () => {
     const result = await deleteAddOnAction(
@@ -55,6 +93,9 @@ export function AddOnEditorForm({
         description: addOn.description,
         price: addOn.price,
         isActive: false,
+        imageUrl: addOn.imageUrl,
+        includedDetail: addOn.includedDetail,
+        maxQuantity: addOn.maxQuantity,
       },
     );
     if (result.ok) {
@@ -78,6 +119,9 @@ export function AddOnEditorForm({
           description: description.trim() || null,
           price,
           isActive,
+          imageUrl: imageUrl.trim() || null,
+          includedDetail: includedDetail.trim() || null,
+          maxQuantity,
         },
       );
       if (!result.ok) {
@@ -139,6 +183,103 @@ export function AddOnEditorForm({
               they were created with.
             </span>
           </label>
+          <label className={s.formGroup}>
+            <span className={s.fieldLabel}>Maximum quantity per booking</span>
+            <input
+              className={s.input}
+              type="number"
+              min="1"
+              max="99"
+              step="1"
+              inputMode="numeric"
+              value={maxQuantity}
+              onChange={(e) => setMaxQuantity(e.target.value)}
+              required
+            />
+            <span className={s.help}>
+              Set to 1 for a simple add/remove. Set higher to let guests choose
+              how many — the booking funnel shows a (&minus;&nbsp;#&nbsp;+)
+              quantity control, capped at this number.
+            </span>
+          </label>
+
+          <label className={s.formGroup}>
+            <span className={s.fieldLabel}>What&rsquo;s included</span>
+            <textarea
+              className={s.textarea}
+              value={includedDetail}
+              onChange={(e) => setIncludedDetail(e.target.value)}
+              rows={2}
+              maxLength={200}
+              placeholder="Includes 100 rounds · 12, 20, or 28 gauge"
+            />
+            <span className={s.help}>
+              One short line shown under the price in the booking pop-up. Leave
+              blank to hide it.
+            </span>
+          </label>
+
+          <div className={s.formGroup}>
+            <span className={s.fieldLabel}>Detail photo</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap" }}>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={(e) => handlePickFile(e.target.files)}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={isUploading}
+                onClick={() => fileRef.current?.click()}
+              >
+                {isUploading
+                  ? "Uploading…"
+                  : imageUrl.trim() !== ""
+                    ? "Replace photo"
+                    : "Upload photo"}
+              </Button>
+              <span className={s.help}>
+                JPEG, PNG, or WebP up to 10&nbsp;MB. Landscape works best;
+                larger images are resized automatically.
+              </span>
+            </div>
+            {uploadError && (
+              <span className={s.help} style={{ color: "var(--accent-error)" }}>
+                {uploadError}
+              </span>
+            )}
+            <input
+              className={s.input}
+              type="text"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="…or paste an image link (https://…)"
+            />
+            {imageUrl.trim() !== "" && (
+              <div
+                style={{
+                  marginTop: "var(--space-2)",
+                  aspectRatio: "16 / 9",
+                  maxWidth: 320,
+                  overflow: "hidden",
+                  borderRadius: "var(--radius-card)",
+                  border: "1px solid var(--border)",
+                  background: "var(--paper-warm)",
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imageUrl.trim()}
+                  alt="Add-on detail preview"
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              </div>
+            )}
+          </div>
+
           <label
             style={{
               display: "flex",

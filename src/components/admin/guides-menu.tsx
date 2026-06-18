@@ -33,6 +33,7 @@ const GUIDE_LINKS: ReadonlyArray<GuideLink> = [
 // visually from the shareable audience manuals above.
 const CONTRIBUTOR_LINKS: ReadonlyArray<GuideLink> = [
   { label: "Editing the site", href: "/client-setup.html", hint: "Set up your Mac + the safe workflow" },
+  { label: "Designing the look", href: "/guide-design-workflow.html", hint: "Sketch, build & tweak UI with Claude" },
   { label: "Building a feature", href: "/guide-build-a-feature.html", hint: "Worked example: ask → built → reviewed" },
 ];
 

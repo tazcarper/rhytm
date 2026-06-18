@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Alert, Button, Calendar } from "@/lib/ui";
 import { useBookingFlow } from "./booking-flow-provider";
@@ -21,9 +27,11 @@ import {
   type SlotAvailability,
   type SlotsByDayOfWeek,
 } from "@/src/services/public/slots";
-import type { PublicService } from "@/src/services/public/services";
+import type { PublicAddOn, PublicService } from "@/src/services/public/services";
 import { getSlotAvailabilityAction } from "@/app/(public)/book/[property]/disciplines/availability-action";
 import type { DisciplineSelection } from "./booking-flow-types";
+import { AddOnDetailTooltip } from "./add-on-detail-tooltip";
+import { AdventureImage } from "@/src/components/public/adventure-image";
 import { InstructorWhenStep } from "./instructor-when-step";
 import { startOfDay, dateToISO, dateFromISO } from "./date-utils";
 import s from "./booking-builder.module.css";
@@ -60,6 +68,58 @@ export function BookingBuilder({
   // bookable, leaving the Phase 2 insert triggers as the final guard.
   const [availability, setAvailability] = useState<SlotAvailability | null>(null);
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  // The add-on whose detail tooltip is open, plus the element it anchors to.
+  // A short close-timer powers the hover-bridge (moving the pointer from the
+  // row onto the tooltip without it closing). `null` = closed.
+  const [detail, setDetail] = useState<{
+    addOn: PublicAddOn;
+    anchor: HTMLElement;
+  } | null>(null);
+  const detailCloseTimer = useRef<number | null>(null);
+
+  function cancelDetailClose() {
+    if (detailCloseTimer.current !== null) {
+      window.clearTimeout(detailCloseTimer.current);
+      detailCloseTimer.current = null;
+    }
+  }
+  function openDetail(addOn: PublicAddOn, anchor: HTMLElement) {
+    cancelDetailClose();
+    setDetail({ addOn, anchor });
+  }
+  function scheduleDetailClose() {
+    cancelDetailClose();
+    detailCloseTimer.current = window.setTimeout(() => setDetail(null), 140);
+  }
+  function closeDetailNow() {
+    cancelDetailClose();
+    setDetail(null);
+  }
+  function toggleDetail(addOn: PublicAddOn, anchor: HTMLElement) {
+    if (detail?.addOn.id === addOn.id) closeDetailNow();
+    else openDetail(addOn, anchor);
+  }
+  // Hover opens on mouse only; tap (touch/pen) and keyboard toggle on click.
+  // A `click` is a PointerEvent, so pointerType separates a real mouse from a
+  // touch tap — without this, a tap fires mouseenter→open then click→close.
+  function handleDetailEnter(
+    event: ReactPointerEvent<HTMLElement>,
+    addOn: PublicAddOn,
+  ) {
+    if (event.pointerType === "mouse") openDetail(addOn, event.currentTarget);
+  }
+  function handleDetailLeave(event: ReactPointerEvent<HTMLElement>) {
+    if (event.pointerType === "mouse") scheduleDetailClose();
+  }
+  function handleDetailClick(
+    event: ReactMouseEvent<HTMLElement>,
+    addOn: PublicAddOn,
+  ) {
+    if ((event.nativeEvent as PointerEvent).pointerType === "mouse") return;
+    toggleDetail(addOn, event.currentTarget);
+  }
+  // Don't leave a pending close-timer firing setState after unmount.
+  useEffect(() => () => cancelDetailClose(), []);
 
   if (!state.bookingType) return null;
   const bookingType = state.bookingType;
@@ -114,7 +174,13 @@ export function BookingBuilder({
   }
 
   function setAddOnQuantity(serviceId: string, addOnId: string, qty: number) {
-    const clamped = Math.max(1, Math.min(20, qty));
+    // Clamp to the add-on's admin-set ceiling (the stepper enforces it in the
+    // UI too; this is the safety net). Falls back to 1 if not found.
+    const ceiling =
+      services
+        .find((svc) => svc.id === serviceId)
+        ?.addOns.find((a) => a.id === addOnId)?.maxQuantity ?? 1;
+    const clamped = Math.max(1, Math.min(ceiling, qty));
     setSelections(
       selections.map((d) => {
         if (d.serviceId !== serviceId) return d;
@@ -323,10 +389,15 @@ export function BookingBuilder({
               </Alert>
             ) : (
               <section className={s.section}>
-                <header className={s.sectionHead}>
-                  <p className={s.sectionEyebrow}>
-                    {singleSelect ? "Choose your discipline" : "Disciplines & add-ons"}
+                <header className={s.disciplineHead}>
+                  <p className={s.disciplineEyebrow}>
+                    {singleSelect ? "Your discipline" : "Your disciplines"}
                   </p>
+                  <h2 className={s.disciplineHeadTitle}>
+                    {singleSelect
+                      ? "Choose Your Discipline"
+                      : "Choose Your Disciplines"}
+                  </h2>
                   <p className={s.sectionDescription}>
                     {singleSelect
                       ? "Pick the discipline you'd like to learn. Your instructor will tailor the lesson around your selection, and you can layer add-ons like extra ammunition or specialty gear on top."
@@ -359,16 +430,43 @@ export function BookingBuilder({
                             onClick={() => toggleService(svc.id)}
                             aria-pressed={selected}
                           >
-                            <div className={s.disciplineHeaderText}>
-                              <h3 className={s.disciplineTitle}>{svc.name}</h3>
-                              {svc.description && (
-                                <p className={s.disciplineDescription}>
-                                  {svc.description}
-                                </p>
+                            <span className={s.disciplineMedia} aria-hidden="true">
+                              {svc.imageUrl ? (
+                                <AdventureImage
+                                  src={svc.imageUrl}
+                                  alt=""
+                                  sizes="(max-width: 560px) 100vw, 220px"
+                                  className={s.disciplineImage}
+                                />
+                              ) : (
+                                <span className={s.disciplinePlaceholder}>
+                                  {svc.name.charAt(0).toUpperCase()}
+                                </span>
                               )}
-                            </div>
+                            </span>
+                            <span className={s.disciplineHeaderText}>
+                              <span className={s.disciplineTitle}>{svc.name}</span>
+                              {svc.description && (
+                                <span className={s.disciplineDescription}>
+                                  {svc.description}
+                                </span>
+                              )}
+                            </span>
                             <span className={s.mark} aria-hidden="true">
-                              {selected ? "✓" : "+"}
+                              {selected && (
+                                <svg
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="M20 6 9 17l-5-5" />
+                                </svg>
+                              )}
                             </span>
                           </button>
 
@@ -387,38 +485,97 @@ export function BookingBuilder({
                                       className={s.addOnRow}
                                       data-selected={on || undefined}
                                     >
+                                      {/* Select / deselect — the mark is the toggle. */}
                                       <button
                                         type="button"
-                                        className={s.addOnToggle}
+                                        className={s.addOnSelect}
                                         onClick={() => toggleAddOn(svc.id, addOn.id)}
                                         aria-pressed={on}
+                                        aria-label={`${on ? "Remove" : "Add"} ${addOn.name}`}
                                       >
                                         <span className={s.addOnMark} aria-hidden="true">
                                           {on ? "✓" : "+"}
                                         </span>
-                                        <span className={s.addOnBody}>
-                                          <span className={s.addOnName}>
-                                            {addOn.name}
-                                          </span>
-                                          {addOn.description && (
-                                            <span className={s.addOnDescription}>
-                                              {addOn.description}
-                                            </span>
-                                          )}
-                                        </span>
-                                        <span className={s.addOnPrice}>
-                                          ${addOn.price.toFixed(0)}
-                                        </span>
                                       </button>
-                                      {on && (
-                                        <QtyStepper
-                                          value={sel.quantity}
-                                          onChange={(qty) =>
-                                            setAddOnQuantity(svc.id, addOn.id, qty)
-                                          }
-                                          label={`${addOn.name} quantity`}
-                                        />
-                                      )}
+
+                                      {/* Name + description — the tooltip trigger
+                                          (hover on desktop, tap on touch). */}
+                                      <button
+                                        type="button"
+                                        className={s.addOnTrigger}
+                                        onPointerEnter={(e) =>
+                                          handleDetailEnter(e, addOn)
+                                        }
+                                        onPointerLeave={handleDetailLeave}
+                                        onClick={(e) => handleDetailClick(e, addOn)}
+                                        aria-haspopup="dialog"
+                                        aria-expanded={detail?.addOn.id === addOn.id}
+                                        aria-label={`About ${addOn.name}`}
+                                      >
+                                        <span className={s.addOnName}>
+                                          {addOn.name}
+                                        </span>
+                                        {addOn.description && (
+                                          <span className={s.addOnDescription}>
+                                            {addOn.description}
+                                          </span>
+                                        )}
+                                      </button>
+
+                                      <span className={s.addOnPrice}>
+                                        ${addOn.price.toFixed(0)}
+                                      </span>
+
+                                      {/* Right slot: the quantity stepper once
+                                          selected (only when more than one is
+                                          allowed), otherwise the learn-more ⓘ. */}
+                                      <span className={s.addOnSlot}>
+                                        {on && addOn.maxQuantity > 1 ? (
+                                          <QtyStepper
+                                            size="sm"
+                                            value={sel?.quantity ?? 1}
+                                            min={1}
+                                            max={addOn.maxQuantity}
+                                            onChange={(qty) =>
+                                              setAddOnQuantity(svc.id, addOn.id, qty)
+                                            }
+                                            label={`${addOn.name} quantity`}
+                                          />
+                                        ) : (
+                                          <button
+                                            type="button"
+                                            className={s.addOnInfo}
+                                            onPointerEnter={(e) =>
+                                              handleDetailEnter(e, addOn)
+                                            }
+                                            onPointerLeave={handleDetailLeave}
+                                            onClick={(e) =>
+                                              handleDetailClick(e, addOn)
+                                            }
+                                            aria-haspopup="dialog"
+                                            aria-expanded={
+                                              detail?.addOn.id === addOn.id
+                                            }
+                                            aria-label={`Learn more about ${addOn.name}`}
+                                          >
+                                            <svg
+                                              width="18"
+                                              height="18"
+                                              viewBox="0 0 24 24"
+                                              fill="none"
+                                              stroke="currentColor"
+                                              strokeWidth="2"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              aria-hidden="true"
+                                            >
+                                              <circle cx="12" cy="12" r="10" />
+                                              <path d="M12 16v-4" />
+                                              <path d="M12 8h.01" />
+                                            </svg>
+                                          </button>
+                                        )}
+                                      </span>
                                     </li>
                                   );
                                 })}
@@ -588,6 +745,14 @@ export function BookingBuilder({
           <BookingSummary services={services} pricing={pricing} />
         </div>
       </div>
+
+      <AddOnDetailTooltip
+        addOn={detail?.addOn ?? null}
+        anchor={detail?.anchor ?? null}
+        onClose={closeDetailNow}
+        onPointerEnter={cancelDetailClose}
+        onPointerLeave={scheduleDetailClose}
+      />
     </>
   );
 }

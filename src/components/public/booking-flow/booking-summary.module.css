@@ -1,13 +1,21 @@
 .box {
   position: sticky;
   top: 2rem;
-  padding: 1.75rem 1.5rem;
-  border: 1px solid var(--tan-deep);
+  padding: 1.9rem 1.6rem;
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-card);
-  background: var(--paper-warm);
+  background: var(--paper);
+  box-shadow: var(--shadow-soft);
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+}
+
+/* Eyebrow sits over a hairline rule, echoing the editorial header on the
+   disciplines step. */
+.eyebrow {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
 }
 
 @media (max-width: 720px) {
@@ -45,10 +53,10 @@
 
 .fact {
   font-family: var(--serif);
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--olive);
-  line-height: 1.2;
+  font-size: var(--text-h3);
+  font-weight: 500;
+  color: var(--olive-deep);
+  line-height: 1.15;
   margin: 0;
 }
 
@@ -131,9 +139,9 @@
 }
 
 .removeBtn:hover {
-  background: var(--accent-error, #b04040);
+  background: var(--accent-error);
   color: var(--paper);
-  border-color: var(--accent-error, #b04040);
+  border-color: var(--accent-error);
 }
 
 .removeBtn:focus-visible {
@@ -190,11 +198,11 @@
 
 .totalAmount {
   font-family: var(--serif);
-  font-size: 32px;
-  font-weight: 600;
-  color: var(--olive);
+  font-size: var(--text-h2);
+  font-weight: 500;
+  color: var(--olive-deep);
   letter-spacing: -0.5px;
-  line-height: 1.1;
+  line-height: 1.05;
   margin: 0;
 }
 

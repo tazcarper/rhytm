@@ -1,6 +1,6 @@
 {
-  "files": ["app/layout.tsx"],
+  "files": ["public/add-on-detail-popup-preview.html"],
   "insertBefore": "</body>",
-  "commentSyntax": "jsx",
+  "commentSyntax": "html",
   "cspChecked": true
 }

@@ -102,6 +102,7 @@ export function CatalogServicesPanel({
       name: deactivateTarget.name,
       description: deactivateTarget.description,
       isActive: false,
+      imageUrl: deactivateTarget.imageUrl,
       linkedAddOnIds: currentLinkedIds,
       newAddOns: [],
     });

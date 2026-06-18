@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Card } from "@/lib/ui";
 import {
   deleteServiceAction,
   listAllBookingsForServiceAction,
   updateServiceAction,
+  uploadServiceImageAction,
 } from "@/app/admin/properties/[id]/catalog/actions";
 import type {
   AdminCatalogService,
@@ -14,7 +15,13 @@ import type {
 } from "@/src/services/admin/catalog";
 import { formatMoney } from "@/src/services/public/format";
 import { DeleteCatalogItemConfirm } from "./delete-catalog-item-confirm";
+import { downscaleImage } from "./downscale-image";
 import s from "./catalog.module.css";
+
+// The discipline card photo renders edge-to-edge in the booking funnel at
+// roughly half the page width; a 2000px max edge keeps it crisp on retina
+// without shipping originals. Downscale in the browser before upload.
+const SERVICE_IMAGE_MAX_EDGE = 2000;
 
 interface ServiceEditorFormProps {
   propertyId: string;
@@ -47,11 +54,39 @@ export function ServiceEditorForm({
   const [name, setName] = useState(service.name);
   const [description, setDescription] = useState(service.description ?? "");
   const [isActive, setIsActive] = useState(service.isActive);
+  const [imageUrl, setImageUrl] = useState(service.imageUrl ?? "");
   const [linkedIds, setLinkedIds] = useState<Set<string>>(
     new Set(initialLinkedAddOnIds),
   );
   const [newAddOns, setNewAddOns] = useState<NewAddOnDraftRow[]>([]);
   const [showDelete, setShowDelete] = useState(false);
+
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [isUploading, startUpload] = useTransition();
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // Upload path: downscale in the browser, hand the file to the admin action,
+  // then drop the returned public URL into the same `imageUrl` field a pasted
+  // URL fills. Save is still a separate step — uploading only fills the field.
+  const handlePickFile = (files: FileList | null) => {
+    const file = files?.[0];
+    if (!file) return;
+    setUploadError(null);
+    startUpload(async () => {
+      const optimized = await downscaleImage(file, {
+        maxEdge: SERVICE_IMAGE_MAX_EDGE,
+      });
+      const formData = new FormData();
+      formData.append("file", optimized);
+      const result = await uploadServiceImageAction(formData);
+      if (!result.ok) {
+        setUploadError(result.error);
+        return;
+      }
+      setImageUrl(result.url);
+    });
+    if (fileRef.current) fileRef.current.value = "";
+  };
 
   const handleDelete = async () => {
     const result = await deleteServiceAction(
@@ -74,6 +109,7 @@ export function ServiceEditorForm({
         name: service.name,
         description: service.description,
         isActive: false,
+        imageUrl: service.imageUrl,
         linkedAddOnIds: [...initialLinkedAddOnIds],
         newAddOns: [],
       },
@@ -125,6 +161,7 @@ export function ServiceEditorForm({
           name,
           description: description.trim() || null,
           isActive,
+          imageUrl: imageUrl.trim() || null,
           linkedAddOnIds: [...linkedIds],
           newAddOns: trimmedDrafts,
         },
@@ -178,6 +215,69 @@ export function ServiceEditorForm({
               Shown to guests in the booking funnel and on the bid page.
             </span>
           </label>
+
+          <div className={s.formGroup}>
+            <span className={s.fieldLabel}>Card photo</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap" }}>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={(e) => handlePickFile(e.target.files)}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={isUploading}
+                onClick={() => fileRef.current?.click()}
+              >
+                {isUploading
+                  ? "Uploading…"
+                  : imageUrl.trim() !== ""
+                    ? "Replace photo"
+                    : "Upload photo"}
+              </Button>
+              <span className={s.help}>
+                JPEG, PNG, or WebP up to 10&nbsp;MB. Landscape works best;
+                larger images are resized automatically. Shown on the
+                discipline card in the booking funnel.
+              </span>
+            </div>
+            {uploadError && (
+              <span className={s.help} style={{ color: "var(--accent-error)" }}>
+                {uploadError}
+              </span>
+            )}
+            <input
+              className={s.input}
+              type="text"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="…or paste an image link (https://…)"
+            />
+            {imageUrl.trim() !== "" && (
+              <div
+                style={{
+                  marginTop: "var(--space-2)",
+                  aspectRatio: "16 / 9",
+                  maxWidth: 320,
+                  overflow: "hidden",
+                  borderRadius: "var(--radius-card)",
+                  border: "1px solid var(--border)",
+                  background: "var(--paper-warm)",
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imageUrl.trim()}
+                  alt="Discipline card preview"
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              </div>
+            )}
+          </div>
+
           <label
             style={{
               display: "flex",

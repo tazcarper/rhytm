@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Add-on detail pop-up — design preview</title>
+<!--
+  STATIC DESIGN PREVIEW / QA ARTIFACT — not part of the app bundle.
+  Mirrors <AddOnDetailDialog> + the booking-builder add-on row so every state
+  in the brief can be reviewed offline (open via file://, no build needed).
+  The shipping component lives at:
+    src/components/public/booking-flow/add-on-detail-dialog.tsx
+    src/components/public/booking-flow/booking-builder.tsx
+  Tokens below are copied from app/globals.css. If the design system changes,
+  this file is a snapshot and may drift — the React component is the source of
+  truth.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --olive: #3f4a21;
+    --olive-deep: #2a3216;
+    --tan: #b89c73;
+    --tan-deep: #9a8159;
+    --cream: #e8e4d5;
+    --paper: #fbfaf3;
+    --paper-warm: #f5f1e5;
+    --gray: #6b6557;
+    --border: rgba(63, 74, 33, 0.15);
+    --border-strong: rgba(63, 74, 33, 0.28);
+    --accent-error: #8b3030;
+    --serif: "Cormorant Garamond", Georgia, serif;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    --text-eyebrow: 11px;
+    --text-micro: 12px;
+    --text-body: 15px;
+    --text-h4: 19px;
+    --text-h3: 24px;
+    --track-eyebrow: 3px;
+    --track-button: 2.5px;
+    --track-label: 1.5px;
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-6: 1.5rem;
+    --radius-sharp: 2px;
+    --radius-card: 3px;
+    --radius-pill: 100px;
+    --shadow-soft: 0 1px 2px rgba(31, 38, 17, 0.04), 0 8px 24px rgba(31, 38, 17, 0.06);
+    --shadow-lift: 0 1px 2px rgba(31, 38, 17, 0.06), 0 16px 48px rgba(31, 38, 17, 0.12);
+    --transition-fast: 150ms ease;
+    --transition-base: 240ms ease;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    font-size: var(--text-body);
+    line-height: 1.6;
+    color: var(--olive);
+    background: var(--paper);
+    padding: clamp(1.5rem, 5vw, 4rem);
+  }
+
+  .page { max-width: 1100px; margin: 0 auto; }
+
+  .pageHead { margin-bottom: 3rem; max-width: 70ch; }
+  .pageEyebrow {
+    font-size: var(--text-eyebrow);
+    letter-spacing: var(--track-eyebrow);
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--tan-deep);
+    margin: 0 0 var(--space-3);
+  }
+  .pageTitle {
+    font-family: var(--serif);
+    font-size: clamp(34px, 5vw, 52px);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 var(--space-3);
+  }
+  .pageLede {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 18px;
+    color: var(--gray);
+    margin: 0;
+  }
+
+  .panel {
+    padding: 2.5rem 0;
+    border-top: 1px solid var(--border);
+  }
+  .panelTitle {
+    font-family: var(--serif);
+    font-size: var(--text-h3);
+    font-weight: 600;
+    margin: 0 0 var(--space-2);
+  }
+  .panelNote {
+    font-size: var(--text-micro);
+    color: var(--gray);
+    margin: 0 0 var(--space-6);
+    max-width: 64ch;
+  }
+  .panelNote code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    background: var(--paper-warm);
+    padding: 1px 5px;
+    border-radius: var(--radius-sharp);
+  }
+
+  .gallery { display: flex; flex-wrap: wrap; gap: 2rem; align-items: flex-start; }
+  .specimen { display: flex; flex-direction: column; gap: var(--space-3); }
+  .specimenLabel {
+    font-size: var(--text-eyebrow);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--gray);
+  }
+
+  /* ===================== discipline card + add-on rows ===================== */
+
+  .disciplineCard {
+    max-width: 560px;
+    border: 1px solid var(--tan-deep);
+    border-radius: var(--radius-card);
+    background: var(--paper-warm);
+    box-shadow: var(--shadow-lift);
+    overflow: hidden;
+  }
+  .disciplineHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.25rem;
+    padding: 1.1rem 1.25rem;
+  }
+  .disciplineTitle {
+    font-family: var(--serif);
+    font-size: var(--text-h4);
+    font-weight: 600;
+    margin: 0;
+  }
+  .disciplineDescription {
+    font-size: 13px;
+    color: var(--gray);
+    margin: 0.3rem 0 0;
+  }
+  .mark {
+    flex-shrink: 0;
+    width: 28px; height: 28px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: var(--olive);
+    color: var(--paper);
+    font-weight: 600;
+    border: 1px solid var(--olive);
+  }
+  .addOnGroup {
+    border-top: 1px solid var(--border);
+    padding: 1.1rem 1.5rem 1.35rem;
+    background: rgba(184, 156, 115, 0.06);
+  }
+  .addOnGroupLabel {
+    font-size: var(--text-eyebrow);
+    letter-spacing: var(--track-eyebrow);
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--tan-deep);
+    margin: 0 0 0.65rem;
+  }
+  .addOnList { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+  .addOnRow { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
+  .addOnToggle {
+    flex: 1; min-width: 200px;
+    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.85rem;
+    padding: 0.6rem 0.85rem;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    color: inherit; font: inherit; text-align: left; cursor: pointer;
+    transition: border-color var(--transition-fast), background var(--transition-fast);
+  }
+  .addOnToggle:hover { border-color: rgba(184, 156, 115, 0.5); }
+  .addOnRow[data-selected] .addOnToggle { border-color: var(--tan-deep); background: var(--paper-warm); }
+  .addOnMark {
+    width: 20px; height: 20px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: var(--paper-warm); color: var(--tan-deep);
+    font-size: 12px; font-weight: 600; border: 1px solid var(--border);
+  }
+  .addOnRow[data-selected] .addOnMark { background: var(--olive); color: var(--paper); border-color: var(--olive); }
+  .addOnBody { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .addOnName { font-family: var(--serif); font-size: var(--text-body); font-weight: 600; line-height: 1.3; }
+  .addOnDescription { font-size: var(--text-micro); line-height: 1.45; color: var(--gray); }
+  .addOnPrice { font-family: var(--serif); font-style: italic; font-size: 14px; }
+
+  /* the circled-i affordance */
+  .addOnInfo {
+    flex: none;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; padding: 0;
+    color: var(--tan-deep);
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
+  }
+  .addOnInfo:hover, .addOnInfo.is-hover {
+    color: var(--olive); background: var(--paper-warm); border-color: rgba(184, 156, 115, 0.5);
+  }
+  .addOnInfo:focus-visible, .addOnInfo.is-focus {
+    outline: 2px solid var(--olive); outline-offset: 2px;
+  }
+
+  .triggerStates { display: flex; gap: 1.5rem; margin-top: 1.75rem; }
+  .triggerState { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); }
+  .triggerState span { font-size: var(--text-micro); color: var(--gray); }
+
+  /* ===================== the sheet (shared by dialog + stages) ===================== */
+
+  .sheet {
+    display: flex; flex-direction: column;
+    width: 100%;
+    background: var(--paper);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-lift);
+    overflow: hidden;
+  }
+  .media { position: relative; flex: none; aspect-ratio: 16 / 10; background: var(--paper-warm); overflow: hidden; }
+  .photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity var(--transition-base) ease; }
+  .photo[data-status="loaded"] { opacity: 1; }
+  .skeleton {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(100deg, transparent 30%, rgba(184, 156, 115, 0.22) 50%, transparent 70%),
+      var(--paper-warm);
+    background-size: 220% 100%; background-repeat: no-repeat;
+    animation: skeleton-sweep 1.4s ease-in-out infinite;
+  }
+  @keyframes skeleton-sweep { from { background-position: 180% 0; } to { background-position: -80% 0; } }
+  .placeholder { position: absolute; inset: 0; }
+  .placeholder svg { width: 100%; height: 100%; display: block; }
+  .grab {
+    position: absolute; top: 9px; left: 50%; transform: translateX(-50%); z-index: 1;
+    width: 38px; height: 4px; border-radius: var(--radius-pill);
+    background: rgba(251, 250, 243, 0.85); box-shadow: 0 1px 2px rgba(31, 38, 17, 0.18);
+    display: none;
+  }
+  .close {
+    position: absolute; top: var(--space-3); right: var(--space-3);
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; padding: 0;
+    color: var(--olive);
+    background: rgba(251, 250, 243, 0.9);
+    border: 1px solid var(--border); border-radius: var(--radius-pill);
+    box-shadow: 0 1px 2px rgba(31, 38, 17, 0.12);
+    cursor: pointer;
+    transition: background var(--transition-fast), color var(--transition-fast);
+  }
+  .close:hover { background: var(--paper); color: var(--olive-deep); }
+  .close:focus-visible { outline: 2px solid var(--tan-deep); outline-offset: 2px; }
+
+  .content { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-6); }
+  .title { margin: 0; font-family: var(--serif); font-size: var(--text-h3); font-weight: 600; line-height: 1.15; letter-spacing: -0.01em; text-wrap: balance; }
+  .description { margin: 0; font-size: var(--text-body); line-height: 1.6; color: var(--olive); max-width: 60ch; }
+  .priceRow { display: flex; flex-direction: column; gap: var(--space-1); margin-top: var(--space-1); padding-top: var(--space-3); border-top: 1px solid var(--border); }
+  .price { font-family: var(--serif); font-style: italic; font-size: var(--text-h4); font-weight: 600; }
+  .included { font-size: var(--text-micro); line-height: 1.5; color: var(--gray); }
+
+  .footer { flex: none; display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4) var(--space-6) var(--space-6); border-top: 1px solid var(--border); background: var(--paper); }
+  .commit {
+    width: 100%; padding: 13px 20px;
+    font-family: var(--sans); font-size: var(--text-body); font-weight: 600;
+    letter-spacing: var(--track-button); text-transform: uppercase;
+    color: var(--cream); background: var(--olive);
+    border: 1px solid var(--olive); border-radius: var(--radius-sharp); cursor: pointer;
+    transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+  }
+  .commit:hover { background: var(--olive-deep); border-color: var(--olive-deep); }
+  .commit:focus-visible { outline: 2px solid var(--tan-deep); outline-offset: 2px; }
+  .commit[data-added] { color: var(--olive); background: var(--paper-warm); border-color: var(--tan-deep); }
+  .commit[data-added]:hover { color: var(--accent-error); background: rgba(139, 48, 48, 0.07); border-color: var(--accent-error); }
+  .dismiss {
+    width: 100%; padding: 10px 20px;
+    font-family: var(--sans); font-size: var(--text-micro); font-weight: 600;
+    letter-spacing: var(--track-label); text-transform: uppercase;
+    color: var(--gray); background: transparent; border: 0; border-radius: var(--radius-sharp); cursor: pointer;
+    transition: color var(--transition-fast);
+  }
+  .dismiss:hover { color: var(--olive); }
+
+  /* ===================== inline "stage" renderings (no modal) ===================== */
+
+  .stage {
+    display: flex; align-items: center; justify-content: center;
+    padding: 1.75rem;
+    background:
+      repeating-linear-gradient(45deg, rgba(31,38,17,0.5) 0 10px, rgba(31,38,17,0.46) 10px 20px);
+    border-radius: var(--radius-card);
+  }
+  .stage .sheet { width: 360px; }
+
+  /* image-states panel: three small media frames */
+  .mediaFrame { width: 300px; border: 1px solid var(--border); border-radius: var(--radius-card); overflow: hidden; }
+
+  /* phone frame for the mobile bottom sheet */
+  .phone {
+    position: relative; width: 360px; height: 640px;
+    border: 10px solid #20251a; border-radius: 38px;
+    background: var(--olive);
+    overflow: hidden; box-shadow: var(--shadow-lift);
+  }
+  .phone .phoneScrim { position: absolute; inset: 0; background: rgba(31, 38, 17, 0.5); }
+  .phone .phoneApp {
+    position: absolute; inset: 0; padding: 18px;
+    background: var(--paper);
+    color: var(--gray); font-size: 13px;
+  }
+  .phone .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    width: 100%;
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
+    max-height: 86%;
+  }
+  .phone .grab { display: block; }
+
+  /* ===================== the real dialog ===================== */
+
+  dialog.addon {
+    position: fixed; inset: auto 0 0 0; margin: 0;
+    width: 100%; max-width: 100%; max-height: 92dvh;
+    padding: 0; border: 0; background: transparent; color: var(--olive);
+  }
+  dialog.addon::backdrop { background: rgba(31, 38, 17, 0.5); }
+  dialog.addon[open] { animation: sheet-up 320ms cubic-bezier(0.22, 1, 0.36, 1); }
+  dialog.addon[open]::backdrop { animation: scrim-in var(--transition-base) ease; }
+  @keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+  @keyframes scrim-in { from { opacity: 0; } to { opacity: 1; } }
+  dialog.addon .sheet { border-radius: var(--radius-card) var(--radius-card) 0 0; max-height: inherit; }
+  dialog.addon .grab { display: block; }
+
+  @media (min-width: 640px) {
+    dialog.addon { inset: 0; margin: auto; width: min(440px, 92vw); height: fit-content; max-height: 88vh; }
+    dialog.addon[open] { animation: pop-in var(--transition-base) cubic-bezier(0.22, 1, 0.36, 1); }
+    @keyframes pop-in { from { opacity: 0; transform: translateY(8px) scale(0.97); } to { opacity: 1; transform: none; } }
+    dialog.addon .sheet { border-radius: var(--radius-card); }
+    dialog.addon .grab { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    dialog.addon[open], dialog.addon[open]::backdrop { animation: scrim-in 0.01ms; }
+    .photo { transition: none; }
+    .skeleton { animation: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="pageHead">
+    <p class="pageEyebrow">Booking funnel · Disciplines &amp; add-ons</p>
+    <h1 class="pageTitle">Add-on detail pop-up</h1>
+    <p class="pageLede">A low-key way to learn what an add-on includes before choosing it — informational, never blocking the build.</p>
+  </header>
+
+  <!-- ============ 1. Trigger ============ -->
+  <section class="panel">
+    <h2 class="panelTitle">1 · The trigger</h2>
+    <p class="panelNote">Each add-on row gains a circled-i beside the price. It never auto-opens and never fires add/remove — it’s a sibling of the toggle. <strong>Click any ⓘ below to open the real pop-up</strong> (try Esc, the ✕, and a backdrop click; resize the window past 640px to switch between the bottom sheet and the centered card).</p>
+
+    <div class="disciplineCard">
+      <div class="disciplineHeader">
+        <div>
+          <h3 class="disciplineTitle">Sporting Clays</h3>
+          <p class="disciplineDescription">Guided instruction and standard equipment included.</p>
+        </div>
+        <span class="mark">✓</span>
+      </div>
+      <style>
+        /* Accepted from impeccable live — "Refined ledger" add-on list (V1).
+           Baked params: cozy rows · hairline dividers · square markers. */
+        .v1list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+        .v1row { display: flex; align-items: center; gap: var(--space-2); border-top: 1px solid var(--border); }
+        .v1row:first-child { border-top: 0; }
+        .v1toggle { flex: 1; min-width: 0; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--space-4); padding: 13px var(--space-2); background: transparent; border: 0; border-radius: var(--radius-sharp); text-align: left; cursor: pointer; font: inherit; color: inherit; transition: background var(--transition-fast); }
+        .v1toggle:hover { background: rgba(184, 156, 115, 0.1); }
+        .v1mark { width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border-strong); border-radius: var(--radius-sharp); background: var(--paper); color: var(--tan-deep); font-size: 13px; font-weight: 600; transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast); }
+        .v1row[data-selected] .v1mark { background: var(--olive); color: var(--paper); border-color: var(--olive); }
+        .v1text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .v1name { font-family: var(--serif); font-size: 17px; font-weight: 600; line-height: 1.2; color: var(--olive); }
+        .v1desc { font-family: var(--sans); font-size: var(--text-micro); line-height: 1.45; color: var(--gray); }
+        .v1price { font-family: var(--serif); font-style: italic; font-size: 18px; font-weight: 600; color: var(--olive); white-space: nowrap; }
+        .v1info { flex: none; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1px solid transparent; border-radius: 50%; cursor: pointer; color: var(--tan-deep); transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast); }
+        .v1info:hover { background: var(--paper); border-color: rgba(184, 156, 115, 0.5); color: var(--olive); }
+        /* quantity stepper — drops onto its own line below the row when selected,
+           so the top line (mark · name · price) never reflows and nothing shifts. */
+        .v1row { flex-wrap: wrap; }
+        .v1toggle { order: 1; }
+        .v1info { order: 2; }
+        .v1qtyLine { order: 3; flex-basis: 100%; display: flex; justify-content: flex-end; overflow: hidden; max-height: 0; opacity: 0; margin-top: 0; transition: max-height 0.34s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease, margin-top 0.34s cubic-bezier(0.22, 1, 0.36, 1); }
+        .v1row[data-selected] .v1qtyLine { max-height: 52px; opacity: 1; margin-top: 8px; }
+        .v1qty { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 4px 7px; transform: translateY(-6px); transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1); }
+        .v1row[data-selected] .v1qty { transform: none; }
+        .v1qtyBtn { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 0; border-radius: 50%; color: var(--olive); font-family: var(--sans); font-size: 18px; font-weight: 600; cursor: pointer; transition: background var(--transition-fast); }
+        .v1qtyBtn:hover { background: var(--paper-warm); }
+        .v1qtyBtn:focus-visible { outline: 2px solid var(--olive); outline-offset: 2px; }
+        .v1qtyVal { font-family: var(--serif); font-size: 16px; color: var(--olive); min-width: 1.4ch; text-align: center; }
+        .v1row[data-selected] .v1mark { animation: v1-mark-pop 0.32s cubic-bezier(0.22, 1, 0.36, 1); }
+        @keyframes v1-mark-pop { from { transform: scale(0.6); } to { transform: scale(1); } }
+        @media (prefers-reduced-motion: reduce) { .v1qtyLine, .v1qty { transition: none; } .v1row[data-selected] .v1mark { animation: none; } }
+        </style>
+      <div class="addOnGroup">
+          <p class="addOnGroupLabel">Add-ons (optional)</p>
+          <ul class="v1list">
+            <li class="v1row">
+              <button class="v1toggle" type="button"><span class="v1mark" aria-hidden="true">+</span><span class="v1text"><span class="v1name">Extra ammunition</span><span class="v1desc">A pre-loaded case of premium target shells, sized to your gauge and waiting at your stand.</span></span><span class="v1price">$45</span></button>
+              <div class="v1qtyLine">
+                <div class="v1qty" aria-label="Quantity">
+                <button class="v1qtyBtn" type="button" data-step="-1" aria-label="Decrease quantity">−</button>
+                <span class="v1qtyVal">1</span>
+                <button class="v1qtyBtn" type="button" data-step="1" aria-label="Increase quantity">+</button>
+              </div>
+              </div>
+              <button class="v1info" type="button" aria-label="Learn more about Extra ammunition"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></button>
+            </li>
+            <li class="v1row" data-selected>
+              <button class="v1toggle" type="button"><span class="v1mark" aria-hidden="true">✓</span><span class="v1text"><span class="v1name">Premium over/under loaner</span><span class="v1desc">A fitted competition-grade over/under for guests who&rsquo;d rather travel light.</span></span><span class="v1price">$120</span></button>
+              <div class="v1qtyLine">
+                <div class="v1qty" aria-label="Quantity">
+                <button class="v1qtyBtn" type="button" data-step="-1" aria-label="Decrease quantity">−</button>
+                <span class="v1qtyVal">2</span>
+                <button class="v1qtyBtn" type="button" data-step="1" aria-label="Increase quantity">+</button>
+              </div>
+              </div>
+              <button class="v1info" type="button" aria-label="Learn more about Premium over/under loaner"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></button>
+            </li>
+            <li class="v1row">
+              <button class="v1toggle" type="button"><span class="v1mark" aria-hidden="true">+</span><span class="v1text"><span class="v1name">Private instructor upgrade</span><span class="v1desc">A dedicated NSCA-certified instructor walking your group station to station.</span></span><span class="v1price">$200</span></button>
+              <div class="v1qtyLine">
+                <div class="v1qty" aria-label="Quantity">
+                <button class="v1qtyBtn" type="button" data-step="-1" aria-label="Decrease quantity">−</button>
+                <span class="v1qtyVal">1</span>
+                <button class="v1qtyBtn" type="button" data-step="1" aria-label="Increase quantity">+</button>
+              </div>
+              </div>
+              <button class="v1info" type="button" aria-label="Learn more about Private instructor upgrade"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></button>
+            </li>
+          </ul>
+        </div>
+    </div>
+
+    <div class="triggerStates" id="triggerStates">
+      <div class="triggerState">
+        <button class="addOnInfo" aria-label="info"></button>
+        <span>default</span>
+      </div>
+      <div class="triggerState">
+        <button class="addOnInfo is-hover" aria-label="info"></button>
+        <span>hover</span>
+      </div>
+      <div class="triggerState">
+        <button class="addOnInfo is-focus" aria-label="info"></button>
+        <span>focus-visible</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2. The pop-up, both button states ============ -->
+  <section class="panel">
+    <h2 class="panelTitle">2 · The pop-up — primary action states</h2>
+    <p class="panelNote">Centered ~440px card on desktop. Top to bottom: image, serif name, description, price + “what’s included”, then the primary toggle over a quiet dismiss.</p>
+    <div class="gallery">
+      <div class="specimen">
+        <span class="specimenLabel">Not added</span>
+        <style>
+        /* Accepted from impeccable live — "Editorial" add-on detail (V3).
+           Baked params: title 32px · serif lead on · 21:9 image. */
+        .v3media { aspect-ratio: 21 / 9; }
+        .v3content { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-6) var(--space-6) var(--space-4); }
+        .v3title { margin: 0; font-family: var(--serif); font-weight: 600; line-height: 1.05; letter-spacing: -0.015em; color: var(--olive); text-wrap: balance; font-size: 32px; }
+        .v3lead { margin: var(--space-1) 0 0; font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 18px; line-height: 1.35; color: var(--gray); }
+        .v3desc { margin: 0; font-family: var(--sans); font-size: var(--text-body); line-height: 1.55; color: var(--olive); }
+        .v3priceRow { display: flex; align-items: baseline; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--border); }
+        .v3price { font-family: var(--serif); font-style: italic; font-weight: 600; font-size: 30px; line-height: 1; color: var(--olive); }
+        .v3included { font-family: var(--sans); font-size: var(--text-micro); color: var(--gray); }
+        .v3footer { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-6) var(--space-6); }
+        .v3commit { width: auto; flex: 1; }
+        .v3link { flex: none; background: transparent; border: 0; cursor: pointer; padding: 8px 4px; font-family: var(--sans); font-size: var(--text-eyebrow); font-weight: 600; letter-spacing: var(--track-label); text-transform: uppercase; color: var(--tan-deep); text-underline-offset: 4px; text-decoration: underline; }
+        .v3link:hover { color: var(--olive); }
+        </style>
+        <div class="stage">
+            <div class="sheet v3sheet">
+              <div class="media v3media">
+                <span class="grab" aria-hidden="true"></span>
+                <div class="placeholder" aria-hidden="true"><svg viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice"><rect width="160" height="100" fill="#f5f1e5"/><circle cx="120" cy="30" r="14" fill="#b89c73" opacity="0.55"/><path d="M0 70 L46 44 L86 66 L118 48 L160 72 L160 100 L0 100 Z" fill="#3f4a21" opacity="0.22"/><path d="M0 84 L34 62 L70 80 L104 60 L140 82 L160 74 L160 100 L0 100 Z" fill="#3f4a21" opacity="0.4"/><path d="M0 100 L26 80 L60 94 L96 78 L132 96 L160 86 L160 100 Z" fill="#3f4a21" opacity="0.66"/></svg></div>
+                <button class="close" type="button" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              </div>
+              <div class="v3content">
+                <h2 class="v3title">Extra ammunition</h2>
+                <p class="v3lead">Skip the pro-shop line.</p>
+                <p class="v3desc">We stage a fresh case of premium target loads at your first stand so a hot round never cuts your session short. Sized to your gauge when you arrive.</p>
+                <div class="v3priceRow">
+                  <span class="v3price">$45</span>
+                  <span class="v3included">Includes 100 rounds · 12, 20, or 28 gauge</span>
+                </div>
+              </div>
+              <footer class="v3footer">
+                <button class="commit v3commit" type="button">Add to booking</button>
+                <button class="v3link" type="button">Done</button>
+              </footer>
+            </div>
+          </div>
+      </div>
+      <div class="specimen">
+        <span class="specimenLabel">Already in the booking</span>
+        <div class="stage" id="stageAdded"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3. Image states ============ -->
+  <section class="panel">
+    <h2 class="panelTitle">3 · Image slot states</h2>
+    <p class="panelNote">A photo crossfades in once decoded. Until the <code>add_ons</code> table carries photos (see follow-up plan), production shows the branded placeholder — never a broken image.</p>
+    <div class="gallery">
+      <div class="specimen">
+        <span class="specimenLabel">Loading skeleton</span>
+        <div class="mediaFrame"><div class="media"><span class="skeleton"></span></div></div>
+      </div>
+      <div class="specimen">
+        <span class="specimenLabel">Photo loaded</span>
+        <div class="mediaFrame"><div class="media" id="mediaLoaded"></div></div>
+      </div>
+      <div class="specimen">
+        <span class="specimenLabel">Placeholder (production today)</span>
+        <div class="mediaFrame"><div class="media" id="mediaPlaceholder"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. Mobile bottom sheet ============ -->
+  <section class="panel">
+    <h2 class="panelTitle">4 · Mobile (&lt;640px) — bottom sheet</h2>
+    <p class="panelNote">Slides up from the bottom edge with a grab-handle; full width, rounded top in the brand’s own 3px radius.</p>
+    <div class="phone">
+      <div class="phoneApp">Disciplines &amp; add-ons…</div>
+      <div class="phoneScrim"></div>
+      <div class="sheet" id="phoneSheet"></div>
+    </div>
+  </section>
+
+</div>
+
+<dialog class="addon" id="addonDialog" aria-labelledby="dlgTitle"></dialog>
+
+<script>
+  // --- shared SVG + sheet markup builders (mirror the React component) ---
+  const INFO_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>';
+  const CLOSE_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+
+  const PLACEHOLDER_SVG =
+    '<svg viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice">' +
+    '<rect width="160" height="100" fill="#f5f1e5"/>' +
+    '<circle cx="120" cy="30" r="14" fill="#b89c73" opacity="0.55"/>' +
+    '<path d="M0 70 L46 44 L86 66 L118 48 L160 72 L160 100 L0 100 Z" fill="#3f4a21" opacity="0.22"/>' +
+    '<path d="M0 84 L34 62 L70 80 L104 60 L140 82 L160 74 L160 100 L0 100 Z" fill="#3f4a21" opacity="0.4"/>' +
+    '<path d="M0 100 L26 80 L60 94 L96 78 L132 96 L160 86 L160 100 Z" fill="#3f4a21" opacity="0.66"/>' +
+    '</svg>';
+
+  // A sample "photo" (richer duotone scene) used only to demonstrate the
+  // loaded / crossfade state in this preview.
+  const SAMPLE_PHOTO = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice">' +
+    '<rect width="160" height="100" fill="#d8d2bf"/>' +
+    '<circle cx="118" cy="26" r="16" fill="#c9a86f"/>' +
+    '<path d="M0 58 L40 38 L78 56 L120 36 L160 60 L160 100 L0 100 Z" fill="#5a6535"/>' +
+    '<path d="M0 74 L34 56 L72 72 L112 52 L150 74 L160 70 L160 100 L0 100 Z" fill="#3f4a21"/>' +
+    '<path d="M0 100 L28 82 L66 96 L104 80 L142 98 L160 90 L160 100 Z" fill="#2a3216"/>' +
+    '</svg>'
+  );
+
+  const placeholderHTML = '<div class="placeholder" aria-hidden="true">' + PLACEHOLDER_SVG + '</div>';
+
+  // fill the static trigger-state specimens
+  document.querySelectorAll('#triggerStates .addOnInfo').forEach(b => { b.innerHTML = INFO_SVG; });
+
+  const ADD_ONS = [
+    { name: 'Extra ammunition', price: 45, desc: 'A pre-loaded case of premium target shells, sized to your gauge and waiting at your stand.', incl: 'Includes 100 rounds · 12, 20, or 28 gauge', included: false,
+      blurb: 'Skip the pro-shop line. We stage a fresh case of premium target loads at your first stand so a hot round never cuts your session short. Sized to your gauge when you arrive.' },
+    { name: 'Premium over/under loaner', price: 120, desc: 'A fitted competition-grade over/under for guests who’d rather travel light.', incl: 'Includes gun, hard case, and chokes', included: true,
+      blurb: 'Travel light and shoot better. A fitted, competition-grade over/under is cleaned, choked, and ready at the clubhouse — ideal if you’d rather not fly with your own. Our staff sizes it to you before the first station.' },
+    { name: 'Private instructor upgrade', price: 200, desc: 'A dedicated NSCA-certified instructor walking your group station to station.', incl: 'Includes a dedicated coach for the full round', included: false,
+      blurb: 'Turn a round into a lesson. A dedicated NSCA-certified instructor stays with your group station to station — reading your mount, adjusting your lead, and calling targets — so everyone leaves shooting noticeably better.' },
+  ];
+
+  function commitLabel(added) { return added ? 'Added ✓ — Remove' : 'Add to booking'; }
+
+  function innerSheet(a, added) {
+    return (
+      '<div class="media">' +
+        '<span class="grab" aria-hidden="true"></span>' +
+        placeholderHTML +
+        '<button class="close" type="button" aria-label="Close">' + CLOSE_SVG + '</button>' +
+      '</div>' +
+      '<div class="content">' +
+        '<h2 class="title">' + a.name + '</h2>' +
+        '<p class="description">' + a.blurb + '</p>' +
+        '<div class="priceRow">' +
+          '<span class="price">$' + a.price + '</span>' +
+          '<span class="included">' + a.incl + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<footer class="footer">' +
+        '<button class="commit" type="button"' + (added ? ' data-added' : '') + '>' +
+          commitLabel(added) +
+        '</button>' +
+        '<button class="dismiss" type="button">Done</button>' +
+      '</footer>'
+    );
+  }
+
+  function sheetMarkup(a, added) {
+    return '<div class="sheet">' + innerSheet(a, added) + '</div>';
+  }
+
+  // --- 1. Panel 1 add-ons ship as the accepted static V1 markup (impeccable live). ---
+
+  // --- 2. inline stages (not-added / added) ---
+  // 'Not added' panel ships as the accepted static V3 markup (impeccable live).
+  document.getElementById('stageAdded').innerHTML = sheetMarkup(ADD_ONS[1], true);
+
+  // --- 3. image states ---
+  document.getElementById('mediaPlaceholder').innerHTML = placeholderHTML;
+  document.getElementById('mediaLoaded').innerHTML =
+    '<img class="photo" data-status="loaded" alt="" src="' + SAMPLE_PHOTO + '">';
+
+  // --- 4. phone bottom sheet (#phoneSheet already carries the .sheet class) ---
+  document.getElementById('phoneSheet').innerHTML = innerSheet(ADD_ONS[2], false);
+
+  // --- the live dialog ---
+  const dialog = document.getElementById('addonDialog');
+  const added = new Set(ADD_ONS.filter(a => a.included).map(a => a.name));
+  let current = null;
+
+  function open(a) {
+    current = a;
+    dialog.setAttribute('aria-label', a.name);
+    dialog.innerHTML = sheetMarkup(a, added.has(a.name));
+
+    // Demonstrate the skeleton → photo crossfade (production shows the
+    // placeholder until add_ons carries photos — see the follow-up plan).
+    const media = dialog.querySelector('.media');
+    media.querySelector('.placeholder').remove();
+    const skeleton = document.createElement('span');
+    skeleton.className = 'skeleton';
+    media.prepend(skeleton);
+    const img = document.createElement('img');
+    img.className = 'photo';
+    img.alt = '';
+    img.addEventListener('load', () => { img.dataset.status = 'loaded'; skeleton.remove(); });
+    media.appendChild(img);
+    setTimeout(() => { img.src = SAMPLE_PHOTO; }, 700);
+
+    const commit = dialog.querySelector('.commit');
+    dialog.querySelector('.close').addEventListener('click', () => dialog.close());
+    dialog.querySelector('.dismiss').addEventListener('click', () => dialog.close());
+    commit.addEventListener('click', () => {
+      const isAdded = added.has(a.name);
+      if (isAdded) added.delete(a.name); else added.add(a.name);
+      const nowAdded = !isAdded;
+      commit.toggleAttribute('data-added', nowAdded);
+      commit.textContent = commitLabel(nowAdded);
+    });
+
+    document.body.style.overflow = 'hidden';
+    dialog.showModal();
+  }
+
+  // Wire the accepted V1 list's "learn more" buttons to the dialog (DOM order = ADD_ONS order).
+  document.querySelectorAll('.v1info').forEach((btn, i) => {
+    btn.addEventListener('click', () => open(ADD_ONS[i]));
+  });
+
+  // V1 list: clicking a row toggles selection, which reveals the animated
+  // quantity stepper; the stepper's +/- adjust the count (clamped 1–20).
+  document.querySelectorAll('.v1row').forEach((row) => {
+    const toggle = row.querySelector('.v1toggle');
+    const mark = row.querySelector('.v1mark');
+    const qty = row.querySelector('.v1qty');
+    const val = row.querySelector('.v1qtyVal');
+    const sync = () => {
+      const on = row.hasAttribute('data-selected');
+      mark.textContent = on ? '✓' : '+';
+      if (qty) qty.inert = !on; // collapsed stepper is non-interactive / out of tab order
+    };
+    sync();
+    toggle.addEventListener('click', () => {
+      row.toggleAttribute('data-selected');
+      sync();
+    });
+    qty?.querySelectorAll('.v1qtyBtn').forEach((b) => {
+      b.addEventListener('click', () => {
+        const next = Math.max(1, Math.min(20, Number(val.textContent) + Number(b.dataset.step)));
+        val.textContent = String(next);
+      });
+    });
+  });
+
+  dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.close(); });
+  dialog.addEventListener('close', () => { document.body.style.overflow = ''; });
+</script>
+</body>
+</html>

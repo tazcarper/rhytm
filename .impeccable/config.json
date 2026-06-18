@@ -1,0 +1,10 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [
+      "public/*.html",
+      "src/components/admin/guides-menu.module.css"
+    ],
+    "ignoreValues": []
+  }
+}

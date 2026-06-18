@@ -9,12 +9,23 @@ export interface PublicAddOn {
   name: string;
   description: string | null;
   price: number;
+  // Detail-pop-up content (migration 20260618120000). Both nullable: an
+  // add-on without a photo renders the branded placeholder, and one without
+  // an included line simply omits it.
+  imageUrl: string | null;
+  includedDetail: string | null;
+  // Max quantity per booking (migration 20260618130000). 1 = single add/remove;
+  // > 1 = the funnel shows a stepper capped here.
+  maxQuantity: number;
 }
 
 export interface PublicService {
   id: string;
   name: string;
   description: string | null;
+  // Discipline card photo (migration 20260618140000). NULL → the funnel card
+  // renders the branded placeholder.
+  imageUrl: string | null;
   addOns: ReadonlyArray<PublicAddOn>;
 }
 
@@ -22,6 +33,7 @@ type ServiceRow = {
   id: string;
   name: string;
   description: string | null;
+  image_url: string | null;
   display_order: number;
   service_add_ons: ReadonlyArray<{
     add_ons: {
@@ -31,6 +43,9 @@ type ServiceRow = {
       price: string | number;
       display_order: number;
       is_active: boolean;
+      image_url: string | null;
+      included_detail: string | null;
+      max_quantity: number;
     } | null;
   }> | null;
 };
@@ -46,6 +61,7 @@ export async function getPublicServicesForProperty(
       id,
       name,
       description,
+      image_url,
       display_order,
       service_add_ons (
         add_ons (
@@ -54,7 +70,10 @@ export async function getPublicServicesForProperty(
           description,
           price,
           display_order,
-          is_active
+          is_active,
+          image_url,
+          included_detail,
+          max_quantity
         )
       )
       `,
@@ -73,6 +92,7 @@ export async function getPublicServicesForProperty(
     id: row.id,
     name: row.name,
     description: row.description,
+    imageUrl: row.image_url,
     addOns: (row.service_add_ons ?? [])
       .map((j) => j.add_ons)
       .filter((a): a is NonNullable<typeof a> => a !== null && a.is_active)
@@ -85,6 +105,9 @@ export async function getPublicServicesForProperty(
         // for downstream pricing math. App 6 will be stricter — App 2's estimate
         // is a placeholder until Q5 confirms the pricing formula.
         price: typeof a.price === "string" ? parseFloat(a.price) : a.price,
+        imageUrl: a.image_url,
+        includedDetail: a.included_detail,
+        maxQuantity: a.max_quantity,
       })),
   }));
 

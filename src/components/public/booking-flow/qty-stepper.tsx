@@ -16,8 +16,9 @@ interface QtyStepperProps {
   onChange: (n: number) => void;
   /** Used to build aria-labels on the −/+ buttons (e.g. "Decrease guest count"). */
   label: string;
-  /** "md" (default) ~= the original pill; "lg" is 25% larger for hero-row use. */
-  size?: "md" | "lg";
+  /** "sm" is compact for inline list rows; "md" (default) ~= the original pill;
+   *  "lg" is 25% larger for hero-row use. */
+  size?: "sm" | "md" | "lg";
 }
 
 export function QtyStepper({
@@ -74,7 +75,11 @@ export function QtyStepper({
   }
 
   return (
-    <div className={`${s.qty} ${size === "lg" ? s.qtyLg : ""}`.trim()}>
+    <div
+      className={`${s.qty} ${
+        size === "lg" ? s.qtyLg : size === "sm" ? s.qtySm : ""
+      }`.trim()}
+    >
       <button
         type="button"
         className={s.qtyBtn}

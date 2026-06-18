@@ -2,6 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/service";
+import { hasAdminAccess } from "@/lib/auth/portal";
+import { createAddOnImageStorage } from "@/lib/storage/add-on-image-storage";
+import { createServiceImageStorage } from "@/lib/storage/service-image-storage";
+import {
+  uploadPublicImage,
+  type UploadPublicImageResult,
+} from "@/src/services/admin/upload-public-image";
 import {
   createCatalogService,
   updateCatalogService,
@@ -77,6 +85,32 @@ export async function updateServiceAction(
     );
   }
   return result;
+}
+
+// Upload one discipline (service) card photo to the public service-images
+// bucket and return its public URL for the editor to drop into the image
+// field — the same field a pasted URL fills. Admin-gated, then writes via
+// service role (the bucket has no INSERT policy by design). Mirrors
+// uploadAddOnImageAction.
+export async function uploadServiceImageAction(
+  formData: FormData,
+): Promise<UploadPublicImageResult> {
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!hasAdminAccess(user?.app_metadata?.role as string | undefined)) {
+    return { ok: false, error: "Not authorized." };
+  }
+
+  const file = formData.get("file");
+  if (!(file instanceof File)) {
+    return { ok: false, error: "No file received." };
+  }
+
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const storage = createServiceImageStorage(createServiceRoleClient());
+  return uploadPublicImage(storage, { bytes, contentType: file.type });
 }
 
 export async function reorderServicesAction(
@@ -162,6 +196,32 @@ export async function updateAddOnAction(
     );
   }
   return result;
+}
+
+// Upload one add-on detail photo to the public add-on-images bucket and return
+// its public URL for the editor to drop into the image field — the same field
+// a pasted URL fills. Admin-gated, then writes via service role (the bucket has
+// no INSERT policy by design). Thin: auth + extract file + delegate to the
+// generic public-image service. Mirrors uploadHomepageHeroImageAction.
+export async function uploadAddOnImageAction(
+  formData: FormData,
+): Promise<UploadPublicImageResult> {
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!hasAdminAccess(user?.app_metadata?.role as string | undefined)) {
+    return { ok: false, error: "Not authorized." };
+  }
+
+  const file = formData.get("file");
+  if (!(file instanceof File)) {
+    return { ok: false, error: "No file received." };
+  }
+
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const storage = createAddOnImageStorage(createServiceRoleClient());
+  return uploadPublicImage(storage, { bytes, contentType: file.type });
 }
 
 export async function reorderAddOnsAction(

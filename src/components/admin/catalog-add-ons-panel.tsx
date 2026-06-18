@@ -154,6 +154,9 @@ export function CatalogAddOnsPanel({
       description: deactivateTarget.description,
       price: deactivateTarget.price,
       isActive: false,
+      imageUrl: deactivateTarget.imageUrl,
+      includedDetail: deactivateTarget.includedDetail,
+      maxQuantity: deactivateTarget.maxQuantity,
     });
     if (result.ok) {
       setDeactivateTarget(null);

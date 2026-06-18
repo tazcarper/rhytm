@@ -1,0 +1,161 @@
+/* Add-on detail tooltip — a compact informational popover in the estate's
+   Editorial look (cinematic strip, serif title, italic-serif lead). Lives in
+   the top layer via the popover API; positioned in JS, so the only layout
+   resets here are the popover UA defaults. */
+
+.tooltip {
+  position: fixed;
+  /* Override the UA popover defaults (inset: 0; margin: auto) — JS sets
+     top/left to anchor it. */
+  inset: auto;
+  margin: 0;
+  width: 320px;
+  max-width: calc(100vw - 16px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--paper);
+  color: var(--olive);
+  box-shadow: var(--shadow-lift);
+  overflow: hidden;
+}
+
+.tooltip:popover-open {
+  animation: tip-in 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes tip-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- media ---------- */
+
+.media {
+  position: relative;
+  aspect-ratio: 21 / 9;
+  background: var(--paper-warm);
+  overflow: hidden;
+}
+
+.photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--transition-base) ease;
+}
+
+.photo[data-status="loaded"] {
+  opacity: 1;
+}
+
+.skeleton {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      100deg,
+      transparent 30%,
+      rgba(184, 156, 115, 0.22) 50%,
+      transparent 70%
+    ),
+    var(--paper-warm);
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: tip-skeleton 1.4s ease-in-out infinite;
+}
+
+@keyframes tip-skeleton {
+  from {
+    background-position: 180% 0;
+  }
+  to {
+    background-position: -80% 0;
+  }
+}
+
+.placeholder {
+  position: absolute;
+  inset: 0;
+}
+
+.placeholderArt {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ---------- body ---------- */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--olive);
+  text-wrap: balance;
+}
+
+.lead {
+  margin: 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--gray);
+}
+
+.priceRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
+}
+
+.price {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--olive);
+}
+
+.included {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  line-height: 1.5;
+  color: var(--gray);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tooltip:popover-open {
+    animation: none;
+  }
+  .photo {
+    transition: none;
+  }
+  .skeleton {
+    animation: none;
+  }
+}

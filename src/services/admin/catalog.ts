@@ -13,6 +13,7 @@ export interface AdminCatalogService {
   description: string | null;
   isActive: boolean;
   displayOrder: number;
+  imageUrl: string | null;
 }
 
 export interface AdminCatalogAddOn {
@@ -23,6 +24,9 @@ export interface AdminCatalogAddOn {
   price: number;
   isActive: boolean;
   displayOrder: number;
+  imageUrl: string | null;
+  includedDetail: string | null;
+  maxQuantity: number;
 }
 
 export interface AdminCatalogLink {
@@ -64,6 +68,7 @@ type ServiceRow = {
   description: string | null;
   is_active: boolean;
   display_order: number;
+  image_url: string | null;
 };
 
 type AddOnRow = {
@@ -74,6 +79,9 @@ type AddOnRow = {
   price: string | number;
   is_active: boolean;
   display_order: number;
+  image_url: string | null;
+  included_detail: string | null;
+  max_quantity: number;
 };
 
 type LinkRow = { service_id: string; add_on_id: string };
@@ -86,6 +94,7 @@ function rowToService(row: ServiceRow): AdminCatalogService {
     description: row.description,
     isActive: row.is_active,
     displayOrder: row.display_order,
+    imageUrl: row.image_url,
   };
 }
 
@@ -98,6 +107,9 @@ function rowToAddOn(row: AddOnRow): AdminCatalogAddOn {
     price: typeof row.price === "string" ? parseFloat(row.price) : row.price,
     isActive: row.is_active,
     displayOrder: row.display_order,
+    imageUrl: row.image_url,
+    includedDetail: row.included_detail,
+    maxQuantity: row.max_quantity,
   };
 }
 
@@ -106,9 +118,9 @@ function rowToAddOn(row: AddOnRow): AdminCatalogAddOn {
 // =============================================================================
 
 const SERVICE_COLUMNS =
-  "id, property_id, name, description, is_active, display_order";
+  "id, property_id, name, description, is_active, display_order, image_url";
 const ADDON_COLUMNS =
-  "id, property_id, name, description, price, is_active, display_order";
+  "id, property_id, name, description, price, is_active, display_order, image_url, included_detail, max_quantity";
 
 export async function getPropertyCatalog(
   supabase: SupabaseClient,
@@ -395,6 +407,36 @@ const priceSchema = z.coerce
   .min(0, "Must be ≥ 0")
   .max(100000, "Must be ≤ 100,000");
 
+// Short "what's included" line for the add-on detail pop-up. Same null-coalescing
+// shape as descriptionSchema, capped tighter (it's a one-liner under the price).
+const includedDetailSchema = z
+  .union([z.string(), z.null(), z.undefined()])
+  .transform((v) => {
+    if (v === null || v === undefined) return null;
+    const trimmed = v.trim();
+    return trimmed === "" ? null : trimmed;
+  })
+  .refine((v) => v === null || v.length <= 200, "Must be 200 characters or fewer");
+
+// Public URL of the detail photo (Blob upload result or a pasted link). Empty
+// → null. Must be an http(s) URL when present so the funnel never renders a
+// broken/file-scheme <img>.
+const imageUrlSchema = z
+  .union([z.string(), z.null(), z.undefined()])
+  .transform((v) => {
+    if (v === null || v === undefined) return null;
+    const trimmed = v.trim();
+    return trimmed === "" ? null : trimmed;
+  })
+  .refine(
+    (v) => v === null || (/^https?:\/\//.test(v) && v.length <= 2048),
+    "Must be a URL starting with http:// or https://",
+  );
+
+// Per-add-on quantity ceiling. 1 = single add/remove; > 1 = the funnel shows a
+// stepper capped here. Matches the add_ons.max_quantity CHECK (1–99).
+const maxQuantitySchema = z.coerce.number().int().min(1).max(99);
+
 const displayOrderSchema = z.coerce.number().int().min(0).max(9999);
 const uuidSchema = z.string().uuid();
 
@@ -420,6 +462,7 @@ export const UpdateServiceInputSchema = z.object({
   name: nameSchema,
   description: descriptionSchema,
   isActive: z.boolean(),
+  imageUrl: imageUrlSchema,
   linkedAddOnIds: z.array(uuidSchema).max(200),
   newAddOns: z.array(newAddOnDraftSchema).max(50),
 });
@@ -443,6 +486,9 @@ export const UpdateAddOnInputSchema = z.object({
   description: descriptionSchema,
   price: priceSchema,
   isActive: z.boolean(),
+  imageUrl: imageUrlSchema,
+  includedDetail: includedDetailSchema,
+  maxQuantity: maxQuantitySchema,
 });
 export type UpdateAddOnInput = z.infer<typeof UpdateAddOnInputSchema>;
 export type UpdateAddOnRawInput = z.input<typeof UpdateAddOnInputSchema>;
@@ -492,6 +538,7 @@ export async function updateCatalogService(
       name: input.name,
       description: input.description,
       is_active: input.isActive,
+      image_url: input.imageUrl,
       updated_at: new Date().toISOString(),
     })
     .eq("id", input.serviceId);
@@ -662,6 +709,9 @@ export async function updateCatalogAddOn(
       description: input.description,
       price: input.price,
       is_active: input.isActive,
+      image_url: input.imageUrl,
+      included_detail: input.includedDetail,
+      max_quantity: input.maxQuantity,
       updated_at: new Date().toISOString(),
     })
     .eq("id", input.addOnId);
