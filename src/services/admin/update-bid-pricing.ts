@@ -19,6 +19,11 @@ export const UpdateBidPricingInputSchema = z.object({
   confirmedPrice: moneyField,
   depositAmount: moneyField,
   quoteNote: z.string().trim().max(500).optional().nullable(),
+  // The effective confirmed_price the editor loaded, for optimistic-concurrency
+  // compare-and-swap (null when the bid was priced by estimate only, so
+  // confirmed_price is null in the DB). The editor passes a number/null directly
+  // — not a money string — so this bypasses moneyField's string transform.
+  expectedConfirmedPrice: z.number().nullable(),
 });
 
 export type UpdateBidPricingInput = z.infer<typeof UpdateBidPricingInputSchema>;
@@ -29,6 +34,11 @@ export type UpdateBidPricingRawInput = z.input<
 export interface UpdateBidPricingResult {
   ok: boolean;
   error?: string;
+  // True when the guarded update matched 0 rows because confirmed_price moved
+  // since the editor loaded it (a comp or add-on auto-reversal landed in
+  // between). The UI shows a distinct "reload" affordance — and preserves the
+  // admin's drafts — instead of the generic error treatment.
+  conflict?: boolean;
 }
 
 // Who is saving the price — stamped onto the audit event. Resolved from the
@@ -58,32 +68,40 @@ export async function updateBidPricing(
   actor: UpdateBidPricingActor,
   auditClient: SupabaseClient,
 ): Promise<UpdateBidPricingResult> {
-  // Snapshot the effective total before the write, for the audit diff.
-  const { data: before } = await supabase
-    .from("bookings")
-    .select("estimated_price, confirmed_price")
-    .eq("id", input.bookingId)
-    .maybeSingle<{
-      estimated_price: string | number | null;
-      confirmed_price: string | number | null;
-    }>();
-  const estimated = before ? toNumber(before.estimated_price) : null;
-  const oldTotal = before
-    ? toNumber(before.confirmed_price) ?? estimated
-    : null;
-
-  const bookingUpdate = await supabase
+  // Compare-and-swap (optimistic concurrency): write only while confirmed_price
+  // still equals the value the editor loaded. If a per-line comp or the add-on
+  // auto-reversal changed it in the gap since load, the guard matches 0 rows and
+  // we reject with a conflict — never clobbering that concurrent change with an
+  // absolute headline that drops its delta. confirmed_price is numeric(10,2) and
+  // every writer rounds to cents, so exact equality is safe (no float drift).
+  const guardedUpdate = supabase
     .from("bookings")
     .update({
       confirmed_price: input.confirmedPrice,
       deposit_amount: input.depositAmount,
     })
     .eq("id", input.bookingId);
+  const bookingUpdate = await (input.expectedConfirmedPrice === null
+    ? guardedUpdate.is("confirmed_price", null)
+    : guardedUpdate.eq("confirmed_price", input.expectedConfirmedPrice)
+  ).select("estimated_price");
 
   if (bookingUpdate.error) {
     return {
       ok: false,
       error: `Couldn't save pricing: ${bookingUpdate.error.message}`,
+    };
+  }
+
+  // 0 rows matched: confirmed_price moved since the editor loaded it. Reject
+  // before touching the quote note, so the manual save can't half-apply.
+  const updatedRows = bookingUpdate.data ?? [];
+  if (updatedRows.length === 0) {
+    return {
+      ok: false,
+      conflict: true,
+      error:
+        "This bid's price changed since you opened the editor — reload to see the latest before saving.",
     };
   }
 
@@ -99,9 +117,18 @@ export async function updateBidPricing(
     };
   }
 
-  // Audit the change to the effective total. confirmed_price clearing to null
-  // falls back to the estimate, so compare effective-to-effective. Only record
-  // a real movement (> half a cent). The event table is service-role-write.
+  // Audit the change to the effective total. The guard above proves
+  // confirmed_price equalled expectedConfirmedPrice at write time, so that — not
+  // a separate, race-prone pre-read — is the accurate "from" figure. A null
+  // confirmed_price (priced by estimate) falls back to the estimate on both
+  // sides, so compare effective-to-effective. estimated_price is immutable after
+  // creation; read it back from the row we just updated. Only record a real
+  // movement (> half a cent). The event table is service-role-write.
+  const estimated = toNumber(
+    (updatedRows[0] as { estimated_price: string | number | null })
+      .estimated_price,
+  );
+  const oldTotal = input.expectedConfirmedPrice ?? estimated;
   const newTotal = input.confirmedPrice ?? estimated;
   if (
     oldTotal !== null &&
