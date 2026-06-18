@@ -249,9 +249,20 @@ export async function materializeBidLineItems(
 // leaving the base/guest-fee snapshot intact. Called after an add-on edit.
 // Drift-free: add-on amounts come from the stored unit_price_at_booking, never
 // live pricing. No-ops once the bid is past the add-on edit window.
+//
+// A comp does NOT survive a change to the add-on it sits on: an add-on edit
+// re-materializes the line at its base amount and removes any in-force comp on
+// it (the admin can then start a fresh comp). The reverse_add_on_comps_and_clear
+// RPC does that reversal — restore confirmed_price + audit + clear the old
+// add_on lines — in ONE transaction, so a discount can never be left orphaned
+// on the total when the line (and its override row, via ON DELETE CASCADE) goes
+// away. `actor` is the staff member making the edit, stamped on the audit row.
 export async function rematerializeAddOnLines(
   supabase: SupabaseClient,
   bookingId: string,
+  // Structural actor type (id + email) — kept inline so this bids-scope module
+  // doesn't depend on the admin scope; admin's StaffActor satisfies it.
+  actor: { id: string; email: string },
 ): Promise<MaterializeResult> {
   const status = await getBidStatus(supabase, bookingId);
   if (status !== null && !ADD_ON_EDIT_STATUSES.has(status)) {
@@ -263,11 +274,16 @@ export async function rematerializeAddOnLines(
     addOnLines.reduce((sum, line) => sum + line.line_amount, 0),
   );
 
-  await supabase
-    .from("bid_line_items")
-    .delete()
-    .eq("booking_id", bookingId)
-    .eq("kind", "add_on");
+  const { error: reverseError } = await supabase.rpc(
+    "reverse_add_on_comps_and_clear",
+    {
+      p_booking_id: bookingId,
+      p_actor_id: actor.id,
+      p_actor_email: actor.email,
+    },
+  );
+  if (reverseError) return { ok: false, count: 0, subtotal };
+
   if (addOnLines.length === 0) return { ok: true, count: 0, subtotal: 0 };
 
   const { error } = await supabase.from("bid_line_items").insert(addOnLines);

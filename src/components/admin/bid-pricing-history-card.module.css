@@ -1,0 +1,89 @@
+/* Phase 1 — source-tagged pricing history timeline (admin-only). */
+
+.empty {
+  color: var(--gray);
+  font-size: var(--text-body);
+  margin: 0;
+}
+
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.entry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.entryHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.tagManual,
+.tagOverride,
+.tagAuto {
+  font-size: var(--text-micro);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-tight, 0.02em);
+  padding: 1px var(--space-2);
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.tagManual {
+  color: var(--gray);
+  background: var(--gray-light);
+}
+
+.tagOverride {
+  color: var(--paper);
+  background: var(--olive);
+}
+
+/* System-initiated comp reversal (add-on re-materialized). Outlined, not
+   filled, to read as automatic rather than a deliberate staff action. */
+.tagAuto {
+  color: var(--olive);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--olive);
+}
+
+.headline {
+  font-family: var(--sans);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.delta {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--olive);
+  white-space: nowrap;
+}
+
+.meta {
+  font-size: var(--text-micro);
+  color: var(--gray);
+}
+
+.metaLabel {
+  color: var(--olive);
+}
+
+.reason {
+  font-size: var(--text-body);
+  color: var(--ink);
+  background: var(--paper-warm);
+  border-left: 2px solid var(--border-strong);
+  padding: var(--space-1) var(--space-3);
+  border-radius: 0 4px 4px 0;
+}

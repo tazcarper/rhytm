@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { rematerializeAddOnLines } from "@/src/services/bids/bid-line-items";
+import type { StaffActor } from "@/src/services/admin/staff-identity";
 
 // Mutations against booking_add_ons line items for a single bid's booking.
 //
@@ -49,9 +50,10 @@ export interface BidAddOnMutationResult {
 async function rebuildLineItems(
   supabase: SupabaseClient,
   bookingId: string,
+  actor: StaffActor,
 ): Promise<void> {
   try {
-    await rematerializeAddOnLines(supabase, bookingId);
+    await rematerializeAddOnLines(supabase, bookingId, actor);
   } catch (lineErr) {
     console.error(
       "[admin/update-bid-add-ons] line-item rebuild failed",
@@ -63,6 +65,7 @@ async function rebuildLineItems(
 export async function addBidAddOn(
   supabase: SupabaseClient,
   input: AddBidAddOnInput,
+  actor: StaffActor,
 ): Promise<BidAddOnMutationResult> {
   // Snapshot the live catalog price — never trust a client-supplied amount.
   const { data: addOn, error: addOnError } = await supabase
@@ -104,13 +107,14 @@ export async function addBidAddOn(
     return { ok: false, error: `Couldn't add the add-on: ${error.message}` };
   }
 
-  await rebuildLineItems(supabase, input.bookingId);
+  await rebuildLineItems(supabase, input.bookingId, actor);
   return { ok: true };
 }
 
 export async function removeBidAddOn(
   supabase: SupabaseClient,
   input: RemoveBidAddOnInput,
+  actor: StaffActor,
 ): Promise<BidAddOnMutationResult> {
   // Scope the delete to the booking so an id alone can't touch another bid.
   const { error } = await supabase
@@ -123,6 +127,6 @@ export async function removeBidAddOn(
     return { ok: false, error: `Couldn't remove the add-on: ${error.message}` };
   }
 
-  await rebuildLineItems(supabase, input.bookingId);
+  await rebuildLineItems(supabase, input.bookingId, actor);
   return { ok: true };
 }

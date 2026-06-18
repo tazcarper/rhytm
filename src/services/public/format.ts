@@ -66,6 +66,22 @@ export function formatMoneyExact(n: number): string {
   });
 }
 
+// Round to cents. The single definition for money arithmetic across the app —
+// pricing reconciliation, override math, and display all round the same way so
+// they can never disagree by a sub-cent float artifact.
+export function round2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+// Coerce a PostgREST numeric (Postgres `numeric` columns arrive as strings)
+// into a number, preserving null. Callers that want a 0 default coalesce with
+// `?? 0` at the call site, so a genuinely-absent value stays distinguishable
+// from a real zero.
+export function toNumber(value: string | number | null | undefined): number | null {
+  if (value === null || value === undefined) return null;
+  return typeof value === "string" ? parseFloat(value) : value;
+}
+
 // Module-level formatter caches. Intl.DateTimeFormat instantiation is
 // the expensive part (>1ms); .format() on an existing instance is
 // effectively free. With one timezone in use today this map degenerates
