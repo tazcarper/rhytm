@@ -1,14 +1,27 @@
 import { Card } from "@/lib/ui";
-import { formatMoneyExact } from "@/src/services/public/format";
-import type { PricingEvent } from "@/src/services/admin/pricing-events";
+import { formatMoneyExact, round2 } from "@/src/services/public/format";
+import type {
+  PricingEvent,
+  PricingEventSource,
+} from "@/src/services/admin/pricing-events";
 import kv from "./bid-detail.module.css";
 import s from "./bid-pricing-history-card.module.css";
 
 // Source-tagged pricing history (Phase 1). A single newest-first timeline of
-// every confirmed_price change, tagged [manual] or [line override] so an
-// investigator can always tell which mechanism made a change. Line-override
+// every confirmed_price change, tagged so an investigator can always tell which
+// mechanism made a change: a manual PricingEditor edit, a per-line override, or
+// the automatic comp reversal when an add-on is re-materialized. Line-override
 // entries expand to the per-line detail + the admin-only reason. Admin-only
 // surface (this card renders only inside /admin).
+
+// One entry per source keeps the tag/label open for extension — a new source
+// adds a row here, not another branch in the render. className indexes into the
+// CSS module (bid-pricing-history-card.module.css).
+const SOURCE_TAGS: Record<PricingEventSource, { label: string; className: string }> = {
+  manual: { label: "manual", className: "tagManual" },
+  line_override: { label: "line override", className: "tagOverride" },
+  auto_reversal: { label: "auto-reversal", className: "tagAuto" },
+};
 
 function formatTimestamp(iso: string, timezone: string): string {
   return new Date(iso).toLocaleString("en-US", {
@@ -22,7 +35,7 @@ function formatTimestamp(iso: string, timezone: string): string {
 
 function signedDelta(oldTotal: number | null, newTotal: number | null): string {
   if (oldTotal === null || newTotal === null) return "";
-  const delta = Math.round((newTotal - oldTotal) * 100) / 100;
+  const delta = round2(newTotal - oldTotal);
   const sign = delta >= 0 ? "+" : "−";
   return `${sign}$${formatMoneyExact(Math.abs(delta))}`;
 }
@@ -43,17 +56,13 @@ export function BidPricingHistoryCard({
       ) : (
         <ul className={s.timeline}>
           {events.map((event) => {
-            const isOverride = event.source === "line_override";
+            const tag = SOURCE_TAGS[event.source];
             return (
               <li key={event.id} className={s.entry}>
                 <div className={s.entryHead}>
-                  <span
-                    className={isOverride ? s.tagOverride : s.tagManual}
-                  >
-                    {isOverride ? "line override" : "manual"}
-                  </span>
+                  <span className={s[tag.className]}>{tag.label}</span>
                   <span className={s.headline}>
-                    {isOverride && event.override ? (
+                    {event.override ? (
                       <>
                         {event.override.lineLabel ?? "Line"}{" "}
                         ${formatMoneyExact(event.override.originalAmount)} → $
@@ -80,10 +89,13 @@ export function BidPricingHistoryCard({
                   {event.actorEmail} · {formatTimestamp(event.createdAt, timezone)}
                 </div>
 
-                {isOverride && event.override?.reason && (
+                {/* Line-override rows carry the admin-only reason; manual and
+                    auto-reversal rows carry a free-text note explaining the
+                    change. */}
+                {event.override?.reason && (
                   <div className={s.reason}>Reason: {event.override.reason}</div>
                 )}
-                {!isOverride && event.note && (
+                {!event.override && event.note && (
                   <div className={s.reason}>Note: {event.note}</div>
                 )}
               </li>

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { getStaffIdentity } from "@/src/services/admin/staff-identity";
+import { WAIVE_ROLES } from "@/src/constants/admin/waive";
 import {
   applyLineOverride,
   ApplyLineOverrideInputSchema,
@@ -19,13 +20,8 @@ import {
 // Who may waive (design Q4): super_admin + admin (cross-property) and
 // property_manager scoped to their own property. NOT concierge /
 // membership_coordinator — hasAdminAccess() is too broad here, so we check the
-// specific role set. Only on a bid still in pending_review.
-
-const WAIVE_ROLES: ReadonlyArray<string> = [
-  "super_admin",
-  "admin",
-  "property_manager",
-];
+// specific WAIVE_ROLES set (shared with the page, which hides the controls).
+// Only on a bid still in pending_review.
 
 function firstIssueMessage(
   issues: ReadonlyArray<{ path: PropertyKey[]; message: string }>,

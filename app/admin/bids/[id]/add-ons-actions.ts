@@ -13,6 +13,7 @@ import {
   type RemoveBidAddOnRawInput,
   type BidAddOnMutationResult,
 } from "@/src/services/admin/update-bid-add-ons";
+import { resolveStaffActor } from "@/src/services/admin/staff-identity";
 import type { AdminBidStatus } from "@/src/services/admin/bids";
 
 // Add-ons can only be changed while the bid is still being shaped — before
@@ -84,7 +85,12 @@ export async function addBidAddOnAction(
   const auth = await authorizeAddOnEdit(bidId, parsed.data.bookingId);
   if (!auth.ok) return auth;
 
-  const result = await addBidAddOn(createServiceRoleClient(), parsed.data);
+  // The actor stamps any auto-reversal audit event when an add-on edit removes
+  // an in-force comp on the changed line.
+  const actor = await resolveStaffActor(await createServerSupabaseClient());
+  if (!actor) return { ok: false, error: "Sign in required." };
+
+  const result = await addBidAddOn(createServiceRoleClient(), parsed.data, actor);
   if (result.ok) {
     revalidatePath(`/admin/bids/${bidId}`);
     revalidatePath("/admin/bids");
@@ -104,7 +110,10 @@ export async function removeBidAddOnAction(
   const auth = await authorizeAddOnEdit(bidId, parsed.data.bookingId);
   if (!auth.ok) return auth;
 
-  const result = await removeBidAddOn(createServiceRoleClient(), parsed.data);
+  const actor = await resolveStaffActor(await createServerSupabaseClient());
+  if (!actor) return { ok: false, error: "Sign in required." };
+
+  const result = await removeBidAddOn(createServiceRoleClient(), parsed.data, actor);
   if (result.ok) {
     revalidatePath(`/admin/bids/${bidId}`);
     revalidatePath("/admin/bids");

@@ -33,6 +33,14 @@
   font-size: 0.85em;
 }
 
+/* Always-on status text on a comped line (distinct from the optional, customer
+   -facing label) so the comped state reads even when no label was entered. */
+.compTag {
+  color: var(--olive);
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
 .rowActions {
   display: flex;
   gap: var(--space-3);

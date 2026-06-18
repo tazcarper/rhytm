@@ -21,6 +21,7 @@ import { BidContentDrawer } from "@/src/components/admin/bid-content-drawer";
 import { PricingEditor } from "@/src/components/admin/pricing-editor";
 import { BidLineItemsCard } from "@/src/components/admin/bid-line-items-card";
 import { BidPricingHistoryCard } from "@/src/components/admin/bid-pricing-history-card";
+import { canWaiveBid } from "@/src/constants/admin/waive";
 import {
   BidSectionNav,
   type BidSection,
@@ -87,10 +88,7 @@ export default async function AdminBidDetail({
   const { data: userData } = await supabase.auth.getUser();
   const viewerRole =
     (userData.user?.app_metadata as { role?: string } | undefined)?.role ?? null;
-  const canWaive =
-    bid.status === "pending_review" &&
-    viewerRole !== null &&
-    ["super_admin", "admin", "property_manager"].includes(viewerRole);
+  const canWaive = canWaiveBid(viewerRole, bid.status);
 
   const origin = siteOriginFromHeaders(await headers());
   const { url: bidUrl } = await getBidUrlForAdmin(supabase, bid.id, origin);

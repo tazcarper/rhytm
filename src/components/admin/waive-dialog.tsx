@@ -38,6 +38,13 @@ export function WaiveDialog({
 
   const submit = () => {
     setError(null);
+    // When not waiving in full, an empty/whitespace amount must be rejected,
+    // not silently coerced: Number("") and Number("  ") are 0, which would
+    // quietly apply a full waive the admin never asked for.
+    if (!waiveInFull && amountDraft.trim() === "") {
+      setError("Enter a comped amount, or check “waive in full”.");
+      return;
+    }
     const newAmount = waiveInFull ? 0 : Number(amountDraft);
     if (!Number.isFinite(newAmount) || newAmount < 0) {
       setError("Enter a valid comped amount.");

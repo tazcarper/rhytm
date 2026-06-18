@@ -49,8 +49,11 @@ CREATE TABLE bid_line_overrides (
   -- Optional concierge label shown to the customer (e.g. "VIP comp"); null on
   -- the customer page renders the generic "Discount applied".
   customer_facing_label text,
-  -- Who applied it, from the session. actor_email is captured at write time so
-  -- the audit stays legible even if the user is later removed.
+  -- Who applied it, from the session. actor_email is denormalized (captured at
+  -- write time) so the audit reads without a join to auth.users. actor_id keeps
+  -- a NOT NULL FK with NO on-delete action (RESTRICT): staff are deactivated,
+  -- not hard-deleted, so a referenced auth user cannot be removed out from under
+  -- the audit trail in the first place.
   actor_id              uuid NOT NULL REFERENCES auth.users(id),
   actor_email           text NOT NULL,
   created_at            timestamptz NOT NULL DEFAULT now()

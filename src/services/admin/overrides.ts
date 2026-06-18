@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { toNumber } from "@/src/services/public/format";
 
 // Per-line waive/comp overrides for a bid (Phase 1). Read + summarize helpers
 // shared by the admin bid detail, the bids queue flag, and the dashboard card.
@@ -37,19 +38,14 @@ type OverrideRow = {
   created_at: string;
 };
 
-function toNumber(value: string | number | null): number {
-  if (value === null) return 0;
-  return typeof value === "string" ? parseFloat(value) : value;
-}
-
 function mapOverride(row: OverrideRow): BidLineOverride {
   return {
     id: row.id,
     bookingId: row.booking_id,
     lineItemId: row.line_item_id,
-    originalAmount: toNumber(row.original_amount),
-    newAmount: toNumber(row.new_amount),
-    delta: toNumber(row.delta),
+    originalAmount: toNumber(row.original_amount) ?? 0,
+    newAmount: toNumber(row.new_amount) ?? 0,
+    delta: toNumber(row.delta) ?? 0,
     reason: row.reason,
     customerFacingLabel: row.customer_facing_label,
     actorEmail: row.actor_email,
@@ -69,7 +65,12 @@ export async function getLineOverrides(
       "id, booking_id, line_item_id, original_amount, new_amount, delta, reason, customer_facing_label, actor_email, created_at",
     )
     .eq("booking_id", bookingId)
-    .order("created_at", { ascending: false });
+    // `id` is the deterministic tie-breaker: two rows can share a created_at to
+    // the microsecond, so without it "newest" would be ambiguous and the latest
+    // -per-line pick below could disagree with the apply_line_override() RPC
+    // (which orders the same way). Same ordering everywhere → one truth.
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false });
   if (error || !data) return [];
   return (data as OverrideRow[]).map(mapOverride);
 }
@@ -77,13 +78,17 @@ export async function getLineOverrides(
 // The EFFECTIVE override per line: its most recent row. The table is
 // append-only, so a line can carry several rows over time (e.g. a comp then a
 // reversing entry); only the latest one is in force. Keyed by lineItemId.
+//
+// Relies on the caller passing the rows in the deterministic newest-first order
+// that getLineOverrides returns, so the FIRST row seen per line is the latest —
+// no timestamp comparison needed (lexicographic string compare of timestamps is
+// fragile across differing fractional precision).
 export function latestOverridesByLine(
   overrides: ReadonlyArray<BidLineOverride>,
 ): Map<string, BidLineOverride> {
   const latest = new Map<string, BidLineOverride>();
   for (const override of overrides) {
-    const current = latest.get(override.lineItemId);
-    if (!current || override.createdAt > current.createdAt) {
+    if (!latest.has(override.lineItemId)) {
       latest.set(override.lineItemId, override);
     }
   }
@@ -97,13 +102,14 @@ export interface OverrideSummary {
   totalDelta: number;
 }
 
-// Roll the latest-per-line overrides into the figures the queue flag and
-// dashboard card show. A line whose latest row is a reversing entry (delta 0)
-// is not counted as active and contributes 0.
-export function summarizeOverrides(
-  overrides: ReadonlyArray<BidLineOverride>,
+// Roll an already-computed latest-per-line map into the figures the queue flag,
+// dashboard card, and quote breakdown show. A line whose latest row is a
+// reversing entry (delta 0) is not counted as active and contributes 0.
+// Callers that already hold the latest map (e.g. the quote-breakdown card, which
+// also renders per line) pass it in so the rows are walked once, not twice.
+export function summarizeLatest(
+  latest: ReadonlyMap<string, BidLineOverride>,
 ): OverrideSummary {
-  const latest = latestOverridesByLine(overrides);
   let activeCount = 0;
   let totalDelta = 0;
   for (const override of latest.values()) {
@@ -113,4 +119,11 @@ export function summarizeOverrides(
     }
   }
   return { activeCount, totalDelta: Math.round(totalDelta * 100) / 100 };
+}
+
+// Convenience for callers that only hold the raw rows (queue flag, dashboard).
+export function summarizeOverrides(
+  overrides: ReadonlyArray<BidLineOverride>,
+): OverrideSummary {
+  return summarizeLatest(latestOverridesByLine(overrides));
 }

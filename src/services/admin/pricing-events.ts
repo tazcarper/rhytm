@@ -1,12 +1,16 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { toNumber } from "@/src/services/public/format";
 
-// Source-tagged audit of every bookings.confirmed_price change. Two writers —
-// the manual PricingEditor path (updateBidPricing) and the per-line override
-// path (applyLineOverride) — both append here, so the admin timeline can always
-// tell which mechanism made a given change. Append-only; writes require the
-// service role (bid_pricing_events is service-role-write only).
+// Source-tagged audit of every bookings.confirmed_price change. Three writers —
+// the manual PricingEditor path (updateBidPricing), the per-line override path
+// (apply_line_override RPC), and the automatic comp reversal when an add-on is
+// re-materialized (reverse_add_on_comps RPC) — all append here, so the admin
+// timeline can always tell which mechanism made a given change. Append-only;
+// writes require the service role (bid_pricing_events is service-role-write
+// only). The override/auto-reversal events are written inside their Postgres
+// functions, in the same transaction as the price change they record.
 
-export type PricingEventSource = "manual" | "line_override";
+export type PricingEventSource = "manual" | "line_override" | "auto_reversal";
 
 // The per-line detail for a line_override event, joined from the linked
 // override row. reason is ADMIN-ONLY (the history panel is admin-only).
@@ -61,11 +65,6 @@ export async function recordPricingEvent(
   if (error) {
     console.error("[pricing-events] failed to record event", error.message);
   }
-}
-
-function toNumber(value: string | number | null): number | null {
-  if (value === null) return null;
-  return typeof value === "string" ? parseFloat(value) : value;
 }
 
 // PostgREST returns a to-one embed as an object or a single-element array

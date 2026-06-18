@@ -3,11 +3,11 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Card } from "@/lib/ui";
-import { formatMoneyExact } from "@/src/services/public/format";
+import { formatMoneyExact, round2 } from "@/src/services/public/format";
 import type { BidLineItem } from "@/src/services/bids/bid-line-items";
 import {
   latestOverridesByLine,
-  summarizeOverrides,
+  summarizeLatest,
   type BidLineOverride,
 } from "@/src/services/admin/overrides";
 import { applyLineOverrideAction } from "@/app/admin/bids/[id]/override-actions";
@@ -43,10 +43,12 @@ export function BidLineItemsCard({
 
   if (lineItems.length === 0) return null;
 
+  // Compute the latest-per-line map once, then summarize from it — the rows are
+  // walked a single time (the card already needs the map for per-line display).
   const latest = latestOverridesByLine(overrides);
-  const { totalDelta } = summarizeOverrides(overrides);
+  const { totalDelta } = summarizeLatest(latest);
   const subtotal = lineItems.reduce((sum, line) => sum + line.lineAmount, 0);
-  const netTotal = Math.round((subtotal + totalDelta) * 100) / 100;
+  const netTotal = round2(subtotal + totalDelta);
   const hasDiscount = totalDelta < -0.005;
 
   const handleApplied = (depositExceedsTotal?: boolean) => {
@@ -98,8 +100,15 @@ export function BidLineItemsCard({
                   {line.taxStatus === "exempt" && (
                     <span className={kv.lineItemTag}> · tax-exempt</span>
                   )}
-                  {comped && override.customerFacingLabel && (
-                    <span className={s.compLabel}> · {override.customerFacingLabel}</span>
+                  {/* Always say so when a line is comped, so the state is
+                      legible even when no customer-facing label was set. */}
+                  {comped && (
+                    <span className={s.compTag}>
+                      {" "}· Comped
+                      {override.customerFacingLabel
+                        ? ` · ${override.customerFacingLabel}`
+                        : ""}
+                    </span>
                   )}
                 </span>
 

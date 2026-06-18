@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/service";
 import { getStaffIdentity } from "@/src/services/admin/staff-identity";
 import {
   updateBidPricing,
@@ -44,7 +45,15 @@ export async function updateBidPricingAction(
   const identity = await getStaffIdentity(user.id);
   const actor = { id: user.id, email: identity?.email ?? user.email ?? "unknown" };
 
-  const result = await updateBidPricing(supabase, parsed.data, actor);
+  // The audit table (bid_pricing_events) is service-role-write only, so the
+  // action supplies that client; updateBidPricing uses the caller's RLS client
+  // for the price write and this one only for the audit row.
+  const result = await updateBidPricing(
+    supabase,
+    parsed.data,
+    actor,
+    createServiceRoleClient(),
+  );
 
   if (result.ok) {
     revalidatePath(`/admin/bids/${parsed.data.bidId}`);
