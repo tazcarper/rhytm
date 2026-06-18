@@ -97,6 +97,13 @@ the `feature/editable-homepage-hero` branch). A feature like this is typically:
 
 Keep to `CLAUDE.md`: thin pages, SOLID services, the `naming` skill, RLS rules.
 
+**For the visual side, keep to `DESIGN.md`.** Build the admin page and the public
+render from the existing `lib/ui` primitives and the brand tokens in
+`app/globals.css` (olive/tan/paper palette, sharp 2–3px corners, the Cormorant +
+Inter pairing) — don't invent new styling. `DESIGN.md`'s named rules and Do's/Don'ts
+are the guardrails so a new feature reads like the rest of the estate, not a
+bolted-on screen.
+
 ### 4. Set the localhost-vs-preview expectation
 Because the feature includes a database change, be honest about where it shows up:
 

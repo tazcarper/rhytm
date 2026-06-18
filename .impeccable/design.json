@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-18T00:00:00Z",
+  "title": "Design System: Rhythm Outdoors",
+  "extensions": {
+    "colorMeta": {
+      "olive": {
+        "role": "primary",
+        "displayName": "Field Olive",
+        "canonical": "#3f4a21",
+        "tonalRamp": ["#161b0c", "#1f2611", "#2a3216", "#3f4a21", "#5a6535", "#7d8856", "#a7b083", "#d8dcc4"]
+      },
+      "tan-deep": {
+        "role": "secondary",
+        "displayName": "Leather Tan",
+        "canonical": "#9a8159",
+        "tonalRamp": ["#3b2f1c", "#4a3c25", "#6b5538", "#8a6f49", "#9a8159", "#b89c73", "#d3c19c", "#efe6d6"]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#fbfaf3",
+        "tonalRamp": ["#1f2611", "#3f4a21", "#6b6557", "#9a9485", "#d4cebe", "#e8e4d5", "#f5f1e5", "#fbfaf3"]
+      },
+      "gray": {
+        "role": "neutral",
+        "displayName": "Stone Gray",
+        "canonical": "#6b6557",
+        "tonalRamp": ["#2b291f", "#403c30", "#564f3f", "#6b6557", "#8a8474", "#aaa595", "#c9c4b6", "#e7e3d8"]
+      },
+      "accent-error": {
+        "role": "tertiary",
+        "displayName": "Claret Error",
+        "canonical": "#8b3030",
+        "tonalRamp": ["#3a1414", "#561d1d", "#722727", "#8b3030", "#a85252", "#c47e7e", "#dcadad", "#f1dada"]
+      },
+      "accent-warn": {
+        "role": "tertiary",
+        "displayName": "Ochre Warn",
+        "canonical": "#8c5e0f",
+        "tonalRamp": ["#3a2706", "#56390a", "#71490c", "#8c5e0f", "#b07d28", "#c99f5b", "#ddc394", "#f0e3cc"]
+      },
+      "accent-info": {
+        "role": "tertiary",
+        "displayName": "Slate Info",
+        "canonical": "#2f5482",
+        "tonalRamp": ["#13243a", "#1e3856", "#264571", "#2f5482", "#5277a3", "#809cc0", "#aec1da", "#dde6f1"]
+      },
+      "accent-success": {
+        "role": "tertiary",
+        "displayName": "Moss Success",
+        "canonical": "#2d5520",
+        "tonalRamp": ["#0f2009", "#193511", "#234518", "#2d5520", "#4d7a3f", "#7aa06c", "#acc6a0", "#dceace"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Public hero and bid-page opener only — the one place the system raises its voice." },
+      "headline": { "displayName": "Headline / H1", "purpose": "Page titles; italic <em> renders in Leather Tan." },
+      "title": { "displayName": "Title / H2–H4", "purpose": "Section and card titles; H2 may carry the 36px tan underline." },
+      "body": { "displayName": "Body", "purpose": "Default reading text in Olive; cap prose at 65–75ch." },
+      "label": { "displayName": "Label / Eyebrow", "purpose": "Uppercase tracked microtype — form labels, kickers, the nameplate voice." }
+    },
+    "shadows": [
+      { "name": "soft", "value": "0 1px 2px rgba(31,38,17,0.04), 0 8px 24px rgba(31,38,17,0.06)", "purpose": "Resting elevation for cards and panels — a barely-there lift off the paper." },
+      { "name": "lift", "value": "0 1px 2px rgba(31,38,17,0.06), 0 16px 48px rgba(31,38,17,0.12)", "purpose": "Hover/active and pulled-forward surfaces; pairs with translateY(-2px)." }
+    ],
+    "motion": [
+      { "name": "transition-fast", "value": "150ms ease", "purpose": "Button/input state changes — color and border shifts." },
+      { "name": "transition-base", "value": "240ms ease", "purpose": "Card hover lift, alert entrance." },
+      { "name": "transition-slow", "value": "360ms ease", "purpose": "Larger reveals on the public/bid surfaces." }
+    ],
+    "breakpoints": [
+      { "name": "content-narrow", "value": "720px" },
+      { "name": "content-prose", "value": "620px" },
+      { "name": "content-max", "value": "1180px" },
+      { "name": "content-xl", "value": "1440px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The committing action — submit a booking, send a bid, pay a deposit.",
+      "html": "<button class=\"ds-btn-primary\">Reserve this date</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--sans, Inter, sans-serif); font-weight: 600; font-size: 12px; letter-spacing: 2.5px; text-transform: uppercase; padding: 12px 20px; color: var(--cream, #e8e4d5); background: var(--olive, #3f4a21); border: 1px solid transparent; border-radius: 2px; cursor: pointer; transition: background 150ms ease; } .ds-btn-primary:hover { background: var(--olive-deep, #2a3216); } .ds-btn-primary:focus-visible { outline: 2px solid var(--tan-deep, #9a8159); outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "The quieter, intentionally lighter alternate action — sentence case, softer tracking.",
+      "html": "<button class=\"ds-btn-secondary\">Save draft</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--sans, Inter, sans-serif); font-weight: 500; font-size: 15px; letter-spacing: 1.5px; padding: 12px 20px; color: var(--olive, #3f4a21); background: var(--paper, #fbfaf3); border: 1px solid var(--border-strong, rgba(63,74,33,0.28)); border-radius: 2px; cursor: pointer; transition: background 150ms ease, border-color 150ms ease; } .ds-btn-secondary:hover { background: var(--paper-warm, #f5f1e5); border-color: var(--tan-deep, #9a8159); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--tan-deep, #9a8159); outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Lowest-weight action — tan text, faint wash on hover.",
+      "html": "<button class=\"ds-btn-ghost\">Cancel</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--sans, Inter, sans-serif); font-weight: 600; font-size: 12px; letter-spacing: 2.5px; text-transform: uppercase; padding: 12px 20px; color: var(--tan-deep, #9a8159); background: transparent; border: 1px solid transparent; border-radius: 2px; cursor: pointer; transition: background 150ms ease, color 150ms ease; } .ds-btn-ghost:hover { color: var(--olive, #3f4a21); background: rgba(184,156,115,0.08); } .ds-btn-ghost:focus-visible { outline: 2px solid var(--tan-deep, #9a8159); outline-offset: 2px; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Default content container — flat on the paper, soft resting shadow, olive hairline.",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">Morning Upland Hunt</h3><p class=\"ds-card-body\">A guided half-day over pointing dogs. Gear and instruction included.</p></div>",
+      "css": ".ds-card { background: var(--paper, #fbfaf3); border: 1px solid var(--border, rgba(63,74,33,0.15)); border-radius: 3px; padding: 24px; box-shadow: 0 1px 2px rgba(31,38,17,0.04), 0 8px 24px rgba(31,38,17,0.06); transition: transform 240ms ease, box-shadow 240ms ease; } .ds-card:hover { transform: translateY(-2px); box-shadow: 0 1px 2px rgba(31,38,17,0.06), 0 16px 48px rgba(31,38,17,0.12); border-color: rgba(184,156,115,0.2); } .ds-card-title { font-family: var(--serif, 'Cormorant Garamond', serif); font-weight: 600; font-size: 24px; line-height: 1.15; letter-spacing: -0.02em; color: var(--olive, #3f4a21); margin: 0 0 8px; } .ds-card-body { font-family: var(--sans, Inter, sans-serif); font-size: 15px; line-height: 1.6; color: var(--olive, #3f4a21); margin: 0; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Paper-warm fill, strong-olive border, calm two-property focus shift (no glow).",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Party name\" />",
+      "css": ".ds-input { width: 100%; padding: 12px 14px; font-family: var(--sans, Inter, sans-serif); font-size: 15px; color: var(--olive, #3f4a21); background: var(--paper-warm, #f5f1e5); border: 1px solid var(--border-strong, rgba(63,74,33,0.28)); border-radius: 2px; outline: none; transition: border-color 150ms ease, background 150ms ease; } .ds-input::placeholder { color: var(--gray, #6b6557); opacity: 0.7; } .ds-input:focus { border-color: var(--tan-deep, #9a8159); background: var(--paper, #fbfaf3); }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Booking/adventure state — uppercase micro, tinted background plus matching darker text. Color always backed by the word.",
+      "html": "<span class=\"ds-badge ds-badge-open\">Open</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 0.4em; font-family: var(--sans, Inter, sans-serif); font-size: 9.5px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; padding: 4px 9px; border-radius: 2px; line-height: 1.4; border: 1px solid transparent; } .ds-badge-open { background: rgba(63,110,50,0.12); color: #2d5520; } .ds-badge-full { background: rgba(140,50,50,0.10); color: #8b3030; }"
+    },
+    {
+      "name": "Alert",
+      "kind": "custom",
+      "refersTo": "alert",
+      "description": "Severity-tinted, fully-bordered notice with an uppercase micro title. The one sanctioned heavier edge.",
+      "html": "<div class=\"ds-alert ds-alert-info\" role=\"status\"><div class=\"ds-alert-body\"><span class=\"ds-alert-title\">Heads up</span><p>This date is held for 48 hours while the guest reviews the bid.</p></div></div>",
+      "css": ".ds-alert { display: flex; gap: 12px; align-items: flex-start; text-align: left; border: 1px solid; border-left-width: 4px; border-radius: 2px; padding: 16px; font-family: var(--sans, Inter, sans-serif); font-size: 13px; color: var(--olive, #3f4a21); line-height: 1.5; } .ds-alert-info { background: rgba(47,84,130,0.07); border-color: rgba(47,84,130,0.25); } .ds-alert-title { display: block; font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-info, #2f5482); margin-bottom: 0.25rem; } .ds-alert-body p { margin: 0; }"
+    },
+    {
+      "name": "Eyebrow",
+      "kind": "custom",
+      "refersTo": "label",
+      "description": "Signature nameplate microtype — uppercase tracked tan kicker. A deliberate named system element, not a per-section reflex.",
+      "html": "<span class=\"ds-eyebrow\">Horseshoe Bay Sporting Club</span>",
+      "css": ".ds-eyebrow { display: block; font-family: var(--sans, Inter, sans-serif); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--tan-deep, #9a8159); font-weight: 600; line-height: 1.4; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Sporting Estate",
+    "overview": "Rhythm Outdoors looks like a well-kept private land-and-lodge tradition rendered for the screen: olive fields, tan leather, cream correspondence. The surface is the warm near-white of good paper; the ink is a deep field olive; the single ornament is a worn-leather tan. Serif headings carry the cadence of an engraved nameplate, and the sans body reads like a clean typed entry beneath it. Nothing shouts. The authority comes from restraint and from the sense that every detail has been looked after — the same calm confidence a guest needs before handing over a deposit, and the same quiet order a staff member needs to run three clubs from one screen. This is a product-register system at its core (admin, booking funnel, portals are working surfaces where the tool disappears into the task), but the guest-facing public site and the bid page are conversion surfaces where the same materials are allowed to breathe more.",
+    "keyCharacteristics": [
+      "Warm-paper canvas (#fbfaf3), deep-olive ink (#3f4a21), tan (#9a8159) as the one accent.",
+      "Cormorant Garamond serif for headings (with an italic tan emphasis); Inter for everything that does work.",
+      "Near-square corners (2–3px) — engraved, not bubbly.",
+      "Soft, olive-tinted elevation; flat by default, lift on intent.",
+      "Uppercase, widely-tracked sans labels and eyebrows as the engraved-nameplate voice.",
+      "Quiet by default; the bid page and public hero are where the system is allowed to open up."
+    ],
+    "rules": [
+      { "name": "The One Accent Rule", "body": "Tan is the only accent. It earns attention by scarcity — links, focus, eyebrows, a single hairline rule. The moment a second decorative hue appears, the estate starts to look like a brochure.", "section": "colors" },
+      { "name": "The Olive-Line Rule", "body": "Every border and divider is semi-transparent olive (rgba(63,74,33,…)), not gray. Lines belong to the brand's hue; a neutral-gray border is a tell that a component skipped the system.", "section": "colors" },
+      { "name": "The Serif-Speaks Rule", "body": "Serif is for headings, the lead paragraph, and italic emphasis — never for UI controls, labels, data, or buttons. A display face in a button label is forbidden.", "section": "typography" },
+      { "name": "The Italic-Tan Rule", "body": "Emphasis inside a heading is <em> rendered italic in Tan, not bold and not a color swap on the whole line. One word leans in; the rest holds the olive.", "section": "typography" },
+      { "name": "The Flat-Paper Rule", "body": "Surfaces rest flat on the paper. The Lift shadow appears only as a response to state (hover, focus, deliberate emphasis) — if everything is lifted, nothing is.", "section": "elevation" },
+      { "name": "The Olive-Shadow Rule", "body": "Shadows are tinted olive-black, never neutral rgba(0,0,0,…). A pure-black shadow on warm paper reads cold and off-system.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep Tan as the single accent (The One Accent Rule) — links, focus, eyebrows, one hairline. Scarcity is the point.",
+      "Do draw every border and divider in semi-transparent olive, never neutral gray (The Olive-Line Rule).",
+      "Do reserve Cormorant for headings, the lead paragraph, and italic emphasis; everything functional is Inter (The Serif-Speaks Rule).",
+      "Do keep surfaces flat on the paper and raise the Lift shadow only on state (The Flat-Paper Rule); tint shadows olive-black.",
+      "Do verify contrast: body text ≥ 4.5:1. Stone Gray (#6b6557) on Paper sits near the floor — use Olive for body and reserve Gray for genuinely secondary micro text; placeholders must still clear 4.5:1.",
+      "Do pair every status color with its word and/or an icon — never encode meaning in color alone.",
+      "Do honor prefers-reduced-motion: the global baseline near-zeroes animation; opt a critical entrance back in only as a fade/crossfade.",
+      "Do let the public hero and bid page open up (bigger serif, more air); keep admin and funnel dense and quiet."
+    ],
+    "donts": [
+      "Don't build a generic SaaS dashboard — no gray-card sameness, no identical icon-heading-text grids repeated down a page.",
+      "Don't ship a loud OTA booking site — no countdown timers, 'only 3 left!' badges, discount confetti, manufactured scarcity, or hard-sell banners.",
+      "Don't drift into corporate hotel chain blandness — no sterile, focus-grouped, stock-photo filler with no opinion.",
+      "Don't reach for the trendy AI-startup kit — no purple gradients, no glassmorphism, no background-clip:text gradient text, no big-number hero-metric template.",
+      "Don't use a colored border-left/border-right greater than 1px as a side-stripe accent on cards, list items, or callouts (the alert's heavier edge inside a fully-bordered box is the one sanctioned exception).",
+      "Don't put a display/serif face on UI controls, labels, data, or buttons.",
+      "Don't use pure-white surfaces or rgba(0,0,0,…) shadows — both read cold against warm paper.",
+      "Don't nest cards, and don't render dropdowns with position:absolute inside an overflow:hidden/auto container (they clip)."
+    ]
+  }
+}

@@ -45,6 +45,15 @@ a live database or live payment data. Everything you do ends as a **feature bran
    client's machine; production secrets live only in Vercel.
 6. **Talk like a person.** Narrate each step. Explain blocks gently. Translate any
    error into "here's what happened and what we'll do."
+7. **Stay on-brand.** Before restyling anything, read **`DESIGN.md`** (and
+   **`PRODUCT.md`** for the *why*). It documents the visual system: the olive/tan/paper
+   palette, the Cormorant + Inter type pairing, near-square corners, and named rules
+   like *The One Accent Rule* (tan is the only accent), *The Olive-Line Rule* (borders
+   are semi-transparent olive, never gray), and *The Serif-Speaks Rule* (serif for
+   headings, never for controls). Reach for the existing `lib/ui` primitives and those
+   tokens instead of inventing new colors, fonts, or shadows, and honor the
+   Do's/Don'ts — no SaaS-gray cards, no OTA urgency banners, no gradient text. New work
+   should look like the rest of the estate, not a bolted-on screen.
 
 ## When something is blocked
 

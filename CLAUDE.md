@@ -305,3 +305,18 @@ disabled only by the `.claude/.developer-mode` marker:
 
 Don't try to route around either — if a hook blocks something, that action belongs in
 the dashboard or with the developer, as its message explains.
+
+## Design Context
+
+Design/UX work is grounded in two root files, written and maintained by the
+`/impeccable` skill. Read them before any visual or interface work:
+
+- **`PRODUCT.md`** — strategic design context: register, users, product purpose,
+  brand personality, anti-references, design principles, accessibility target.
+- **`DESIGN.md`** — the visual system: color palette, typography, elevation,
+  components, and do's/don'ts (extracted from `app/globals.css` tokens + the
+  Tailwind `@theme` bridge). The machine-readable sidecar is `.impeccable/design.json`.
+
+**Register default is `product`** (the app is split — admin + booking funnel +
+portals are product UI; the guest-facing public site and bid pages flip to `brand`
+when worked on). Re-run `/impeccable document` if the design system drifts.
