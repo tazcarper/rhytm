@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Button } from "@/lib/ui";
 import { useBookingFlow } from "./booking-flow-provider";
 import { BOOKING_TYPE_META } from "@/src/constants/public/booking-types";
@@ -18,6 +19,14 @@ import s from "./booking-summary.module.css";
 interface BookingSummaryProps {
   services: ReadonlyArray<PublicService>;
   pricing: PricingModel | null;
+  /** Panel framing. `rail` is the full-height sticky "Heritage Ledger" sidebar
+   *  used on the builder; `card` (default) is a self-contained bordered card for
+   *  contexts like the /details rail next to the guest form. */
+  variant?: "rail" | "card";
+  /** Optional content rendered at the very top of the ledger panel, above the
+   *  "Booking Summary" eyebrow — used by the builder to seat the step progress
+   *  stepper inside the sidebar. */
+  header?: ReactNode;
   /** Optional Continue / Submit CTA rendered at the bottom of the panel.
    *  When omitted, the panel is read-only (e.g. /details rail next to the
    *  form's own submit button). */
@@ -28,7 +37,13 @@ interface BookingSummaryProps {
   };
 }
 
-export function BookingSummary({ services, pricing, cta }: BookingSummaryProps) {
+export function BookingSummary({
+  services,
+  pricing,
+  variant = "card",
+  header,
+  cta,
+}: BookingSummaryProps) {
   const { state, setState } = useBookingFlow();
   if (!state.bookingType) return null;
 
@@ -37,7 +52,8 @@ export function BookingSummary({ services, pricing, cta }: BookingSummaryProps) 
   const juniorGuestCount = Math.min(state.juniorGuestCount, guestCount);
   const adultGuestCount = guestCount - juniorGuestCount;
   const durationHours =
-    state.durationHours ?? BOOKING_TYPE_META[state.bookingType].defaultDurationHours;
+    state.durationHours ??
+    BOOKING_TYPE_META[state.bookingType].defaultDurationHours;
 
   const summary = buildBookingSummary({
     bookingType: state.bookingType,
@@ -72,10 +88,11 @@ export function BookingSummary({ services, pricing, cta }: BookingSummaryProps) 
     .join(" · ");
 
   return (
-    <aside className={s.box}>
-      <p className={s.eyebrow}>Booking Summary</p>
+    <aside className={`${s.box} ${s[variant]}`}>
+      {header && <div className={s.summaryHeader}>{header}</div>}
 
-      <div className={s.section}>
+      <div className={s.intro}>
+        <p className={s.eyebrow}>Booking Summary</p>
         <p className={s.fact}>{BOOKING_TYPE_META[state.bookingType].title}</p>
         <p className={s.factSub}>
           {partyLine}
@@ -83,78 +100,63 @@ export function BookingSummary({ services, pricing, cta }: BookingSummaryProps) 
         </p>
       </div>
 
-      {summary.disciplineNames.length > 0 && (
-        <div className={s.section}>
-          <p className={s.sectionLabel}>Disciplines</p>
-          <ul className={s.list}>
-            {summary.disciplineNames.map((name) => (
-              <li key={name} className={s.listItem}>
-                {name}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {/* Ledger entries — dotted-leader rows that grow to fill the panel so the
+          subtotal sits at the bottom of the sidebar. */}
+      <div className={s.ledger}>
+        {summary.disciplineNames.map((name) => (
+          <div key={name} className={s.ledgerRow}>
+            <span className={s.ledgerLabel}>{name}</span>
+            <span className={s.ledgerIncluded}>Included</span>
+          </div>
+        ))}
 
-      {summary.addOns.length > 0 && (
-        <div className={s.section}>
-          <p className={s.sectionLabel}>Add-ons</p>
-          <ul className={s.list}>
-            {summary.addOns.map((ao) => (
-              <li
-                key={`${ao.serviceId}-${ao.addOnId}`}
-                className={s.addOnLine}
-              >
-                <span className={s.addOnText}>
-                  {ao.name}
-                  {ao.quantity > 1 && (
-                    <span className={s.addOnQty}> × {ao.quantity}</span>
-                  )}
-                </span>
-                <span className={s.addOnAmount}>
-                  ${formatMoney(ao.lineTotal)}
-                </span>
-                <button
-                  type="button"
-                  className={s.removeBtn}
-                  onClick={() => removeAddOn(ao.serviceId, ao.addOnId)}
-                  aria-label={`Remove ${ao.name}`}
-                >
-                  ×
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+        {summary.addOns.map((ao) => (
+          <div key={`${ao.serviceId}-${ao.addOnId}`} className={s.ledgerRow}>
+            <span className={s.ledgerLabel}>
+              {ao.name}
+              {ao.quantity > 1 && (
+                <span className={s.addOnQty}> × {ao.quantity}</span>
+              )}
+            </span>
+            <span className={s.ledgerAmount}>${formatMoney(ao.lineTotal)}</span>
+            <button
+              type="button"
+              className={s.removeBtn}
+              onClick={() => removeAddOn(ao.serviceId, ao.addOnId)}
+              aria-label={`Remove ${ao.name}`}
+            >
+              ×
+            </button>
+          </div>
+        ))}
 
-      {summary.guestFeeAmount > 0 && summary.guestFeeLabel && (
-        <div className={s.section}>
-          <p className={s.sectionLabel}>Per-guest fee</p>
-          <div className={s.feeLine}>
-            <span className={s.feeText}>{summary.guestFeeLabel}</span>
-            <span className={s.feeAmount}>
+        {summary.guestFeeAmount > 0 && summary.guestFeeLabel && (
+          <div className={s.ledgerRow}>
+            <span className={s.ledgerLabel}>{summary.guestFeeLabel}</span>
+            <span className={s.ledgerAmount}>
               ${formatMoney(summary.guestFeeAmount)}
             </span>
           </div>
-        </div>
-      )}
-
-      <div className={s.divider} />
+        )}
+      </div>
 
       <div className={s.total}>
-        <p className={s.totalLabel}>Estimate Total</p>
-        {summary.isTeamQuoted ? (
-          <p className={s.totalAmount}>Team-quoted</p>
-        ) : (
-          <p className={s.totalAmount}>
-            ${formatMoney(summary.estimateTotal ?? 0)}
+        <div className={s.totalRow}>
+          <p className={s.totalLabel}>
+            {summary.isTeamQuoted ? "Estimate" : "Subtotal"}
           </p>
-        )}
+          {summary.isTeamQuoted ? (
+            <p className={s.totalAmountQuoted}>Team-quoted</p>
+          ) : (
+            <p className={s.totalAmount}>
+              ${formatMoney(summary.estimateTotal ?? 0)}
+            </p>
+          )}
+        </div>
         <p className={s.totalNote}>
           {summary.isTeamQuoted
             ? "We'll send a custom quote within 24 hours."
-            : "The team confirms your final price within 24 hours."}
+            : "Prices subject to tax and conservation fees. The team confirms your final price within 24 hours."}
         </p>
       </div>
 

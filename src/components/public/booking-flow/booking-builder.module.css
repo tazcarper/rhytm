@@ -2,8 +2,8 @@
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
-  gap: 2.5rem;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 3rem;
   align-items: start;
 }
 
@@ -37,9 +37,11 @@
 }
 
 .summaryColumn {
-  /* `position: sticky` on the BookingSummary box itself only works if its
-     direct grid-item parent doesn't introduce its own scroll context — this
-     column is just a passthrough wrapper to keep the grid honest. */
+  /* Stretch this grid item to the full row height (driven by the taller
+     builder column) even though the row aligns items to `start`. That gives the
+     content-height sticky ledger inside room to pin and unpin as the catalog
+     scrolls — a sticky element can only travel within its containing block. */
+  align-self: stretch;
   min-width: 0;
 }
 
@@ -143,15 +145,20 @@
   gap: 1rem;
 }
 
+/* Photo card laid out as two columns: [media] [body]. The media column is
+   stretched to the card's full height by the grid, so it grows in step with
+   the body when the add-on section reveals. */
 .disciplineCard {
+  display: grid;
+  grid-template-columns: 34% minmax(0, 1fr);
+  align-items: stretch;
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   background: var(--paper);
   box-shadow: var(--shadow-soft);
   transition:
     border-color var(--transition-base),
-    box-shadow var(--transition-base),
-    background var(--transition-base);
+    box-shadow var(--transition-base);
   overflow: hidden;
 }
 
@@ -161,45 +168,46 @@
 }
 
 .disciplineCard[data-selected] {
-  border-color: var(--tan-deep);
-  background: var(--paper-warm);
+  border-color: var(--olive);
   box-shadow: var(--shadow-lift);
 }
 
-/* Photo card: [media] [name + description] [select toggle]. The media is flush
-   to the card edges (the card clips it via overflow:hidden); text and toggle
-   carry their own padding. */
-.disciplineHeader {
-  display: grid;
-  grid-template-columns: 200px minmax(0, 1fr) auto;
-  align-items: stretch;
-  width: 100%;
+/* Media column — a positioned box for AdventureImage's `fill`. Stretched to the
+   card's full height; a mouse-only toggle (the header button is the labeled,
+   keyboard-reachable control). */
+.disciplineMediaBtn {
+  position: relative;
+  align-self: stretch;
+  min-height: 168px;
+  margin: 0;
   padding: 0;
-  background: transparent;
-  border: none;
-  color: inherit;
-  text-align: left;
-  font: inherit;
+  border: 0;
+  background: var(--cream);
+  overflow: hidden;
   cursor: pointer;
 }
 
-.disciplineHeader:focus-visible {
-  outline: 2px solid var(--olive);
-  outline-offset: -2px;
-}
-
-/* Aspect-sized, positioned box for AdventureImage's `fill`, stretched to the
-   card's full height by the grid. */
 .disciplineMedia {
-  position: relative;
-  overflow: hidden;
-  min-height: 132px;
-  align-self: stretch;
-  background: var(--cream);
+  position: absolute;
+  inset: 0;
 }
 
+/* Editorial treatment: heritage photography reads in muted monochrome until the
+   discipline is in play (hover or selected), when it blooms to full color and
+   eases up in scale. Scoped to the photo so the monogram placeholder keeps its
+   color. */
 .disciplineImage {
   object-fit: cover;
+  filter: grayscale(1);
+  transition:
+    filter var(--transition-slow),
+    transform var(--transition-slow);
+}
+
+.disciplineCard:hover .disciplineImage,
+.disciplineCard[data-selected] .disciplineImage {
+  filter: grayscale(0);
+  transform: scale(1.06);
 }
 
 /* Branded fallback when a discipline has no photo yet — a serif monogram on a
@@ -217,13 +225,40 @@
   font-weight: 500;
 }
 
+/* Body column — header row, then the collapsible add-on reveal stacked below. */
+.disciplineBody {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Header row: [name + description] [select toggle]. */
+.disciplineHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 1.3rem 1.35rem;
+  background: transparent;
+  border: none;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.disciplineHeader:focus-visible {
+  outline: 2px solid var(--olive);
+  outline-offset: -2px;
+}
+
 .disciplineHeaderText {
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 0.4rem;
   min-width: 0;
-  padding: 1.3rem 1.35rem;
 }
 
 .disciplineTitle {
@@ -249,10 +284,8 @@
    check when selected. */
 .mark {
   flex-shrink: 0;
-  align-self: center;
   width: 30px;
   height: 30px;
-  margin-right: 1.35rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -276,27 +309,39 @@
   border-color: var(--olive);
 }
 
-/* Stack the photo above the text on narrow viewports. */
+/* Add-on reveal — animates open/closed by transitioning grid rows 0fr→1fr,
+   which the inner overflow:hidden wrapper clips. As the body grows, the
+   stretched media column grows with it, so the photo fills the taller card. */
+.addOnReveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--transition-slow);
+}
+
+.addOnReveal[data-open] {
+  grid-template-rows: 1fr;
+}
+
+.addOnRevealInner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .addOnReveal {
+    transition: none;
+  }
+}
+
+/* Stack the photo above the body on narrow viewports. */
 @media (max-width: 560px) {
-  .disciplineHeader {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "media media"
-      "text toggle";
+  .disciplineCard {
+    grid-template-columns: 1fr;
   }
 
-  .disciplineMedia {
-    grid-area: media;
+  .disciplineMediaBtn {
     aspect-ratio: 16 / 9;
     min-height: 0;
-  }
-
-  .disciplineHeaderText {
-    grid-area: text;
-  }
-
-  .mark {
-    grid-area: toggle;
   }
 }
 
@@ -304,8 +349,8 @@
 
 .addOnGroup {
   border-top: 1px solid var(--border);
-  padding: 1.1rem 1.5rem 1.35rem;
-  background: rgba(184, 156, 115, 0.06);
+  padding: 1.25rem 1.35rem 1.4rem;
+  background: var(--paper-warm);
 }
 
 .addOnGroupLabel {
@@ -318,28 +363,32 @@
   margin: 0 0 0.65rem;
 }
 
-/* Refined-ledger list: hairline-separated rows, no per-row card. */
+/* Gap-separated rows (no per-row rule), echoing the mock's spacing rhythm. */
 .addOnList {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
+  gap: 0.9rem;
 }
 
-/* Grid row: [select] [name/trigger] [price] [fixed slot]. The slot is a fixed
-   width so the price column never moves when the ⓘ swaps to the stepper. */
+/* Grid row: [select] [name/trigger] [end]. The end cell holds the optional
+   quantity stepper and the price, hard-right. */
 .addOnRow {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto 7rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   column-gap: 0.85rem;
-  padding: 0.3rem 0;
-  border-top: 1px solid var(--border);
 }
 
-.addOnRow:first-child {
-  border-top: 0;
+/* Right end of the row — stepper (when present) then price, aligned right. */
+.addOnEnd {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.85rem;
+  min-height: 38px;
 }
 
 /* Select / deselect — the square mark is the toggle. */
@@ -361,22 +410,26 @@
 }
 
 .addOnMark {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-sharp);
-  background: var(--paper);
-  color: var(--tan-deep);
+  background: var(--cream);
+  color: var(--olive);
   font-family: var(--sans);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   border: 1px solid var(--border-strong);
   transition:
     background var(--transition-fast),
     color var(--transition-fast),
     border-color var(--transition-fast);
+}
+
+.addOnRow:hover .addOnMark {
+  border-color: var(--olive);
 }
 
 .addOnRow[data-selected] .addOnMark {
@@ -409,77 +462,60 @@
 }
 
 .addOnName {
-  font-family: var(--serif);
-  font-size: 17px;
+  font-family: var(--sans);
+  font-size: 15px;
   font-weight: 600;
   color: var(--olive);
-  line-height: 1.25;
-  text-decoration-line: underline;
-  text-decoration-style: dotted;
-  text-decoration-color: transparent;
-  text-underline-offset: 3px;
-  transition: text-decoration-color var(--transition-fast);
+  line-height: 1.3;
+  transition: color var(--transition-fast);
 }
 
 .addOnTrigger:hover .addOnName,
 .addOnTrigger:focus-visible .addOnName {
-  text-decoration-color: var(--tan-deep);
-}
-
-.addOnDescription {
-  font-family: var(--sans);
-  font-size: 12px;
-  line-height: 1.45;
-  color: var(--gray);
+  color: var(--olive-deep);
 }
 
 .addOnPrice {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 18px;
+  font-family: var(--sans);
+  font-size: 15px;
   font-weight: 600;
   color: var(--olive);
   white-space: nowrap;
   text-align: right;
 }
 
-/* Fixed-width right slot — the learn-more ⓘ when unselected, the quantity
-   stepper when selected (and the add-on allows more than one). Reserving the
-   width is what keeps the price from shifting on the swap. */
-.addOnSlot {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  min-height: 42px;
+/* "each" suffix on multi-quantity add-ons — a quiet, real-text signal that the
+   price is per-unit and the add-on can be bought in multiples. */
+.addOnPriceUnit {
+  font-weight: 400;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--gray);
 }
 
-.addOnInfo {
+/* The quantity stepper eases in when a multi-quantity add-on is selected, so it
+   reads as a considered response to the tick rather than a layout pop. Price
+   stays hard-right; the stepper expands leftward into the name column. */
+.addOnStepperWrap {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  color: var(--tan-deep);
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 50%;
-  cursor: pointer;
-  transition:
-    color var(--transition-fast),
-    background var(--transition-fast),
-    border-color var(--transition-fast);
+  animation: addOnStepperIn 160ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.addOnInfo:hover {
-  color: var(--olive);
-  background: var(--paper);
-  border-color: rgba(184, 156, 115, 0.5);
+@keyframes addOnStepperIn {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-.addOnInfo:focus-visible {
-  outline: 2px solid var(--olive);
-  outline-offset: 2px;
+@media (prefers-reduced-motion: reduce) {
+  .addOnStepperWrap {
+    animation: none;
+  }
 }
 
 /* ============ date + time layout ============ */

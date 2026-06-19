@@ -1,11 +1,11 @@
 .bar {
-  padding: 0.5rem 0 1rem;
+  padding: 0;
 }
 
 .list {
   list-style: none;
   margin: 0;
-  padding: 0 1rem;
+  padding: 0;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -13,13 +13,13 @@
 }
 
 /* Track line that runs behind every dot. Anchored to the dot centers
-   via fixed left/right offsets matching the dot radius (18px). */
+   via fixed left/right offsets matching the dot radius (16px). */
 .list::before {
   content: "";
   position: absolute;
-  top: 17px;
-  left: calc(1rem + 18px);
-  right: calc(1rem + 18px);
+  top: 15px;
+  left: 16px;
+  right: 16px;
   height: 2px;
   background: var(--border);
   z-index: 0;
@@ -30,9 +30,9 @@
 .list::after {
   content: "";
   position: absolute;
-  top: 17px;
-  left: calc(1rem + 18px);
-  width: calc(var(--progress, 0) * (100% - 2rem - 36px));
+  top: 15px;
+  left: 16px;
+  width: calc(var(--progress, 0) * (100% - 32px));
   height: 2px;
   background: var(--olive);
   z-index: 0;
