@@ -24,3 +24,6 @@ next-env.d.ts
 
 # Personal Claude Code instructions (machine-specific)
 CLAUDE.local.md
+
+# Playwright MCP screenshots (local design-review artifacts)
+.playwright-mcp/
