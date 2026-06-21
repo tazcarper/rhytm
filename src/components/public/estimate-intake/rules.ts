@@ -257,7 +257,9 @@ export function computeEstimate(s: IntakeState): EstimateResult {
     let cost = 0;
     const students = Math.max(1, guests);
     for (let i = 0; i < students; i++) {
-      cost += RULES.lessonLadder[i % 6] ?? 50;
+      // 5-student cohort per instructor (1:5 ratio); the 6th student opens a
+      // fresh cohort at the $200 Lead Slot rate, per Group Event Policy §9.2.
+      cost += RULES.lessonLadder[i % 5];
     }
     lines.push({ label: `Private lesson · ${students} student ladder /hr`, amount: cost, exempt: true });
     total += cost;
