@@ -30,8 +30,18 @@ export const EstimateRequestInputSchema = z.object({
     email: z.email(),
     phone: z.string().trim().max(40).default(""),
   }),
-  adults: z.number().int().min(0).max(500).default(1),
-  juniors: z.number().int().min(0).max(500).default(0),
+  // Party composition. members shoot on dues (member host only); guests are
+  // non-members who drive fees. The legacy adults/juniors columns are derived
+  // from these for back-compat (adults = members + guestAdults).
+  members: z.number().int().min(0).max(500).default(0),
+  guestAdults: z.number().int().min(0).max(500).default(0),
+  guestJuniors: z.number().int().min(0).max(500).default(0),
+  // Private lesson length in hours (null when no lesson selected).
+  lessonHours: z.number().int().min(1).max(12).nullable().default(null),
+  // Staff-added flat line items (staff phone-intake only).
+  customLines: z
+    .array(z.object({ label: z.string().trim().min(1).max(120), amount: z.number().nonnegative() }))
+    .default([]),
   // Free-shape captured selections — intentionally un-normalized in v1.
   experiences: z.array(z.string().max(60)).default([]),
   addons: z.record(z.string(), z.unknown()).default({}),
@@ -73,14 +83,19 @@ export async function createEstimateRequest(
   const v = parsed.data;
   const supabase = createServiceRoleClient();
 
+  // Legacy adults/juniors kept in sync for back-compat: adults = all adults
+  // in the party (members + guest adults), juniors = guest juniors.
+  const legacyAdults = v.members + v.guestAdults;
+  const legacyJuniors = v.guestJuniors;
+
   const { data, error } = await supabase.rpc("create_estimate_request", {
     p_property_id: v.propertyId,
     p_source_channel: v.sourceChannel,
     p_contact_name: v.contact.name,
     p_contact_email: v.contact.email,
     p_contact_phone: v.contact.phone,
-    p_adults: v.adults,
-    p_juniors: v.juniors,
+    p_adults: legacyAdults,
+    p_juniors: legacyJuniors,
     p_experiences: v.experiences,
     p_addons: v.addons,
     p_catering: v.catering ?? null,
@@ -91,6 +106,11 @@ export async function createEstimateRequest(
     p_indicative_total: v.indicativeTotal,
     p_created_by_label: v.createdByLabel,
     p_created_by_staff_id: v.createdByStaffId,
+    p_members: v.members,
+    p_guest_adults: v.guestAdults,
+    p_guest_juniors: v.guestJuniors,
+    p_lesson_hours: v.lessonHours,
+    p_custom_lines: v.customLines,
   });
 
   if (error) {

@@ -18,12 +18,17 @@ export interface SubmitEstimateInput {
   // Club selection as the seeded property slug (horseshoe-bay / hog-heaven /
   // packsaddle). Resolved to property_id server-side.
   propertySlug: string;
-  who: "member" | "nonmember";
+  // Host of record. A member host may bring non-member guests.
+  host: "member" | "nonmember";
   experiences: string[];
   addons: { ammo: number; gear: number; cart: boolean };
   catering: { tier: string; name: string; per: number } | null;
-  adults: number;
-  juniors: number;
+  // Party composition.
+  members: number;
+  guestAdults: number;
+  guestJuniors: number;
+  lessonHours: number | null;
+  customLines: { label: string; amount: number }[];
   name: string;
   email: string;
   phone: string;
@@ -84,7 +89,11 @@ export async function submitEstimateAction(
   const isStaff = hasAdminAccess(role);
   const staffIntake = isStaff && input.staffMode;
 
-  const channel: EstimateChannel = input.who === "member" ? "member" : "non_member";
+  const channel: EstimateChannel = input.host === "member" ? "member" : "non_member";
+
+  // Manual line items are staff-only; ignore any that arrive without a staff
+  // session (the form hides them, this enforces it).
+  const customLines = staffIntake ? input.customLines ?? [] : [];
 
   const result = await createEstimateRequest({
     propertyId,
@@ -94,8 +103,11 @@ export async function submitEstimateAction(
       email: input.email,
       phone: input.phone ?? "",
     },
-    adults: input.adults,
-    juniors: input.juniors,
+    members: input.members,
+    guestAdults: input.guestAdults,
+    guestJuniors: input.guestJuniors,
+    lessonHours: input.lessonHours,
+    customLines,
     experiences: input.experiences,
     addons: input.addons as unknown as Record<string, unknown>,
     catering: input.catering,

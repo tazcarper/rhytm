@@ -41,6 +41,13 @@ export default async function AdminEstimateDetailPage({
   const addons = estimate.addons as { ammo?: number; gear?: number; cart?: boolean };
   const catering = estimate.catering as { tier?: string; name?: string; per?: number } | null;
 
+  // Composition (rows predating the composition migration have null members/
+  // guest counts — fall back to the legacy adults/juniors totals).
+  const hasComposition = estimate.members !== null || estimate.guestAdults !== null;
+  const members = estimate.members ?? 0;
+  const guestAdults = estimate.guestAdults ?? estimate.adults;
+  const guestJuniors = estimate.guestJuniors ?? estimate.juniors;
+
   return (
     <PageShell width="narrow">
       <AdminBreadcrumb
@@ -70,11 +77,26 @@ export default async function AdminEstimateDetailPage({
       </Row>
       <Row label="Club">{estimate.propertyName ?? "— (unmapped / coming soon)"}</Row>
       <Row label="Party">
-        {estimate.adults} adult{estimate.adults === 1 ? "" : "s"}
-        {estimate.juniors > 0 ? ` · ${estimate.juniors} junior${estimate.juniors === 1 ? "" : "s"}` : ""}
+        {hasComposition ? (
+          <>
+            {members} member{members === 1 ? "" : "s"} · {guestAdults} guest adult
+            {guestAdults === 1 ? "" : "s"}
+            {guestJuniors > 0 ? ` · ${guestJuniors} guest junior${guestJuniors === 1 ? "" : "s"}` : ""}
+            <span style={{ color: "var(--gray)" }}>
+              {" "}
+              ({members + guestAdults + guestJuniors} total head)
+            </span>
+          </>
+        ) : (
+          <>
+            {estimate.adults} adult{estimate.adults === 1 ? "" : "s"}
+            {estimate.juniors > 0 ? ` · ${estimate.juniors} junior${estimate.juniors === 1 ? "" : "s"}` : ""}
+          </>
+        )}
       </Row>
       <Row label="Experiences">
         {estimate.experiences.length > 0 ? estimate.experiences.join(", ") : "—"}
+        {estimate.lessonHours ? ` · lesson ${estimate.lessonHours} hr` : ""}
       </Row>
       <Row label="Add-ons">
         {[
@@ -92,6 +114,17 @@ export default async function AdminEstimateDetailPage({
       <Row label="Backup date">{dateText(estimate.backupDate)}</Row>
       <Row label="Arrival">{estimate.arrival ?? "—"}</Row>
       <Row label="Indicative total">{estimate.indicativeTotal ?? "—"}</Row>
+      {estimate.customLines.length > 0 && (
+        <Row label="Manual line items">
+          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+            {estimate.customLines.map((line, i) => (
+              <span key={i}>
+                {line.label} — ${line.amount.toLocaleString()}
+              </span>
+            ))}
+          </div>
+        </Row>
+      )}
       <Row label="Notes">
         {estimate.notes ? (
           <span style={{ whiteSpace: "pre-wrap" }}>{estimate.notes}</span>

@@ -40,6 +40,11 @@ export const ESTIMATE_STATUS_LABELS: Record<EstimateStatus, string> = {
   converted: "Converted",
 };
 
+export interface EstimateCustomLine {
+  label: string;
+  amount: number;
+}
+
 export interface EstimateRequestRow {
   id: string;
   status: EstimateStatus;
@@ -49,6 +54,13 @@ export interface EstimateRequestRow {
   contactPhone: string | null;
   adults: number;
   juniors: number;
+  // Party composition (nullable on rows created before the composition
+  // migration — fall back to adults/juniors in the UI).
+  members: number | null;
+  guestAdults: number | null;
+  guestJuniors: number | null;
+  lessonHours: number | null;
+  customLines: EstimateCustomLine[];
   experiences: string[];
   addons: Record<string, unknown>;
   catering: unknown;
@@ -73,6 +85,11 @@ interface RawRow {
   contact_phone: string | null;
   adults: number;
   juniors: number;
+  members: number | null;
+  guest_adults: number | null;
+  guest_juniors: number | null;
+  lesson_hours: number | null;
+  custom_lines: unknown;
   experiences: unknown;
   addons: unknown;
   catering: unknown;
@@ -89,7 +106,8 @@ interface RawRow {
 
 const SELECT_COLUMNS =
   "id, status, source_channel, contact_name, contact_email, contact_phone, " +
-  "adults, juniors, experiences, addons, catering, preferred_date, backup_date, " +
+  "adults, juniors, members, guest_adults, guest_juniors, lesson_hours, custom_lines, " +
+  "experiences, addons, catering, preferred_date, backup_date, " +
   "arrival, notes, indicative_total, created_by_label, created_at, property_id, " +
   "properties(name)";
 
@@ -103,6 +121,13 @@ function toRow(r: RawRow): EstimateRequestRow {
     contactPhone: r.contact_phone,
     adults: r.adults,
     juniors: r.juniors,
+    members: r.members,
+    guestAdults: r.guest_adults,
+    guestJuniors: r.guest_juniors,
+    lessonHours: r.lesson_hours,
+    customLines: Array.isArray(r.custom_lines)
+      ? (r.custom_lines as EstimateCustomLine[])
+      : [],
     experiences: Array.isArray(r.experiences) ? (r.experiences as string[]) : [],
     addons:
       r.addons && typeof r.addons === "object"

@@ -15,14 +15,16 @@ import {
   money,
   type CateringOption,
   type ClubCode,
+  type CustomLine,
+  type HostCode,
   type IntakeState,
-  type WhoCode,
 } from "./rules";
 import s from "./estimate-intake.module.css";
 
 interface EstimateIntakeProps {
   // Staff (admin-portal) viewers get the phone-intake toggle: instructor/RSO
-  // math, internal notes, and discount authority. Hidden from the public.
+  // math, internal notes, discount authority, and manual line items. Hidden
+  // from the public.
   canUseStaffMode: boolean;
 }
 
@@ -34,17 +36,27 @@ const ARRIVAL_OPTIONS = [
   { value: "15", label: "3:00 PM" },
 ];
 
+const LESSON_HOURS = [
+  { value: 2, label: "2 hours · recommended" },
+  { value: 1, label: "1 hour" },
+  { value: 3, label: "3 hours" },
+  { value: 4, label: "4 hours" },
+];
+
 const INITIAL: IntakeState = {
-  who: "member",
+  host: "member",
   club: "hsb",
   exps: [],
   addons: { ammo: 0, gear: 0, cart: false },
   catering: null,
-  adults: 4,
-  juniors: 0,
+  members: 1,
+  guestAdults: 0,
+  guestJuniors: 0,
+  hours: 2,
   staffMode: false,
   discountValue: 0,
   discountType: "pct",
+  customLines: [],
   arrival: "9",
   date: "",
 };
@@ -59,6 +71,9 @@ export function EstimateIntake({ canUseStaffMode }: EstimateIntakeProps) {
   const [notes, setNotes] = useState("");
   const [internalNotes, setInternalNotes] = useState("");
   const [honeypot, setHoneypot] = useState("");
+  // Manual-line input fields (staff).
+  const [custLabel, setCustLabel] = useState("");
+  const [custAmt, setCustAmt] = useState("");
 
   const [pending, startTransition] = useTransition();
   const [submitted, setSubmitted] = useState(false);
@@ -67,14 +82,14 @@ export function EstimateIntake({ canUseStaffMode }: EstimateIntakeProps) {
   const set = (patch: Partial<IntakeState>) => setSt((p) => ({ ...p, ...patch }));
 
   const estimate = useMemo(() => computeEstimate(st), [st]);
+  const memberHost = st.host === "member";
 
-  // --- experience / club gating ---
+  // --- gating ---
   function pickClub(club: ClubCode) {
     set({ club, exps: [], catering: null });
   }
-  function pickWho(who: WhoCode) {
-    // Switching member status can lock/unlock experiences; clear to be safe.
-    set({ who, exps: [], catering: null });
+  function pickHost(host: HostCode) {
+    set({ host, exps: [], catering: null });
   }
   function toggleExp(id: string) {
     set({
@@ -84,19 +99,36 @@ export function EstimateIntake({ canUseStaffMode }: EstimateIntakeProps) {
     });
   }
 
-  const exps = availableExperiences(st.club, st.who);
-  const cateringSet = cateringFor(st.club, st.who);
+  const exps = availableExperiences(st.club, st.host);
+  const cateringSet = cateringFor(st.club, st.host);
   const showCatering = cateringSet !== null;
+  const lessonSelected = st.exps.includes("lesson");
 
   function bump(id: "ammo" | "gear", delta: number) {
-    set({
-      addons: { ...st.addons, [id]: Math.max(0, st.addons[id] + delta) },
-    });
+    set({ addons: { ...st.addons, [id]: Math.max(0, st.addons[id] + delta) } });
   }
-
   function pickCatering(opt: CateringOption | null) {
     set({ catering: opt });
   }
+
+  function addCustomLine() {
+    const label = custLabel.trim();
+    const amount = Math.max(0, +custAmt || 0);
+    if (!label || amount <= 0) return;
+    set({ customLines: [...st.customLines, { label, amount }] });
+    setCustLabel("");
+    setCustAmt("");
+  }
+  function removeCustomLine(index: number) {
+    set({ customLines: st.customLines.filter((_, i) => i !== index) });
+  }
+
+  // Composition hint under the party inputs (mirrors the prototype partyNote).
+  const partyNote = memberHost
+    ? `${st.members} member${st.members !== 1 ? "s" : ""} hosting ${st.guestAdults + st.guestJuniors} guest${st.guestAdults + st.guestJuniors !== 1 ? "s" : ""} · billed to the member account (single-payer). Members shoot on dues; guests pay guest fees.`
+    : st.club === "hsb"
+      ? "Non-member direct booking is not available at HSB."
+      : `${st.guestAdults + st.guestJuniors} non-member${st.guestAdults + st.guestJuniors !== 1 ? "s" : ""} · direct booking at retail rates.`;
 
   function onSubmit() {
     setError(null);
@@ -118,12 +150,15 @@ export function EstimateIntake({ canUseStaffMode }: EstimateIntakeProps) {
       const res = await submitEstimateAction(
         {
           propertySlug: CLUB_TO_SLUG[st.club],
-          who: st.who,
+          host: st.host,
           experiences: st.exps,
           addons: st.addons,
           catering: st.catering,
-          adults: st.adults,
-          juniors: st.juniors,
+          members: memberHost ? st.members : 0,
+          guestAdults: st.guestAdults,
+          guestJuniors: st.guestJuniors,
+          lessonHours: lessonSelected ? st.hours : null,
+          customLines: st.staffMode ? st.customLines : [],
           name,
           email,
           phone,
@@ -188,18 +223,10 @@ export function EstimateIntake({ canUseStaffMode }: EstimateIntakeProps) {
         </div>
         {canUseStaffMode && (
           <div className={s.modeWrap} role="tablist" aria-label="Mode">
-            <button
-              type="button"
-              className={!st.staffMode ? s.modeOn : ""}
-              onClick={() => set({ staffMode: false })}
-            >
+            <button type="button" className={!st.staffMode ? s.modeOn : ""} onClick={() => set({ staffMode: false })}>
               Customer
             </button>
-            <button
-              type="button"
-              className={st.staffMode ? s.modeOn : ""}
-              onClick={() => set({ staffMode: true })}
-            >
+            <button type="button" className={st.staffMode ? s.modeOn : ""} onClick={() => set({ staffMode: true })}>
               Staff (phone)
             </button>
           </div>
@@ -207,30 +234,25 @@ export function EstimateIntake({ canUseStaffMode }: EstimateIntakeProps) {
       </header>
       <p className={s.modeNote}>
         {st.staffMode
-          ? "Staff mode — full phone-intake: instructor/RSO math, internal notes, and discount authority. Fill it while the customer is on the line."
+          ? "Staff mode — full phone-intake: instructor/RSO math, internal notes, discount authority, and manual line items. Fill it while the customer is on the line."
           : "Tell us about your outing and we'll build a bid you can review, sign, and pay online."}
       </p>
 
       <div className={s.grid}>
         <div>
-          {/* 1 · YOU */}
+          {/* 1 · WHO'S BOOKING */}
           <section className={s.card}>
-            <h3 className={s.cardH}>1 · You</h3>
-            <p className={s.sub}>This sets your pricing — members see member rates.</p>
+            <h3 className={s.cardH}>1 · Who&apos;s booking</h3>
+            <p className={s.sub}>
+              A member host can bring non-member guests (guests pay guest fees). At HSB a member must host;
+              HH also allows non-member direct bookings.
+            </p>
             <div className={s.seg}>
-              <button
-                type="button"
-                className={st.who === "member" ? s.optOn : s.opt}
-                onClick={() => pickWho("member")}
-              >
-                I&apos;m a member
+              <button type="button" className={memberHost ? s.optOn : s.opt} onClick={() => pickHost("member")}>
+                Member-hosted
               </button>
-              <button
-                type="button"
-                className={st.who === "nonmember" ? s.optOn : s.opt}
-                onClick={() => pickWho("nonmember")}
-              >
-                Not a member
+              <button type="button" className={!memberHost ? s.optOn : s.opt} onClick={() => pickHost("nonmember")}>
+                Non-member (direct)
               </button>
             </div>
             <div className={s.row} style={{ marginTop: "10px" }}>
@@ -263,12 +285,7 @@ export function EstimateIntake({ canUseStaffMode }: EstimateIntakeProps) {
             <p className={s.sub}>The club gates everything below.</p>
             <div className={s.seg}>
               {(Object.keys(CLUB_LABELS) as ClubCode[]).map((code) => (
-                <button
-                  key={code}
-                  type="button"
-                  className={st.club === code ? s.optOn : s.opt}
-                  onClick={() => pickClub(code)}
-                >
+                <button key={code} type="button" className={st.club === code ? s.optOn : s.opt} onClick={() => pickClub(code)}>
                   {CLUB_LABELS[code]}
                   {isComingSoon(code) && <span className={s.soon}> SOON</span>}
                 </button>
@@ -288,7 +305,7 @@ export function EstimateIntake({ canUseStaffMode }: EstimateIntakeProps) {
                   Leave your details and we&apos;ll reach out the moment it opens.
                 </div>
               </div>
-            ) : isHsbBlocked(st.club, st.who) ? (
+            ) : isHsbBlocked(st.club, st.host) ? (
               <div className={`${s.gate} ${s.gateBlock}`}>
                 <div className={s.gateT}>Members only</div>
                 <div className={s.gateD}>
@@ -299,7 +316,7 @@ export function EstimateIntake({ canUseStaffMode }: EstimateIntakeProps) {
             ) : (
               <div>
                 {exps.map((e) => {
-                  const locked = isExperienceLocked(e, st.who);
+                  const locked = isExperienceLocked(e, st.host);
                   const on = st.exps.includes(e.id);
                   return (
                     <button
@@ -319,34 +336,66 @@ export function EstimateIntake({ canUseStaffMode }: EstimateIntakeProps) {
                     </button>
                   );
                 })}
+                {lessonSelected && (
+                  <div style={{ marginTop: "12px" }}>
+                    <label className={s.fld}>
+                      Private lesson length — standard block is 2 hours; privates extend hourly.
+                    </label>
+                    <select value={st.hours} onChange={(e) => set({ hours: +e.target.value })}>
+                      {LESSON_HOURS.map((h) => (
+                        <option key={h.value} value={h.value}>
+                          {h.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
             )}
           </section>
 
-          {/* 4 · PARTY */}
+          {/* 4 · PARTY COMPOSITION */}
           <section className={s.card}>
-            <h3 className={s.cardH}>4 · Party size</h3>
-            <p className={s.sub}>Drives the safety ratio and any instructor staffing.</p>
+            <h3 className={s.cardH}>4 · Who&apos;s in the party</h3>
+            <p className={s.sub}>
+              Members shoot on their membership; non-member guests pay guest fees. Capture both — a party can
+              be 2 members hosting 10 guests.
+            </p>
+            {memberHost && (
+              <div className={s.row}>
+                <div>
+                  <label className={s.fld}>Members in party</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={st.members}
+                    onChange={(e) => set({ members: Math.max(0, +e.target.value || 0) })}
+                  />
+                </div>
+                <div />
+              </div>
+            )}
             <div className={s.row}>
               <div>
-                <label className={s.fld}>Adults</label>
+                <label className={s.fld}>{memberHost ? "Guest adults (16+)" : "Adults (16+)"}</label>
                 <input
                   type="number"
                   min={0}
-                  value={st.adults}
-                  onChange={(e) => set({ adults: Math.max(0, +e.target.value || 0) })}
+                  value={st.guestAdults}
+                  onChange={(e) => set({ guestAdults: Math.max(0, +e.target.value || 0) })}
                 />
               </div>
               <div>
-                <label className={s.fld}>Juniors (15 &amp; under)</label>
+                <label className={s.fld}>{memberHost ? "Guest juniors (15 & under)" : "Juniors (15 & under)"}</label>
                 <input
                   type="number"
                   min={0}
-                  value={st.juniors}
-                  onChange={(e) => set({ juniors: Math.max(0, +e.target.value || 0) })}
+                  value={st.guestJuniors}
+                  onChange={(e) => set({ guestJuniors: Math.max(0, +e.target.value || 0) })}
                 />
               </div>
             </div>
+            <div className={s.partyNote}>{partyNote}</div>
           </section>
 
           {/* 5 · ADD-ONS */}
@@ -386,8 +435,12 @@ export function EstimateIntake({ canUseStaffMode }: EstimateIntakeProps) {
                 F&amp;B · Catering <span className={s.pill}>HH &amp; Packsaddle</span>
               </h3>
               <p className={s.sub}>
-                Per-head, good / better / best by vendor — priced × total guests. (HSB dining runs through The Club.)
+                Per-head, good / better / best by vendor — priced × total headcount. (HSB dining runs through The Club.)
               </p>
+              <div className={s.cateringWarn}>
+                ⚠ Placeholder vendors &amp; rates — <b>Salt Lick, County Line, and Contigo</b> selections and per-head
+                pricing need confirmation before final sign-off.
+              </div>
               {[{ tier: "None", name: "No catering", per: 0 }, ...(cateringSet ?? [])].map((o) => {
                 const sel = (st.catering?.tier ?? "None") === o.tier;
                 return (
@@ -494,7 +547,50 @@ export function EstimateIntake({ canUseStaffMode }: EstimateIntakeProps) {
             </section>
           )}
 
-          {/* Honeypot — visually hidden, off-screen; bots fill it, humans don't. */}
+          {/* STAFF · MANUAL LINE ITEMS */}
+          {st.staffMode && (
+            <section className={s.card}>
+              <h3 className={s.cardH}>
+                Staff · Manual line items <span className={s.pill}>staff only</span>
+              </h3>
+              <p className={s.sub}>
+                Add anything custom to the bid — Musical Guest, Snake Trainer, Hair &amp; Makeup, etc. Flat amounts.
+              </p>
+              <div className={s.row}>
+                <div>
+                  <label className={s.fld}>Description</label>
+                  <input value={custLabel} onChange={(e) => setCustLabel(e.target.value)} placeholder="e.g. Musical Guest" />
+                </div>
+                <div>
+                  <label className={s.fld}>Amount $</label>
+                  <input type="number" min={0} value={custAmt} onChange={(e) => setCustAmt(e.target.value)} placeholder="350" />
+                </div>
+              </div>
+              <button type="button" className={s.secondaryBtn} style={{ marginTop: "9px" }} onClick={addCustomLine}>
+                + Add line
+              </button>
+              {st.customLines.length > 0 && (
+                <div style={{ marginTop: "10px" }}>
+                  {st.customLines.map((c: CustomLine, i) => (
+                    <div key={i} className={s.addon}>
+                      <div>
+                        <div className={s.addonNm}>{c.label}</div>
+                        <div className={s.addonMeta}>flat · staff-added</div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <span>{money(c.amount)}</span>
+                        <button type="button" className={s.removeLine} onClick={() => removeCustomLine(i)} aria-label="Remove line">
+                          ×
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Honeypot */}
           <input
             type="text"
             tabIndex={-1}
@@ -512,9 +608,7 @@ export function EstimateIntake({ canUseStaffMode }: EstimateIntakeProps) {
             <h3 className={s.estH}>Indicative estimate</h3>
             <div>
               {estimate.lines.length === 0 && !estimate.comingSoon && !estimate.hsbBlocked && (
-                <div className={s.estNote}>
-                  Pick a club, experience, and party size to see an indicative estimate.
-                </div>
+                <div className={s.estNote}>Add who&apos;s in the party and an experience to see an indicative estimate.</div>
               )}
               {estimate.comingSoon && (
                 <div className={s.estNote}>
@@ -543,6 +637,12 @@ export function EstimateIntake({ canUseStaffMode }: EstimateIntakeProps) {
               <span className={s.totalBig}>{estimate.grandLabel}</span>
             </div>
             {estimate.escalation && <div className={s.escal}>{estimate.escalation}</div>}
+            {estimate.isEvent && (
+              <div className={s.eventFlag}>
+                ▲ This party crosses <b>9 total</b> — it&apos;s a <b>Private Event</b>: advance reservation required
+                (72-hour notice). Per-guest fees are already tiered by group size.
+              </div>
+            )}
             <p className={s.estFoot}>
               Indicative only — final pricing is confirmed by our team on the bid you&apos;ll sign. Clays &amp; cart
               are bundled into the per-guest fee; ammunition and instruction are separate. Instruction is tax-exempt.

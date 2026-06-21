@@ -1,9 +1,17 @@
 // ===== ENCODED RULES — the executable spec =====
-// Ported verbatim from Rhythm_Event_Intake_Prototype.html. This is the
-// source of truth for the indicative estimate math: guest-fee ladders per
-// club, the 1:5 RSO + instructor escalation, the private-lesson ladder,
-// ammo-as-quantity, member 20% on retail goods, HH/Packsaddle catering
-// tiers, the HSB members-only block, and Packsaddle "Coming Soon".
+// Ported verbatim from Rhythm_Event_Intake_Prototype.html (corrected model),
+// verified against the canonical Pricing DB SKUs. Source of truth for the
+// indicative estimate math:
+//   - host-of-record + party composition: members (shoot on dues) vs
+//     non-member guests (drive fees + ratios); a party can be 2 members
+//     hosting 10 guests.
+//   - guest fees tier by GUEST count (members excluded); 9+ TOTAL head is a
+//     reservation flag (Private Event, 72-hr), NOT a price change.
+//   - private lesson = flat ladder (i % 5 cohort) × hours, 2-hr standard,
+//     all participants, tax-exempt.
+//   - classes/clinics: members at member rate, guests at public rate.
+//   - HH/PSP catering × total headcount; HSB members-only block applies to a
+//     non-member host only; Packsaddle "Coming Soon".
 //
 // INDICATIVE ONLY. The binding price is staff-built on the bid — this math
 // drives the live preview and the stored `indicative_total` display string,
@@ -11,7 +19,9 @@
 // later); the logic lives here, isolated, so that swap stays cheap.
 
 export type ClubCode = "hsb" | "hh" | "psp";
-export type WhoCode = "member" | "nonmember";
+// The host of record. A member host may bring non-member guests; a
+// non-member host books direct (and is blocked at HSB).
+export type HostCode = "member" | "nonmember";
 
 // Club selection ↔ the seeded `properties.slug` values.
 export const CLUB_TO_SLUG: Record<ClubCode, string> = {
@@ -39,6 +49,9 @@ export interface ExperienceDef {
   lesson: boolean;
   membersOnly?: boolean;
   custom?: boolean;
+  // A group class / clinic priced per-head by member vs public rate
+  // (classPrice), excluded from the guest-fee path.
+  klass?: boolean;
 }
 
 export interface AddonDef {
@@ -56,6 +69,10 @@ export interface CateringOption {
 }
 
 export const RULES = {
+  // Guest fee tiered by GUEST count (members excluded), per canonical Pricing
+  // DB SKUs. HH: PRC-21 (1-4 $50) · PRC-22 (5-9 $75) · PRC-23 (10-14 $95) ·
+  // 15-19 $115 · 20-24 $125. 9+ TOTAL head = Private Event (advance
+  // reservation) — a separate flag, NOT a price change.
   guestFee: {
     hsb: [
       { max: 4, a: 85, j: 55 },
@@ -73,37 +90,49 @@ export const RULES = {
     ] as FeeBand[],
     psp: null,
   },
-  rsoPerGuests: 5,
-  seniorInstructorAt: 15,
-  secondInstructorAt: 20,
+  rsoPerGuests: 5, // 1 RSO per 5 guests
+  seniorInstructorAt: 15, // +senior instructor
+  secondInstructorAt: 20, // +second senior instructor
+  // Per student in a 5-student cohort (1:5 ratio); the 6th student opens a
+  // fresh cohort at the $200 Lead Slot rate (i % 5).
   lessonLadder: [200, 100, 50, 50, 50],
   ammoBox: 17,
   gearPerPerson: 40,
   drinkCart: 75,
   memberRetailDiscount: 0.2,
+  standardBlockHrs: 2,
   experiences: {
     hsb: [
-      { id: "clays", t: "Sporting Clays", d: "Cart + clays bundled", lesson: false },
-      { id: "pistol", t: "Pistol / Carbine Bay", d: "Bay session", lesson: false },
-      { id: "lesson", t: "Private Lesson", d: "Instructor ladder pricing", lesson: true },
+      { id: "clays", t: "Sporting Clays", d: "2-hr block · cart + clays", lesson: false },
+      { id: "pistol", t: "Pistol / Carbine Bay", d: "2-hr bay session", lesson: false },
+      { id: "lesson", t: "Private Lesson", d: "Hourly · 2-hr recommended", lesson: true },
+      { id: "class", t: "Clinic / League", d: "Group class · $65 / person", lesson: false, klass: true },
       { id: "event", t: "Tournament / Event", d: "Registered event", lesson: false, membersOnly: true },
     ] as ExperienceDef[],
     hh: [
-      { id: "clays", t: "Sporting Clays", d: "Cart + clays bundled", lesson: false },
-      { id: "pistol", t: "Pistol Bay", d: "Bay session", lesson: false },
-      { id: "lesson", t: "Private Lesson", d: "Instructor ladder pricing", lesson: true },
-      { id: "event", t: "Event / Clinic", d: "Registered event", lesson: false },
+      { id: "clays", t: "Sporting Clays", d: "2-hr block · cart + clays", lesson: false },
+      { id: "pistol", t: "Pistol Bay", d: "2-hr bay session", lesson: false },
+      { id: "lesson", t: "Private Lesson", d: "Hourly · 2-hr recommended", lesson: true },
+      { id: "class", t: "Class / Clinic", d: "Free for members · $200 public", lesson: false, klass: true },
+      { id: "event", t: "Event", d: "Registered event", lesson: false },
       { id: "facility", t: "General Facility Usage", d: "Wedding · bridal · event space", lesson: false, custom: true },
     ] as ExperienceDef[],
     psp: [] as ExperienceDef[],
   },
   comingSoon: { psp: true } as Partial<Record<ClubCode, boolean>>,
+  // Class / clinic pricing per club (Notion: HH free-member / $200 public ·
+  // HSB clinic $65). Member-aware.
+  classPrice: {
+    hsb: { m: 65, n: 65 },
+    hh: { m: 0, n: 200 },
+  } as Partial<Record<ClubCode, { m: number; n: number }>>,
   addons: [
-    { id: "ammo", nm: "Ammunition", shape: "qty", unit: "box", meta: "~1 box / 25 targets · retail $17" },
+    { id: "ammo", nm: "Ammunition", shape: "qty", unit: "box", meta: "~1 box / 25 targets · $17 (HSB rate · HH/PSP TBD)" },
     { id: "gear", nm: "Firearm / gear rental", shape: "perperson", meta: "per shooter · retail $40" },
     { id: "cart", nm: "Extra drink cart", shape: "bool", meta: "yes / no" },
   ] as AddonDef[],
   // F&B catering — HH + Packsaddle ONLY. (HSB dining runs through The Club.)
+  // Placeholder vendors + indicative per-head — confirm before sign-off.
   catering: {
     hh: [
       { tier: "Good", name: "County Line BBQ", per: 24 },
@@ -124,18 +153,30 @@ export interface AddonState {
   cart: boolean;
 }
 
+// A staff-added flat line (Musical Guest, Snake Trainer, Hair & Makeup, …).
+export interface CustomLine {
+  label: string;
+  amount: number;
+}
+
 export interface IntakeState {
-  who: WhoCode;
+  host: HostCode;
   club: ClubCode;
   exps: string[];
   addons: AddonState;
   catering: CateringOption | null;
-  adults: number;
-  juniors: number;
-  // Staff-only discount.
+  // Party composition. members shoot on dues (only meaningful for a member
+  // host); guestAdults/guestJuniors are non-member guests that drive fees.
+  members: number;
+  guestAdults: number;
+  guestJuniors: number;
+  // Private lesson length in hours (2-hr standard block).
+  hours: number;
+  // Staff-only fields.
   staffMode: boolean;
   discountValue: number;
   discountType: "pct" | "amt";
+  customLines: CustomLine[];
   // Timing.
   arrival: string;
   date: string;
@@ -160,16 +201,18 @@ export interface EstimateResult {
   heat: boolean;
   comingSoon: boolean;
   hsbBlocked: boolean;
+  // 9+ total headcount → Private Event (advance reservation). A flag only.
+  isEvent: boolean;
 }
 
 export function money(n: number): string {
   return "$" + Math.round(n).toLocaleString();
 }
 
-function band(club: ClubCode, n: number): FeeBand | null {
+function guestRate(club: ClubCode, guests: number): FeeBand | null {
   const t = RULES.guestFee[club];
   if (!t) return null;
-  return t.find((b) => n <= b.max) ?? t[t.length - 1];
+  return t.find((b) => guests <= b.max) ?? t[t.length - 1];
 }
 
 // True when this club currently shows the "Coming Soon" gate.
@@ -177,33 +220,38 @@ export function isComingSoon(club: ClubCode): boolean {
   return !!RULES.comingSoon[club];
 }
 
-// True when a non-member is blocked from bidding at HSB (members-only).
-export function isHsbBlocked(club: ClubCode, who: WhoCode): boolean {
-  return club === "hsb" && who === "nonmember";
+// True when a non-member host is blocked from booking at HSB (members-only).
+// A member host bringing non-member guests is allowed.
+export function isHsbBlocked(club: ClubCode, host: HostCode): boolean {
+  return club === "hsb" && host === "nonmember";
 }
 
-// Which experiences are available given club + member status (locked ones
-// excluded). Mirrors renderExps() gating.
+// Which experiences are available given club + host (locked ones excluded).
 export function availableExperiences(
   club: ClubCode,
-  who: WhoCode,
+  host: HostCode,
 ): ExperienceDef[] {
-  if (isComingSoon(club) || isHsbBlocked(club, who)) return [];
+  if (isComingSoon(club) || isHsbBlocked(club, host)) return [];
   return RULES.experiences[club];
 }
 
-export function isExperienceLocked(exp: ExperienceDef, who: WhoCode): boolean {
-  return !!exp.membersOnly && who === "nonmember";
+export function isExperienceLocked(exp: ExperienceDef, host: HostCode): boolean {
+  return !!exp.membersOnly && host === "nonmember";
 }
 
-// The whole indicative computation — a pure port of the prototype recalc().
+// The whole indicative computation — a pure port of the corrected prototype
+// recalc(). members shoot on dues (no guest fee); guests drive fees + ratios.
 export function computeEstimate(s: IntakeState): EstimateResult {
-  const adults = Math.max(0, s.adults || 0);
-  const jrs = Math.max(0, s.juniors || 0);
-  const guests = adults + jrs;
-  const isMember = s.who === "member";
+  const memberHost = s.host === "member";
+  const members = memberHost ? Math.max(0, s.members || 0) : 0;
+  const gAdults = Math.max(0, s.guestAdults || 0);
+  const gJrs = Math.max(0, s.guestJuniors || 0);
+  const guests = gAdults + gJrs; // non-member guests
+  const totalHead = members + guests;
+  const isMember = memberHost;
+
   const coming = isComingSoon(s.club);
-  const hsbBlocked = isHsbBlocked(s.club, s.who);
+  const hsbBlocked = isHsbBlocked(s.club, s.host);
 
   if (coming) {
     return {
@@ -215,6 +263,7 @@ export function computeEstimate(s: IntakeState): EstimateResult {
       heat: false,
       comingSoon: true,
       hsbBlocked: false,
+      isEvent: false,
     };
   }
   if (hsbBlocked) {
@@ -227,6 +276,7 @@ export function computeEstimate(s: IntakeState): EstimateResult {
       heat: false,
       comingSoon: false,
       hsbBlocked: true,
+      isEvent: false,
     };
   }
 
@@ -235,40 +285,63 @@ export function computeEstimate(s: IntakeState): EstimateResult {
 
   const exps = s.exps;
   const customVenue = exps.includes("facility");
+  // Guest fees apply to any experience that isn't a class/facility/training.
   const usesGuestFee = exps.some(
-    (e) => !["lesson", "training", "facility"].includes(e),
+    (e) => !["training", "facility", "class"].includes(e),
   );
 
-  if (usesGuestFee) {
-    const b = band(s.club, guests);
-    if (b) {
-      if (adults) {
-        lines.push({ label: `Guest fee · ${adults} adult @ ${money(b.a)}`, amount: adults * b.a });
-        total += adults * b.a;
+  // Guest fees on GUESTS only (members excluded), tiered by guest count.
+  if (usesGuestFee && guests > 0) {
+    const r = guestRate(s.club, guests);
+    if (r) {
+      if (gAdults) {
+        lines.push({ label: `Guest fee · ${gAdults} guest adult @ ${money(r.a)}`, amount: gAdults * r.a });
+        total += gAdults * r.a;
       }
-      if (jrs) {
-        lines.push({ label: `Junior fee · ${jrs} @ ${money(b.j)}`, amount: jrs * b.j });
-        total += jrs * b.j;
+      if (gJrs) {
+        lines.push({ label: `Junior guest fee · ${gJrs} @ ${money(r.j)}`, amount: gJrs * r.j });
+        total += gJrs * r.j;
       }
     }
   }
 
+  // Private lesson — flat hourly ladder × hours (2-hr standard), all
+  // participants (members + guests). The member/non-member difference is the
+  // guest fee above, not a different lesson rate.
   if (exps.includes("lesson")) {
-    let cost = 0;
-    const students = Math.max(1, guests);
+    const hrs = s.hours || RULES.standardBlockHrs;
+    const students = Math.max(1, totalHead);
+    let perHr = 0;
     for (let i = 0; i < students; i++) {
-      // 5-student cohort per instructor (1:5 ratio); the 6th student opens a
-      // fresh cohort at the $200 Lead Slot rate, per Group Event Policy §9.2.
-      cost += RULES.lessonLadder[i % 5];
+      perHr += RULES.lessonLadder[i % 5]; // cohort of 5 per instructor
     }
-    lines.push({ label: `Private lesson · ${students} student ladder /hr`, amount: cost, exempt: true });
+    const cost = perHr * hrs;
+    lines.push({ label: `Private lesson · ${students} student${students > 1 ? "s" : ""} × ${hrs} hr`, amount: cost, exempt: true });
     total += cost;
+  }
+
+  // Class / clinic — members at member rate, guests at public rate.
+  if (exps.includes("class")) {
+    const cp = RULES.classPrice[s.club];
+    if (cp) {
+      if (members) {
+        const c = members * cp.m;
+        lines.push({ label: `Class · ${members} member${members > 1 ? "s" : ""} × ${cp.m ? money(cp.m) : "free"}`, amount: c });
+        total += c;
+      }
+      if (gAdults) {
+        const c = gAdults * cp.n;
+        lines.push({ label: `Class · ${gAdults} guest${gAdults > 1 ? "s" : ""} × ${money(cp.n)}`, amount: c });
+        total += c;
+      }
+    }
   }
 
   if (customVenue) {
     lines.push({ label: "General facility usage · wedding / event space", amount: 0, tbd: true });
   }
 
+  // Add-ons (member 20% off retail goods).
   const disc = isMember ? 1 - RULES.memberRetailDiscount : 1;
   if (s.addons.ammo) {
     const c = s.addons.ammo * RULES.ammoBox * disc;
@@ -285,12 +358,22 @@ export function computeEstimate(s: IntakeState): EstimateResult {
     total += RULES.drinkCart;
   }
 
+  // F&B catering (HH / PSP) — per-head × total headcount (everyone eats).
   if (s.catering) {
-    const c = s.catering.per * guests;
-    lines.push({ label: `Catering · ${s.catering.name} · ${guests} @ $${s.catering.per}/head`, amount: c });
+    const c = s.catering.per * totalHead;
+    lines.push({ label: `Catering · ${s.catering.name} · ${totalHead} @ $${s.catering.per}/head`, amount: c });
     total += c;
   }
 
+  // Staff manual line items (staff mode only).
+  if (s.staffMode) {
+    for (const c of s.customLines) {
+      lines.push({ label: `${c.label} · custom`, amount: c.amount });
+      total += c.amount;
+    }
+  }
+
+  // Staff discount.
   if (s.staffMode && s.discountValue > 0) {
     const cut = s.discountType === "pct" ? total * (s.discountValue / 100) : s.discountValue;
     total = Math.max(0, total - cut);
@@ -301,13 +384,13 @@ export function computeEstimate(s: IntakeState): EstimateResult {
     });
   }
 
-  // Escalation guidance (RSO + instructor staffing).
+  // Escalation — guests drive ratios (members excluded); reservation by total.
   const rso = Math.ceil(guests / RULES.rsoPerGuests);
   const esc: string[] = [];
-  if (guests >= RULES.rsoPerGuests) esc.push(`${rso} RSO${rso > 1 ? "s" : ""} (1 per 5 guests)`);
-  if (guests >= RULES.secondInstructorAt) esc.push("two Senior Instructors required");
-  else if (guests >= RULES.seniorInstructorAt) esc.push("Senior Instructor required");
-  if (guests >= 9) esc.push("9+ → reservation / Private Event (72-hr notice)");
+  if (guests >= RULES.rsoPerGuests) esc.push(`${rso} RSO${rso > 1 ? "s" : ""} (1 per 5 guests, members excluded)`);
+  if (guests >= RULES.secondInstructorAt) esc.push("two Senior Instructors");
+  else if (guests >= RULES.seniorInstructorAt) esc.push("Senior Instructor");
+  if (totalHead >= 9) esc.push("9+ total → reservation / Private Event (72-hr notice)");
 
   // Heat advisory: summer (May–Sep) midday arrival.
   const arr = +s.arrival;
@@ -326,13 +409,14 @@ export function computeEstimate(s: IntakeState): EstimateResult {
     heat,
     comingSoon: false,
     hsbBlocked: false,
+    isEvent: totalHead >= 9,
   };
 }
 
-// Whether the F&B catering card should show for this club/member combo.
-export function cateringFor(club: ClubCode, who: WhoCode): CateringOption[] | null {
+// Whether the F&B catering card should show for this club/host combo.
+export function cateringFor(club: ClubCode, host: HostCode): CateringOption[] | null {
   const set = RULES.catering[club];
   if (!set) return null;
-  if (isComingSoon(club) || isHsbBlocked(club, who)) return null;
+  if (isComingSoon(club) || isHsbBlocked(club, host)) return null;
   return set;
 }
