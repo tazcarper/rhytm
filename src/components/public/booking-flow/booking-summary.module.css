@@ -1,28 +1,49 @@
+/* ============ ledger panel ============
+   The "Heritage Ledger": step progress on top, the booking facts, the
+   dotted-leader line items, and a large serif subtotal pinned to the bottom.
+   Two framings via the .rail / .card modifiers. */
 .box {
   position: sticky;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Rail — the builder sidebar: a content-height paper-warm panel that reads as a
+   ledger beside the catalog. Sticky, so it pins near the top as the catalog
+   scrolls and returns to place on the way back up. */
+.rail {
+  top: 1.5rem;
+  padding: 2rem 1.9rem 2.25rem;
+  border-left: 1px solid var(--border);
+  background: var(--paper-warm);
+}
+
+/* Card — a self-contained bordered panel for read-only contexts (e.g. the
+   /details rail beside the guest form). */
+.card {
   top: 2rem;
   padding: 1.9rem 1.6rem;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-card);
   background: var(--paper);
   box-shadow: var(--shadow-soft);
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
 }
 
-/* Eyebrow sits over a hairline rule, echoing the editorial header on the
-   disciplines step. */
-.eyebrow {
-  padding-bottom: 1rem;
+/* Stepper slot, closed by a hairline rule. */
+.summaryHeader {
+  padding-bottom: 1.25rem;
   border-bottom: 1px solid var(--border);
 }
 
-@media (max-width: 720px) {
-  .box {
-    position: static;
-    top: auto;
-  }
+/* ---- intro: eyebrow + booking type + party/when line ---- */
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .eyebrow {
@@ -32,23 +53,7 @@
   text-transform: uppercase;
   font-weight: 600;
   color: var(--tan-deep);
-  margin: 0;
-}
-
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.sectionLabel {
-  font-family: var(--sans);
-  font-size: 10px;
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-  font-weight: 600;
-  color: var(--gray);
-  margin: 0;
+  margin: 0 0 0.15rem;
 }
 
 .fact {
@@ -69,41 +74,31 @@
   margin: 0;
 }
 
-.list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+/* ---- ledger entries (grows to push subtotal to the bottom) ---- */
+
+.ledger {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 1rem;
 }
 
-.listItem {
-  font-family: var(--serif);
-  font-size: 14px;
-  color: var(--olive);
-  line-height: 1.3;
-}
-
-.listItem::before {
-  content: "— ";
-  color: var(--tan-deep);
-}
-
-/* ---- add-on rows with X button ---- */
-
-.addOnLine {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
+/* Each entry: label on the left trailing a dotted leader, value hard-right,
+   plus an optional remove (×) button for add-ons. */
+.ledgerRow {
+  display: flex;
   align-items: baseline;
   gap: 0.5rem;
 }
 
-.addOnText {
+.ledgerLabel {
+  flex: 1;
+  min-width: 0;
   font-family: var(--serif);
-  font-size: 14px;
+  font-size: 15px;
   color: var(--olive);
   line-height: 1.3;
+  border-bottom: 1px dotted var(--border-strong);
+  padding-bottom: 0.2rem;
 }
 
 .addOnQty {
@@ -111,16 +106,28 @@
   color: var(--gray);
 }
 
-.addOnAmount {
+.ledgerAmount {
+  flex-shrink: 0;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--olive-deep);
+  white-space: nowrap;
+}
+
+.ledgerIncluded {
+  flex-shrink: 0;
   font-family: var(--serif);
   font-style: italic;
   font-size: 13px;
-  color: var(--olive);
+  color: var(--gray);
+  white-space: nowrap;
 }
 
 .removeBtn {
-  width: 22px;
-  height: 22px;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -129,7 +136,7 @@
   border-radius: 50%;
   color: var(--gray);
   font-family: var(--sans);
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1;
   cursor: pointer;
   transition:
@@ -149,41 +156,21 @@
   outline-offset: 2px;
 }
 
-/* ---- per-guest fee row (no X button, included in base experience) ---- */
+/* ---- subtotal ---- */
 
-.feeLine {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: baseline;
+.total {
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--tan);
+  display: flex;
+  flex-direction: column;
   gap: 0.5rem;
 }
 
-.feeText {
-  font-family: var(--serif);
-  font-size: 14px;
-  color: var(--olive);
-  line-height: 1.3;
-}
-
-.feeAmount {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 13px;
-  color: var(--olive);
-}
-
-/* ---- divider + total ---- */
-
-.divider {
-  height: 1px;
-  background: var(--tan);
-  margin: 0.25rem 0;
-}
-
-.total {
+.totalRow {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .totalLabel {
@@ -192,16 +179,27 @@
   letter-spacing: var(--track-eyebrow);
   text-transform: uppercase;
   font-weight: 600;
-  color: var(--tan-deep);
+  color: var(--gray);
   margin: 0;
 }
 
 .totalAmount {
   font-family: var(--serif);
-  font-size: var(--text-h2);
+  font-size: 42px;
   font-weight: 500;
   color: var(--olive-deep);
   letter-spacing: -0.5px;
+  line-height: 0.95;
+  margin: 0;
+}
+
+/* Team-quoted bookings have no number — render the label at title scale so the
+   row doesn't collapse. */
+.totalAmountQuoted {
+  font-family: var(--serif);
+  font-size: var(--text-h3);
+  font-weight: 500;
+  color: var(--olive-deep);
   line-height: 1.05;
   margin: 0;
 }
@@ -212,10 +210,30 @@
   font-size: 12px;
   line-height: 1.45;
   color: var(--gray);
-  margin: 0.2rem 0 0;
+  margin: 0;
 }
 
 .cta {
   width: 100%;
   margin-top: 0.25rem;
+}
+
+/* On narrow viewports neither variant sticks, and the rail stops being a
+   full-height flush panel — it stacks beneath the builder as an ordinary card. */
+@media (max-width: 960px) {
+  .box {
+    position: static;
+    top: auto;
+  }
+
+  .rail {
+    min-height: 0;
+    border-left: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+  }
+
+  .ledger {
+    overflow-y: visible;
+  }
 }

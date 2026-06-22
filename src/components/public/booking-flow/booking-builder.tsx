@@ -27,7 +27,10 @@ import {
   type SlotAvailability,
   type SlotsByDayOfWeek,
 } from "@/src/services/public/slots";
-import type { PublicAddOn, PublicService } from "@/src/services/public/services";
+import type {
+  PublicAddOn,
+  PublicService,
+} from "@/src/services/public/services";
 import { getSlotAvailabilityAction } from "@/app/(public)/book/[property]/disciplines/availability-action";
 import type { DisciplineSelection } from "./booking-flow-types";
 import { AddOnDetailTooltip } from "./add-on-detail-tooltip";
@@ -66,7 +69,9 @@ export function BookingBuilder({
   // Live per-slot availability for the currently selected date. `null` means
   // "not loaded yet / failed" → readers fail open and treat every slot as
   // bookable, leaving the Phase 2 insert triggers as the final guard.
-  const [availability, setAvailability] = useState<SlotAvailability | null>(null);
+  const [availability, setAvailability] = useState<SlotAvailability | null>(
+    null,
+  );
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
   // The add-on whose detail tooltip is open, plus the element it anchors to.
   // A short close-timer powers the hover-bridge (moving the pointer from the
@@ -234,7 +239,7 @@ export function BookingBuilder({
   const dayOfWeek =
     state.date !== undefined ? dayOfWeekFromISO(state.date) : null;
   const slotsForDate: ReadonlyArray<AvailableSlot> =
-    dayOfWeek !== null ? slotsByDayOfWeek[dayOfWeek] ?? [] : [];
+    dayOfWeek !== null ? (slotsByDayOfWeek[dayOfWeek] ?? []) : [];
 
   // Prospective duration for the availability query — the same value
   // handleSlotPick writes to state, so the overlap window we preview matches
@@ -271,7 +276,13 @@ export function BookingBuilder({
     return () => {
       active = false;
     };
-  }, [propertyId, selectedDateISO, bookingType, prospectiveDuration, requiresInstructor]);
+  }, [
+    propertyId,
+    selectedDateISO,
+    bookingType,
+    prospectiveDuration,
+    requiresInstructor,
+  ]);
 
   // If the slot the guest already picked is now reserved, drop it so they
   // can't advance with a dead selection.
@@ -315,7 +326,11 @@ export function BookingBuilder({
     state.date !== undefined &&
     state.slotStart !== undefined &&
     (!requiresInstructor || state.instructorId != null);
-  const stepValid: ReadonlyArray<boolean> = [step1Valid, step2Valid, step3Valid];
+  const stepValid: ReadonlyArray<boolean> = [
+    step1Valid,
+    step2Valid,
+    step3Valid,
+  ];
 
   function canJumpTo(target: number): boolean {
     if (target === subStep) return true;
@@ -372,16 +387,9 @@ export function BookingBuilder({
 
       <div className={s.layout}>
         <div className={s.builderColumn}>
-          <StepProgress
-            steps={steps}
-            current={subStep}
-            onJump={handleJump}
-            canJumpTo={canJumpTo}
-          />
-
           {/* ===== Step 1: Disciplines ===== */}
-          {subStep === 1 && (
-            isHost ? (
+          {subStep === 1 &&
+            (isHost ? (
               <Alert variant="info" title="Exclusive use">
                 Host an Occasion books the whole property — disciplines and
                 run-of-show are configured by the team after your inquiry. You
@@ -407,13 +415,18 @@ export function BookingBuilder({
 
                 {services.length === 0 ? (
                   <Alert variant="warn" title="Catalog coming soon">
-                    We&rsquo;re finalizing the discipline list for this property.
+                    We&rsquo;re finalizing the discipline list for this
+                    property.
                   </Alert>
                 ) : (
                   <div
                     className={s.disciplineList}
                     role="group"
-                    aria-label={singleSelect ? "Choose a discipline" : "Choose disciplines"}
+                    aria-label={
+                      singleSelect
+                        ? "Choose a discipline"
+                        : "Choose disciplines"
+                    }
                   >
                     {services.map((svc) => {
                       const selection = selectionByServiceId.get(svc.id);
@@ -424,18 +437,23 @@ export function BookingBuilder({
                           className={s.disciplineCard}
                           data-selected={selected || undefined}
                         >
+                          {/* Media occupies its own full-height column so it
+                              grows with the card when add-ons reveal. It's a
+                              mouse affordance only — the header button is the
+                              labeled, keyboard-reachable toggle. */}
                           <button
                             type="button"
-                            className={s.disciplineHeader}
+                            className={s.disciplineMediaBtn}
                             onClick={() => toggleService(svc.id)}
-                            aria-pressed={selected}
+                            tabIndex={-1}
+                            aria-hidden="true"
                           >
-                            <span className={s.disciplineMedia} aria-hidden="true">
+                            <span className={s.disciplineMedia}>
                               {svc.imageUrl ? (
                                 <AdventureImage
                                   src={svc.imageUrl}
                                   alt=""
-                                  sizes="(max-width: 560px) 100vw, 220px"
+                                  sizes="(max-width: 560px) 100vw, 280px"
                                   className={s.disciplineImage}
                                 />
                               ) : (
@@ -444,152 +462,160 @@ export function BookingBuilder({
                                 </span>
                               )}
                             </span>
-                            <span className={s.disciplineHeaderText}>
-                              <span className={s.disciplineTitle}>{svc.name}</span>
-                              {svc.description && (
-                                <span className={s.disciplineDescription}>
-                                  {svc.description}
-                                </span>
-                              )}
-                            </span>
-                            <span className={s.mark} aria-hidden="true">
-                              {selected && (
-                                <svg
-                                  width="16"
-                                  height="16"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path d="M20 6 9 17l-5-5" />
-                                </svg>
-                              )}
-                            </span>
                           </button>
 
-                          {selected && svc.addOns.length > 0 && (
-                            <div className={s.addOnGroup}>
-                              <p className={s.addOnGroupLabel}>Add-ons (optional)</p>
-                              <ul className={s.addOnList}>
-                                {svc.addOns.map((addOn) => {
-                                  const sel = selection.addOns.find(
-                                    (a) => a.addOnId === addOn.id,
-                                  );
-                                  const on = sel !== undefined;
-                                  return (
-                                    <li
-                                      key={addOn.id}
-                                      className={s.addOnRow}
-                                      data-selected={on || undefined}
-                                    >
-                                      {/* Select / deselect — the mark is the toggle. */}
-                                      <button
-                                        type="button"
-                                        className={s.addOnSelect}
-                                        onClick={() => toggleAddOn(svc.id, addOn.id)}
-                                        aria-pressed={on}
-                                        aria-label={`${on ? "Remove" : "Add"} ${addOn.name}`}
-                                      >
-                                        <span className={s.addOnMark} aria-hidden="true">
-                                          {on ? "✓" : "+"}
-                                        </span>
-                                      </button>
+                          <div className={s.disciplineBody}>
+                            <button
+                              type="button"
+                              className={s.disciplineHeader}
+                              onClick={() => toggleService(svc.id)}
+                              aria-pressed={selected}
+                            >
+                              <span className={s.disciplineHeaderText}>
+                                <span className={s.disciplineTitle}>
+                                  {svc.name}
+                                </span>
+                                {svc.description && (
+                                  <span className={s.disciplineDescription}>
+                                    {svc.description}
+                                  </span>
+                                )}
+                              </span>
+                              <span className={s.mark} aria-hidden="true">
+                                {selected && (
+                                  <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <path d="M20 6 9 17l-5-5" />
+                                  </svg>
+                                )}
+                              </span>
+                            </button>
 
-                                      {/* Name + description — the tooltip trigger
-                                          (hover on desktop, tap on touch). */}
-                                      <button
-                                        type="button"
-                                        className={s.addOnTrigger}
-                                        onPointerEnter={(e) =>
-                                          handleDetailEnter(e, addOn)
-                                        }
-                                        onPointerLeave={handleDetailLeave}
-                                        onClick={(e) => handleDetailClick(e, addOn)}
-                                        aria-haspopup="dialog"
-                                        aria-expanded={detail?.addOn.id === addOn.id}
-                                        aria-label={`About ${addOn.name}`}
-                                      >
-                                        <span className={s.addOnName}>
-                                          {addOn.name}
-                                        </span>
-                                        {addOn.description && (
-                                          <span className={s.addOnDescription}>
-                                            {addOn.description}
-                                          </span>
-                                        )}
-                                      </button>
-
-                                      <span className={s.addOnPrice}>
-                                        ${addOn.price.toFixed(0)}
-                                      </span>
-
-                                      {/* Right slot: the quantity stepper once
-                                          selected (only when more than one is
-                                          allowed), otherwise the learn-more ⓘ. */}
-                                      <span className={s.addOnSlot}>
-                                        {on && addOn.maxQuantity > 1 ? (
-                                          <QtyStepper
-                                            size="sm"
-                                            value={sel?.quantity ?? 1}
-                                            min={1}
-                                            max={addOn.maxQuantity}
-                                            onChange={(qty) =>
-                                              setAddOnQuantity(svc.id, addOn.id, qty)
-                                            }
-                                            label={`${addOn.name} quantity`}
-                                          />
-                                        ) : (
-                                          <button
-                                            type="button"
-                                            className={s.addOnInfo}
-                                            onPointerEnter={(e) =>
-                                              handleDetailEnter(e, addOn)
-                                            }
-                                            onPointerLeave={handleDetailLeave}
-                                            onClick={(e) =>
-                                              handleDetailClick(e, addOn)
-                                            }
-                                            aria-haspopup="dialog"
-                                            aria-expanded={
-                                              detail?.addOn.id === addOn.id
-                                            }
-                                            aria-label={`Learn more about ${addOn.name}`}
+                            {svc.addOns.length > 0 && (
+                              <div
+                                className={s.addOnReveal}
+                                data-open={selected || undefined}
+                                inert={!selected || undefined}
+                              >
+                                <div className={s.addOnRevealInner}>
+                                  <div className={s.addOnGroup}>
+                                    <p className={s.addOnGroupLabel}>
+                                      Add-ons (optional)
+                                    </p>
+                                    <ul className={s.addOnList}>
+                                      {svc.addOns.map((addOn) => {
+                                        const sel = (
+                                          selection?.addOns ?? []
+                                        ).find((a) => a.addOnId === addOn.id);
+                                        const on = sel !== undefined;
+                                        return (
+                                          <li
+                                            key={addOn.id}
+                                            className={s.addOnRow}
+                                            data-selected={on || undefined}
                                           >
-                                            <svg
-                                              width="18"
-                                              height="18"
-                                              viewBox="0 0 24 24"
-                                              fill="none"
-                                              stroke="currentColor"
-                                              strokeWidth="2"
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                              aria-hidden="true"
+                                            {/* Select / deselect — the mark is the toggle. */}
+                                            <button
+                                              type="button"
+                                              className={s.addOnSelect}
+                                              onClick={() =>
+                                                toggleAddOn(svc.id, addOn.id)
+                                              }
+                                              aria-pressed={on}
+                                              aria-label={`${on ? "Remove" : "Add"} ${addOn.name}`}
                                             >
-                                              <circle cx="12" cy="12" r="10" />
-                                              <path d="M12 16v-4" />
-                                              <path d="M12 8h.01" />
-                                            </svg>
-                                          </button>
-                                        )}
-                                      </span>
-                                    </li>
-                                  );
-                                })}
-                              </ul>
-                            </div>
-                          )}
+                                              <span
+                                                className={s.addOnMark}
+                                                aria-hidden="true"
+                                              >
+                                                {on ? "✓" : "+"}
+                                              </span>
+                                            </button>
+
+                                            {/* Name only — the tooltip trigger
+                                          (hover on desktop, tap on touch) holds
+                                          the full title + description. */}
+                                            <button
+                                              type="button"
+                                              className={s.addOnTrigger}
+                                              onPointerEnter={(e) =>
+                                                handleDetailEnter(e, addOn)
+                                              }
+                                              onPointerLeave={handleDetailLeave}
+                                              onClick={(e) =>
+                                                handleDetailClick(e, addOn)
+                                              }
+                                              aria-haspopup="dialog"
+                                              aria-expanded={
+                                                detail?.addOn.id === addOn.id
+                                              }
+                                              aria-label={`About ${addOn.name}`}
+                                            >
+                                              <span className={s.addOnName}>
+                                                {addOn.name}
+                                              </span>
+                                            </button>
+
+                                            {/* Right end: the quantity stepper
+                                          (when selected and more than one is
+                                          allowed), then the price, hard-right. */}
+                                            <div className={s.addOnEnd}>
+                                              {on && addOn.maxQuantity > 1 && (
+                                                <span
+                                                  className={s.addOnStepperWrap}
+                                                >
+                                                  <QtyStepper
+                                                    size="sm"
+                                                    value={sel?.quantity ?? 1}
+                                                    min={1}
+                                                    max={addOn.maxQuantity}
+                                                    onChange={(qty) =>
+                                                      setAddOnQuantity(
+                                                        svc.id,
+                                                        addOn.id,
+                                                        qty,
+                                                      )
+                                                    }
+                                                    label={`${addOn.name} quantity`}
+                                                  />
+                                                </span>
+                                              )}
+                                              <span className={s.addOnPrice}>
+                                                ${addOn.price.toFixed(0)}
+                                                {addOn.maxQuantity > 1 && (
+                                                  <span
+                                                    className={s.addOnPriceUnit}
+                                                  >
+                                                    {" "}
+                                                    each
+                                                  </span>
+                                                )}
+                                              </span>
+                                            </div>
+                                          </li>
+                                        );
+                                      })}
+                                    </ul>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </article>
                       );
                     })}
                   </div>
                 )}
               </section>
-            )
-          )}
+            ))}
 
           {/* ===== Step 2: Guests ===== */}
           {subStep === 2 && (
@@ -618,8 +644,8 @@ export function BookingBuilder({
                     <p className={s.juniorLabel}>Juniors (15 &amp; under)</p>
                     <p className={s.juniorHint}>
                       Of your {guestCount}{" "}
-                      {guestCount === 1 ? "guest" : "guests"}, how many are 15 or
-                      under? Juniors are priced at a reduced guest fee.
+                      {guestCount === 1 ? "guest" : "guests"}, how many are 15
+                      or under? Juniors are priced at a reduced guest fee.
                     </p>
                   </div>
                   <QtyStepper
@@ -644,89 +670,90 @@ export function BookingBuilder({
                 durationHours={meta.defaultDurationHours}
               />
             ) : (
-            <section className={s.section}>
-              <header className={s.sectionHead}>
-                <p className={s.sectionEyebrow}>Pick a date & time</p>
-                <p className={s.sectionDescription}>
-                  Choose the day and arrival time that works best for your
-                  group. Available dates run through the next{" "}
-                  {bookingHorizonDays} days. Bookings inside 24 hours are
-                  reviewed by the team and confirmed by phone. All times shown
-                  in Central Time.
-                </p>
-              </header>
+              <section className={s.section}>
+                <header className={s.sectionHead}>
+                  <p className={s.sectionEyebrow}>Pick a date & time</p>
+                  <p className={s.sectionDescription}>
+                    Choose the day and arrival time that works best for your
+                    group. Available dates run through the next{" "}
+                    {bookingHorizonDays} days. Bookings inside 24 hours are
+                    reviewed by the team and confirmed by phone. All times shown
+                    in Central Time.
+                  </p>
+                </header>
 
-              <div className={s.dateTimeLayout}>
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={handleDateSelect}
-                  disabled={[{ before: today }, { after: maxDate }]}
-                  defaultMonth={selectedDate ?? today}
-                  weekStartsOn={0}
-                />
+                <div className={s.dateTimeLayout}>
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={handleDateSelect}
+                    disabled={[{ before: today }, { after: maxDate }]}
+                    defaultMonth={selectedDate ?? today}
+                    weekStartsOn={0}
+                  />
 
-                <div className={s.slotColumn}>
-                  <p className={s.slotColumnLabel}>Pick a time</p>
-                  {!selectedDate && (
-                    <p className={s.slotEmpty}>Choose a date first.</p>
-                  )}
-                  {selectedDate && slotsForDate.length === 0 && (
-                    <p className={s.slotEmpty}>No times available on this day.</p>
-                  )}
-                  {selectedDate &&
-                    slotsForDate.length > 0 &&
-                    availability !== null &&
-                    slotsForDate.every((slot) => !isSlotAvailable(slot)) && (
+                  <div className={s.slotColumn}>
+                    <p className={s.slotColumnLabel}>Pick a time</p>
+                    {!selectedDate && (
+                      <p className={s.slotEmpty}>Choose a date first.</p>
+                    )}
+                    {selectedDate && slotsForDate.length === 0 && (
                       <p className={s.slotEmpty}>
-                        Every time on this day is reserved — please choose
-                        another date.
+                        No times available on this day.
                       </p>
                     )}
-                  {selectedDate && slotsForDate.length > 0 && (
-                    <ul
-                      className={s.slotGrid}
-                      aria-busy={availabilityLoading || undefined}
-                    >
-                      {slotsForDate.map((slot) => {
-                        const selected = state.slotStart === slot.slotStart;
-                        const available = isSlotAvailable(slot);
-                        return (
-                          <li key={slot.slotStart}>
-                            <button
-                              type="button"
-                              className={s.slotBtn}
-                              data-selected={selected || undefined}
-                              data-unavailable={!available || undefined}
-                              onClick={() => handleSlotPick(slot)}
-                              disabled={!available}
-                              aria-pressed={selected}
-                              aria-label={
-                                available
-                                  ? slot.label
-                                  : `${slot.label} — reserved`
-                              }
-                            >
-                              {slot.label}
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
+                    {selectedDate &&
+                      slotsForDate.length > 0 &&
+                      availability !== null &&
+                      slotsForDate.every((slot) => !isSlotAvailable(slot)) && (
+                        <p className={s.slotEmpty}>
+                          Every time on this day is reserved — please choose
+                          another date.
+                        </p>
+                      )}
+                    {selectedDate && slotsForDate.length > 0 && (
+                      <ul
+                        className={s.slotGrid}
+                        aria-busy={availabilityLoading || undefined}
+                      >
+                        {slotsForDate.map((slot) => {
+                          const selected = state.slotStart === slot.slotStart;
+                          const available = isSlotAvailable(slot);
+                          return (
+                            <li key={slot.slotStart}>
+                              <button
+                                type="button"
+                                className={s.slotBtn}
+                                data-selected={selected || undefined}
+                                data-unavailable={!available || undefined}
+                                onClick={() => handleSlotPick(slot)}
+                                disabled={!available}
+                                aria-pressed={selected}
+                                aria-label={
+                                  available
+                                    ? slot.label
+                                    : `${slot.label} — reserved`
+                                }
+                              >
+                                {slot.label}
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </section>
+              </section>
             ))}
 
           {/* ===== Bottom nav ===== */}
-          <div className={s.stepNav} data-align={subStep === 1 ? "end" : undefined}>
+          <div
+            className={s.stepNav}
+            data-align={subStep === 1 ? "end" : undefined}
+          >
             {subStep > 1 && (
-              <Button
-                variant="secondary"
-                size="md"
-                onClick={handleBack}
-              >
+              <Button variant="secondary" size="md" onClick={handleBack}>
                 ← Back
               </Button>
             )}
@@ -742,7 +769,19 @@ export function BookingBuilder({
         </div>
 
         <div className={s.summaryColumn}>
-          <BookingSummary services={services} pricing={pricing} />
+          <BookingSummary
+            services={services}
+            pricing={pricing}
+            variant="rail"
+            header={
+              <StepProgress
+                steps={steps}
+                current={subStep}
+                onJump={handleJump}
+                canJumpTo={canJumpTo}
+              />
+            }
+          />
         </div>
       </div>
 
