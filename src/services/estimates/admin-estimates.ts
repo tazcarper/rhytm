@@ -111,38 +111,38 @@ const SELECT_COLUMNS =
   "arrival, notes, indicative_total, created_by_label, created_at, property_id, " +
   "properties(name)";
 
-function toRow(r: RawRow): EstimateRequestRow {
+function toRow(rawRow: RawRow): EstimateRequestRow {
   return {
-    id: r.id,
-    status: r.status,
-    sourceChannel: r.source_channel,
-    contactName: r.contact_name,
-    contactEmail: r.contact_email,
-    contactPhone: r.contact_phone,
-    adults: r.adults,
-    juniors: r.juniors,
-    members: r.members,
-    guestAdults: r.guest_adults,
-    guestJuniors: r.guest_juniors,
-    lessonHours: r.lesson_hours,
-    customLines: Array.isArray(r.custom_lines)
-      ? (r.custom_lines as EstimateCustomLine[])
+    id: rawRow.id,
+    status: rawRow.status,
+    sourceChannel: rawRow.source_channel,
+    contactName: rawRow.contact_name,
+    contactEmail: rawRow.contact_email,
+    contactPhone: rawRow.contact_phone,
+    adults: rawRow.adults,
+    juniors: rawRow.juniors,
+    members: rawRow.members,
+    guestAdults: rawRow.guest_adults,
+    guestJuniors: rawRow.guest_juniors,
+    lessonHours: rawRow.lesson_hours,
+    customLines: Array.isArray(rawRow.custom_lines)
+      ? (rawRow.custom_lines as EstimateCustomLine[])
       : [],
-    experiences: Array.isArray(r.experiences) ? (r.experiences as string[]) : [],
+    experiences: Array.isArray(rawRow.experiences) ? (rawRow.experiences as string[]) : [],
     addons:
-      r.addons && typeof r.addons === "object"
-        ? (r.addons as Record<string, unknown>)
+      rawRow.addons && typeof rawRow.addons === "object"
+        ? (rawRow.addons as Record<string, unknown>)
         : {},
-    catering: r.catering ?? null,
-    preferredDate: r.preferred_date,
-    backupDate: r.backup_date,
-    arrival: r.arrival,
-    notes: r.notes,
-    indicativeTotal: r.indicative_total,
-    createdByLabel: r.created_by_label,
-    createdAt: r.created_at,
-    propertyId: r.property_id,
-    propertyName: r.properties?.name ?? null,
+    catering: rawRow.catering ?? null,
+    preferredDate: rawRow.preferred_date,
+    backupDate: rawRow.backup_date,
+    arrival: rawRow.arrival,
+    notes: rawRow.notes,
+    indicativeTotal: rawRow.indicative_total,
+    createdByLabel: rawRow.created_by_label,
+    createdAt: rawRow.created_at,
+    propertyId: rawRow.property_id,
+    propertyName: rawRow.properties?.name ?? null,
   };
 }
 

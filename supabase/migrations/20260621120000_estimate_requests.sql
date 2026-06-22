@@ -20,6 +20,13 @@
 
 -- ---- Enums (align with the architecture plan) ----
 -- estimate_channel: which pricing door the lead came through.
+-- Forward-reference (schema-extension-response.md §3.1 / §5.2): a later PR-1
+-- slice adds a decoupled `price_tiers` lookup (retail/member/group/partner/
+-- non_member) + a channel→tier strategy map (config, not a branch). The map
+-- is NOT 1:1 — `public_group`→`group`, and no channel here yields `retail`
+-- (that tier covers public walk-in / non-group). Keep these channel values;
+-- do the translation in the map. Channel stays an enum (small closed set);
+-- the churn-prone pricing axis is the `price_tiers` table, per §4.1.
 create type estimate_channel as enum (
   'member',
   'non_member',
@@ -89,6 +96,13 @@ create index if not exists estimate_requests_status_created_idx
 
 comment on table public.estimate_requests is
   'Lead/request object for the estimate-driven flow (PR-1 slice). Captured from the public Request-an-Estimate front door or staff phone intake; surfaces in /admin/estimates where staff build the binding bid. jsonb selection columns are intentionally un-normalized in v1.';
+
+-- Forward-reference (schema-extension-response.md §3.2 / D2): the binding bid
+-- is the existing `bids` row (reused, not a separate `estimates` table). A
+-- later PR-1 slice adds nullable `bids.estimate_request_id` FK→estimate_requests
+-- so an accepted bid traces back to this lead. No column is added to this table
+-- for that link — the FK lives on `bids`. Nothing to do here now; noted so the
+-- next slice lands additively.
 
 -- ---- RLS ----
 alter table public.estimate_requests enable row level security;

@@ -11,6 +11,13 @@ import { createServiceRoleClient } from "@/lib/supabase/service";
 // trusted as money. Mirrors the shape of create-public-booking.ts.
 
 // The four pricing doors. Aligns with the `estimate_channel` DB enum.
+//
+// Forward-reference (schema-extension-response.md §3.1 / §5.2): a later PR-1
+// slice introduces a decoupled `price_tiers` lookup
+// (retail/member/group/partner/non_member) and a channel→tier strategy map.
+// The mapping is NOT 1:1 — `public_group` maps to the `group` tier, and no
+// channel here yields `retail` (that tier covers public walk-in / non-group).
+// Keep that map as config when it lands; do not rename these channel values.
 export const ESTIMATE_CHANNELS = [
   "member",
   "non_member",
@@ -80,37 +87,37 @@ export async function createEstimateRequest(
     };
   }
 
-  const v = parsed.data;
+  const parsedInput = parsed.data;
   const supabase = createServiceRoleClient();
 
   // Legacy adults/juniors kept in sync for back-compat: adults = all adults
   // in the party (members + guest adults), juniors = guest juniors.
-  const legacyAdults = v.members + v.guestAdults;
-  const legacyJuniors = v.guestJuniors;
+  const legacyAdults = parsedInput.members + parsedInput.guestAdults;
+  const legacyJuniors = parsedInput.guestJuniors;
 
   const { data, error } = await supabase.rpc("create_estimate_request", {
-    p_property_id: v.propertyId,
-    p_source_channel: v.sourceChannel,
-    p_contact_name: v.contact.name,
-    p_contact_email: v.contact.email,
-    p_contact_phone: v.contact.phone,
+    p_property_id: parsedInput.propertyId,
+    p_source_channel: parsedInput.sourceChannel,
+    p_contact_name: parsedInput.contact.name,
+    p_contact_email: parsedInput.contact.email,
+    p_contact_phone: parsedInput.contact.phone,
     p_adults: legacyAdults,
     p_juniors: legacyJuniors,
-    p_experiences: v.experiences,
-    p_addons: v.addons,
-    p_catering: v.catering ?? null,
-    p_preferred_date: v.preferredDate,
-    p_backup_date: v.backupDate,
-    p_arrival: v.arrival,
-    p_notes: v.notes,
-    p_indicative_total: v.indicativeTotal,
-    p_created_by_label: v.createdByLabel,
-    p_created_by_staff_id: v.createdByStaffId,
-    p_members: v.members,
-    p_guest_adults: v.guestAdults,
-    p_guest_juniors: v.guestJuniors,
-    p_lesson_hours: v.lessonHours,
-    p_custom_lines: v.customLines,
+    p_experiences: parsedInput.experiences,
+    p_addons: parsedInput.addons,
+    p_catering: parsedInput.catering ?? null,
+    p_preferred_date: parsedInput.preferredDate,
+    p_backup_date: parsedInput.backupDate,
+    p_arrival: parsedInput.arrival,
+    p_notes: parsedInput.notes,
+    p_indicative_total: parsedInput.indicativeTotal,
+    p_created_by_label: parsedInput.createdByLabel,
+    p_created_by_staff_id: parsedInput.createdByStaffId,
+    p_members: parsedInput.members,
+    p_guest_adults: parsedInput.guestAdults,
+    p_guest_juniors: parsedInput.guestJuniors,
+    p_lesson_hours: parsedInput.lessonHours,
+    p_custom_lines: parsedInput.customLines,
   });
 
   if (error) {
