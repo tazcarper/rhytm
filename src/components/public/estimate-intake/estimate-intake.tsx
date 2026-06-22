@@ -26,6 +26,10 @@ interface EstimateIntakeProps {
   // math, internal notes, discount authority, and manual line items. Hidden
   // from the public.
   canUseStaffMode: boolean;
+  // When set (from a per-club link like /request-estimate/horseshoe-bay), the
+  // club is fixed and the "which club?" picker is hidden — no wrong-club
+  // mistakes. Undefined → the generic picker behaves exactly as before.
+  lockedClub?: ClubCode;
 }
 
 const ARRIVAL_OPTIONS = [
@@ -61,8 +65,10 @@ const INITIAL: IntakeState = {
   date: "",
 };
 
-export function EstimateIntake({ canUseStaffMode }: EstimateIntakeProps) {
-  const [st, setSt] = useState<IntakeState>(INITIAL);
+export function EstimateIntake({ canUseStaffMode, lockedClub }: EstimateIntakeProps) {
+  const [st, setSt] = useState<IntakeState>(() =>
+    lockedClub ? { ...INITIAL, club: lockedClub } : INITIAL,
+  );
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -86,6 +92,7 @@ export function EstimateIntake({ canUseStaffMode }: EstimateIntakeProps) {
 
   // --- gating ---
   function pickClub(club: ClubCode) {
+    if (lockedClub) return; // club is fixed by the link
     set({ club, exps: [], catering: null });
   }
   function pickHost(host: HostCode) {
@@ -282,15 +289,24 @@ export function EstimateIntake({ canUseStaffMode }: EstimateIntakeProps) {
           {/* 2 · CLUB */}
           <section className={s.card}>
             <h3 className={s.cardH}>2 · Which club</h3>
-            <p className={s.sub}>The club gates everything below.</p>
-            <div className={s.seg}>
-              {(Object.keys(CLUB_LABELS) as ClubCode[]).map((code) => (
-                <button key={code} type="button" className={st.club === code ? s.optOn : s.opt} onClick={() => pickClub(code)}>
-                  {CLUB_LABELS[code]}
-                  {isComingSoon(code) && <span className={s.soon}> SOON</span>}
-                </button>
-              ))}
-            </div>
+            {lockedClub ? (
+              <div className={s.gate}>
+                <div className={s.gateT}>🔒 Booking at {CLUB_LABELS[lockedClub]}</div>
+                <div className={s.gateD}>Set by your link.</div>
+              </div>
+            ) : (
+              <>
+                <p className={s.sub}>The club gates everything below.</p>
+                <div className={s.seg}>
+                  {(Object.keys(CLUB_LABELS) as ClubCode[]).map((code) => (
+                    <button key={code} type="button" className={st.club === code ? s.optOn : s.opt} onClick={() => pickClub(code)}>
+                      {CLUB_LABELS[code]}
+                      {isComingSoon(code) && <span className={s.soon}> SOON</span>}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </section>
 
           {/* 3 · EXPERIENCES */}
