@@ -123,6 +123,19 @@ export const adventureSpotOpened = eventType("adventure/spot-opened", {
   }>(),
 });
 
+// ---- Estimate lifecycle ----------------------------------------------------
+
+// A new estimate request (lead) was captured from the public front door or
+// staff phone intake. Fired fire-and-forget from createEstimateRequest after
+// the row commits. Two subscribers: one alerts the property's club manager
+// inbox, one sends the customer a short confirmation. Everything else is
+// looked up from the row by id (keeps the payload minimal).
+export const estimateRequestCreated = eventType("estimate/request-created", {
+  schema: staticSchema<{
+    estimateRequestId: string;
+  }>(),
+});
+
 // ---- Membership lifecycle --------------------------------------------------
 
 export const membershipApplicationSubmitted = eventType(
