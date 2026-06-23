@@ -271,7 +271,7 @@ cycle** (CLAUDE.md rule 5 satisfied). Manual tests against the live DB (CLAUDE.m
 | `addons` (ammo qty, gear qty, cart) | `addOns[]` (`booking_add_ons`) | Real add-on UUIDs + quantities for structure; the **priced** lines come from `computeEstimate()` carried directly onto `bid_line_items` (§8) |
 | `catering` | an **add-on** | Modeled as an add-on, not a section; priced via the estimate; needs a `services` + `service_add_ons` row per property (§8) |
 | `members` + `guestAdults` + `guestJuniors` | `guestCount` (+ `juniorGuestCount`) | `guestCount` = total heads; `juniorGuestCount` = juniors. Member pricing applies when host = member (on trust) |
-| `lessonHours` | `durationHours` | Only when a lesson experience is chosen; otherwise booking-type default (2h) |
+| `lessonHours` | *(pricing only — NOT `durationHours`)* | **Corrected in Phase B:** `plan_a_visit`'s DB CHECK (`duration_valid_for_type`) pins `duration_hours` to **exactly 2**, so we can't write `lessonHours` there. `durationHours` is always `2`; the chosen lesson length flows only into the carried price line (consistent with decision 2 — lessons priced, not scheduled). |
 | `preferredDate` + `arrival` | `date` + `slotStart` (**provisional**) | Satisfies NOT-NULL slot columns; not enforced while `pending_review` (§6). Shown to the guest tagged "pending" (§8a) |
 | `backupDate` | `staff_notes` / `schedule_notes` | No native field; staff use it when locking the slot |
 | `name` / `email` / `phone` | `guest.{name,email,phone}` | |
@@ -279,6 +279,8 @@ cycle** (CLAUDE.md rule 5 satisfied). Manual tests against the live DB (CLAUDE.m
 | `customLines[]` (staff) | — (not carried) | No structured-line path; staff use total-override + note instead (decision 8) |
 | `computeEstimate().total` | `estimatedPrice` | The page's computed total (§8). `computeEstimate().lines` **minus discount lines** become the bid's initial `bid_line_items` |
 | `staffMode` / `staffRepName` | `createdByAdminId` / attribution | Staff-attribution pattern, stamped after the RPC insert (`create-public-booking.ts:149`) |
+
+> **Phase B finding — `bookings` has NO `staff_notes`/`schedule_notes` column (verified against the live schema).** The mapping rows above that target `staff_notes`/`schedule_notes` (host intent + "verify membership", `backupDate`) therefore have **no destination yet**, and `guest_notes` can't substitute — it is **rendered to the guest** on the bid page (`bids/[slug]/[code]/page.tsx:357`), so staff-facing text there would leak. Phase B persists **only the guest's own note** to `guest_notes` and **defers** host-intent/verify-membership, the backup date, staff internal notes, and the §8 advisory flags. **Phase C must add the `staff_notes` (and `schedule_notes`) column via migration** and carry those fields there. The form still collects them (backup date, internal notes, staff rep) — they ride on the payload but aren't stored until that column exists.
 
 ### The slot-lock action (NEW — confirm-time)
 
@@ -444,14 +446,22 @@ This is presentation-only and can ship independently of the backend/pricing work
   `pending_review` row (→ `awaiting_guest`) onto an `awaiting_guest`-held slot is rejected; two
   `pending_review` rows don't block a later lock.
 
-**Phase B — `createPublicBooking` lineItems + submit rewrite** (see §8)
+**Phase B — `createPublicBooking` lineItems + submit rewrite** (see §8) — ✅ DONE
 - Add the optional `lineItems` input to `createPublicBooking()`; when present, skip
   `materializeBidLineItems()` and insert those lines. Default path unchanged for `/book`.
 - Rewrite `submitEstimateAction` to map payload → `PublicBookingInput` + carried lines (§7), insert
   at `pending_review`, return `{ ok, bidPath }`. Keep honeypot + rate-limit. Drop the
   `create_estimate_request` call. On success redirect to `/bids/{slug}/{code}`.
+- *Two corrections found in build, both recorded above:* `durationHours` is always `2` (not
+  `lessonHours`) per the `plan_a_visit` CHECK; and `staff_notes`/`schedule_notes` don't exist yet so
+  host-intent/backup-date/internal-notes/advisories are **deferred to Phase C** (only the guest's own
+  note is persisted, since `guest_notes` is guest-visible).
 
 **Phase C — Catalog wiring + advisories** (see §8)
+- **Add the `staff_notes` / `schedule_notes` column(s) to `bookings`** (migration) — the destination
+  for the deferred Phase B fields. Then carry into them: host intent + "verify membership", the
+  backup date, staff internal/phone notes, and the advisory flags below. (Until this lands those
+  fields are collected by the form but not stored.)
 - In `estimate-intake.tsx`, resolve experiences/add-ons to DB UUIDs for
   `booking_disciplines`/`booking_add_ons`; audit + seed the `services` / `add_ons` / `service_add_ons`
   rows each needs (incl. catering as an add-on). Omit any item that can't be cleanly mapped rather
