@@ -82,7 +82,6 @@ export function EstimateIntake({ canUseStaffMode, lockedClub }: EstimateIntakePr
   const [custAmt, setCustAmt] = useState("");
 
   const [pending, startTransition] = useTransition();
-  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const set = (patch: Partial<IntakeState>) => setSt((p) => ({ ...p, ...patch }));
@@ -148,11 +147,9 @@ export function EstimateIntake({ canUseStaffMode, lockedClub }: EstimateIntakePr
       return;
     }
 
-    const composedNotes =
-      st.staffMode && internalNotes.trim()
-        ? `${notes}\n\n[Internal] ${internalNotes}`.trim()
-        : notes;
-
+    // Only the guest's own note is sent — it becomes guest-visible guest_notes
+    // on the bid page. Staff internal notes are NOT folded in (they would leak
+    // to the guest); they get a staff-only channel in Phase C.
     startTransition(async () => {
       const res = await submitEstimateAction(
         {
@@ -172,7 +169,7 @@ export function EstimateIntake({ canUseStaffMode, lockedClub }: EstimateIntakePr
           preferredDate: st.date,
           backupDate,
           arrival: st.arrival,
-          notes: composedNotes,
+          notes,
           indicativeTotal: estimate.grandLabel,
           staffMode: st.staffMode,
           staffRepName: staffRep,
@@ -180,47 +177,18 @@ export function EstimateIntake({ canUseStaffMode, lockedClub }: EstimateIntakePr
         honeypot,
       );
       if (res.ok) {
-        setSubmitted(true);
+        // Land on the unique bid URL ("your bid is being prepared"). Full
+        // navigation so the bid page renders fresh server-side; the transition
+        // stays pending through the redirect, keeping the CTA disabled.
+        window.location.assign(res.bidPath);
       } else {
         setError(res.message);
       }
     });
   }
 
-  if (submitted) {
-    return (
-      <div className={s.wrap}>
-        <div className={s.successCard}>
-          <div className={s.kick}>Estimate request created</div>
-          <h2 className={s.successTitle}>
-            {st.staffMode ? "Lead logged for the customer" : "Thanks — we've got it"}
-          </h2>
-          <p className={s.successBody}>
-            {st.staffMode
-              ? "This created an estimate request (a lead) and dropped it into the admin queue. A coordinator builds the binding bid; the customer gets a link to review, sign, and pay."
-              : "Your request is in. Our team will build your bid and send a link to review, sign, and pay a deposit — no phone tag."}
-          </p>
-          <button
-            type="button"
-            className={s.secondaryBtn}
-            onClick={() => {
-              setSubmitted(false);
-              setSt(INITIAL);
-              setName("");
-              setEmail("");
-              setPhone("");
-              setNotes("");
-              setInternalNotes("");
-              setBackupDate("");
-            }}
-          >
-            Start another request
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+  // On success the action redirects to the unique bid URL (see onSubmit) — no
+  // inline "thanks" screen. The form stays mounted (CTA disabled) through nav.
   return (
     <div className={s.wrap}>
       <header className={s.top}>

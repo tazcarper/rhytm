@@ -5,7 +5,10 @@ import { createServiceRoleClient } from "@/lib/supabase/service";
 import { inngest } from "@/lib/inngest/client";
 import { bidCreated } from "@/lib/inngest/events";
 import { buildBidUrl } from "@/src/services/bids/bid-url";
-import { materializeBidLineItems } from "@/src/services/bids/bid-line-items";
+import {
+  materializeBidLineItems,
+  insertCarriedBidLineItems,
+} from "@/src/services/bids/bid-line-items";
 import type { BookingType } from "@/src/components/public/booking-flow/booking-flow-types";
 
 // Atomic booking creation. Calls the `create_public_booking` Postgres
@@ -61,6 +64,32 @@ export const PublicBookingInputSchema = z.object({
   // RPC insert (create_public_booking predates this column). Null for
   // self-service public/member bookings.
   createdByAdminId: z.uuid().nullable().default(null),
+  // Caller-supplied bid line snapshot. When present (the /request-estimate
+  // front door, which prices itself via computeEstimate()), these lines are
+  // inserted onto bid_line_items VERBATIM and the DB-pricing-model
+  // materialization is SKIPPED — the carried quote is the bid's starting
+  // draft. Omit it (the default) and the booking materializes from the DB
+  // pricing model exactly as before, so the /book caller is unchanged.
+  // The caller must already have excluded discount/negative lines.
+  lineItems: z
+    .array(
+      z.object({
+        kind: z.enum([
+          "base_experience",
+          "guest_fee",
+          "add_on",
+          "instructor",
+          "fee",
+          "other",
+        ]),
+        label: z.string().trim().min(1).max(200),
+        quantity: z.number().int().positive().default(1),
+        unitAmount: z.number(),
+        lineAmount: z.number(),
+        taxStatus: z.enum(["taxable", "exempt"]).default("taxable"),
+      }),
+    )
+    .optional(),
 }).refine((v) => v.juniorGuestCount <= v.guestCount, {
   message: "Junior guests can't exceed the total party size.",
   path: ["juniorGuestCount"],
@@ -163,8 +192,17 @@ export async function createPublicBooking(
   // Best-effort: the bid's headline totals come from estimated_price either
   // way, so a failure here only delays the itemized breakdown (backfilled by
   // backfill_bid_line_items() otherwise). Never fatal.
+  //
+  // Two sources, mutually exclusive: when the caller carried its own quote
+  // (lineItems present — the /request-estimate front door), insert those
+  // lines and SKIP the DB-pricing materialize (which would derive nonsense
+  // from this route's placeholder pricing). Otherwise materialize from the DB
+  // pricing model as the /book path always has.
+  const carried = parsed.data.lineItems;
   try {
-    const lineResult = await materializeBidLineItems(supabase, row.booking_id);
+    const lineResult = carried
+      ? await insertCarriedBidLineItems(supabase, row.booking_id, carried)
+      : await materializeBidLineItems(supabase, row.booking_id);
     // Reconcile the materialized breakdown against the quoted estimate. At
     // creation they must agree (same pricing model produced both); a mismatch
     // means the line model and the stored total disagree at the moment of

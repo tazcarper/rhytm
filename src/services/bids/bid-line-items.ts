@@ -245,6 +245,61 @@ export async function materializeBidLineItems(
   return { ok: true, count: lines.length, subtotal };
 }
 
+// A pre-computed quote line handed in by a caller that priced the bid itself
+// (the /request-estimate front door, whose authority is the on-page
+// computeEstimate(), not the DB pricing model). Already in bid_line_items
+// terms — this module does not know about EstimateLine or rules.ts. The caller
+// is responsible for excluding discount/negative lines (the model has no
+// discount kind by design — discounts live in the override path).
+export interface CarriedBidLine {
+  kind: LineItemKind;
+  label: string;
+  quantity: number;
+  unitAmount: number;
+  lineAmount: number;
+  taxStatus: LineItemTaxStatus;
+}
+
+// Insert a caller-supplied set of lines as the bid's snapshot, INSTEAD of
+// computing them from the DB pricing model (materializeBidLineItems). Used by
+// createPublicBooking when the caller carries its own quote — the estimate
+// front door, whose computeEstimate() is the pricing authority for that route.
+// Same creation-window guard and delete-then-insert semantics as the full
+// materialize, so a stray later call can't rewrite a frozen snapshot.
+export async function insertCarriedBidLineItems(
+  supabase: SupabaseClient,
+  bookingId: string,
+  lines: CarriedBidLine[],
+): Promise<MaterializeResult> {
+  const status = await getBidStatus(supabase, bookingId);
+  // A missing bid row is treated as buildable so creation is never blocked.
+  if (status !== null && !FULL_BUILD_STATUSES.has(status)) {
+    return { ok: false, count: 0, subtotal: 0, skipped: "frozen" };
+  }
+
+  const rows: LineInsert[] = lines.map((line, index) => ({
+    booking_id: bookingId,
+    kind: line.kind,
+    label: line.label,
+    quantity: line.quantity,
+    unit_amount: round2(line.unitAmount),
+    line_amount: round2(line.lineAmount),
+    tax_status: line.taxStatus,
+    source_service_id: null,
+    source_add_on_id: null,
+    sort_order: index,
+  }));
+
+  const subtotal = round2(rows.reduce((sum, row) => sum + row.line_amount, 0));
+
+  await supabase.from("bid_line_items").delete().eq("booking_id", bookingId);
+  if (rows.length === 0) return { ok: true, count: 0, subtotal: 0 };
+
+  const { error } = await supabase.from("bid_line_items").insert(rows);
+  if (error) return { ok: false, count: 0, subtotal };
+  return { ok: true, count: rows.length, subtotal };
+}
+
 // Rebuild ONLY the add_on lines from the current booking_add_ons snapshots,
 // leaving the base/guest-fee snapshot intact. Called after an add-on edit.
 // Drift-free: add-on amounts come from the stored unit_price_at_booking, never
