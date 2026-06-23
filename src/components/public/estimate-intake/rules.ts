@@ -18,6 +18,8 @@
 // nothing that moves money. Expect the numbers/copy to change (Ryan/Stitch
 // later); the logic lives here, isolated, so that swap stays cheap.
 
+import { computeBookingAdvisories } from "@/src/services/public/booking-advisories";
+
 export type ClubCode = "hsb" | "hh" | "psp";
 // The host of record. A member host may bring non-member guests; a
 // non-member host books direct (and is blocked at HSB).
@@ -90,9 +92,6 @@ export const RULES = {
     ] as FeeBand[],
     psp: null,
   },
-  rsoPerGuests: 5, // 1 RSO per 5 guests
-  seniorInstructorAt: 15, // +senior instructor
-  secondInstructorAt: 20, // +second senior instructor
   // Per student in a 5-student cohort (1:5 ratio); the 6th student opens a
   // fresh cohort at the $200 Lead Slot rate (i % 5).
   lessonLadder: [200, 100, 50, 50, 50],
@@ -384,19 +383,16 @@ export function computeEstimate(s: IntakeState): EstimateResult {
     });
   }
 
-  // Escalation — guests drive ratios (members excluded); reservation by total.
-  const rso = Math.ceil(guests / RULES.rsoPerGuests);
-  const esc: string[] = [];
-  if (guests >= RULES.rsoPerGuests) esc.push(`${rso} RSO${rso > 1 ? "s" : ""} (1 per 5 guests, members excluded)`);
-  if (guests >= RULES.secondInstructorAt) esc.push("two Senior Instructors");
-  else if (guests >= RULES.seniorInstructorAt) esc.push("Senior Instructor");
-  if (totalHead >= 9) esc.push("9+ total → reservation / Private Event (72-hr notice)");
-
-  // Heat advisory: summer (May–Sep) midday arrival.
-  const arr = +s.arrival;
-  const mo = s.date ? new Date(s.date).getMonth() + 1 : 0;
-  const summer = mo >= 5 && mo <= 9;
-  const heat = summer && (arr === 12 || arr === 13);
+  // Escalation, heat, and the Private-Event flag come from the shared advisory
+  // module (plan §8) — guests drive the ratios (members excluded), totalHead
+  // drives the reservation flag. The form and the submit action call the SAME
+  // function so they never disagree.
+  const advisories = computeBookingAdvisories({
+    guests,
+    totalHead,
+    arrival: s.arrival,
+    date: s.date,
+  });
 
   const grandLabel = customVenue && total === 0 ? "Custom" : money(total);
 
@@ -404,12 +400,12 @@ export function computeEstimate(s: IntakeState): EstimateResult {
     lines,
     total,
     grandLabel,
-    escalation: esc.length ? "▲ " + esc.join(" · ") : "",
+    escalation: advisories.escalationLabel,
     ctaLabel: s.staffMode ? "Create request (on behalf) →" : "Request my estimate →",
-    heat,
+    heat: advisories.heatWarning,
     comingSoon: false,
     hsbBlocked: false,
-    isEvent: totalHead >= 9,
+    isEvent: advisories.isPrivateEvent,
   };
 }
 

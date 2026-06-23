@@ -173,6 +173,7 @@ export function EstimateIntake({ canUseStaffMode, lockedClub }: EstimateIntakePr
           indicativeTotal: estimate.grandLabel,
           staffMode: st.staffMode,
           staffRepName: staffRep,
+          internalNotes: st.staffMode ? internalNotes : "",
         },
         honeypot,
       );

@@ -64,6 +64,14 @@ export const PublicBookingInputSchema = z.object({
   // RPC insert (create_public_booking predates this column). Null for
   // self-service public/member bookings.
   createdByAdminId: z.uuid().nullable().default(null),
+  // Staff-only notes stamped onto the booking after the RPC insert (the RPC
+  // signature is fixed — plan §6). staff_notes carries host intent + advisory
+  // flags + phone-intake context; schedule_notes carries the backup date +
+  // provisional-slot reminder for the slot-lock action. Both are STAFF-ONLY
+  // (never selected by the public get-bid projection). Default null →
+  // unchanged for the /book caller.
+  staffNotes: z.string().max(4000).optional(),
+  scheduleNotes: z.string().max(2000).optional(),
   // Caller-supplied bid line snapshot. When present (the /request-estimate
   // front door, which prices itself via computeEstimate()), these lines are
   // inserted onto bid_line_items VERBATIM and the DB-pricing-model
@@ -172,17 +180,22 @@ export async function createPublicBooking(
     };
   }
 
-  // Stamp staff attribution — the create_public_booking RPC doesn't take
-  // it. Same service-role client; the booking + bid already committed, so a
-  // failure here only loses the "booked by" attribution (logged, not fatal).
-  if (parsed.data.createdByAdminId) {
+  // Stamp staff-only fields the create_public_booking RPC doesn't take —
+  // attribution + staff/schedule notes — in one update. Same service-role
+  // client; the booking + bid already committed, so a failure here only loses
+  // these annotations (logged, not fatal).
+  const stamp: Record<string, string> = {};
+  if (parsed.data.createdByAdminId) stamp.created_by_admin_id = parsed.data.createdByAdminId;
+  if (parsed.data.staffNotes) stamp.staff_notes = parsed.data.staffNotes;
+  if (parsed.data.scheduleNotes) stamp.schedule_notes = parsed.data.scheduleNotes;
+  if (Object.keys(stamp).length > 0) {
     const { error: stampError } = await supabase
       .from("bookings")
-      .update({ created_by_admin_id: parsed.data.createdByAdminId })
+      .update(stamp)
       .eq("id", row.booking_id);
     if (stampError) {
       console.error(
-        "[bookings/create-public-booking] created_by_admin_id stamp failed",
+        "[bookings/create-public-booking] staff-field stamp failed",
         { bookingId: row.booking_id, stampError },
       );
     }

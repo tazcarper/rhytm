@@ -5,6 +5,9 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { hasAdminAccess } from "@/lib/auth/portal";
 import { checkRateLimit, clientIpFrom } from "@/src/services/security/rate-limit";
 import { createPublicBooking } from "@/src/services/bookings/create-public-booking";
+import { getPublicServicesForProperty } from "@/src/services/public/services";
+import { resolveEstimateCatalog } from "@/src/services/estimates/resolve-estimate-catalog";
+import { computeBookingAdvisories } from "@/src/services/public/booking-advisories";
 import {
   CLUB_TO_SLUG,
   RULES,
@@ -50,9 +53,11 @@ export interface SubmitEstimateInput {
   notes: string;
   indicativeTotal: string;
   // Staff phone-intake context (only honored when the caller is signed-in
-  // staff).
+  // staff). internalNotes is staff-only and lands in staff_notes — never in
+  // the guest-visible guest_notes.
   staffMode: boolean;
   staffRepName: string;
+  internalNotes: string;
 }
 
 export type SubmitEstimateResult =
@@ -219,14 +224,58 @@ export async function submitEstimateAction(
       : "09:00";
 
   // guest_notes is GUEST-VISIBLE on the bid page, so ONLY the guest's own note
-  // goes here. Staff-facing intake context — host intent + "verify membership"
-  // (host is taken on trust, plan §3.5), the backup date, any internal/phone
-  // notes, and the advisory flags — needs the staff_notes/schedule_notes
-  // channel that doesn't exist on bookings yet. Phase C adds that column and
-  // carries them; until then they're intentionally deferred, never leaked into
-  // the guest's view. (input.backupDate / staffRepName / staff internal notes
-  // are accepted on the payload but not yet persisted.)
+  // goes here. Everything staff-facing goes to staff_notes / schedule_notes.
   const guestNotes = (input.notes ?? "").trim();
+
+  // Non-pricing advisories — same module the form shows, so staff see exactly
+  // the escalation the guest saw (plan §8). guests = non-member guests only.
+  const advisories = computeBookingAdvisories({
+    guests: intake.guestAdults + intake.guestJuniors,
+    totalHead: totalHeads,
+    arrival: input.arrival ?? "",
+    date: input.preferredDate ?? "",
+  });
+
+  // staff_notes: host intent + verify-membership, the advisory flags, and staff
+  // phone-intake context. schedule_notes: scheduling context the slot-lock
+  // action needs. Both are staff-only (never in the guest's bid view).
+  const staffNoteLines: string[] = [
+    input.host === "member"
+      ? "Host: member-hosted — VERIFY MEMBERSHIP before confirming"
+      : "Host: non-member (direct)",
+  ];
+  if (advisories.escalationParts.length) {
+    staffNoteLines.push(`Advisories: ${advisories.escalationParts.join(" · ")}`);
+  }
+  if (advisories.heatWarning) {
+    staffNoteLines.push("Heat advisory: summer midday arrival — confirm timing/hydration");
+  }
+  if (staffIntake && input.staffRepName?.trim()) {
+    staffNoteLines.push(`Phone intake by: ${input.staffRepName.trim()}`);
+  }
+  if (staffIntake && input.internalNotes?.trim()) {
+    staffNoteLines.push(`Internal: ${input.internalNotes.trim()}`);
+  }
+  const staffNotes = staffNoteLines.join("\n");
+
+  const scheduleNoteLines: string[] = [
+    `Provisional slot from intake — NOT locked. Guest picked ${slotStart} CT on ${date}; lock the real slot at confirm.`,
+  ];
+  if (input.backupDate) scheduleNoteLines.push(`Backup date: ${input.backupDate}`);
+  const scheduleNotes = scheduleNoteLines.join("\n");
+
+  // Resolve experiences / add-ons to real catalog UUIDs for structure
+  // (booking_disciplines / booking_add_ons). Lossy + FK-safe by construction:
+  // only clean name matches against this property's live catalog wire up;
+  // everything else is omitted (plan §8). Prices are irrelevant here — the
+  // priced lines already ride on bid_line_items.
+  const { data: services } = await getPublicServicesForProperty(supabase, propertyId);
+  const { disciplineIds, addOns } = resolveEstimateCatalog(
+    club,
+    services ?? [],
+    input.experiences,
+    input.addons,
+  );
 
   const result = await createPublicBooking({
     propertyId,
@@ -249,14 +298,14 @@ export async function submitEstimateAction(
     guestCount,
     juniorGuestCount,
     estimatedPrice,
-    // Catalog UUID wiring (booking_disciplines / booking_add_ons) is Phase C;
-    // the priced lines ride on bid_line_items regardless of structure.
-    disciplineIds: [],
-    addOns: [],
+    disciplineIds,
+    addOns,
     // Host membership is on trust — no authenticated member here; admin
     // verifies on the dashboard. audience stays public.
     memberUserId: null,
     createdByAdminId: staffIntake ? user!.id : null,
+    staffNotes,
+    scheduleNotes,
     lineItems: carriedLines,
   });
 
