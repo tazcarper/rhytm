@@ -31,25 +31,68 @@
   gap: var(--space-4);
 }
 
+/* Panel header — a consistent, on-brand block across all four catalog
+   sections: a serif title with an at-a-glance count chip, a one-line
+   purpose description beneath, and the primary "+ Add" action aligned
+   to the top-right. A hairline rule separates the header from the list. */
 .panelHead {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.panelHeadText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  flex: 1 1 260px;
+}
+
+.panelTitleRow {
+  display: flex;
+  align-items: baseline;
   gap: var(--space-3);
   flex-wrap: wrap;
 }
 
 .panelTitle {
   font-family: var(--serif);
-  font-size: var(--text-h5);
+  font-size: var(--text-h3);
+  line-height: var(--leading-tight);
+  font-weight: 600;
+  letter-spacing: 0.01em;
   color: var(--olive);
   margin: 0;
 }
 
-.panelSubtitle {
-  font-size: var(--text-caption);
-  color: var(--charcoal-soft);
+.panelCount {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--tan-deep);
+  background: var(--paper-warm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+}
+
+.panelDesc {
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: var(--leading-snug);
+  color: var(--gray);
   margin: 0;
+  max-width: 56ch;
 }
 
 .list {
@@ -88,7 +131,7 @@
   height: 22px;
   border: 1px solid var(--paper-warm);
   background: var(--cream);
-  color: var(--charcoal);
+  color: var(--olive);
   border-radius: var(--radius-card);
   cursor: pointer;
   font-size: 13px;
@@ -113,15 +156,15 @@
 
 .itemName {
   font-weight: 600;
-  color: var(--charcoal);
+  color: var(--olive);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .itemMeta {
-  font-size: var(--text-caption);
-  color: var(--charcoal-soft);
+  font-size: var(--text-micro);
+  color: var(--gray);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -139,14 +182,14 @@
   background: var(--paper-warm);
   border: 1px solid var(--cream);
   border-radius: var(--radius-pill);
-  font-size: var(--text-caption);
-  color: var(--charcoal-soft);
+  font-size: var(--text-micro);
+  color: var(--gray);
 }
 
 .empty {
   padding: var(--space-4);
   text-align: center;
-  color: var(--charcoal-soft);
+  color: var(--gray);
   background: var(--paper-warm);
   border-radius: var(--radius-card);
   font-style: italic;
@@ -184,14 +227,14 @@
   background: var(--paper);
   border-radius: var(--radius-card);
   font: inherit;
-  color: var(--charcoal);
+  color: var(--olive);
   box-shadow: inset 0 1px 2px rgba(63, 74, 33, 0.04);
   transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
 .input::placeholder,
 .textarea::placeholder {
-  color: color-mix(in srgb, var(--charcoal-soft) 70%, transparent);
+  color: color-mix(in srgb, var(--gray) 70%, transparent);
 }
 
 .input:hover:not(:disabled):not(:focus),
@@ -213,7 +256,7 @@
 .input:disabled,
 .textarea:disabled {
   background: var(--paper-warm);
-  color: var(--charcoal-soft);
+  color: var(--gray);
   cursor: not-allowed;
   opacity: 0.7;
 }
@@ -222,10 +265,10 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: var(--text-caption);
+  font-size: var(--text-micro);
   font-weight: 600;
   letter-spacing: 0.01em;
-  color: var(--charcoal);
+  color: var(--olive);
   margin-bottom: 2px;
 }
 
@@ -239,7 +282,7 @@
   padding: 1px 8px;
   border-radius: var(--radius-pill);
   background: var(--paper-warm);
-  color: var(--charcoal-soft);
+  color: var(--gray);
   font-size: var(--text-eyebrow);
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -253,14 +296,14 @@
 
 .inlineError {
   color: var(--accent-error);
-  font-size: var(--text-caption);
+  font-size: var(--text-micro);
 }
 
 .inactiveDivider {
   font-size: var(--text-eyebrow);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--charcoal-soft);
+  color: var(--gray);
   padding: var(--space-3) 0 var(--space-1);
 }
 
@@ -356,8 +399,8 @@
 
 .modalRefWhen {
   font-variant-numeric: tabular-nums;
-  color: var(--charcoal);
-  font-size: var(--text-caption);
+  color: var(--olive);
+  font-size: var(--text-micro);
   white-space: nowrap;
 }
 
@@ -370,15 +413,15 @@
 
 .modalRefGuestName {
   font-weight: 500;
-  color: var(--charcoal);
+  color: var(--olive);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .modalRefGuestEmail {
-  font-size: var(--text-caption);
-  color: var(--charcoal-soft);
+  font-size: var(--text-micro);
+  color: var(--gray);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -397,12 +440,12 @@
 
 .warnBannerTitle {
   font-weight: 600;
-  color: var(--charcoal);
+  color: var(--olive);
 }
 
 .warnBannerText {
-  color: var(--charcoal-soft);
-  font-size: var(--text-caption);
+  color: var(--gray);
+  font-size: var(--text-micro);
 }
 
 .formGroup {
@@ -443,9 +486,9 @@
 }
 
 .help {
-  font-size: var(--text-caption);
+  font-size: var(--text-micro);
   line-height: 1.5;
-  color: var(--charcoal-soft);
+  color: var(--gray);
   max-width: 62ch;
   margin-top: calc(-1 * var(--space-1));
 }

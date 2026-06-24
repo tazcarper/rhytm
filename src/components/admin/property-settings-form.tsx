@@ -72,7 +72,7 @@ export function PropertySettingsForm({ property }: PropertySettingsFormProps) {
     <Card padding="loose" elevation="soft">
       <div className={p.formHead}>
         <h2 className={p.formTitle}>{property.name}</h2>
-        <Button asChild variant="secondary" size="sm">
+        <Button asChild variant="primary" size="md">
           <Link href={`/admin/properties/${property.id}/catalog`}>Manage catalog →</Link>
         </Button>
       </div>

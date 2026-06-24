@@ -182,9 +182,17 @@ export function getEmailService(): EmailService {
 }
 
 // ---- Origin helper ---------------------------------------------------------
-// Single source for the absolute origin emails point at. NEXT_PUBLIC_SITE_URL
-// is the standard Next.js convention; the localhost fallback keeps `npm run
-// dev` working with no extra env wiring. Document the var in .env.local.
+// Single source for the absolute origin emails point at. Resolution order:
+//   1. NEXT_PUBLIC_SITE_URL — explicit override (custom domain, staging).
+//   2. VERCEL_PROJECT_PRODUCTION_URL — Vercel auto-injects the stable
+//      production domain (e.g. rhytm-one.vercel.app) into every deployment,
+//      including previews. Emails always link to production, never an
+//      ephemeral preview URL. This is why a preview/prod deploy with no
+//      explicit override no longer leaks localhost into links.
+//   3. http://localhost:3000 — keeps `npm run dev` working with no env wiring.
+//
+// This runs server-side only (email send paths), so the non-public
+// VERCEL_PROJECT_PRODUCTION_URL is available.
 //
 // Defined here (not in `lib/`) because today the only consumer is the
 // notifications service that needs an absolute URL for email links. Move
@@ -193,6 +201,12 @@ export function getEmailService(): EmailService {
 export function getSiteOrigin(): string {
   const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.trim();
   if (fromEnv) return fromEnv.replace(/\/+$/, "");
+
+  const vercelProductionUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+  if (vercelProductionUrl) {
+    return `https://${vercelProductionUrl.replace(/\/+$/, "")}`;
+  }
+
   return "http://localhost:3000";
 }
 
