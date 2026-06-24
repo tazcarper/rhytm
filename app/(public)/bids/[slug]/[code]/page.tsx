@@ -117,6 +117,7 @@ export default async function BidPage({
           status={detail.bid.status}
           signedAt={detail.bid.signedAt}
           requiresDeposit={detail.booking.requiresDeposit}
+          requiresWaiver={detail.bid.requiresWaiver}
         />
       )}
       <StatusBanner

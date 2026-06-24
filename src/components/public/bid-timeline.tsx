@@ -35,18 +35,31 @@ interface BidTimelineProps {
   // When false (no deposit required), the "Pay your deposit" step is
   // dropped and signing the waiver alone reaches "All set".
   requiresDeposit: boolean;
+  // Quote-only estimate bids (plan §8a): no waiver, no deposit. The active
+  // path collapses to "Confirmed → All set" with no sign/pay steps.
+  requiresWaiver: boolean;
 }
 
 function buildSteps(
   status: BidStatus,
   signedAt: string | null,
   requiresDeposit: boolean,
+  requiresWaiver: boolean,
 ): BidTimelineStep[] {
   if (status === "pending_review") {
     return [
       { label: "Submitted", state: "complete" },
       { label: "Under review", state: "current" },
       { label: "Confirmed", state: "pending" },
+    ];
+  }
+
+  // No waiver (and no deposit): reaching the active path IS fully set — there
+  // is nothing to sign or pay (plan §8a).
+  if (!requiresWaiver) {
+    return [
+      { label: "Confirmed", state: "complete" },
+      { label: "All set", state: "complete" },
     ];
   }
 
@@ -95,8 +108,9 @@ export function BidTimeline({
   status,
   signedAt,
   requiresDeposit,
+  requiresWaiver,
 }: BidTimelineProps) {
-  const steps = buildSteps(status, signedAt, requiresDeposit);
+  const steps = buildSteps(status, signedAt, requiresDeposit, requiresWaiver);
   // Track-fill fraction: 0 → 1 across (steps.length - 1) segments. The
   // current step counts as half-filled so the line reaches its dot but
   // not past it.
