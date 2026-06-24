@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getPublicProperties } from "@/src/services/public/properties";
 import { Alert, Eyebrow, Heading, PageShell } from "@/lib/ui";
@@ -12,6 +13,12 @@ import s from "./book.module.css";
 export const dynamic = "force-dynamic";
 
 export default async function BookingPropertyPickerPage() {
+  // Phase E (request-estimate-bid-integration §10/§12): /request-estimate is now
+  // the sole public booking front door. The /book funnel is hidden — its code is
+  // retained for the shared createPublicBooking primitive and a later deletion task,
+  // but the route is unreachable. Any direct visit bounces to the new front door.
+  redirect("/request-estimate");
+
   const supabase = await createServerSupabaseClient();
   const { data: properties, error } = await getPublicProperties(supabase);
 
@@ -33,20 +40,20 @@ export default async function BookingPropertyPickerPage() {
 
       {error && (
         <Alert variant="error" title="Could not load properties">
-          {error.message}
+          {error?.message}
         </Alert>
       )}
 
-      {!error && properties && properties.length === 0 && (
+      {!error && properties && properties?.length === 0 && (
         <Alert variant="warn" title="No properties available">
           The booking flow needs at least one property in{" "}
           <code>public.properties</code>.
         </Alert>
       )}
 
-      {properties && properties.length > 0 && (
+      {properties && (properties?.length ?? 0) > 0 && (
         <div className={s.grid}>
-          {properties.map((p, i) => {
+          {properties?.map((p, i) => {
             const copy = PROPERTY_COPY[p.slug] ?? PROPERTY_COPY_FALLBACK;
             return (
               <PropertyCard

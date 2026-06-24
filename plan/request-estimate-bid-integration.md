@@ -515,9 +515,16 @@ pending a running dev server (per CLAUDE.local.md, the user runs the app).*
 - **Deferred from §7:** true *reschedule* of an already-locked/confirmed booking (the function supports
   it, but there's no admin reschedule UI yet) — fits the §13 future direction.
 
-**Phase E — Hide `/book`** (see §12)
-- Pull `/book` nav + middleware route entries so it's unreachable; leave its code + the
-  `createPublicBooking` primitive in place. Confirm nothing else links to `/book`.
+**Phase E — Hide `/book`** ✅ DONE (see §12)
+- *Done: public CTAs repointed `/book` → `/request-estimate` (homepage final CTA, `homepage-hero.ts`
+  default `primaryCtaHref`, admin hero-form help text/placeholder + a stray comment), and the funnel
+  route entries now `redirect("/request-estimate")` — at `app/(public)/book/page.tsx` and the
+  `app/(public)/book/[property]/layout.tsx` chokepoint (covers type-picker + disciplines + details).
+  No middleware `/book` entry existed (project has no `middleware.ts`), so nothing to pull there. All
+  funnel code retained intact — `BookingFlowProvider`, the step components, deeper pages, and the
+  `createPublicBooking` primitive / `create_public_booking` RPC — per §12; deletion is the later task.
+  NOTE: the homepage-hero CTA href is DB-editable, so if the live `homepage_hero` row still stores
+  `/book` it must be changed in `/admin/homepage` (dashboard-first) — not a code/migration fix.*
 
 **Phase F — Verify end-to-end** (hand off to user to run the app per CLAUDE.local.md)
 - Submit → bid URL shows "being prepared" with the picked time tagged "pending" → appears in

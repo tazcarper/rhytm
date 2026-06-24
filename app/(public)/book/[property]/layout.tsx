@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { hasAdminAccess } from "@/lib/auth/portal";
 import { BookingFlowProvider } from "@/src/components/public/booking-flow/booking-flow-provider";
@@ -15,6 +16,14 @@ export default async function BookingPropertyLayout({
   children: ReactNode;
   params: Promise<{ property: string }>;
 }) {
+  // Phase E (request-estimate-bid-integration §10/§12): /request-estimate is now the
+  // sole public booking front door. This layout is the chokepoint for the entire
+  // /book/[property] funnel subtree (type picker, disciplines, details), so the
+  // redirect here hides all of them at once. The funnel code (provider, components,
+  // createPublicBooking primitive) is retained for a later deletion task; only the
+  // route is made unreachable.
+  redirect("/request-estimate");
+
   const { initialGuest, isStaff } = await loadBookingContext();
   return (
     <BookingFlowProvider initialGuest={initialGuest}>

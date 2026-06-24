@@ -190,7 +190,7 @@ export default async function Home() {
           </p>
           <div className={s.finalCtaActions}>
             <Button asChild variant="secondary" size="lg">
-              <Link href="/book">Plan your visit</Link>
+              <Link href="/request-estimate">Plan your visit</Link>
             </Button>
             <Button asChild variant="ghost" size="lg">
               <Link href="/login">Members&rsquo; Entrance</Link>

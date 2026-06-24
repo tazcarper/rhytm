@@ -37,7 +37,7 @@ export const FALLBACK_HOMEPAGE_HERO: HomepageHero = {
   lead: "Sporting clays, private instruction, and unforgettable gatherings across three storied properties — reserved online in minutes.",
   imageUrl: null,
   primaryCtaLabel: "Plan your visit",
-  primaryCtaHref: "/book",
+  primaryCtaHref: "/request-estimate",
   secondaryCtaLabel: "Members’ Entrance",
   secondaryCtaHref: "/login",
 };

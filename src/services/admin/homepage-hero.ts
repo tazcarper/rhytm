@@ -11,7 +11,7 @@ const optionalText = (max: number) =>
     .nullable()
     .transform((value) => (value ? value : null));
 
-// A link target: either an in-app path ("/book") or an absolute URL.
+// A link target: either an in-app path ("/request-estimate") or an absolute URL.
 const optionalHref = z
   .string()
   .trim()

@@ -163,7 +163,7 @@ export function HomepageHeroForm({ hero }: HomepageHeroFormProps) {
 
         <Group
           eyebrow="Buttons"
-          desc="The two buttons under the text. Leave a label blank to hide that button. Links can be an in-app path like /book or a full web address."
+          desc="The two buttons under the text. Leave a label blank to hide that button. Links can be an in-app path like /request-estimate or a full web address."
         >
           <div className={h.grid2}>
             <label className={s.field}>
@@ -183,7 +183,7 @@ export function HomepageHeroForm({ hero }: HomepageHeroFormProps) {
                 value={primaryCtaHref}
                 onChange={(event) => setPrimaryCtaHref(event.target.value)}
                 className={s.input}
-                placeholder="/book"
+                placeholder="/request-estimate"
               />
             </label>
           </div>
