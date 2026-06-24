@@ -491,17 +491,29 @@ moved it onto the grid item (`.rail`), which travels within the tall grid. Added
 max-height/overflow guard and disabled sticky in the stacked mobile layout. Visual confirmation
 pending a running dev server (per CLAUDE.local.md, the user runs the app).*
 
-**Phase D — Admin lock action + bid-page edits + consolidation**
-- **Build the slot-lock/reschedule action** (§7): set `start_time`/`duration_hours`, advance
-  `bookings.status` `pending_review` → `awaiting_guest`, surface trigger rejections. Pair with
-  `confirmBid` (which flips `bids.status` → `confirmed`). **Must write `start_time` in the UPDATE** —
-  the slot-validation trigger fires `UPDATE OF start_time` only (see §7 gotcha).
-- **Bid-page edits** (§8a): suppress the signature slot for these bids, treat no-deposit/no-waiver
-  confirmed bids as "set," tag the `pending_review` time "pending."
-- Hide `/admin/estimates` nav entry; stop writing `estimate_requests`.
-- **Schedule visibility:** `/admin/bookings` (month calendar of confirmed events) + the `/admin`
-  "Upcoming · next 7 days" panel. A `pending_review` soft request correctly does **not** appear
-  until staff lock + confirm. Verify confirm surfaces it on `/admin/bookings`.
+**Phase D — Admin lock action + bid-page edits + consolidation** — ✅ DONE
+- **Slot-lock action** (§7). *Done as a **combined** action (the §7 "one combined action" option):
+  migration adds `lock_booking_slot()` (sets a real `start_time` tz-correctly + `duration_hours` AND
+  advances `bookings.status` → `awaiting_guest` in one UPDATE — `start_time` is in the SET list, so
+  the §7 gotcha is satisfied). `lockBookingSlot` service maps trigger rejections; `lockAndConfirmBidAction`
+  locks then confirms (lock-before-confirm guaranteed). `BidActions` shows "Lock slot & confirm" (date/time
+  prefilled from the provisional slot) only for quote-only estimate bids whose booking is still
+  `pending_review`; /book keeps the plain Confirm.*
+- **Bid-page edits** (§8a). *Done via a new `bids.requires_waiver` marker (default true; estimate sets
+  false — the §11 waiver seam). Page suppresses `SignatureSlot` when `!requiresWaiver`, treats a confirmed
+  no-waiver bid as fully "set" (finalized without sign/pay), and tags the `pending_review` time "pending".*
+- Hide `/admin/estimates` nav entry *(done)*; stop writing `estimate_requests` *(already done in Phase B)*.
+- **Schedule visibility** *(done + corrected): the dashboard "Upcoming" panel already filtered to
+  confirmed/signed/paid, but the `/admin/bookings` month calendar counted all non-terminal bookings —
+  so `pending_review` was added to the calendar's excluded set. A soft request now appears only once
+  locked + confirmed (status → awaiting_guest).*
+- **Staff-notes correction (found in Phase D):** Phase C added `staff_notes`/`schedule_notes` to
+  **bookings**, but `bids` already has them and the admin bid detail renders them. Redirected the stamp
+  to `bids.staff_notes` (staff-only — not in the public get-bid projection; `bids.schedule_notes` IS
+  guest-visible, so all staff context folds into `staff_notes`) and **dropped the unused bookings
+  columns**. The admin "Staff notes" card now surfaces the intake context with no new UI.
+- **Deferred from §7:** true *reschedule* of an already-locked/confirmed booking (the function supports
+  it, but there's no admin reschedule UI yet) — fits the §13 future direction.
 
 **Phase E — Hide `/book`** (see §12)
 - Pull `/book` nav + middleware route entries so it's unreachable; leave its code + the
