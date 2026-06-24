@@ -588,7 +588,7 @@ export function EstimateIntake({ canUseStaffMode, lockedClub }: EstimateIntakePr
         </div>
 
         {/* ESTIMATE PANEL */}
-        <div>
+        <div className={s.rail}>
           <div className={s.estimate}>
             <h3 className={s.estH}>Indicative estimate</h3>
             <div>

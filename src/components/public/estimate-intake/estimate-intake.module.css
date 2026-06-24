@@ -73,6 +73,13 @@
   .grid {
     grid-template-columns: 1fr;
   }
+  /* Stacked layout — the rail sits below the form, so pinning it would trap it
+     at the top over the form. Disable sticky and the height cap (plan §9). */
+  .rail {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
 }
 
 .card {
@@ -324,9 +331,24 @@
 }
 
 /* Estimate panel */
-.estimate {
+/* The estimate rail (right grid column). Sticky lives HERE — on the grid item
+   — not on the .estimate card inside it. A sticky element travels within its
+   containing block; the card's containing block is this wrapper, which shrink-
+   wraps it (grid align-items: start), giving zero travel. The grid ITEM's
+   containing block is the grid itself, as tall as the long left column, so the
+   rail pins on scroll-down and releases at its original spot on scroll-up — the
+   plan §9 behavior, pure CSS, no scroll listener. */
+.rail {
   position: sticky;
-  top: 16px;
+  top: var(--space-4);
+  align-self: start;
+  /* If the rail is taller than the viewport, let it scroll internally so the
+     CTA at the bottom stays reachable instead of being trapped below the fold. */
+  max-height: calc(100dvh - var(--space-4) - var(--space-4));
+  overflow-y: auto;
+}
+
+.estimate {
   background: var(--olive-deep);
   color: var(--paper);
   border-radius: 12px;
