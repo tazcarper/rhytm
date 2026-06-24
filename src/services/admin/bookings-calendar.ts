@@ -27,8 +27,16 @@ export interface DayCell {
   density: Density;
 }
 
-// Active = not a "this isn't happening" terminal. Bucket excludes these.
+// Statuses that do NOT belong on the schedule calendar of committed events.
+// Two kinds: "this isn't happening" terminals (cancelled/denied/expired), and
+// pending_review — a soft/provisional request whose slot isn't locked yet
+// (the /request-estimate front door, plan §6/§10-D). A pending_review request
+// must not clutter the schedule; it appears once staff lock + confirm it
+// (status advances to awaiting_guest). /book bookings sit at pending_review
+// until the guest signs, so this also keeps unconfirmed /book holds off the
+// calendar — consistent with "calendar of confirmed events".
 const INACTIVE_STATUSES: ReadonlySet<AdminBookingStatus> = new Set([
+  "pending_review",
   "cancelled",
   "denied",
   "expired",
