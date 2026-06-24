@@ -176,9 +176,12 @@ export interface IntakeState {
   discountValue: number;
   discountType: "pct" | "amt";
   customLines: CustomLine[];
-  // Timing.
+  // Timing. `arrival` is the hour-of-day used by the heat/escalation
+  // advisories; `slotStart` ("HH:MM:SS") is the concrete slot picked in the
+  // shared calendar (when scheduling data is available for the club).
   arrival: string;
   date: string;
+  slotStart?: string;
 }
 
 export interface EstimateLine {

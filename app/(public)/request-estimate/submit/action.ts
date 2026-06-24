@@ -48,8 +48,15 @@ export interface SubmitEstimateInput {
   email: string;
   phone: string;
   preferredDate: string;
-  backupDate: string;
+  // Optional — retained for staff phone-intake context, but the public form
+  // no longer collects it now that the WHEN calendar shows live availability.
+  backupDate?: string;
+  // Hour-of-day for the heat/escalation advisories (e.g. "9").
   arrival: string;
+  // Concrete slot picked in the WHEN calendar ("HH:MM:SS"), when scheduling
+  // data was available for the club. Preferred over `arrival` for the
+  // provisional slot; falls back to the arrival hour when absent.
+  slotStart?: string;
   notes: string;
   indicativeTotal: string;
   // Staff phone-intake context (only honored when the caller is signed-in
@@ -107,8 +114,21 @@ export async function submitEstimateAction(
   // Honeypot — a hidden field real users never fill.
   honeypot?: string,
 ): Promise<SubmitEstimateResult> {
-  if (honeypot && honeypot.trim().length > 0) {
-    return { ok: false, message: "Something went wrong. Please try again." };
+  // Honeypot: a hidden field a real user never sees. A bot fills it with junk,
+  // so a value trips the bot check. BUT browser/password-manager autofill
+  // routinely mirrors the guest's OWN email/name into it — a false positive we
+  // kept hitting in testing. So only reject when the value is NOT just a copy of
+  // a field the guest legitimately filled; arbitrary spam still trips it, while
+  // autofill of the user's own details passes through (rate limiting remains the
+  // backstop against a bot that mirrors its own email).
+  const honeypotValue = honeypot?.trim() ?? "";
+  if (honeypotValue.length > 0) {
+    const legitValues = [input.email, input.name, input.phone]
+      .map((value) => (value ?? "").trim().toLowerCase())
+      .filter((value) => value.length > 0);
+    if (!legitValues.includes(honeypotValue.toLowerCase())) {
+      return { ok: false, message: "Something went wrong. Please try again." };
+    }
   }
 
   const requestHeaders = await headers();
@@ -212,14 +232,17 @@ export async function submitEstimateAction(
   const guestCount = Math.max(1, totalHeads);
   const juniorGuestCount = Math.min(intake.guestJuniors, guestCount);
 
-  // Provisional slot — preferred date + arrival hour. Not enforced while
-  // pending_review (plan §6); staff lock the real slot at confirm.
+  // Provisional slot — the concrete slot the guest picked in the WHEN calendar
+  // when available, else the arrival hour. Not enforced while pending_review
+  // (plan §6); staff lock the real slot at confirm.
   const date = /^\d{4}-\d{2}-\d{2}$/.test(input.preferredDate)
     ? input.preferredDate
     : provisionalDate();
+  const pickedSlot = (input.slotStart ?? "").trim();
   const arrivalHour = Number.parseInt(input.arrival ?? "", 10);
-  const slotStart =
-    Number.isInteger(arrivalHour) && arrivalHour >= 0 && arrivalHour <= 23
+  const slotStart = /^\d{2}:\d{2}(:\d{2})?$/.test(pickedSlot)
+    ? pickedSlot
+    : Number.isInteger(arrivalHour) && arrivalHour >= 0 && arrivalHour <= 23
       ? `${String(arrivalHour).padStart(2, "0")}:00`
       : "09:00";
 

@@ -12,7 +12,6 @@ import {
   applyBidPreview,
   isValidPreviewState,
 } from "@/src/services/bids/preview";
-import { BOOKING_TYPE_META } from "@/src/constants/public/booking-types";
 import {
   formatDateLongTz,
   formatMoney,
@@ -129,9 +128,8 @@ export default async function BidPage({
       {isActiveBid(detail.bid.status) && (
         <>
           <GuestSummary detail={detail} />
-          <DisciplineSection detail={detail} />
-          <GearList detail={detail} />
           <ScheduleSection detail={detail} />
+          <GearList detail={detail} />
           <FaqSection detail={detail} />
           <MapSlot detail={detail} />
           {/* Quote-only estimate bids require no waiver (plan §8a) — suppress
@@ -362,7 +360,9 @@ function GuestSummary({ detail }: { detail: BidDetail }) {
   return (
     <section className={s.section}>
       <div className={s.sectionHead}>
-        <p className={s.sectionEyebrow}>For</p>
+        <Heading level={2} size="h3" className={s.sectionTitle}>
+          For
+        </Heading>
       </div>
       <div className={s.guest}>
         <div>
@@ -382,71 +382,6 @@ function GuestSummary({ detail }: { detail: BidDetail }) {
           &ldquo;{booking.guestNotes}&rdquo;
         </p>
       )}
-    </section>
-  );
-}
-
-function DisciplineSection({ detail }: { detail: BidDetail }) {
-  const { disciplines, addOns, booking } = detail;
-  const typeMeta = BOOKING_TYPE_META[booking.bookingType];
-
-  if (disciplines.length === 0 && booking.bookingType === "host_an_occasion") {
-    return (
-      <section className={s.section}>
-        <div className={s.sectionHead}>
-          <Heading level={2} size="h3" className={s.sectionTitle}>
-            {typeMeta.title}
-          </Heading>
-        </div>
-        <p className={s.empty}>
-          Exclusive use of the property for your group — disciplines selected
-          on the day.
-        </p>
-      </section>
-    );
-  }
-
-  if (disciplines.length === 0) {
-    return null;
-  }
-
-  const addOnsByService = new Map<string, typeof addOns>();
-  for (const addOn of addOns) {
-    const bucket = addOnsByService.get(addOn.serviceId);
-    if (bucket) bucket.push(addOn);
-    else addOnsByService.set(addOn.serviceId, [addOn]);
-  }
-
-  return (
-    <section className={s.section}>
-      <div className={s.sectionHead}>
-        <Heading level={2} size="h3" className={s.sectionTitle}>
-          {typeMeta.title}
-        </Heading>
-      </div>
-      <ul className={s.disciplineList}>
-        {disciplines.map((discipline) => {
-          const ownAddOns = addOnsByService.get(discipline.id) ?? [];
-          return (
-            <li key={discipline.id} className={s.disciplineCard}>
-              <p className={s.disciplineName}>{discipline.name}</p>
-              {discipline.description && (
-                <p className={s.disciplineDesc}>{discipline.description}</p>
-              )}
-              {ownAddOns.length > 0 && (
-                <ul className={s.addOnList}>
-                  {ownAddOns.map((addOn) => (
-                    <li key={addOn.id} className={s.addOnRow}>
-                      <span>{addOn.name}</span>
-                      <span className={s.addOnQty}>× {addOn.quantity}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          );
-        })}
-      </ul>
     </section>
   );
 }

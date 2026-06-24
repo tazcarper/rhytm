@@ -1,0 +1,105 @@
+/* Shared date + time picker — the calendar + live-availability slot grid lifted
+   out of the /book booking-builder so the estimate form reuses the exact same
+   schedule view. Tokens come from globals.css. */
+
+.dateTimeLayout {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+@media (max-width: 720px) {
+  .dateTimeLayout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.slotColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.slotColumnLabel {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--tan-deep);
+  margin: 0;
+}
+
+.slotEmpty {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--gray);
+  margin: 0;
+  padding: 0.5rem 0;
+}
+
+.slotGrid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.65rem;
+}
+
+.slotBtn {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  color: var(--olive);
+  font-family: var(--serif);
+  font-size: 16px;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.slotBtn:hover {
+  border-color: rgba(184, 156, 115, 0.5);
+  background: var(--paper-warm);
+}
+
+.slotBtn:focus-visible {
+  outline: 2px solid var(--olive);
+  outline-offset: 2px;
+}
+
+.slotBtn[data-selected] {
+  background: var(--olive);
+  border-color: var(--olive);
+  color: var(--paper);
+}
+
+.slotBtn[data-selected]:hover {
+  background: var(--olive-deep);
+}
+
+/* Reserved / unavailable: greyed out and non-interactive. Overrides the
+   hover rule above so a disabled slot never lifts on pointer-over. */
+.slotBtn[data-unavailable],
+.slotBtn[data-unavailable]:hover {
+  background: var(--paper-warm);
+  border-color: var(--border);
+  color: var(--gray);
+  cursor: not-allowed;
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+/* Whole grid dims slightly while live availability is being fetched. */
+.slotGrid[aria-busy="true"] {
+  opacity: 0.6;
+  transition: opacity var(--transition-fast);
+}

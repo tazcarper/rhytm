@@ -19,6 +19,11 @@ import {
   type HostCode,
   type IntakeState,
 } from "./rules";
+import {
+  DateTimePicker,
+  type DateTimePickerValue,
+} from "@/src/components/public/scheduling/date-time-picker";
+import type { ClubScheduling } from "@/src/services/public/estimate-scheduling";
 import s from "./estimate-intake.module.css";
 
 interface EstimateIntakeProps {
@@ -30,6 +35,10 @@ interface EstimateIntakeProps {
   // club is fixed and the "which club?" picker is hidden — no wrong-club
   // mistakes. Undefined → the generic picker behaves exactly as before.
   lockedClub?: ClubCode;
+  // Per-club calendar data (slots + horizon) for the WHEN step's shared
+  // <DateTimePicker>. Bookable clubs only; absent for coming-soon clubs, in
+  // which case the WHEN step falls back to a plain date + arrival select.
+  clubScheduling: ClubScheduling;
 }
 
 const ARRIVAL_OPTIONS = [
@@ -65,7 +74,7 @@ const INITIAL: IntakeState = {
   date: "",
 };
 
-export function EstimateIntake({ canUseStaffMode, lockedClub }: EstimateIntakeProps) {
+export function EstimateIntake({ canUseStaffMode, lockedClub, clubScheduling }: EstimateIntakeProps) {
   const [st, setSt] = useState<IntakeState>(() =>
     lockedClub ? { ...INITIAL, club: lockedClub } : INITIAL,
   );
@@ -73,7 +82,6 @@ export function EstimateIntake({ canUseStaffMode, lockedClub }: EstimateIntakePr
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [staffRep, setStaffRep] = useState("");
-  const [backupDate, setBackupDate] = useState("");
   const [notes, setNotes] = useState("");
   const [internalNotes, setInternalNotes] = useState("");
   const [honeypot, setHoneypot] = useState("");
@@ -92,10 +100,33 @@ export function EstimateIntake({ canUseStaffMode, lockedClub }: EstimateIntakePr
   // --- gating ---
   function pickClub(club: ClubCode) {
     if (lockedClub) return; // club is fixed by the link
-    set({ club, exps: [], catering: null });
+    if (isComingSoon(club)) return; // coming soon — not selectable / submittable yet
+    // Slots differ per club, so clear any picked date/time when switching.
+    set({ club, exps: [], catering: null, date: "", slotStart: undefined });
+  }
+
+  // Calendar data for the selected club; absent (coming-soon / unconfigured)
+  // → the WHEN step falls back to a plain date + arrival select.
+  const schedule = clubScheduling[st.club];
+
+  function handleWhenChange(next: DateTimePickerValue) {
+    set({
+      date: next.dateISO ?? "",
+      slotStart: next.slotStart,
+      // Keep `arrival` (the advisory hour) in sync with the picked slot.
+      ...(next.slotStart
+        ? { arrival: String(Number.parseInt(next.slotStart, 10)) }
+        : {}),
+    });
   }
   function pickHost(host: HostCode) {
-    set({ host, exps: [], catering: null });
+    // Member-hosted defaults: one adult member, no guests yet. Non-member
+    // direct booking has no members and defaults to a single adult.
+    const party =
+      host === "member"
+        ? { members: 1, guestAdults: 0, guestJuniors: 0 }
+        : { members: 0, guestAdults: 1, guestJuniors: 0 };
+    set({ host, exps: [], catering: null, ...party });
   }
   function toggleExp(id: string) {
     set({
@@ -167,8 +198,8 @@ export function EstimateIntake({ canUseStaffMode, lockedClub }: EstimateIntakePr
           email,
           phone,
           preferredDate: st.date,
-          backupDate,
           arrival: st.arrival,
+          slotStart: st.slotStart,
           notes,
           indicativeTotal: estimate.grandLabel,
           staffMode: st.staffMode,
@@ -221,7 +252,7 @@ export function EstimateIntake({ canUseStaffMode, lockedClub }: EstimateIntakePr
             <h3 className={s.cardH}>1 · Who&apos;s booking</h3>
             <p className={s.sub}>
               A member host can bring non-member guests (guests pay guest fees). At HSB a member must host;
-              HH also allows non-member direct bookings.
+              HH also allows non-member direct bookings. We verify membership before comfirming events.
             </p>
             <div className={s.seg}>
               <button type="button" className={memberHost ? s.optOn : s.opt} onClick={() => pickHost("member")}>
@@ -268,7 +299,15 @@ export function EstimateIntake({ canUseStaffMode, lockedClub }: EstimateIntakePr
                 <p className={s.sub}>The club gates everything below.</p>
                 <div className={s.seg}>
                   {(Object.keys(CLUB_LABELS) as ClubCode[]).map((code) => (
-                    <button key={code} type="button" className={st.club === code ? s.optOn : s.opt} onClick={() => pickClub(code)}>
+                    <button
+                      key={code}
+                      type="button"
+                      disabled={isComingSoon(code)}
+                      aria-disabled={isComingSoon(code)}
+                      title={isComingSoon(code) ? "Coming soon — not open for booking yet" : undefined}
+                      className={st.club === code ? s.optOn : s.opt}
+                      onClick={() => pickClub(code)}
+                    >
                       {CLUB_LABELS[code]}
                       {isComingSoon(code) && <span className={s.soon}> SOON</span>}
                     </button>
@@ -349,7 +388,7 @@ export function EstimateIntake({ canUseStaffMode, lockedClub }: EstimateIntakePr
             {memberHost && (
               <div className={s.row}>
                 <div>
-                  <label className={s.fld}>Members in party</label>
+                  <label className={s.fld}>Adult Members</label>
                   <input
                     type="number"
                     min={0}
@@ -394,14 +433,24 @@ export function EstimateIntake({ canUseStaffMode, lockedClub }: EstimateIntakePr
                   <div className={s.addonMeta}>{a.meta}</div>
                 </div>
                 {a.shape === "bool" ? (
-                  <button
-                    type="button"
-                    className={st.addons.cart ? s.optOn : s.opt}
-                    style={{ minWidth: "64px", flex: "none" }}
-                    onClick={() => set({ addons: { ...st.addons, cart: !st.addons.cart } })}
-                  >
-                    {st.addons.cart ? "Yes" : "No"}
-                  </button>
+                  <div className={s.toggle} role="group" aria-label={a.nm}>
+                    <button
+                      type="button"
+                      className={st.addons.cart ? s.toggleOn : ""}
+                      aria-pressed={st.addons.cart}
+                      onClick={() => set({ addons: { ...st.addons, cart: true } })}
+                    >
+                      Yes
+                    </button>
+                    <button
+                      type="button"
+                      className={!st.addons.cart ? s.toggleOn : ""}
+                      aria-pressed={!st.addons.cart}
+                      onClick={() => set({ addons: { ...st.addons, cart: false } })}
+                    >
+                      No
+                    </button>
+                  </div>
                 ) : (
                   <div className={s.qty}>
                     <button type="button" onClick={() => bump(a.id as "ammo" | "gear", -1)}>−</button>
@@ -426,24 +475,35 @@ export function EstimateIntake({ canUseStaffMode, lockedClub }: EstimateIntakePr
                 ⚠ Placeholder vendors &amp; rates — <b>Salt Lick, County Line, and Contigo</b> selections and per-head
                 pricing need confirmation before final sign-off.
               </div>
-              {[{ tier: "None", name: "No catering", per: 0 }, ...(cateringSet ?? [])].map((o) => {
-                const sel = (st.catering?.tier ?? "None") === o.tier;
+              {(cateringSet ?? []).map((o) => {
+                const sel = st.catering?.tier === o.tier;
                 return (
                   <div key={o.tier} className={s.addon}>
                     <div>
                       <div className={s.addonNm}>
-                        {o.tier}
-                        {o.per ? " · " + o.name : ""}
+                        {o.tier} · {o.name}
                       </div>
-                      <div className={s.addonMeta}>{o.per ? `$${o.per} / head` : "skip catering"}</div>
+                      <div className={s.addonMeta}>${o.per} / head</div>
                     </div>
+                    {/* Single-select: picking one swaps the choice; clicking the
+                        selected option deselects it (back to no catering, the
+                        default). Hover on a selected option reveals "Remove". */}
                     <button
                       type="button"
-                      className={sel ? s.optOn : s.opt}
-                      style={{ minWidth: "56px", flex: "none" }}
-                      onClick={() => pickCatering(o.per ? o : null)}
+                      className={sel ? `${s.optOn} ${s.cateringSelected}` : s.opt}
+                      style={{ minWidth: "84px", flex: "none" }}
+                      aria-pressed={sel}
+                      title={sel ? "Click to remove catering" : undefined}
+                      onClick={() => pickCatering(sel ? null : o)}
                     >
-                      {sel ? "✓" : "Pick"}
+                      {sel ? (
+                        <>
+                          <span className={s.cateringSelLabel}>✓ Selected</span>
+                          <span className={s.cateringDeselLabel}>Remove</span>
+                        </>
+                      ) : (
+                        "Pick"
+                      )}
                     </button>
                   </div>
                 );
@@ -454,24 +514,59 @@ export function EstimateIntake({ canUseStaffMode, lockedClub }: EstimateIntakePr
           {/* 6 · WHEN */}
           <section className={s.card}>
             <h3 className={s.cardH}>6 · When</h3>
-            <div className={s.row}>
-              <div>
-                <label className={s.fld}>Preferred date</label>
-                <input type="date" value={st.date} onChange={(e) => set({ date: e.target.value })} />
-              </div>
-              <div>
-                <label className={s.fld}>Backup date</label>
-                <input type="date" value={backupDate} onChange={(e) => setBackupDate(e.target.value)} />
-              </div>
-            </div>
-            <label className={s.fld}>Arrival window</label>
-            <select value={st.arrival} onChange={(e) => set({ arrival: e.target.value })}>
-              {ARRIVAL_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+            {schedule ? (
+              <>
+                <p className={s.sub}>
+                  Pick the date and time you&apos;d like. We&apos;ll hold it as
+                  your requested slot and the team confirms availability on your
+                  bid. All times Central.
+                </p>
+                {estimate.isEvent && (
+                  <div className={s.heat}>
+                    ▲ Private events (9+ total) need 72 hours&apos; notice — the
+                    earliest dates are unavailable to select.
+                  </div>
+                )}
+                <DateTimePicker
+                  propertyId={schedule.propertyId}
+                  slotsByDayOfWeek={schedule.slotsByDayOfWeek}
+                  bookingHorizonDays={schedule.bookingHorizonDays}
+                  bookingType="plan_a_visit"
+                  durationHours={2}
+                  // TEMPORARY: capacity rules (max groups per slot) aren't
+                  // defined yet, so any time is selectable and staff confirm
+                  // availability from the admin schedule. Flip to true (default)
+                  // once those rules exist.
+                  enforceAvailability={false}
+                  // Private events (party of 9+) require 72 hours' advance
+                  // reservation → earliest selectable date is 3 days out.
+                  minLeadDays={estimate.isEvent ? 3 : 0}
+                  value={{
+                    dateISO: st.date || undefined,
+                    slotStart: st.slotStart,
+                  }}
+                  onChange={handleWhenChange}
+                />
+              </>
+            ) : (
+              <>
+                <div className={s.row}>
+                  <div>
+                    <label className={s.fld}>Preferred date</label>
+                    <input type="date" value={st.date} onChange={(e) => set({ date: e.target.value })} />
+                  </div>
+                  <div />
+                </div>
+                <label className={s.fld}>Arrival window</label>
+                <select value={st.arrival} onChange={(e) => set({ arrival: e.target.value })}>
+                  {ARRIVAL_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
             {estimate.heat && (
               <div className={s.heat}>
                 ☀ Summer heat advisory: midday arrival runs under full Hill Country sun. Morning (9–10 AM)
@@ -575,12 +670,19 @@ export function EstimateIntake({ canUseStaffMode, lockedClub }: EstimateIntakePr
             </section>
           )}
 
-          {/* Honeypot */}
+          {/* Honeypot — a bot fills it; a human never sees it. Named "url" (not
+              an email/name field) and flagged with the password-manager ignore
+              hints so browser/PM autofill can't drop the guest's own email in
+              here and trip the bot check (a real false-positive we hit). */}
           <input
             type="text"
+            name="url"
             tabIndex={-1}
             autoComplete="off"
             aria-hidden="true"
+            data-1p-ignore
+            data-lpignore="true"
+            data-form-type="other"
             value={honeypot}
             onChange={(e) => setHoneypot(e.target.value)}
             className={s.honeypot}

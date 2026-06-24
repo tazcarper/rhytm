@@ -529,6 +529,21 @@ pending a running dev server (per CLAUDE.local.md, the user runs the app).*
 **Phase F — Verify end-to-end** (hand off to user to run the app per CLAUDE.local.md)
 - Submit → bid URL shows "being prepared" with the picked time tagged "pending" → appears in
   `/admin/bids` → staff lock slot + confirm → URL shows confirmed event details, no waiver/deposit.
+- **Static + build verification — DONE (code side clean):** full static trace of all five steps
+  found 0 defects; `npm run typecheck` and `npm run build` both clean. Verified specifically:
+  (a) submit → `pending_review` booking + quote-only bid (`requires_waiver=false`, `deposit_amount`
+  NULL → `requiresDeposit=false`); (b) bid page `pending_review` → "pending" time tag + "being
+  prepared" banner, no embeds; (c) admin list (no filter) returns all statuses newest-first so the
+  request surfaces (also the `needs_review` group); (d) `needsSlotLock = !requiresWaiver &&
+  bookingStatus==='pending_review'` → "Lock slot & confirm", prefilled tz-correctly; lock RPC sets
+  real slot, trigger `00` recomputes `end_time`, status→`awaiting_guest` re-arms capacity+slot
+  triggers, then `confirmBid` → confirmed; (e) confirmed page suppresses signature + deposit slots,
+  shows "all set". **Operational caveat for the live pass:** the locked time must exist in
+  `time_slots` for that property/weekday or `validate_booking_start_time` rejects it (mapped to a
+  friendly "invalid slot") — seed/choose a listed slot (§11 catalog-seeding risk).
+- **Runtime click-through — PENDING USER** (chose manual test; CLAUDE.local.md bars Claude from
+  starting the dev server). Checklist delivered; sign off here once the live submit→lock→confirm
+  pass is green.
 
 ---
 

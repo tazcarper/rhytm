@@ -169,6 +169,58 @@
   font-weight: 700;
 }
 
+/* Coming-soon club option: visible (with SOON badge) but not selectable. */
+.opt:disabled,
+.optOn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Compact Yes/No toggle for boolean add-ons (e.g. the extra drink cart),
+   replacing the single label-flipping button so both states are visible. */
+.toggle {
+  display: inline-flex;
+  flex: none;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.toggle button {
+  border: 0;
+  border-left: 1.5px solid var(--border);
+  background: #fff;
+  color: var(--olive-darker);
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: 0.12s;
+}
+.toggle button:first-child {
+  border-left: 0;
+}
+.toggleOn {
+  background: var(--paper-warm);
+  color: var(--tan-deep);
+}
+
+/* Catering single-select: a selected option turns red on hover and swaps its
+   "✓ Selected" label for "Remove" to signal that clicking again deselects. */
+.cateringDeselLabel {
+  display: none;
+}
+.cateringSelected:hover {
+  border-color: var(--accent-error);
+  color: var(--accent-error);
+}
+.cateringSelected:hover .cateringSelLabel {
+  display: none;
+}
+.cateringSelected:hover .cateringDeselLabel {
+  display: inline;
+}
+
 .exp {
   display: flex;
   align-items: center;
