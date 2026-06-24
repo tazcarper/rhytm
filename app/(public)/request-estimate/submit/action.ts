@@ -224,7 +224,9 @@ export async function submitEstimateAction(
       : "09:00";
 
   // guest_notes is GUEST-VISIBLE on the bid page, so ONLY the guest's own note
-  // goes here. Everything staff-facing goes to staff_notes / schedule_notes.
+  // goes here. Everything staff-facing goes to bids.staff_notes (staff-only).
+  // NB: bids.schedule_notes is ALSO guest-visible, so staff scheduling context
+  // (backup date, provisional reminder) folds into staff_notes too, not there.
   const guestNotes = (input.notes ?? "").trim();
 
   // Non-pricing advisories — same module the form shows, so staff see exactly
@@ -236,14 +238,16 @@ export async function submitEstimateAction(
     date: input.preferredDate ?? "",
   });
 
-  // staff_notes: host intent + verify-membership, the advisory flags, and staff
-  // phone-intake context. schedule_notes: scheduling context the slot-lock
-  // action needs. Both are staff-only (never in the guest's bid view).
+  // staff_notes — one staff-only block: host intent + verify-membership, the
+  // advisory flags, scheduling context the slot-lock action needs (provisional
+  // slot + backup date), and staff phone-intake context.
   const staffNoteLines: string[] = [
     input.host === "member"
       ? "Host: member-hosted — VERIFY MEMBERSHIP before confirming"
       : "Host: non-member (direct)",
+    `Provisional slot — NOT locked. Guest picked ${slotStart} CT on ${date}; lock the real slot at confirm.`,
   ];
+  if (input.backupDate) staffNoteLines.push(`Backup date: ${input.backupDate}`);
   if (advisories.escalationParts.length) {
     staffNoteLines.push(`Advisories: ${advisories.escalationParts.join(" · ")}`);
   }
@@ -257,12 +261,6 @@ export async function submitEstimateAction(
     staffNoteLines.push(`Internal: ${input.internalNotes.trim()}`);
   }
   const staffNotes = staffNoteLines.join("\n");
-
-  const scheduleNoteLines: string[] = [
-    `Provisional slot from intake — NOT locked. Guest picked ${slotStart} CT on ${date}; lock the real slot at confirm.`,
-  ];
-  if (input.backupDate) scheduleNoteLines.push(`Backup date: ${input.backupDate}`);
-  const scheduleNotes = scheduleNoteLines.join("\n");
 
   // Resolve experiences / add-ons to real catalog UUIDs for structure
   // (booking_disciplines / booking_add_ons). Lossy + FK-safe by construction:
@@ -305,7 +303,9 @@ export async function submitEstimateAction(
     memberUserId: null,
     createdByAdminId: staffIntake ? user!.id : null,
     staffNotes,
-    scheduleNotes,
+    // Quote-only this phase: no waiver. Suppresses the bid page signature slot
+    // and lets a confirmed bid read as fully set (plan §8a/decision 8).
+    requiresWaiver: false,
     lineItems: carriedLines,
   });
 

@@ -42,6 +42,22 @@
   letter-spacing: 0.01em;
 }
 
+/* Provisional-slot tag shown while the bid is pending_review (plan §8a). */
+.heroPending {
+  display: inline-block;
+  margin-left: var(--space-2);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--tan);
+  color: var(--olive-deep);
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  vertical-align: middle;
+}
+
 .heroStatus {
   display: inline-flex;
   align-items: center;

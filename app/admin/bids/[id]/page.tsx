@@ -57,6 +57,28 @@ function formatTimestamp(iso: string | null, timezone: string): string {
   )} CT`;
 }
 
+// Property-local YYYY-MM-DD + HH:MM (24h) for prefilling the slot-lock form
+// from a booking's provisional start_time.
+function localDateTimeParts(
+  iso: string,
+  timezone: string,
+): { date: string; time: string } {
+  const when = new Date(iso);
+  const date = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(when);
+  const time = new Intl.DateTimeFormat("en-GB", {
+    timeZone: timezone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(when);
+  return { date, time };
+}
+
 function siteOriginFromHeaders(h: Headers): string {
   const fromEnv = process.env.NEXT_PUBLIC_SITE_URL;
   if (fromEnv) return fromEnv.replace(/\/$/, "");
@@ -402,7 +424,16 @@ export default async function AdminBidDetail({
                 gearList={bid.gearList}
                 faq={bid.faq}
               />
-              <BidActions bidId={bid.id} status={bid.status} />
+              <BidActions
+                bidId={bid.id}
+                status={bid.status}
+                bookingId={booking.id}
+                bookingStatus={booking.status}
+                requiresWaiver={bid.requiresWaiver}
+                durationHours={booking.durationHours}
+                provisionalDate={localDateTimeParts(booking.startTime, tz).date}
+                provisionalSlot={localDateTimeParts(booking.startTime, tz).time}
+              />
               {bid.status === "paid" &&
                 bid.refundPaymentIntentId === null &&
                 booking.amountPaid > 0 && (

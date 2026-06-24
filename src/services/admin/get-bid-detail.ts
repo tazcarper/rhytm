@@ -3,6 +3,7 @@ import type {
   AdminBidStatus,
   AdminBookingType,
 } from "./bids";
+import type { AdminBookingStatus } from "./bookings";
 import { getStaffIdentity, type StaffIdentity } from "./staff-identity";
 import {
   getBidLineItems,
@@ -52,6 +53,9 @@ export interface AdminBidDetail {
     id: string;
     slug: string;
     status: AdminBidStatus;
+    // Quote-only estimate bids set this false (plan §8a). Drives the admin
+    // confirm flow (lock-slot-then-confirm) and the bid page's waiver suppression.
+    requiresWaiver: boolean;
     scheduleNotes: string | null;
     gearList: AdminBidGearItem[];
     faq: AdminBidFaqItem[];
@@ -75,6 +79,9 @@ export interface AdminBidDetail {
   booking: {
     id: string;
     bookingType: AdminBookingType;
+    // Booking status — distinct from bid status. pending_review here means the
+    // slot is still provisional (estimate path) and must be locked before confirm.
+    status: AdminBookingStatus;
     startTime: string;
     endTime: string;
     durationHours: number;
@@ -168,6 +175,7 @@ type AdminBidJoinedRow = {
   booking_id: string;
   slug: string;
   status: AdminBidStatus;
+  requires_waiver: boolean;
   schedule_notes: string | null;
   gear_list: unknown;
   faq: unknown;
@@ -189,6 +197,7 @@ type AdminBidJoinedRow = {
   bookings: {
     id: string;
     booking_type: AdminBookingType;
+    status: AdminBookingStatus;
     start_time: string;
     end_time: string;
     duration_hours: number;
@@ -238,7 +247,7 @@ export async function getAdminBidDetail(
     .from("bids")
     .select(
       `
-      id, booking_id, slug, status,
+      id, booking_id, slug, status, requires_waiver,
       schedule_notes, gear_list, faq,
       quote_note, staff_notes, denial_reason, refund_amount, refund_payment_intent_id,
       expires_at, signed_at, paid_at, cancelled_at,
@@ -246,7 +255,7 @@ export async function getAdminBidDetail(
       created_at, updated_at,
       waiver_documents ( pdf_sha256, signed_name ),
       bookings (
-        id, booking_type, start_time, end_time, duration_hours,
+        id, booking_type, status, start_time, end_time, duration_hours,
         guest_name, guest_email, guest_phone, guest_count, guest_notes,
         audience_type, capacity_reserved, created_by_admin_id,
         estimated_price, confirmed_price, deposit_amount, amount_paid, deposit_payment_intent_id,
@@ -326,6 +335,7 @@ export async function getAdminBidDetail(
       id: data.id,
       slug: data.slug,
       status: data.status,
+      requiresWaiver: data.requires_waiver,
       scheduleNotes: data.schedule_notes,
       gearList: parseGearList(data.gear_list),
       faq: parseFaq(data.faq),
@@ -345,6 +355,7 @@ export async function getAdminBidDetail(
     booking: {
       id: booking.id,
       bookingType: booking.booking_type,
+      status: booking.status,
       startTime: booking.start_time,
       endTime: booking.end_time,
       durationHours: booking.duration_hours,

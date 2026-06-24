@@ -32,7 +32,8 @@ export function AdminNav({ email, role, pendingBidCount }: AdminNavProps) {
       href: "/admin/bids",
       badgeCount: pendingBidCount > 0 ? pendingBidCount : undefined,
     },
-    { label: "Estimates", href: "/admin/estimates" },
+    // Estimates queue retired — /request-estimate now creates bids directly
+    // (plan §3.6/§6). The page/table remain for now; just unlink from the nav.
     { label: "Bookings", href: "/admin/bookings" },
   ];
 

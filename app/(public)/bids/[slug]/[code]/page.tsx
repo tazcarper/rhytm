@@ -98,7 +98,10 @@ export default async function BidPage({
   const alreadySigned =
     detail.bid.signedAt !== null || detail.bid.status === "signed";
   const waiverTemplate =
-    provider === "native" && isActiveBid(detail.bid.status) && !alreadySigned
+    provider === "native" &&
+    detail.bid.requiresWaiver &&
+    isActiveBid(detail.bid.status) &&
+    !alreadySigned
       ? await getActiveWaiverTemplate(
           createServiceRoleClient(),
           detail.property.id,
@@ -130,14 +133,18 @@ export default async function BidPage({
           <ScheduleSection detail={detail} />
           <FaqSection detail={detail} />
           <MapSlot detail={detail} />
-          <SignatureSlot
-            status={detail.bid.status}
-            detail={detail}
-            accessCode={parsed.code}
-            requiresDeposit={detail.booking.requiresDeposit}
-            provider={provider}
-            template={waiverTemplate}
-          />
+          {/* Quote-only estimate bids require no waiver (plan §8a) — suppress
+              the signature slot entirely rather than showing "sign to finalize". */}
+          {detail.bid.requiresWaiver && (
+            <SignatureSlot
+              status={detail.bid.status}
+              detail={detail}
+              accessCode={parsed.code}
+              requiresDeposit={detail.booking.requiresDeposit}
+              provider={provider}
+              template={waiverTemplate}
+            />
+          )}
           {detail.booking.requiresDeposit && (
             <DepositSlot
               status={detail.bid.status}
@@ -222,6 +229,11 @@ function BidHero({ detail }: { detail: BidDetail }) {
       </Heading>
       <p className={s.heroWhen}>
         {dateLong} · {start} – {end} CT
+        {/* While pending_review the slot is provisional (plan §8a) — tag it so
+            the guest knows the time they picked isn't locked yet. */}
+        {bid.status === "pending_review" && (
+          <span className={s.heroPending}>pending</span>
+        )}
       </p>
       <div className={s.heroStatus}>
         <Badge variant={badge.variant}>{badge.label}</Badge>
@@ -290,10 +302,18 @@ function StatusBanner({
   // signals; what "finalized" means depends on whether a deposit is owed:
   //   deposit required → signed AND paid
   //   no deposit       → signed alone (the bid never reaches 'paid')
+  const requiresWaiver = detail.bid.requiresWaiver;
   const requiresDeposit = detail.booking.requiresDeposit;
   const signed = detail.bid.signedAt !== null || status === "signed";
   const paid = status === "paid";
-  const finalized = requiresDeposit ? signed && paid : signed;
+  // No waiver (quote-only estimate bid): reaching the active path (confirmed)
+  // IS fully set — nothing left to sign or pay (plan §8a). Otherwise the prior
+  // rule: deposit → signed && paid; else signed alone.
+  const finalized = !requiresWaiver
+    ? true
+    : requiresDeposit
+      ? signed && paid
+      : signed;
   const dateLong = formatDateLongTz(
     detail.booking.startTime,
     detail.property.timezone,
@@ -310,9 +330,11 @@ function StatusBanner({
           title={`You're all set${greetingName} — we can't wait to see you.`}
         >
         {`${
-  requiresDeposit
-    ? "Deposit’s in, waiver’s signed"
-    : "Waiver’s signed"
+  !requiresWaiver
+    ? "Your visit is confirmed"
+    : requiresDeposit
+      ? "Deposit’s in, waiver’s signed"
+      : "Waiver’s signed"
 }, ${dateLong.toString()} is locked in. Nothing left to do but show up. Save this page — everything you need is right here. See you at ${detail.property.name}!`}
         </Alert>
       </div>

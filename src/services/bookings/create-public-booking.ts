@@ -64,14 +64,17 @@ export const PublicBookingInputSchema = z.object({
   // RPC insert (create_public_booking predates this column). Null for
   // self-service public/member bookings.
   createdByAdminId: z.uuid().nullable().default(null),
-  // Staff-only notes stamped onto the booking after the RPC insert (the RPC
-  // signature is fixed — plan §6). staff_notes carries host intent + advisory
-  // flags + phone-intake context; schedule_notes carries the backup date +
-  // provisional-slot reminder for the slot-lock action. Both are STAFF-ONLY
-  // (never selected by the public get-bid projection). Default null →
-  // unchanged for the /book caller.
+  // Staff-only notes stamped onto the BID after the RPC insert (the RPC
+  // signature is fixed — plan §6). Written to bids.staff_notes, which the admin
+  // bid detail surfaces and the public get-bid projection never maps — so it's
+  // staff-only. (NB: bids.schedule_notes IS guest-visible, so all staff context
+  // goes here, not there.) Omitted → unchanged for the /book caller.
   staffNotes: z.string().max(4000).optional(),
-  scheduleNotes: z.string().max(2000).optional(),
+  // The quote-only /request-estimate path passes false → bids.requires_waiver
+  // = false, which suppresses the bid page's signature slot and lets a confirmed
+  // no-waiver bid read as fully set (plan §8a). Omitted (the /book path) leaves
+  // the column DB default (true) — i.e. only an explicit false is stamped.
+  requiresWaiver: z.boolean().optional(),
   // Caller-supplied bid line snapshot. When present (the /request-estimate
   // front door, which prices itself via computeEstimate()), these lines are
   // inserted onto bid_line_items VERBATIM and the DB-pricing-model
@@ -180,23 +183,38 @@ export async function createPublicBooking(
     };
   }
 
-  // Stamp staff-only fields the create_public_booking RPC doesn't take —
-  // attribution + staff/schedule notes — in one update. Same service-role
-  // client; the booking + bid already committed, so a failure here only loses
-  // these annotations (logged, not fatal).
-  const stamp: Record<string, string> = {};
-  if (parsed.data.createdByAdminId) stamp.created_by_admin_id = parsed.data.createdByAdminId;
-  if (parsed.data.staffNotes) stamp.staff_notes = parsed.data.staffNotes;
-  if (parsed.data.scheduleNotes) stamp.schedule_notes = parsed.data.scheduleNotes;
-  if (Object.keys(stamp).length > 0) {
+  // Stamp fields the create_public_booking RPC doesn't take. Booking-level
+  // attribution (created_by_admin_id) goes on bookings; bid-level staff context
+  // (staff_notes) + the waiver flag go on bids. Same service-role client; the
+  // booking + bid already committed, so a failure here only loses the
+  // annotation (logged, not fatal).
+  if (parsed.data.createdByAdminId) {
     const { error: stampError } = await supabase
       .from("bookings")
-      .update(stamp)
+      .update({ created_by_admin_id: parsed.data.createdByAdminId })
       .eq("id", row.booking_id);
     if (stampError) {
       console.error(
-        "[bookings/create-public-booking] staff-field stamp failed",
+        "[bookings/create-public-booking] created_by_admin_id stamp failed",
         { bookingId: row.booking_id, stampError },
+      );
+    }
+  }
+
+  const bidStamp: Record<string, string | boolean> = {};
+  if (parsed.data.staffNotes) bidStamp.staff_notes = parsed.data.staffNotes;
+  // Only write the flag when explicitly suppressing the waiver — undefined (the
+  // /book path) leaves the column DB default (true) untouched.
+  if (parsed.data.requiresWaiver === false) bidStamp.requires_waiver = false;
+  if (Object.keys(bidStamp).length > 0) {
+    const { error: bidStampError } = await supabase
+      .from("bids")
+      .update(bidStamp)
+      .eq("id", row.bid_id);
+    if (bidStampError) {
+      console.error(
+        "[bookings/create-public-booking] bid staff-field stamp failed",
+        { bidId: row.bid_id, bidStampError },
       );
     }
   }

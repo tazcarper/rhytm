@@ -93,6 +93,9 @@ export interface BidDetail {
     id: string;
     slug: string;
     status: BidStatus;
+    // False for quote-only estimate bids — the page suppresses the signature
+    // slot and treats a confirmed no-waiver bid as fully set (plan §8a).
+    requiresWaiver: boolean;
     scheduleNotes: string | null;
     gearList: BidGearItem[];
     faq: BidFaqItem[];
@@ -165,6 +168,7 @@ type RpcBidRow = {
   booking_id: string;
   slug: string;
   status: BidStatus;
+  requires_waiver: boolean;
   schedule_notes: string | null;
   gear_list: unknown;
   faq: unknown;
@@ -305,6 +309,7 @@ export async function getBidDetail(
       id: bidRow.id,
       slug: bidRow.slug,
       status: bidRow.status,
+      requiresWaiver: bidRow.requires_waiver,
       scheduleNotes: bidRow.schedule_notes,
       gearList: parseGearList(bidRow.gear_list),
       faq: parseFaq(bidRow.faq),
