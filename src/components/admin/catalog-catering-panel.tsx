@@ -90,15 +90,22 @@ export function CatalogCateringPanel({
   return (
     <Card padding="loose" elevation="soft" className={s.panel}>
       <div className={s.panelHead}>
-        <div>
-          <h2 className={s.panelTitle}>Catering (F&amp;B)</h2>
-          <p className={s.panelSubtitle}>
-            Per-head vendor options shown on the estimate. Priced × total
-            headcount.
+        <div className={s.panelHeadText}>
+          <div className={s.panelTitleRow}>
+            <h2 className={s.panelTitle}>Catering (F&amp;B)</h2>
+            {sorted.length > 0 && (
+              <span className={s.panelCount}>
+                {sorted.length} {sorted.length === 1 ? "option" : "options"}
+              </span>
+            )}
+          </div>
+          <p className={s.panelDesc}>
+            Per-head food &amp; beverage vendor packages shown on the estimate.
+            Each is priced per guest and multiplied by the total headcount.
           </p>
         </div>
         {!showAdd && (
-          <Button variant="secondary" size="sm" onClick={() => setShowAdd(true)}>
+          <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>
             + Add option
           </Button>
         )}

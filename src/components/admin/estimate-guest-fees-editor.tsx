@@ -81,14 +81,21 @@ export function EstimateGuestFeesEditor({
   return (
     <Card padding="loose" elevation="soft" className={s.panel}>
       <div className={s.panelHead}>
-        <div>
-          <h2 className={s.panelTitle}>Guest-fee schedule</h2>
-          <p className={s.panelSubtitle}>
-            Tiered per-guest fee for guest-fee experiences on the estimate.
-            Bands by guest count (members excluded).
+        <div className={s.panelHeadText}>
+          <div className={s.panelTitleRow}>
+            <h2 className={s.panelTitle}>Guest-fee schedule</h2>
+            {drafts.length > 0 && (
+              <span className={s.panelCount}>
+                {drafts.length} {drafts.length === 1 ? "band" : "bands"}
+              </span>
+            )}
+          </div>
+          <p className={s.panelDesc}>
+            The tiered per-guest fee applied to guest-fee experiences on the
+            estimate. Set price bands by guest count — members are excluded.
           </p>
         </div>
-        <Button variant="secondary" size="sm" onClick={addBand} type="button">
+        <Button variant="primary" size="sm" onClick={addBand} type="button">
           + Add band
         </Button>
       </div>

@@ -143,16 +143,24 @@ export function CatalogServicesPanel({
     <>
       <Card padding="loose" elevation="soft" className={s.panel}>
         <div className={s.panelHead}>
-          <div>
-            <h2 className={s.panelTitle}>Experiences</h2>
-            <p className={s.panelSubtitle}>
-              {sortedActive.length} active
-              {sortedInactive.length > 0 && ` · ${sortedInactive.length} inactive`}
+          <div className={s.panelHeadText}>
+            <div className={s.panelTitleRow}>
+              <h2 className={s.panelTitle}>Experiences</h2>
+              <span className={s.panelCount}>
+                {sortedActive.length} active
+                {sortedInactive.length > 0 &&
+                  ` · ${sortedInactive.length} inactive`}
+              </span>
+            </div>
+            <p className={s.panelDesc}>
+              The bookable experiences guests choose from on this property —
+              clays, lessons, hunts, and events. Edit one to set its estimate
+              pricing and which add-ons attach to it.
             </p>
           </div>
           {!showAdd && (
             <Button
-              variant="secondary"
+              variant="primary"
               size="sm"
               onClick={() => setShowAdd(true)}
             >

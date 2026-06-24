@@ -183,16 +183,24 @@ export function CatalogAddOnsPanel({
     <>
       <Card padding="loose" elevation="soft" className={s.panel}>
         <div className={s.panelHead}>
-          <div>
-            <h2 className={s.panelTitle}>Add-ons</h2>
-            <p className={s.panelSubtitle}>
-              {sortedActive.length} active
-              {sortedInactive.length > 0 && ` · ${sortedInactive.length} inactive`}
+          <div className={s.panelHeadText}>
+            <div className={s.panelTitleRow}>
+              <h2 className={s.panelTitle}>Add-ons</h2>
+              <span className={s.panelCount}>
+                {sortedActive.length} active
+                {sortedInactive.length > 0 &&
+                  ` · ${sortedInactive.length} inactive`}
+              </span>
+            </div>
+            <p className={s.panelDesc}>
+              Optional extras layered onto an experience — ammunition, gear,
+              food &amp; drink. Build the property&rsquo;s library here, then
+              attach each one to the experiences it applies to.
             </p>
           </div>
           {!showAdd && (
             <Button
-              variant="secondary"
+              variant="primary"
               size="sm"
               onClick={() => setShowAdd(true)}
             >
