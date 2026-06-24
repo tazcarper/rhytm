@@ -200,7 +200,7 @@
 .toggle button:first-child {
   border-left: 0;
 }
-.toggleOn {
+.toggle button.toggleOn {
   background: var(--olive);
   color: var(--paper);
 }
