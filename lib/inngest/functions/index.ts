@@ -10,6 +10,8 @@ import { sendUnsignedBidDigest } from "./send-unsigned-bid-digest";
 import { releaseStaleAdventureHolds } from "./release-stale-adventure-holds";
 import { sendAdventureRequestNotification } from "./send-adventure-request-notification";
 import { notifyAdventureWaitlist } from "./notify-adventure-waitlist";
+import { sendEstimateLeadStaffNotification } from "./send-estimate-lead-staff-notification";
+import { sendEstimateRequestConfirmation } from "./send-estimate-request-confirmation";
 
 // Barrel of every Inngest function registered with the `serve` handler
 // in `app/api/inngest/route.ts`. Adding a new function:
@@ -33,4 +35,6 @@ export const inngestFunctions = [
   releaseStaleAdventureHolds,
   sendAdventureRequestNotification,
   notifyAdventureWaitlist,
+  sendEstimateLeadStaffNotification,
+  sendEstimateRequestConfirmation,
 ];

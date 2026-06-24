@@ -1,5 +1,8 @@
+import { after } from "next/server";
 import { z } from "zod";
 import { createServiceRoleClient } from "@/lib/supabase/service";
+import { inngest } from "@/lib/inngest/client";
+import { estimateRequestCreated } from "@/lib/inngest/events";
 
 // Lead capture for the estimate-driven flow. Calls the
 // `create_estimate_request` Postgres function (SECURITY DEFINER) to insert
@@ -139,5 +142,34 @@ export async function createEstimateRequest(
     };
   }
 
+  // Fire the lead-created event post-response so the two notification emails
+  // (club manager + customer confirmation) never block or fail the submit.
+  // The row is already committed (the RPC autocommits), so subscribers can
+  // read it. Best-effort: a send failure here must not surface as an error on
+  // the submit path. The producer-side `id` lets Inngest dedupe retries.
+  after(() => fireEstimateCreatedBestEffort(id));
+
   return { ok: true, estimateRequestId: id };
+}
+
+// Best-effort `estimate/request-created` Inngest send. Runs from `after()`
+// so it cannot delay or fail the submit response. Inngest retries transient
+// HTTP failures internally; a hard failure here only loses the notification
+// emails for this lead (the lead itself is safely captured and visible in
+// /admin/estimates).
+async function fireEstimateCreatedBestEffort(
+  estimateRequestId: string,
+): Promise<void> {
+  try {
+    await inngest.send({
+      id: `estimate-${estimateRequestId}-created`,
+      name: estimateRequestCreated.name,
+      data: { estimateRequestId },
+    });
+  } catch (err) {
+    console.error(
+      "[estimates/create-estimate-request] inngest estimate/request-created send failed",
+      { estimateRequestId, err },
+    );
+  }
 }
