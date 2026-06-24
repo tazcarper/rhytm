@@ -485,7 +485,11 @@ This is presentation-only and can ship independently of the backend/pricing work
 - **Still open for Phase D:** surface `staff_notes`/`schedule_notes` in the admin bid detail so staff
   actually read the advisories/host-intent (this phase only persists them).
 
-**Phase C2 — Sticky right column** (see §9) — form UX polish; independent of the backend work.
+**Phase C2 — Sticky right column** (see §9) — ✅ DONE. *Pure CSS. The pre-existing
+`position: sticky` was on the inner `.estimate` card (zero travel — its wrapper shrink-wraps it);
+moved it onto the grid item (`.rail`), which travels within the tall grid. Added a viewport
+max-height/overflow guard and disabled sticky in the stacked mobile layout. Visual confirmation
+pending a running dev server (per CLAUDE.local.md, the user runs the app).*
 
 **Phase D — Admin lock action + bid-page edits + consolidation**
 - **Build the slot-lock/reschedule action** (§7): set `start_time`/`duration_hours`, advance
