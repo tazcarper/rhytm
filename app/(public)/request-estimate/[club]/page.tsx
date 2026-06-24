@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { hasAdminAccess } from "@/lib/auth/portal";
 import { getEstimateClubScheduling } from "@/src/services/public/estimate-scheduling";
+import { getEstimateCatalogByClub } from "@/src/services/public/estimate-catalog";
 import { EstimateIntake } from "@/src/components/public/estimate-intake/estimate-intake";
 import { CLUB_TO_SLUG, type ClubCode } from "@/src/components/public/estimate-intake/rules";
 
@@ -38,13 +39,17 @@ export default async function RequestEstimateClubPage({
   const role = user?.app_metadata?.role as string | undefined;
   const canUseStaffMode = hasAdminAccess(role);
 
-  const clubScheduling = await getEstimateClubScheduling(supabase);
+  const [clubScheduling, catalogByClub] = await Promise.all([
+    getEstimateClubScheduling(supabase),
+    getEstimateCatalogByClub(supabase),
+  ]);
 
   return (
     <EstimateIntake
       canUseStaffMode={canUseStaffMode}
       lockedClub={code}
       clubScheduling={clubScheduling}
+      catalogByClub={catalogByClub}
     />
   );
 }

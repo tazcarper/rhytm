@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { hasAdminAccess } from "@/lib/auth/portal";
 import { getEstimateClubScheduling } from "@/src/services/public/estimate-scheduling";
+import { getEstimateCatalogByClub } from "@/src/services/public/estimate-catalog";
 import { EstimateIntake } from "@/src/components/public/estimate-intake/estimate-intake";
 
 // Public "Request an Estimate" front door — the missing front half of the
@@ -19,12 +20,16 @@ export default async function RequestEstimatePage() {
   const role = user?.app_metadata?.role as string | undefined;
   const canUseStaffMode = hasAdminAccess(role);
 
-  const clubScheduling = await getEstimateClubScheduling(supabase);
+  const [clubScheduling, catalogByClub] = await Promise.all([
+    getEstimateClubScheduling(supabase),
+    getEstimateCatalogByClub(supabase),
+  ]);
 
   return (
     <EstimateIntake
       canUseStaffMode={canUseStaffMode}
       clubScheduling={clubScheduling}
+      catalogByClub={catalogByClub}
     />
   );
 }

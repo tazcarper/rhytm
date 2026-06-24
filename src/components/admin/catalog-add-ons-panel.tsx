@@ -165,6 +165,20 @@ export function CatalogAddOnsPanel({
     return result;
   };
 
+  const handleReactivate = async (addOn: AdminCatalogAddOn) => {
+    const result = await updateAddOnAction(ctx, {
+      addOnId: addOn.id,
+      name: addOn.name,
+      description: addOn.description,
+      price: addOn.price,
+      isActive: true,
+      imageUrl: addOn.imageUrl,
+      includedDetail: addOn.includedDetail,
+      maxQuantity: addOn.maxQuantity,
+    });
+    if (result.ok) startTransition(() => router.refresh());
+  };
+
   return (
     <>
       <Card padding="loose" elevation="soft" className={s.panel}>
@@ -225,6 +239,7 @@ export function CatalogAddOnsPanel({
                   onMoveUp={() => {}}
                   onMoveDown={() => {}}
                   onDeactivate={() => {}}
+                  onActivate={() => handleReactivate(addOn)}
                 />
               ))}
             </>
@@ -377,6 +392,7 @@ interface AddOnRowProps {
   onMoveUp: () => void;
   onMoveDown: () => void;
   onDeactivate: () => void;
+  onActivate?: () => void;
 }
 
 function AddOnRow({
@@ -389,6 +405,7 @@ function AddOnRow({
   onMoveUp,
   onMoveDown,
   onDeactivate,
+  onActivate,
 }: AddOnRowProps) {
   const linkLabel =
     linkCount === 0
@@ -436,6 +453,11 @@ function AddOnRow({
         >
           {linkLabel}
         </span>
+        {addOn.estimateMemberDiscount && (
+          <span className={s.itemMeta} style={{ color: "var(--olive)", fontWeight: 500 }}>
+            Member discount · 20% off
+          </span>
+        )}
       </div>
       <div className={s.actionsCol}>
         {!addOn.isActive && <span className={s.inactiveBadge}>Inactive</span>}
@@ -446,10 +468,16 @@ function AddOnRow({
             Edit
           </Link>
         </Button>
-        {addOn.isActive && (
+        {addOn.isActive ? (
           <Button variant="secondary" size="sm" onClick={onDeactivate}>
             Deactivate
           </Button>
+        ) : (
+          onActivate && (
+            <Button variant="primary" size="sm" onClick={onActivate}>
+              Reactivate
+            </Button>
+          )
         )}
       </div>
     </div>

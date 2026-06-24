@@ -43,6 +43,7 @@ export function AddOnEditorForm({
   );
   const [imageUrl, setImageUrl] = useState(addOn.imageUrl ?? "");
   const [maxQuantity, setMaxQuantity] = useState(String(addOn.maxQuantity));
+  const [memberDiscount, setMemberDiscount] = useState(addOn.estimateMemberDiscount);
   const [showDelete, setShowDelete] = useState(false);
 
   const fileRef = useRef<HTMLInputElement>(null);
@@ -122,6 +123,7 @@ export function AddOnEditorForm({
           imageUrl: imageUrl.trim() || null,
           includedDetail: includedDetail.trim() || null,
           maxQuantity,
+          estimateMemberDiscount: memberDiscount,
         },
       );
       if (!result.ok) {
@@ -147,8 +149,8 @@ export function AddOnEditorForm({
       )}
 
       <Card padding="loose" elevation="soft">
-        <div className={s.formGroup}>
-          <label className={s.formGroup}>
+        <div className={s.fieldStack}>
+          <label className={s.field}>
             <span className={s.fieldLabel}>Name</span>
             <input
               className={s.input}
@@ -157,7 +159,7 @@ export function AddOnEditorForm({
               required
             />
           </label>
-          <label className={s.formGroup}>
+          <label className={s.field}>
             <span className={s.fieldLabel}>Description (markdown supported)</span>
             <textarea
               className={s.textarea}
@@ -166,7 +168,7 @@ export function AddOnEditorForm({
               rows={4}
             />
           </label>
-          <label className={s.formGroup}>
+          <label className={s.field}>
             <span className={s.fieldLabel}>Price (USD)</span>
             <input
               className={s.input}
@@ -183,7 +185,7 @@ export function AddOnEditorForm({
               they were created with.
             </span>
           </label>
-          <label className={s.formGroup}>
+          <label className={s.field}>
             <span className={s.fieldLabel}>Maximum quantity per booking</span>
             <input
               className={s.input}
@@ -203,8 +205,30 @@ export function AddOnEditorForm({
             </span>
           </label>
 
-          <label className={s.formGroup}>
-            <span className={s.fieldLabel}>What&rsquo;s included</span>
+          <div className={s.field}>
+            <label
+              style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}
+            >
+              <input
+                type="checkbox"
+                checked={memberDiscount}
+                onChange={(e) => setMemberDiscount(e.target.checked)}
+                style={{ width: 18, height: 18, accentColor: "var(--olive)" }}
+              />
+              <span>Members get the 20% retail discount on this add-on</span>
+            </label>
+            <span className={s.help}>
+              Applies on the estimate when the host is a member — typically for
+              goods like ammunition or gear. This add-on shows on the estimate
+              whenever it&rsquo;s active; deactivate to hide it.
+            </span>
+          </div>
+
+          <label className={`${s.field} ${s.deprecatedField}`}>
+            <span className={s.fieldLabel}>
+              What&rsquo;s included
+              <span className={s.deprecatedTag}>Not used</span>
+            </span>
             <textarea
               className={s.textarea}
               value={includedDetail}
@@ -212,14 +236,15 @@ export function AddOnEditorForm({
               rows={2}
               maxLength={200}
               placeholder="Includes 100 rounds · 12, 20, or 28 gauge"
+              disabled
             />
             <span className={s.help}>
-              One short line shown under the price in the booking pop-up. Leave
-              blank to hide it.
+              No longer shown to guests — retained for legacy data only. Not used
+              in the current Request-an-Estimate flow.
             </span>
           </label>
 
-          <div className={s.formGroup}>
+          <div className={s.field}>
             <span className={s.fieldLabel}>Detail photo</span>
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap" }}>
               <input

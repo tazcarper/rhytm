@@ -11,8 +11,17 @@ import {
   listActiveBookingsForServiceAction,
 } from "@/app/admin/properties/[id]/catalog/actions";
 import type { AdminCatalogService, AdminCatalogLink } from "@/src/services/admin/catalog";
+import type { EstimatePricingKind } from "@/src/services/public/estimate-catalog";
 import { DeactivateConfirm } from "./deactivate-confirm";
 import s from "./catalog.module.css";
+
+// Short estimate-pricing labels for the on-estimate badge.
+const PRICING_KIND_LABEL: Record<EstimatePricingKind, string> = {
+  guest_fee_tier: "guest fee",
+  lesson_ladder: "lesson",
+  class_per_person: "class",
+  quote: "quote",
+};
 
 interface CatalogServicesPanelProps {
   propertyId: string;
@@ -113,12 +122,29 @@ export function CatalogServicesPanel({
     return result;
   };
 
+  const handleReactivate = async (service: AdminCatalogService) => {
+    const currentLinkedIds = links
+      .filter((link) => link.serviceId === service.id)
+      .map((link) => link.addOnId);
+    const result = await updateServiceAction(ctx, {
+      serviceId: service.id,
+      propertyId,
+      name: service.name,
+      description: service.description,
+      isActive: true,
+      imageUrl: service.imageUrl,
+      linkedAddOnIds: currentLinkedIds,
+      newAddOns: [],
+    });
+    if (result.ok) startTransition(() => router.refresh());
+  };
+
   return (
     <>
       <Card padding="loose" elevation="soft" className={s.panel}>
         <div className={s.panelHead}>
           <div>
-            <h2 className={s.panelTitle}>Services</h2>
+            <h2 className={s.panelTitle}>Experiences</h2>
             <p className={s.panelSubtitle}>
               {sortedActive.length} active
               {sortedInactive.length > 0 && ` · ${sortedInactive.length} inactive`}
@@ -130,14 +156,14 @@ export function CatalogServicesPanel({
               size="sm"
               onClick={() => setShowAdd(true)}
             >
-              + Add service
+              + Add experience
             </Button>
           )}
         </div>
 
         <div className={s.list}>
           {sortedActive.length === 0 && sortedInactive.length === 0 && (
-            <p className={s.empty}>No services yet. Add one to get started.</p>
+            <p className={s.empty}>No experiences yet. Add one to get started.</p>
           )}
 
           {sortedActive.map((service, index) => (
@@ -168,6 +194,7 @@ export function CatalogServicesPanel({
                   onMoveUp={() => {}}
                   onMoveDown={() => {}}
                   onDeactivate={() => {}}
+                  onActivate={() => handleReactivate(service)}
                 />
               ))}
             </>
@@ -250,6 +277,7 @@ interface ServiceRowProps {
   onMoveUp: () => void;
   onMoveDown: () => void;
   onDeactivate: () => void;
+  onActivate?: () => void;
 }
 
 function ServiceRow({
@@ -261,6 +289,7 @@ function ServiceRow({
   onMoveUp,
   onMoveDown,
   onDeactivate,
+  onActivate,
 }: ServiceRowProps) {
   return (
     <div className={`${s.row} ${!service.isActive ? s.rowInactive : ""}`}>
@@ -289,6 +318,12 @@ function ServiceRow({
         {service.description && (
           <span className={s.itemMeta}>{service.description}</span>
         )}
+        <span
+          className={s.itemMeta}
+          style={{ color: "var(--olive)", fontWeight: 500 }}
+        >
+          {`Estimate pricing · ${PRICING_KIND_LABEL[service.pricingKind]}`}
+        </span>
       </div>
       <div className={s.actionsCol}>
         {!service.isActive && (
@@ -301,10 +336,16 @@ function ServiceRow({
             Edit
           </Link>
         </Button>
-        {service.isActive && (
+        {service.isActive ? (
           <Button variant="secondary" size="sm" onClick={onDeactivate}>
             Deactivate
           </Button>
+        ) : (
+          onActivate && (
+            <Button variant="primary" size="sm" onClick={onActivate}>
+              Reactivate
+            </Button>
+          )
         )}
       </div>
     </div>

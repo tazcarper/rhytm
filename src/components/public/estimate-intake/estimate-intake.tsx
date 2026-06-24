@@ -5,20 +5,23 @@ import { submitEstimateAction } from "@/app/(public)/request-estimate/submit/act
 import {
   CLUB_LABELS,
   CLUB_TO_SLUG,
-  RULES,
-  availableExperiences,
-  cateringFor,
-  computeEstimate,
   isComingSoon,
-  isExperienceLocked,
   isHsbBlocked,
-  money,
-  type CateringOption,
   type ClubCode,
   type CustomLine,
   type HostCode,
-  type IntakeState,
 } from "./rules";
+import {
+  computeEstimate,
+  money,
+  type EstimateSelections,
+} from "@/src/services/estimates/estimate-pricing";
+import {
+  EMPTY_ESTIMATE_CATALOG,
+  type EstimateCatalog,
+  type EstimateCatalogByClub,
+  type EstimateExperience,
+} from "@/src/services/public/estimate-catalog";
 import {
   DateTimePicker,
   type DateTimePickerValue,
@@ -36,9 +39,11 @@ interface EstimateIntakeProps {
   // mistakes. Undefined → the generic picker behaves exactly as before.
   lockedClub?: ClubCode;
   // Per-club calendar data (slots + horizon) for the WHEN step's shared
-  // <DateTimePicker>. Bookable clubs only; absent for coming-soon clubs, in
-  // which case the WHEN step falls back to a plain date + arrival select.
+  // <DateTimePicker>. Bookable clubs only; absent for coming-soon clubs.
   clubScheduling: ClubScheduling;
+  // Per-club DB catalog (experiences, add-ons, guest-fee tiers, catering). The
+  // club can switch in-form, so every bookable club's catalog is provided.
+  catalogByClub: EstimateCatalogByClub;
 }
 
 const ARRIVAL_OPTIONS = [
@@ -56,12 +61,41 @@ const LESSON_HOURS = [
   { value: 4, label: "4 hours" },
 ];
 
+interface IntakeState {
+  host: HostCode;
+  club: ClubCode;
+  // Selected experience (service) ids.
+  exps: string[];
+  // Add-on id → chosen quantity (0/1 for a Yes/No add-on).
+  addOnQuantities: Record<string, number>;
+  // Selected catering option id (catering_options.id), or null.
+  cateringId: string | null;
+  // Party composition. members shoot on dues (only meaningful for a member
+  // host); guestAdults/guestJuniors are non-member guests that drive fees.
+  members: number;
+  guestAdults: number;
+  guestJuniors: number;
+  // Private lesson length in hours (2-hr standard block).
+  hours: number;
+  // Staff-only fields.
+  staffMode: boolean;
+  discountValue: number;
+  discountType: "pct" | "amt";
+  customLines: CustomLine[];
+  // Timing. `arrival` is the hour-of-day used by the heat/escalation
+  // advisories; `slotStart` ("HH:MM:SS") is the concrete slot picked in the
+  // shared calendar (when scheduling data is available for the club).
+  arrival: string;
+  date: string;
+  slotStart?: string;
+}
+
 const INITIAL: IntakeState = {
   host: "member",
   club: "hsb",
   exps: [],
-  addons: { ammo: 0, gear: 0, cart: false },
-  catering: null,
+  addOnQuantities: {},
+  cateringId: null,
   members: 1,
   guestAdults: 0,
   guestJuniors: 0,
@@ -74,7 +108,12 @@ const INITIAL: IntakeState = {
   date: "",
 };
 
-export function EstimateIntake({ canUseStaffMode, lockedClub, clubScheduling }: EstimateIntakeProps) {
+export function EstimateIntake({
+  canUseStaffMode,
+  lockedClub,
+  clubScheduling,
+  catalogByClub,
+}: EstimateIntakeProps) {
   const [st, setSt] = useState<IntakeState>(() =>
     lockedClub ? { ...INITIAL, club: lockedClub } : INITIAL,
   );
@@ -94,15 +133,60 @@ export function EstimateIntake({ canUseStaffMode, lockedClub, clubScheduling }: 
 
   const set = (patch: Partial<IntakeState>) => setSt((p) => ({ ...p, ...patch }));
 
-  const estimate = useMemo(() => computeEstimate(st), [st]);
   const memberHost = st.host === "member";
+
+  // The selected club's catalog. Missing (coming-soon / unconfigured) → empty.
+  const catalog: EstimateCatalog = catalogByClub[st.club] ?? EMPTY_ESTIMATE_CATALOG;
+
+  const gatedOut = isComingSoon(st.club) || isHsbBlocked(st.club, st.host);
+  const availableExperiences: EstimateExperience[] = gatedOut
+    ? []
+    : catalog.experiences;
+  const cateringSet = gatedOut ? [] : catalog.catering;
+  const showCatering = cateringSet.length > 0;
+
+  const selectedExperiences = availableExperiences.filter((e) =>
+    st.exps.includes(e.id),
+  );
+  const lessonSelected = selectedExperiences.some(
+    (e) => e.pricingKind === "lesson_ladder",
+  );
+
+  const selections: EstimateSelections = useMemo(
+    () => ({
+      host: st.host,
+      experienceIds: st.exps,
+      lessonHours: st.hours,
+      members: memberHost ? st.members : 0,
+      guestAdults: st.guestAdults,
+      guestJuniors: st.guestJuniors,
+      addOnQuantities: st.addOnQuantities,
+      cateringId: st.cateringId,
+      staffMode: st.staffMode,
+      discountValue: st.discountValue,
+      discountType: st.discountType,
+      customLines: st.customLines,
+      arrival: st.arrival,
+      date: st.date,
+    }),
+    [st, memberHost],
+  );
+
+  const estimate = useMemo(
+    () =>
+      computeEstimate(catalog, selections, {
+        comingSoon: isComingSoon(st.club),
+        membersOnlyBlocked: isHsbBlocked(st.club, st.host),
+      }),
+    [catalog, selections, st.club, st.host],
+  );
 
   // --- gating ---
   function pickClub(club: ClubCode) {
     if (lockedClub) return; // club is fixed by the link
     if (isComingSoon(club)) return; // coming soon — not selectable / submittable yet
-    // Slots differ per club, so clear any picked date/time when switching.
-    set({ club, exps: [], catering: null, date: "", slotStart: undefined });
+    // Catalog + slots differ per club, so clear experience/add-on/catering/date.
+    set({ club, exps: [], addOnQuantities: {}, cateringId: null, date: "", slotStart: undefined });
   }
 
   // Calendar data for the selected club; absent (coming-soon / unconfigured)
@@ -113,20 +197,17 @@ export function EstimateIntake({ canUseStaffMode, lockedClub, clubScheduling }: 
     set({
       date: next.dateISO ?? "",
       slotStart: next.slotStart,
-      // Keep `arrival` (the advisory hour) in sync with the picked slot.
       ...(next.slotStart
         ? { arrival: String(Number.parseInt(next.slotStart, 10)) }
         : {}),
     });
   }
   function pickHost(host: HostCode) {
-    // Member-hosted defaults: one adult member, no guests yet. Non-member
-    // direct booking has no members and defaults to a single adult.
     const party =
       host === "member"
         ? { members: 1, guestAdults: 0, guestJuniors: 0 }
         : { members: 0, guestAdults: 1, guestJuniors: 0 };
-    set({ host, exps: [], catering: null, ...party });
+    set({ host, exps: [], addOnQuantities: {}, cateringId: null, ...party });
   }
   function toggleExp(id: string) {
     set({
@@ -136,16 +217,12 @@ export function EstimateIntake({ canUseStaffMode, lockedClub, clubScheduling }: 
     });
   }
 
-  const exps = availableExperiences(st.club, st.host);
-  const cateringSet = cateringFor(st.club, st.host);
-  const showCatering = cateringSet !== null;
-  const lessonSelected = st.exps.includes("lesson");
-
-  function bump(id: "ammo" | "gear", delta: number) {
-    set({ addons: { ...st.addons, [id]: Math.max(0, st.addons[id] + delta) } });
+  function setAddOnQty(id: string, quantity: number, maxQuantity: number) {
+    const clamped = Math.max(0, Math.min(maxQuantity, quantity));
+    set({ addOnQuantities: { ...st.addOnQuantities, [id]: clamped } });
   }
-  function pickCatering(opt: CateringOption | null) {
-    set({ catering: opt });
+  function pickCatering(id: string | null) {
+    set({ cateringId: id });
   }
 
   function addCustomLine() {
@@ -160,7 +237,7 @@ export function EstimateIntake({ canUseStaffMode, lockedClub, clubScheduling }: 
     set({ customLines: st.customLines.filter((_, i) => i !== index) });
   }
 
-  // Composition hint under the party inputs (mirrors the prototype partyNote).
+  // Composition hint under the party inputs.
   const partyNote = memberHost
     ? `${st.members} member${st.members !== 1 ? "s" : ""} hosting ${st.guestAdults + st.guestJuniors} guest${st.guestAdults + st.guestJuniors !== 1 ? "s" : ""} · billed to the member account (single-payer). Members shoot on dues; guests pay guest fees.`
     : st.club === "hsb"
@@ -178,17 +255,14 @@ export function EstimateIntake({ canUseStaffMode, lockedClub, clubScheduling }: 
       return;
     }
 
-    // Only the guest's own note is sent — it becomes guest-visible guest_notes
-    // on the bid page. Staff internal notes are NOT folded in (they would leak
-    // to the guest); they get a staff-only channel in Phase C.
     startTransition(async () => {
       const res = await submitEstimateAction(
         {
           propertySlug: CLUB_TO_SLUG[st.club],
           host: st.host,
-          experiences: st.exps,
-          addons: st.addons,
-          catering: st.catering,
+          experienceIds: st.exps,
+          addOnQuantities: st.addOnQuantities,
+          cateringId: st.cateringId,
           members: memberHost ? st.members : 0,
           guestAdults: st.guestAdults,
           guestJuniors: st.guestJuniors,
@@ -209,9 +283,6 @@ export function EstimateIntake({ canUseStaffMode, lockedClub, clubScheduling }: 
         honeypot,
       );
       if (res.ok) {
-        // Land on the unique bid URL ("your bid is being prepared"). Full
-        // navigation so the bid page renders fresh server-side; the transition
-        // stays pending through the redirect, keeping the CTA disabled.
         window.location.assign(res.bidPath);
       } else {
         setError(res.message);
@@ -219,8 +290,6 @@ export function EstimateIntake({ canUseStaffMode, lockedClub, clubScheduling }: 
     });
   }
 
-  // On success the action redirects to the unique bid URL (see onSubmit) — no
-  // inline "thanks" screen. The form stays mounted (CTA disabled) through nav.
   return (
     <div className={s.wrap}>
       <header className={s.top}>
@@ -339,8 +408,8 @@ export function EstimateIntake({ canUseStaffMode, lockedClub, clubScheduling }: 
               </div>
             ) : (
               <div>
-                {exps.map((e) => {
-                  const locked = isExperienceLocked(e, st.host);
+                {availableExperiences.map((e) => {
+                  const locked = e.membersOnly && st.host === "nonmember";
                   const on = st.exps.includes(e.id);
                   return (
                     <button
@@ -351,9 +420,9 @@ export function EstimateIntake({ canUseStaffMode, lockedClub, clubScheduling }: 
                       onClick={() => !locked && toggleExp(e.id)}
                     >
                       <span>
-                        <span className={s.expT}>{e.t}</span>
+                        <span className={s.expT}>{e.name}</span>
                         <span className={s.expD}>
-                          {locked ? "Members only — not available to non-members" : e.d}
+                          {locked ? "Members only — not available to non-members" : e.description}
                         </span>
                       </span>
                       <span className={s.expMark}>{locked ? "✕" : on ? "✓" : "+"}</span>
@@ -423,44 +492,51 @@ export function EstimateIntake({ canUseStaffMode, lockedClub, clubScheduling }: 
           </section>
 
           {/* 5 · ADD-ONS */}
-          <section className={s.card}>
-            <h3 className={s.cardH}>5 · Add-ons</h3>
-            <p className={s.sub}>Ammo needs a quantity; others are per-person or yes/no.</p>
-            {RULES.addons.map((a) => (
-              <div key={a.id} className={s.addon}>
-                <div>
-                  <div className={s.addonNm}>{a.nm}</div>
-                  <div className={s.addonMeta}>{a.meta}</div>
-                </div>
-                {a.shape === "bool" ? (
-                  <div className={s.toggle} role="group" aria-label={a.nm}>
-                    <button
-                      type="button"
-                      className={st.addons.cart ? s.toggleOn : ""}
-                      aria-pressed={st.addons.cart}
-                      onClick={() => set({ addons: { ...st.addons, cart: true } })}
-                    >
-                      Yes
-                    </button>
-                    <button
-                      type="button"
-                      className={!st.addons.cart ? s.toggleOn : ""}
-                      aria-pressed={!st.addons.cart}
-                      onClick={() => set({ addons: { ...st.addons, cart: false } })}
-                    >
-                      No
-                    </button>
+          {availableExperiences.length > 0 && catalog.addOns.length > 0 && (
+            <section className={s.card}>
+              <h3 className={s.cardH}>5 · Add-ons</h3>
+              <p className={s.sub}>Pick a quantity, or yes/no for single items.</p>
+              {catalog.addOns.map((a) => {
+                const qty = st.addOnQuantities[a.id] ?? 0;
+                return (
+                  <div key={a.id} className={s.addon}>
+                    <div>
+                      <div className={s.addonNm}>{a.name}</div>
+                      <div className={s.addonMeta}>
+                        {a.description ?? `${money(a.price)}${a.control === "bool" ? "" : " each"}`}
+                      </div>
+                    </div>
+                    {a.control === "bool" ? (
+                      <div className={s.toggle} role="group" aria-label={a.name}>
+                        <button
+                          type="button"
+                          className={qty > 0 ? s.toggleOn : ""}
+                          aria-pressed={qty > 0}
+                          onClick={() => setAddOnQty(a.id, 1, a.maxQuantity)}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          className={qty === 0 ? s.toggleOn : ""}
+                          aria-pressed={qty === 0}
+                          onClick={() => setAddOnQty(a.id, 0, a.maxQuantity)}
+                        >
+                          No
+                        </button>
+                      </div>
+                    ) : (
+                      <div className={s.qty}>
+                        <button type="button" onClick={() => setAddOnQty(a.id, qty - 1, a.maxQuantity)}>−</button>
+                        <input readOnly value={qty} />
+                        <button type="button" onClick={() => setAddOnQty(a.id, qty + 1, a.maxQuantity)}>+</button>
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div className={s.qty}>
-                    <button type="button" onClick={() => bump(a.id as "ammo" | "gear", -1)}>−</button>
-                    <input readOnly value={st.addons[a.id as "ammo" | "gear"]} />
-                    <button type="button" onClick={() => bump(a.id as "ammo" | "gear", 1)}>+</button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </section>
+                );
+              })}
+            </section>
+          )}
 
           {/* F&B CATERING — HH / Packsaddle only */}
           {showCatering && (
@@ -472,29 +548,26 @@ export function EstimateIntake({ canUseStaffMode, lockedClub, clubScheduling }: 
                 Per-head, good / better / best by vendor — priced × total headcount. (HSB dining runs through The Club.)
               </p>
               <div className={s.cateringWarn}>
-                ⚠ Placeholder vendors &amp; rates — <b>Salt Lick, County Line, and Contigo</b> selections and per-head
-                pricing need confirmation before final sign-off.
+                ⚠ Placeholder vendors &amp; rates — vendor selections and per-head pricing need confirmation
+                before final sign-off.
               </div>
-              {(cateringSet ?? []).map((o) => {
-                const sel = st.catering?.tier === o.tier;
+              {cateringSet.map((o) => {
+                const sel = st.cateringId === o.id;
                 return (
-                  <div key={o.tier} className={s.addon}>
+                  <div key={o.id} className={s.addon}>
                     <div>
                       <div className={s.addonNm}>
-                        {o.tier} · {o.name}
+                        {o.tier} · {o.vendorName}
                       </div>
-                      <div className={s.addonMeta}>${o.per} / head</div>
+                      <div className={s.addonMeta}>${o.pricePerHead} / head</div>
                     </div>
-                    {/* Single-select: picking one swaps the choice; clicking the
-                        selected option deselects it (back to no catering, the
-                        default). Hover on a selected option reveals "Remove". */}
                     <button
                       type="button"
                       className={sel ? `${s.optOn} ${s.cateringSelected}` : s.opt}
                       style={{ minWidth: "84px", flex: "none" }}
                       aria-pressed={sel}
                       title={sel ? "Click to remove catering" : undefined}
-                      onClick={() => pickCatering(sel ? null : o)}
+                      onClick={() => pickCatering(sel ? null : o.id)}
                     >
                       {sel ? (
                         <>
@@ -533,13 +606,7 @@ export function EstimateIntake({ canUseStaffMode, lockedClub, clubScheduling }: 
                   bookingHorizonDays={schedule.bookingHorizonDays}
                   bookingType="plan_a_visit"
                   durationHours={2}
-                  // TEMPORARY: capacity rules (max groups per slot) aren't
-                  // defined yet, so any time is selectable and staff confirm
-                  // availability from the admin schedule. Flip to true (default)
-                  // once those rules exist.
                   enforceAvailability={false}
-                  // Private events (party of 9+) require 72 hours' advance
-                  // reservation → earliest selectable date is 3 days out.
                   minLeadDays={estimate.isEvent ? 3 : 0}
                   value={{
                     dateISO: st.date || undefined,
@@ -670,10 +737,7 @@ export function EstimateIntake({ canUseStaffMode, lockedClub, clubScheduling }: 
             </section>
           )}
 
-          {/* Honeypot — a bot fills it; a human never sees it. Named "url" (not
-              an email/name field) and flagged with the password-manager ignore
-              hints so browser/PM autofill can't drop the guest's own email in
-              here and trip the bot check (a real false-positive we hit). */}
+          {/* Honeypot — a bot fills it; a human never sees it. */}
           <input
             type="text"
             name="url"

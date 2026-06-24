@@ -1,93 +1,51 @@
 import type { PublicService } from "@/src/services/public/services";
-import type { ClubCode } from "@/src/components/public/estimate-intake/rules";
 
-// Maps the estimate form's hand-coded experience / add-on ids (rules.ts) to the
-// real catalog UUIDs needed for booking_disciplines / booking_add_ons, BY NAME
-// against the live catalog (plan §8). Pure — the caller fetches services via
-// getPublicServicesForProperty() and passes them in.
+// Resolves the estimate form's selections to the real catalog UUIDs needed for
+// booking_disciplines / booking_add_ons. Experiences are service ids, so
+// disciplines resolve 1:1; add-ons attach to a selected discipline that links
+// them.
 //
-// This is intentionally LOSSY. The seeded catalog only partially overlaps the
-// estimate's experiences, so anything without a clean, FK-safe match is OMITTED
-// rather than risk a 23503 on insert (plan §8). The priced line still rides on
-// bid_line_items regardless of whether a structural discipline/add-on attaches,
-// so omission costs structure, not money. When the real catalog is seeded (a
-// content task), extend the maps below — nothing else changes.
-
-// Estimate experience id → catalog service NAME, per club. Only ids with a real
-// services row are listed; the rest (lesson / class / event / facility, and HH
-// pistol) have no service today and resolve to nothing by design.
-const EXPERIENCE_SERVICE_NAMES: Record<ClubCode, Record<string, string>> = {
-  hsb: { clays: "Sporting Clays", pistol: "Pistol Bays" },
-  hh: { clays: "Sporting Clays" },
-  psp: {},
-};
-
-// Estimate add-on key → catalog add_on NAME. gear (no rental add-on) and
-// catering (priced via the estimate only) have no catalog row and are omitted.
-const ADD_ON_NAMES: Record<string, string> = {
-  ammo: "Ammunition Pack",
-  cart: "Drink Cart",
-};
-
-export interface EstimateAddOnSelection {
-  ammo: number;
-  gear: number;
-  cart: boolean;
-}
+// This is intentionally LOSSY (plan §8): the priced lines ride on
+// bid_line_items regardless, so an add-on with no service_add_ons link is
+// omitted from structure rather than risk a 23503 on insert. Omission costs
+// structure, not money.
 
 export interface ResolvedCatalog {
   disciplineIds: string[];
   addOns: { serviceId: string; addOnId: string; quantity: number }[];
 }
 
-const norm = (value: string): string => value.trim().toLowerCase();
-
 export function resolveEstimateCatalog(
-  club: ClubCode,
   services: ReadonlyArray<PublicService>,
-  experiences: ReadonlyArray<string>,
-  addOnSelection: EstimateAddOnSelection,
+  experienceIds: ReadonlyArray<string>,
+  // Add-on id → chosen quantity.
+  addOnQuantities: Record<string, number>,
 ): ResolvedCatalog {
-  const nameMap = EXPERIENCE_SERVICE_NAMES[club] ?? {};
+  const servicesById = new Map(services.map((svc) => [svc.id, svc]));
 
-  // Match each selected experience to a service by name; omit the unmatched.
-  const matchedServices: PublicService[] = [];
+  // Each selected experience id that is a real, active service becomes a
+  // booking discipline (deduped).
   const seen = new Set<string>();
-  for (const experienceId of experiences) {
-    const serviceName = nameMap[experienceId];
-    if (!serviceName) continue;
-    const service = services.find((svc) => norm(svc.name) === norm(serviceName));
-    if (service && !seen.has(service.id)) {
-      seen.add(service.id);
-      matchedServices.push(service);
+  const matchedServices: PublicService[] = [];
+  for (const id of experienceIds) {
+    const svc = servicesById.get(id);
+    if (svc && !seen.has(svc.id)) {
+      seen.add(svc.id);
+      matchedServices.push(svc);
     }
   }
-
   const disciplineIds = matchedServices.map((svc) => svc.id);
 
-  // An add-on must hang off a matched service. getPublicServicesForProperty
-  // only nests add-ons that are service_add_ons-linked, so attaching to the
-  // first matched service that carries the add-on is FK-safe by construction.
-  const wanted: { name: string; quantity: number }[] = [];
-  if (addOnSelection.ammo > 0) {
-    wanted.push({ name: ADD_ON_NAMES.ammo, quantity: addOnSelection.ammo });
-  }
-  if (addOnSelection.cart) {
-    wanted.push({ name: ADD_ON_NAMES.cart, quantity: 1 });
-  }
-  // gear: no catalog add-on → omitted.
-
+  // Attach each chosen add-on to the first selected discipline that links it
+  // (getPublicServicesForProperty only nests service_add_ons-linked add-ons, so
+  // this is FK-safe by construction). Unlinked add-ons are omitted.
   const addOns: ResolvedCatalog["addOns"] = [];
-  for (const want of wanted) {
-    for (const service of matchedServices) {
-      const addOn = service.addOns.find((a) => norm(a.name) === norm(want.name));
-      if (addOn) {
-        addOns.push({
-          serviceId: service.id,
-          addOnId: addOn.id,
-          quantity: want.quantity,
-        });
-        break; // attach once, to the first matched service that carries it
+  for (const [addOnId, quantity] of Object.entries(addOnQuantities)) {
+    if (quantity <= 0) continue;
+    for (const svc of matchedServices) {
+      if (svc.addOns.some((a) => a.id === addOnId)) {
+        addOns.push({ serviceId: svc.id, addOnId, quantity });
+        break;
       }
     }
   }

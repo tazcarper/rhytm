@@ -38,6 +38,24 @@ import {
   type AdminCatalogAddOn,
   type MutationResult,
 } from "@/src/services/admin/catalog";
+import {
+  createCateringOption,
+  updateCateringOption,
+  deleteCateringOption,
+  reorderCateringOptions,
+  CreateCateringInputSchema,
+  UpdateCateringInputSchema,
+  ReorderCateringInputSchema,
+  type CreateCateringRawInput,
+  type UpdateCateringRawInput,
+  type ReorderCateringInput,
+  type AdminCateringOption,
+} from "@/src/services/admin/catering";
+import {
+  saveEstimateGuestFees,
+  SaveEstimateGuestFeesInputSchema,
+  type SaveEstimateGuestFeesRawInput,
+} from "@/src/services/admin/estimate-guest-fees";
 
 interface CatalogActionContext {
   propertyId: string;
@@ -47,6 +65,10 @@ interface CatalogActionContext {
 function revalidateCatalogSurfaces(ctx: CatalogActionContext) {
   revalidatePath(`/admin/properties/${ctx.propertyId}/catalog`);
   revalidatePath(`/book/${ctx.propertySlug}`);
+  // The estimate front door reads the same catalog (experiences, add-ons,
+  // guest-fee tiers, catering).
+  revalidatePath(`/request-estimate`);
+  revalidatePath(`/request-estimate/${ctx.propertySlug}`);
 }
 
 function firstIssue(error: { issues: ReadonlyArray<{ path: ReadonlyArray<PropertyKey>; message: string }> }): string {
@@ -275,5 +297,67 @@ export async function deleteAddOnAction(
   if (result.ok) {
     revalidateCatalogSurfaces(ctx);
   }
+  return result;
+}
+
+// ---------- Catering (estimate F&B) ----------
+
+export async function createCateringAction(
+  ctx: CatalogActionContext,
+  input: CreateCateringRawInput,
+): Promise<{ ok: true; option: AdminCateringOption } | { ok: false; error: string }> {
+  const parsed = CreateCateringInputSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
+  const supabase = await createServerSupabaseClient();
+  const result = await createCateringOption(supabase, parsed.data);
+  if (result.ok) revalidateCatalogSurfaces(ctx);
+  return result;
+}
+
+export async function updateCateringAction(
+  ctx: CatalogActionContext,
+  input: UpdateCateringRawInput,
+): Promise<MutationResult> {
+  const parsed = UpdateCateringInputSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
+  const supabase = await createServerSupabaseClient();
+  const result = await updateCateringOption(supabase, parsed.data);
+  if (result.ok) revalidateCatalogSurfaces(ctx);
+  return result;
+}
+
+export async function deleteCateringAction(
+  ctx: CatalogActionContext,
+  id: string,
+): Promise<MutationResult> {
+  const supabase = await createServerSupabaseClient();
+  const result = await deleteCateringOption(supabase, id);
+  if (result.ok) revalidateCatalogSurfaces(ctx);
+  return result;
+}
+
+export async function reorderCateringAction(
+  ctx: CatalogActionContext,
+  input: ReorderCateringInput,
+): Promise<MutationResult> {
+  const parsed = ReorderCateringInputSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
+  const supabase = await createServerSupabaseClient();
+  const result = await reorderCateringOptions(supabase, parsed.data);
+  if (result.ok) revalidateCatalogSurfaces(ctx);
+  return result;
+}
+
+// ---------- Estimate guest-fee schedule ----------
+
+export async function saveEstimateGuestFeesAction(
+  ctx: CatalogActionContext,
+  input: SaveEstimateGuestFeesRawInput,
+): Promise<MutationResult> {
+  const parsed = SaveEstimateGuestFeesInputSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
+  const supabase = await createServerSupabaseClient();
+  const result = await saveEstimateGuestFees(supabase, parsed.data);
+  if (result.ok) revalidateCatalogSurfaces(ctx);
   return result;
 }

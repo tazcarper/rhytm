@@ -6,15 +6,20 @@ import { hasAdminAccess } from "@/lib/auth/portal";
 import { checkRateLimit, clientIpFrom } from "@/src/services/security/rate-limit";
 import { createPublicBooking } from "@/src/services/bookings/create-public-booking";
 import { getPublicServicesForProperty } from "@/src/services/public/services";
+import { getEstimateCatalog } from "@/src/services/public/estimate-catalog";
 import { resolveEstimateCatalog } from "@/src/services/estimates/resolve-estimate-catalog";
 import { computeBookingAdvisories } from "@/src/services/public/booking-advisories";
 import {
-  CLUB_TO_SLUG,
-  RULES,
   computeEstimate,
-  type ClubCode,
+  STANDARD_BLOCK_HOURS,
   type EstimateLine,
-  type IntakeState,
+  type EstimateSelections,
+} from "@/src/services/estimates/estimate-pricing";
+import {
+  CLUB_TO_SLUG,
+  isComingSoon,
+  isHsbBlocked,
+  type ClubCode,
 } from "@/src/components/public/estimate-intake/rules";
 
 // Thin submit boundary for the public estimate front door. As of the
@@ -35,9 +40,12 @@ export interface SubmitEstimateInput {
   propertySlug: string;
   // Host of record. A member host may bring non-member guests.
   host: "member" | "nonmember";
-  experiences: string[];
-  addons: { ammo: number; gear: number; cart: boolean };
-  catering: { tier: string; name: string; per: number } | null;
+  // Selected experience (service) ids.
+  experienceIds: string[];
+  // Add-on id → chosen quantity (0/1 for a Yes/No add-on).
+  addOnQuantities: Record<string, number>;
+  // Selected catering option id (catering_options.id), or null.
+  cateringId: string | null;
   // Party composition.
   members: number;
   guestAdults: number;
@@ -171,21 +179,25 @@ export async function submitEstimateAction(
   const isStaff = hasAdminAccess(role);
   const staffIntake = isStaff && input.staffMode;
 
+  // The DB-driven catalog the page priced against — re-read here so the
+  // carried quote is recomputed server-side from authoritative prices (the
+  // client can't tamper with the carried total).
+  const catalog = await getEstimateCatalog(supabase, propertyId);
+
   // Recompute the indicative quote server-side from the structured inputs.
   // staffMode is forced OFF here so the carried lines are the pure catalog
   // breakdown — no staff discount (carried via the audited override path
   // instead) and no staff custom lines (total-override + note path instead).
   // That makes the carried subtotal the pre-discount total (plan §7/§8).
-  const intake: IntakeState = {
+  const selections: EstimateSelections = {
     host: input.host,
-    club,
-    exps: input.experiences,
-    addons: input.addons,
-    catering: input.catering,
+    experienceIds: input.experienceIds,
+    lessonHours: input.lessonHours ?? STANDARD_BLOCK_HOURS,
     members: input.host === "member" ? Math.max(0, input.members) : 0,
     guestAdults: Math.max(0, input.guestAdults),
     guestJuniors: Math.max(0, input.guestJuniors),
-    hours: input.lessonHours ?? RULES.standardBlockHrs,
+    addOnQuantities: input.addOnQuantities ?? {},
+    cateringId: input.cateringId,
     staffMode: false,
     discountValue: 0,
     discountType: "pct",
@@ -193,7 +205,10 @@ export async function submitEstimateAction(
     arrival: input.arrival ?? "",
     date: input.preferredDate ?? "",
   };
-  const quote = computeEstimate(intake);
+  const quote = computeEstimate(catalog, selections, {
+    comingSoon: isComingSoon(club),
+    membersOnlyBlocked: isHsbBlocked(club, input.host),
+  });
 
   if (quote.comingSoon) {
     return {
@@ -228,9 +243,9 @@ export async function submitEstimateAction(
 
   // Party: guest_count is total heads; junior_guest_count the juniors. Members
   // shoot on dues but still occupy the party. Floor at 1 to satisfy the CHECK.
-  const totalHeads = intake.members + intake.guestAdults + intake.guestJuniors;
+  const totalHeads = selections.members + selections.guestAdults + selections.guestJuniors;
   const guestCount = Math.max(1, totalHeads);
-  const juniorGuestCount = Math.min(intake.guestJuniors, guestCount);
+  const juniorGuestCount = Math.min(selections.guestJuniors, guestCount);
 
   // Provisional slot — the concrete slot the guest picked in the WHEN calendar
   // when available, else the arrival hour. Not enforced while pending_review
@@ -255,7 +270,7 @@ export async function submitEstimateAction(
   // Non-pricing advisories — same module the form shows, so staff see exactly
   // the escalation the guest saw (plan §8). guests = non-member guests only.
   const advisories = computeBookingAdvisories({
-    guests: intake.guestAdults + intake.guestJuniors,
+    guests: selections.guestAdults + selections.guestJuniors,
     totalHead: totalHeads,
     arrival: input.arrival ?? "",
     date: input.preferredDate ?? "",
@@ -286,16 +301,15 @@ export async function submitEstimateAction(
   const staffNotes = staffNoteLines.join("\n");
 
   // Resolve experiences / add-ons to real catalog UUIDs for structure
-  // (booking_disciplines / booking_add_ons). Lossy + FK-safe by construction:
-  // only clean name matches against this property's live catalog wire up;
-  // everything else is omitted (plan §8). Prices are irrelevant here — the
-  // priced lines already ride on bid_line_items.
+  // (booking_disciplines / booking_add_ons). Experiences are service ids, so
+  // disciplines resolve 1:1; add-ons attach to a selected discipline that links
+  // them. Lossy + FK-safe by construction (plan §8) — the priced lines already
+  // ride on bid_line_items, so an unlinked add-on costs structure, not money.
   const { data: services } = await getPublicServicesForProperty(supabase, propertyId);
   const { disciplineIds, addOns } = resolveEstimateCatalog(
-    club,
     services ?? [],
-    input.experiences,
-    input.addons,
+    input.experienceIds,
+    input.addOnQuantities ?? {},
   );
 
   const result = await createPublicBooking({

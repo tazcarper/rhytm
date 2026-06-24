@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AdminBookingStatus } from "./bookings";
+import type { EstimatePricingKind } from "@/src/services/public/estimate-catalog";
 
 // =============================================================================
 // Types
@@ -14,6 +15,15 @@ export interface AdminCatalogService {
   isActive: boolean;
   displayOrder: number;
   imageUrl: string | null;
+  // Estimate catalog fields (migration 20260624144448). An experience row
+  // fully describes its own pricing strategy. Visibility on the estimate is
+  // just is_active — there is no separate show-on-estimate flag.
+  pricingKind: EstimatePricingKind;
+  membersOnly: boolean;
+  lessonLadder: number[] | null;
+  lessonCohortSize: number;
+  classPriceMember: number | null;
+  classPricePublic: number | null;
 }
 
 export interface AdminCatalogAddOn {
@@ -27,6 +37,9 @@ export interface AdminCatalogAddOn {
   imageUrl: string | null;
   includedDetail: string | null;
   maxQuantity: number;
+  // Members get the 20% retail discount on this add-on in the estimate
+  // (migration 20260624213201). Visibility is just is_active.
+  estimateMemberDiscount: boolean;
 }
 
 export interface AdminCatalogLink {
@@ -69,6 +82,12 @@ type ServiceRow = {
   is_active: boolean;
   display_order: number;
   image_url: string | null;
+  pricing_kind: EstimatePricingKind;
+  members_only: boolean;
+  lesson_ladder: Array<string | number> | null;
+  lesson_cohort_size: number;
+  class_price_member: string | number | null;
+  class_price_public: string | number | null;
 };
 
 type AddOnRow = {
@@ -82,9 +101,15 @@ type AddOnRow = {
   image_url: string | null;
   included_detail: string | null;
   max_quantity: number;
+  estimate_member_discount: boolean;
 };
 
 type LinkRow = { service_id: string; add_on_id: string };
+
+function parseNullableNumber(value: string | number | null): number | null {
+  if (value === null) return null;
+  return typeof value === "string" ? parseFloat(value) : value;
+}
 
 function rowToService(row: ServiceRow): AdminCatalogService {
   return {
@@ -95,6 +120,15 @@ function rowToService(row: ServiceRow): AdminCatalogService {
     isActive: row.is_active,
     displayOrder: row.display_order,
     imageUrl: row.image_url,
+    pricingKind: row.pricing_kind,
+    membersOnly: row.members_only,
+    lessonLadder:
+      row.lesson_ladder === null
+        ? null
+        : row.lesson_ladder.map((v) => (typeof v === "string" ? parseFloat(v) : v)),
+    lessonCohortSize: row.lesson_cohort_size,
+    classPriceMember: parseNullableNumber(row.class_price_member),
+    classPricePublic: parseNullableNumber(row.class_price_public),
   };
 }
 
@@ -110,6 +144,7 @@ function rowToAddOn(row: AddOnRow): AdminCatalogAddOn {
     imageUrl: row.image_url,
     includedDetail: row.included_detail,
     maxQuantity: row.max_quantity,
+    estimateMemberDiscount: row.estimate_member_discount,
   };
 }
 
@@ -118,9 +153,9 @@ function rowToAddOn(row: AddOnRow): AdminCatalogAddOn {
 // =============================================================================
 
 const SERVICE_COLUMNS =
-  "id, property_id, name, description, is_active, display_order, image_url";
+  "id, property_id, name, description, is_active, display_order, image_url, pricing_kind, members_only, lesson_ladder, lesson_cohort_size, class_price_member, class_price_public";
 const ADDON_COLUMNS =
-  "id, property_id, name, description, price, is_active, display_order, image_url, included_detail, max_quantity";
+  "id, property_id, name, description, price, is_active, display_order, image_url, included_detail, max_quantity, estimate_member_discount";
 
 export async function getPropertyCatalog(
   supabase: SupabaseClient,
@@ -456,6 +491,18 @@ export const CreateServiceInputSchema = z.object({
 export type CreateServiceInput = z.infer<typeof CreateServiceInputSchema>;
 export type CreateServiceRawInput = z.input<typeof CreateServiceInputSchema>;
 
+// Estimate experience pricing fields. Optional on update so the deactivate
+// paths (which only flip is_active) can omit them and preserve current values;
+// the experience editor sends the full set.
+const pricingKindSchema = z.enum([
+  "guest_fee_tier",
+  "lesson_ladder",
+  "class_per_person",
+  "quote",
+]);
+const ladderEntrySchema = z.coerce.number().min(0).max(100000);
+const classPriceSchema = z.coerce.number().min(0).max(100000).nullable();
+
 export const UpdateServiceInputSchema = z.object({
   serviceId: uuidSchema,
   propertyId: uuidSchema,
@@ -465,6 +512,12 @@ export const UpdateServiceInputSchema = z.object({
   imageUrl: imageUrlSchema,
   linkedAddOnIds: z.array(uuidSchema).max(200),
   newAddOns: z.array(newAddOnDraftSchema).max(50),
+  pricingKind: pricingKindSchema.optional(),
+  membersOnly: z.boolean().optional(),
+  lessonLadder: z.array(ladderEntrySchema).max(20).nullable().optional(),
+  lessonCohortSize: z.coerce.number().int().min(1).max(50).optional(),
+  classPriceMember: classPriceSchema.optional(),
+  classPricePublic: classPriceSchema.optional(),
 });
 export type UpdateServiceInput = z.infer<typeof UpdateServiceInputSchema>;
 export type UpdateServiceRawInput = z.input<typeof UpdateServiceInputSchema>;
@@ -489,6 +542,8 @@ export const UpdateAddOnInputSchema = z.object({
   imageUrl: imageUrlSchema,
   includedDetail: includedDetailSchema,
   maxQuantity: maxQuantitySchema,
+  // Optional so the deactivate paths (which omit it) preserve the current value.
+  estimateMemberDiscount: z.boolean().optional(),
 });
 export type UpdateAddOnInput = z.infer<typeof UpdateAddOnInputSchema>;
 export type UpdateAddOnRawInput = z.input<typeof UpdateAddOnInputSchema>;
@@ -532,15 +587,25 @@ export async function updateCatalogService(
   supabase: SupabaseClient,
   input: UpdateServiceInput,
 ): Promise<MutationResult> {
+  // Always-set fields; pricing fields only when the caller supplied them
+  // (deactivate paths omit them to preserve current pricing).
+  const serviceUpdateFields: Record<string, unknown> = {
+    name: input.name,
+    description: input.description,
+    is_active: input.isActive,
+    image_url: input.imageUrl,
+    updated_at: new Date().toISOString(),
+  };
+  if (input.pricingKind !== undefined) serviceUpdateFields.pricing_kind = input.pricingKind;
+  if (input.membersOnly !== undefined) serviceUpdateFields.members_only = input.membersOnly;
+  if (input.lessonLadder !== undefined) serviceUpdateFields.lesson_ladder = input.lessonLadder;
+  if (input.lessonCohortSize !== undefined) serviceUpdateFields.lesson_cohort_size = input.lessonCohortSize;
+  if (input.classPriceMember !== undefined) serviceUpdateFields.class_price_member = input.classPriceMember;
+  if (input.classPricePublic !== undefined) serviceUpdateFields.class_price_public = input.classPricePublic;
+
   const serviceUpdate = await supabase
     .from("services")
-    .update({
-      name: input.name,
-      description: input.description,
-      is_active: input.isActive,
-      image_url: input.imageUrl,
-      updated_at: new Date().toISOString(),
-    })
+    .update(serviceUpdateFields)
     .eq("id", input.serviceId);
   if (serviceUpdate.error) {
     return {
@@ -702,18 +767,25 @@ export async function updateCatalogAddOn(
   supabase: SupabaseClient,
   input: UpdateAddOnInput,
 ): Promise<MutationResult> {
+  const updateFields: Record<string, unknown> = {
+    name: input.name,
+    description: input.description,
+    price: input.price,
+    is_active: input.isActive,
+    image_url: input.imageUrl,
+    included_detail: input.includedDetail,
+    max_quantity: input.maxQuantity,
+    updated_at: new Date().toISOString(),
+  };
+  // Only touch the member-discount flag when the caller supplied it (deactivate
+  // paths omit it to preserve the current value).
+  if (input.estimateMemberDiscount !== undefined) {
+    updateFields.estimate_member_discount = input.estimateMemberDiscount;
+  }
+
   const { error } = await supabase
     .from("add_ons")
-    .update({
-      name: input.name,
-      description: input.description,
-      price: input.price,
-      is_active: input.isActive,
-      image_url: input.imageUrl,
-      included_detail: input.includedDetail,
-      max_quantity: input.maxQuantity,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updateFields)
     .eq("id", input.addOnId);
   if (error) {
     return { ok: false, error: `Couldn't save add-on: ${error.message}` };

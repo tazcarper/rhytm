@@ -178,11 +178,25 @@
 .textarea {
   width: 100%;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--paper-warm);
+  /* A clearly visible field outline — the page and the previous border tone
+     were nearly identical, so fields read as blank space. */
+  border: 1px solid var(--border-strong);
   background: var(--paper);
   border-radius: var(--radius-card);
   font: inherit;
   color: var(--charcoal);
+  box-shadow: inset 0 1px 2px rgba(63, 74, 33, 0.04);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: color-mix(in srgb, var(--charcoal-soft) 70%, transparent);
+}
+
+.input:hover:not(:disabled):not(:focus),
+.textarea:hover:not(:disabled):not(:focus) {
+  border-color: var(--olive);
 }
 
 .textarea {
@@ -196,11 +210,40 @@
   outline-offset: 1px;
 }
 
-.fieldLabel {
-  font-size: var(--text-caption);
+.input:disabled,
+.textarea:disabled {
+  background: var(--paper-warm);
   color: var(--charcoal-soft);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.fieldLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--charcoal);
   margin-bottom: 2px;
-  display: block;
+}
+
+/* A field kept for legacy data but no longer used — dimmed, with a tag. */
+.deprecatedField {
+  opacity: 0.6;
+}
+
+.deprecatedTag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--paper-warm);
+  color: var(--charcoal-soft);
+  font-size: var(--text-eyebrow);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .addFormActions {
@@ -368,6 +411,25 @@
   gap: var(--space-2);
 }
 
+/* Editor-form rhythm: fields sit apart (fieldStack) while each field keeps its
+   label, control, and help tight together (field) — so the eye groups
+   label+input+help as one unit instead of reading a uniform wall of lines. */
+.fieldStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.field > .help {
+  margin-top: 0;
+}
+
 .formGrid {
   display: grid;
   grid-template-columns: 1fr;
@@ -382,7 +444,10 @@
 
 .help {
   font-size: var(--text-caption);
+  line-height: 1.5;
   color: var(--charcoal-soft);
+  max-width: 62ch;
+  margin-top: calc(-1 * var(--space-1));
 }
 
 .stickyActions {

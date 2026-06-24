@@ -55,6 +55,22 @@ export function ServiceEditorForm({
   const [description, setDescription] = useState(service.description ?? "");
   const [isActive, setIsActive] = useState(service.isActive);
   const [imageUrl, setImageUrl] = useState(service.imageUrl ?? "");
+
+  // Estimate pricing fields.
+  const [pricingKind, setPricingKind] = useState(service.pricingKind);
+  const [membersOnly, setMembersOnly] = useState(service.membersOnly);
+  const [lessonLadderText, setLessonLadderText] = useState(
+    (service.lessonLadder ?? []).join(", "),
+  );
+  const [lessonCohortSize, setLessonCohortSize] = useState(
+    String(service.lessonCohortSize),
+  );
+  const [classPriceMember, setClassPriceMember] = useState(
+    service.classPriceMember === null ? "" : String(service.classPriceMember),
+  );
+  const [classPricePublic, setClassPricePublic] = useState(
+    service.classPricePublic === null ? "" : String(service.classPricePublic),
+  );
   const [linkedIds, setLinkedIds] = useState<Set<string>>(
     new Set(initialLinkedAddOnIds),
   );
@@ -152,6 +168,13 @@ export function ServiceEditorForm({
         price: draft.price,
       }));
 
+    const ladderValues = lessonLadderText
+      .split(",")
+      .map((part) => part.trim())
+      .filter((part) => part !== "")
+      .map(Number)
+      .filter((n) => !Number.isNaN(n));
+
     startTransition(async () => {
       const result = await updateServiceAction(
         { propertyId, propertySlug },
@@ -164,6 +187,12 @@ export function ServiceEditorForm({
           imageUrl: imageUrl.trim() || null,
           linkedAddOnIds: [...linkedIds],
           newAddOns: trimmedDrafts,
+          pricingKind,
+          membersOnly,
+          lessonLadder: ladderValues.length > 0 ? ladderValues : null,
+          lessonCohortSize: lessonCohortSize.trim() === "" ? 5 : Number(lessonCohortSize),
+          classPriceMember: classPriceMember.trim() === "" ? null : Number(classPriceMember),
+          classPricePublic: classPricePublic.trim() === "" ? null : Number(classPricePublic),
         },
       );
       if (!result.ok) {
@@ -292,6 +321,124 @@ export function ServiceEditorForm({
               style={{ width: 18, height: 18, accentColor: "var(--olive)" }}
             />
             <span>Active (appears in the public booking funnel)</span>
+          </label>
+        </div>
+      </Card>
+
+      <Card padding="loose" elevation="soft">
+        <h2 className={s.panelTitle} style={{ marginBottom: "var(--space-2)" }}>
+          Estimate pricing
+        </h2>
+        <p className={s.help} style={{ marginBottom: "var(--space-3)" }}>
+          How this experience is priced on the public Request-an-Estimate page.
+          It appears there whenever it&rsquo;s active — deactivate to hide it.
+        </p>
+        <div className={s.formGroup}>
+          <label className={s.formGroup}>
+            <span className={s.fieldLabel}>Pricing strategy</span>
+            <select
+              className={s.input}
+              value={pricingKind}
+              onChange={(e) =>
+                setPricingKind(e.target.value as typeof pricingKind)
+              }
+            >
+              <option value="guest_fee_tier">
+                Guest-fee tier (priced from the property guest-fee schedule)
+              </option>
+              <option value="lesson_ladder">Private lesson (per-student ladder)</option>
+              <option value="class_per_person">Class / clinic (per person)</option>
+              <option value="quote">Quote (&ldquo;we&rsquo;ll quote this&rdquo;)</option>
+            </select>
+          </label>
+
+          {pricingKind === "guest_fee_tier" && (
+            <p className={s.help}>
+              Priced from this property&rsquo;s guest-fee schedule (edit it on the
+              catalog page). Guests pay the tiered fee; members shoot on dues.
+            </p>
+          )}
+
+          {pricingKind === "lesson_ladder" && (
+            <>
+              <label className={s.formGroup}>
+                <span className={s.fieldLabel}>Per-student ladder (comma-separated $)</span>
+                <input
+                  className={s.input}
+                  value={lessonLadderText}
+                  onChange={(e) => setLessonLadderText(e.target.value)}
+                  placeholder="200, 100, 50, 50, 50"
+                />
+                <span className={s.help}>
+                  Hourly rate per student by slot position — the 1st student is
+                  the lead-slot rate, refilling each cohort. Multiplied by lesson
+                  length.
+                </span>
+              </label>
+              <label className={s.formGroup}>
+                <span className={s.fieldLabel}>Cohort size (students per instructor)</span>
+                <input
+                  className={s.input}
+                  type="number"
+                  min="1"
+                  max="50"
+                  step="1"
+                  inputMode="numeric"
+                  value={lessonCohortSize}
+                  onChange={(e) => setLessonCohortSize(e.target.value)}
+                />
+              </label>
+            </>
+          )}
+
+          {pricingKind === "class_per_person" && (
+            <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
+              <label className={s.formGroup} style={{ flex: 1, minWidth: 160 }}>
+                <span className={s.fieldLabel}>Member price / person (USD)</span>
+                <input
+                  className={s.input}
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  inputMode="decimal"
+                  value={classPriceMember}
+                  onChange={(e) => setClassPriceMember(e.target.value)}
+                  placeholder="0.00"
+                />
+              </label>
+              <label className={s.formGroup} style={{ flex: 1, minWidth: 160 }}>
+                <span className={s.fieldLabel}>Public price / person (USD)</span>
+                <input
+                  className={s.input}
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  inputMode="decimal"
+                  value={classPricePublic}
+                  onChange={(e) => setClassPricePublic(e.target.value)}
+                  placeholder="0.00"
+                />
+              </label>
+            </div>
+          )}
+
+          {pricingKind === "quote" && (
+            <p className={s.help}>
+              Shown as &ldquo;we&rsquo;ll quote this&rdquo; with no number — the
+              team prices it on the bid.
+            </p>
+          )}
+
+          <label
+            style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}
+          >
+            <input
+              type="checkbox"
+              checked={membersOnly}
+              onChange={(e) => setMembersOnly(e.target.checked)}
+              style={{ width: 18, height: 18, accentColor: "var(--olive)" }}
+            />
+            <span>Members only (locked for a non-member host)</span>
           </label>
         </div>
       </Card>
