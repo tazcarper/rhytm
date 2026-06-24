@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getPublicAdventures } from "@/src/services/public/adventures";
 import { getHomepageHero } from "@/src/services/public/homepage-hero";
@@ -8,7 +9,16 @@ import s from "./home.module.css";
 
 export const dynamic = "force-dynamic";
 
+// TEMPORARY: while we soft-launch the estimate flow, the homepage sends
+// everyone straight to /request-estimate. The full marketing homepage below
+// is intact — flip this to false to bring it back.
+const REDIRECT_HOME_TO_REQUEST = true;
+
 export default async function Home() {
+  if (REDIRECT_HOME_TO_REQUEST) {
+    redirect("/request-estimate");
+  }
+
   const supabase = await createServerSupabaseClient();
   const [{ data: adventures, error }, hero] = await Promise.all([
     getPublicAdventures(supabase),
