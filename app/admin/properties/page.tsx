@@ -1,57 +1,39 @@
+import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { Alert, Heading, PageShell, Text } from "@/lib/ui";
-import { AdminBreadcrumb } from "@/src/components/admin/admin-breadcrumb";
-import {
-  getAdminPropertiesList,
-  type AdminProperty,
-} from "@/src/services/admin/properties";
-import { PropertiesWorkspace } from "@/src/components/admin/properties-workspace";
-import s from "./properties-page.module.css";
+import { Alert } from "@/lib/ui";
+import { getAdminPropertiesList } from "@/src/services/admin/properties";
 
 export const dynamic = "force-dynamic";
 
+// The index has no UI of its own — it sends you straight into the first
+// property's workspace. The shared header + rail come from the layout.
 export default async function AdminPropertiesPage() {
   const supabase = await createServerSupabaseClient();
 
-  let properties: AdminProperty[] = [];
+  let firstPropertyId: string | null = null;
   let loadError: string | null = null;
   try {
-    properties = await getAdminPropertiesList(supabase);
+    const properties = await getAdminPropertiesList(supabase);
+    firstPropertyId = properties[0]?.id ?? null;
   } catch (err) {
     loadError = err instanceof Error ? err.message : "Failed to load properties";
   }
 
+  if (firstPropertyId) {
+    redirect(`/admin/properties/${firstPropertyId}`);
+  }
+
+  if (loadError) {
+    return (
+      <Alert variant="error" title="Could not load properties">
+        {loadError}
+      </Alert>
+    );
+  }
+
   return (
-    <PageShell width="xl">
-      <div className={s.header}>
-        <AdminBreadcrumb
-          segments={[
-            { label: "Admin", href: "/admin" },
-            { label: "Properties" },
-          ]}
-        />
-        <Heading level={1} size="h2" underline>
-          Property Settings
-        </Heading>
-        <Text variant="lead" className={s.lead}>
-          Pick a property, then edit its booking rules, public info, and pre-visit details. Changes
-          save per property and apply immediately.
-        </Text>
-      </div>
-
-      {loadError && (
-        <Alert variant="error" title="Could not load properties">
-          {loadError}
-        </Alert>
-      )}
-
-      {properties.length === 0 && !loadError && (
-        <Alert variant="warn" title="No properties found">
-          Seed the properties table to see the settings.
-        </Alert>
-      )}
-
-      {properties.length > 0 && <PropertiesWorkspace properties={properties} />}
-    </PageShell>
+    <Alert variant="warn" title="No properties found">
+      Seed the properties table to see the settings.
+    </Alert>
   );
 }

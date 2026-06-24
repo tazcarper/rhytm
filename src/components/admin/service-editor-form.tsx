@@ -31,6 +31,12 @@ interface ServiceEditorFormProps {
   availableAddOns: ReadonlyArray<AdminCatalogAddOn>;
   /** IDs of add-ons currently linked to this service. */
   initialLinkedAddOnIds: ReadonlyArray<string>;
+  /**
+   * When rendered inside the workspace drawer, close it after a delete /
+   * deactivate (and refresh in place) instead of navigating to the old
+   * standalone catalog page.
+   */
+  onClose?: () => void;
 }
 
 interface NewAddOnDraftRow {
@@ -45,6 +51,7 @@ export function ServiceEditorForm({
   service,
   availableAddOns,
   initialLinkedAddOnIds,
+  onClose,
 }: ServiceEditorFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -104,15 +111,24 @@ export function ServiceEditorForm({
     if (fileRef.current) fileRef.current.value = "";
   };
 
+  // Drawer mode closes in place + refreshes; standalone falls back to the
+  // catalog page (kept for any non-drawer caller).
+  const afterRemoval = () => {
+    if (onClose) {
+      onClose();
+      router.refresh();
+    } else {
+      router.push(`/admin/properties/${propertyId}/catalog`);
+      router.refresh();
+    }
+  };
+
   const handleDelete = async () => {
     const result = await deleteServiceAction(
       { propertyId, propertySlug },
       service.id,
     );
-    if (result.ok) {
-      router.push(`/admin/properties/${propertyId}/catalog`);
-      router.refresh();
-    }
+    if (result.ok) afterRemoval();
     return result;
   };
 
@@ -130,10 +146,7 @@ export function ServiceEditorForm({
         newAddOns: [],
       },
     );
-    if (result.ok) {
-      router.push(`/admin/properties/${propertyId}/catalog`);
-      router.refresh();
-    }
+    if (result.ok) afterRemoval();
     return result;
   };
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition, type FormEvent, type ReactNode } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Card } from "@/lib/ui";
 import { updateAdminPropertyAction } from "@/app/admin/properties/actions";
@@ -72,9 +71,6 @@ export function PropertySettingsForm({ property }: PropertySettingsFormProps) {
     <Card padding="loose" elevation="soft">
       <div className={p.formHead}>
         <h2 className={p.formTitle}>{property.name}</h2>
-        <Button asChild variant="primary" size="md">
-          <Link href={`/admin/properties/${property.id}/catalog`}>Manage catalog →</Link>
-        </Button>
       </div>
 
       <form onSubmit={handleSubmit}>

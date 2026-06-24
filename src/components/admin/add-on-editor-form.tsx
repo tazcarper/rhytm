@@ -22,12 +22,19 @@ interface AddOnEditorFormProps {
   propertyId: string;
   propertySlug: string;
   addOn: AdminCatalogAddOn;
+  /**
+   * When rendered inside the workspace drawer, close it after a delete /
+   * deactivate (and refresh in place) instead of navigating to the old
+   * standalone catalog page.
+   */
+  onClose?: () => void;
 }
 
 export function AddOnEditorForm({
   propertyId,
   propertySlug,
   addOn,
+  onClose,
 }: AddOnEditorFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -73,15 +80,24 @@ export function AddOnEditorForm({
     if (fileRef.current) fileRef.current.value = "";
   };
 
+  // Drawer mode closes in place + refreshes; standalone falls back to the
+  // catalog page (kept for any non-drawer caller).
+  const afterRemoval = () => {
+    if (onClose) {
+      onClose();
+      router.refresh();
+    } else {
+      router.push(`/admin/properties/${propertyId}/catalog`);
+      router.refresh();
+    }
+  };
+
   const handleDelete = async () => {
     const result = await deleteAddOnAction(
       { propertyId, propertySlug },
       addOn.id,
     );
-    if (result.ok) {
-      router.push(`/admin/properties/${propertyId}/catalog`);
-      router.refresh();
-    }
+    if (result.ok) afterRemoval();
     return result;
   };
 
@@ -99,10 +115,7 @@ export function AddOnEditorForm({
         maxQuantity: addOn.maxQuantity,
       },
     );
-    if (result.ok) {
-      router.push(`/admin/properties/${propertyId}/catalog`);
-      router.refresh();
-    }
+    if (result.ok) afterRemoval();
     return result;
   };
 

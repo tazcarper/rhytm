@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button, Card } from "@/lib/ui";
 import {
@@ -29,6 +28,8 @@ interface CatalogServicesPanelProps {
   services: ReadonlyArray<AdminCatalogService>;
   /** All current service↔add-on links — used so a deactivate save can preserve the linked set. */
   links: ReadonlyArray<AdminCatalogLink>;
+  /** Open the inline editor drawer for a service (handled by the workspace). */
+  onEditItem: (serviceId: string) => void;
 }
 
 export function CatalogServicesPanel({
@@ -36,6 +37,7 @@ export function CatalogServicesPanel({
   propertySlug,
   services,
   links,
+  onEditItem,
 }: CatalogServicesPanelProps) {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -181,7 +183,7 @@ export function CatalogServicesPanel({
               isFirst={index === 0}
               isLast={index === sortedActive.length - 1}
               reorderBusy={reorderBusy}
-              propertyId={propertyId}
+              onEdit={() => onEditItem(service.id)}
               onMoveUp={() => handleMove(service.id, "up")}
               onMoveDown={() => handleMove(service.id, "down")}
               onDeactivate={() => setDeactivateTarget(service)}
@@ -198,7 +200,7 @@ export function CatalogServicesPanel({
                   isFirst
                   isLast
                   reorderBusy
-                  propertyId={propertyId}
+                  onEdit={() => onEditItem(service.id)}
                   onMoveUp={() => {}}
                   onMoveDown={() => {}}
                   onDeactivate={() => {}}
@@ -281,7 +283,7 @@ interface ServiceRowProps {
   isFirst: boolean;
   isLast: boolean;
   reorderBusy: boolean;
-  propertyId: string;
+  onEdit: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
   onDeactivate: () => void;
@@ -293,7 +295,7 @@ function ServiceRow({
   isFirst,
   isLast,
   reorderBusy,
-  propertyId,
+  onEdit,
   onMoveUp,
   onMoveDown,
   onDeactivate,
@@ -337,12 +339,8 @@ function ServiceRow({
         {!service.isActive && (
           <span className={s.inactiveBadge}>Inactive</span>
         )}
-        <Button asChild variant="secondary" size="sm">
-          <Link
-            href={`/admin/properties/${propertyId}/catalog/services/${service.id}/edit`}
-          >
-            Edit
-          </Link>
+        <Button variant="secondary" size="sm" onClick={onEdit}>
+          Edit
         </Button>
         {service.isActive ? (
           <Button variant="secondary" size="sm" onClick={onDeactivate}>

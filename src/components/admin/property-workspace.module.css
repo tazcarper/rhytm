@@ -1,0 +1,54 @@
+/* Single-page property workspace: a section sub-nav (Basics / Experiences /
+   Add-ons / Catering / Guest fees) above the active section's panel. Switching
+   sections is client-only (the URL updates via the History API), so this is a
+   plain tab bar — one section visible at a time at every width. */
+
+.workspace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+}
+
+.sectionNav {
+  display: flex;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--space-4);
+  /* Scroll the tabs horizontally before they wrap on narrow screens. */
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.sectionTab {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  font-weight: 500;
+  color: var(--olive);
+  background: var(--paper-warm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: var(--space-2) var(--space-5);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+.sectionTab:hover {
+  background: var(--cream);
+}
+.sectionTabActive,
+.sectionTabActive:hover {
+  background: var(--olive);
+  color: var(--cream);
+  border-color: var(--olive);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button, Card } from "@/lib/ui";
 import {
@@ -27,6 +26,8 @@ interface CatalogAddOnsPanelProps {
   links: ReadonlyArray<AdminCatalogLink>;
   /** Active services at the property — used to populate the "Available for" checklist in the create form. */
   services: ReadonlyArray<AdminCatalogService>;
+  /** Open the inline editor drawer for an add-on (handled by the workspace). */
+  onEditItem: (addOnId: string) => void;
 }
 
 export function CatalogAddOnsPanel({
@@ -35,6 +36,7 @@ export function CatalogAddOnsPanel({
   addOns,
   links,
   services,
+  onEditItem,
 }: CatalogAddOnsPanelProps) {
   const activeServices = services
     .filter((service) => service.isActive)
@@ -225,7 +227,7 @@ export function CatalogAddOnsPanel({
               isFirst={index === 0}
               isLast={index === sortedActive.length - 1}
               reorderBusy={reorderBusy}
-              propertyId={propertyId}
+              onEdit={() => onEditItem(addOn.id)}
               onMoveUp={() => handleMove(addOn.id, "up")}
               onMoveDown={() => handleMove(addOn.id, "down")}
               onDeactivate={() => setDeactivateTarget(addOn)}
@@ -243,7 +245,7 @@ export function CatalogAddOnsPanel({
                   isFirst
                   isLast
                   reorderBusy
-                  propertyId={propertyId}
+                  onEdit={() => onEditItem(addOn.id)}
                   onMoveUp={() => {}}
                   onMoveDown={() => {}}
                   onDeactivate={() => {}}
@@ -396,7 +398,7 @@ interface AddOnRowProps {
   isFirst: boolean;
   isLast: boolean;
   reorderBusy: boolean;
-  propertyId: string;
+  onEdit: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
   onDeactivate: () => void;
@@ -409,7 +411,7 @@ function AddOnRow({
   isFirst,
   isLast,
   reorderBusy,
-  propertyId,
+  onEdit,
   onMoveUp,
   onMoveDown,
   onDeactivate,
@@ -469,12 +471,8 @@ function AddOnRow({
       </div>
       <div className={s.actionsCol}>
         {!addOn.isActive && <span className={s.inactiveBadge}>Inactive</span>}
-        <Button asChild variant="secondary" size="sm">
-          <Link
-            href={`/admin/properties/${propertyId}/catalog/add-ons/${addOn.id}/edit`}
-          >
-            Edit
-          </Link>
+        <Button variant="secondary" size="sm" onClick={onEdit}>
+          Edit
         </Button>
         {addOn.isActive ? (
           <Button variant="secondary" size="sm" onClick={onDeactivate}>
