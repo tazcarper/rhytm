@@ -457,18 +457,33 @@ This is presentation-only and can ship independently of the backend/pricing work
   host-intent/backup-date/internal-notes/advisories are **deferred to Phase C** (only the guest's own
   note is persisted, since `guest_notes` is guest-visible).
 
-**Phase C — Catalog wiring + advisories** (see §8)
+**Phase C — Catalog wiring + advisories** (see §8) — ✅ DONE
 - **Add the `staff_notes` / `schedule_notes` column(s) to `bookings`** (migration) — the destination
   for the deferred Phase B fields. Then carry into them: host intent + "verify membership", the
-  backup date, staff internal/phone notes, and the advisory flags below. (Until this lands those
-  fields are collected by the form but not stored.)
-- In `estimate-intake.tsx`, resolve experiences/add-ons to DB UUIDs for
-  `booking_disciplines`/`booking_add_ons`; audit + seed the `services` / `add_ons` / `service_add_ons`
-  rows each needs (incl. catering as an add-on). Omit any item that can't be cleanly mapped rather
-  than risk an FK failure.
+  backup date, staff internal/phone notes, and the advisory flags below. *(Done: migration
+  `20260623235211_estimate_booking_staff_notes.sql`; both columns are staff-only — excluded from the
+  get-bid customer-safe projection so they never reach the guest. `createPublicBooking` stamps them
+  post-insert alongside attribution; the RPC signature is unchanged. **Must be pushed before submits
+  persist them — the stamp is non-fatal if the column is absent.**)*
+- Resolve experiences/add-ons to DB UUIDs for `booking_disciplines`/`booking_add_ons`. *(Done, but
+  **server-side in the submit action**, not in `estimate-intake.tsx` — no client-sent UUIDs to tamper
+  with, single round-trip. New pure resolver `src/services/estimates/resolve-estimate-catalog.ts`
+  matches BY NAME against `getPublicServicesForProperty`.)*
+  - **Did NOT seed new catalog rows.** The seeded catalog is placeholder and only partly overlaps the
+    estimate experiences, so per the "omit rather than FK-fail" rule the resolver is **intentionally
+    lossy**: only `clays`→Sporting Clays (HSB+HH), `pistol`→Pistol Bays (HSB), `ammo`→Ammunition Pack,
+    `cart`→Drink Cart wire up. `lesson`/`class`/`event`/`facility`, HH `pistol`, `gear`, and `catering`
+    have **no catalog row and are omitted** (priced on `bid_line_items` regardless). **Fuller structure
+    needs real catalog seeding** — a content task (ideally via the admin dashboard, not a speculative
+    seed migration). Extend the maps in the resolver when that catalog lands; nothing else changes.
 - **Extract advisories** (RSO, instructor escalation, 9+ Private Event/72-hr, heat) into a shared
   `booking-advisories` module; wire the form to it and carry the flags into `staff_notes`/`schedule_notes`.
+  *(Done: `src/services/public/booking-advisories.ts`; `rules.ts computeEstimate` now delegates, so the
+  form and the submit action derive identical flags.)*
 - Light parity check (§8): carried pre-discount total == displayed total; advisory module == prior output.
+  *(Advisory logic is a verbatim move; resolver FK-safety confirmed against the live catalog.)*
+- **Still open for Phase D:** surface `staff_notes`/`schedule_notes` in the admin bid detail so staff
+  actually read the advisories/host-intent (this phase only persists them).
 
 **Phase C2 — Sticky right column** (see §9) — form UX polish; independent of the backend work.
 
