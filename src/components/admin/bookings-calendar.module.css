@@ -162,12 +162,14 @@
 }
 
 .calendar .selected {
-  box-shadow: inset 0 0 0 2px var(--olive-deep);
-  border-color: var(--olive-deep);
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 0 0 3px var(--accent-success);
+  border-color: var(--accent-success);
 }
 
 .calendar .today.selected {
-  box-shadow: 0 0 0 2px var(--olive), inset 0 0 0 2px var(--olive-deep);
+  box-shadow: 0 0 0 3px var(--accent-success);
 }
 
 .calendar .past {

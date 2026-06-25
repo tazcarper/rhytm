@@ -78,9 +78,22 @@
 }
 
 .block {
+  /* Column layout for overlapping bookings: --col / --cols are set inline by
+     DaySchedule; non-overlapping blocks get cols=1 and span the full band. */
+  --col: 0;
+  --cols: 1;
+  --block-gutter: 4px;
+  --area-left: calc(56px + 4px);
+  --area-right: var(--space-2);
+  --area-width: calc(100% - var(--area-left) - var(--area-right));
   position: absolute;
-  left: calc(56px + 4px);
-  right: var(--space-2);
+  left: calc(
+    var(--area-left) +
+      (var(--area-width) + var(--block-gutter)) / var(--cols) * var(--col)
+  );
+  width: calc(
+    (var(--area-width) + var(--block-gutter)) / var(--cols) - var(--block-gutter)
+  );
   top: var(--top, 0);
   height: var(--block-height, 56px);
   border-radius: var(--radius-card);
@@ -117,6 +130,32 @@
 .block_neutral {
   background: var(--paper-warm);
   border-left: 4px solid var(--border-strong);
+}
+
+/* Pending (provisional, not yet confirmed): a hatched fill + dashed outline so
+   it reads as "held, not locked" against the solid confirmed blocks — and
+   visibly accounts for the gap between the schedule and the calendar count,
+   which excludes pending. Overrides the property color variant. */
+.block.pending {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--paper-warm),
+    var(--paper-warm) 7px,
+    var(--paper) 7px,
+    var(--paper) 14px
+  );
+  border: 1px dashed var(--border-strong);
+  border-left: 4px dashed var(--gray);
+}
+
+.pendingTag {
+  margin-left: 6px;
+  padding: 0 6px;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  color: var(--olive-deep);
+  vertical-align: middle;
 }
 
 .blockTime {

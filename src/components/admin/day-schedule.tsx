@@ -19,9 +19,14 @@ export interface ScheduleBlock {
   guestCount: number;
   bookingType: AdminBookingType;
   href: string;
+  /** A provisional slot not yet locked in (booking status pending_review).
+      Rendered distinctly so it reads apart from confirmed events — and so the
+      schedule reconciles with the calendar count, which excludes pending. */
+  pending: boolean;
 }
 
-/** Dashboard bid rows → blocks: the row id *is* the bid id. */
+/** Dashboard bid rows → blocks: the row id *is* the bid id. Dashboard already
+    scopes to confirmed bids, so nothing here is pending. */
 export function bidRowToScheduleBlock(row: AdminBidListRow): ScheduleBlock {
   return {
     id: row.id,
@@ -31,6 +36,7 @@ export function bidRowToScheduleBlock(row: AdminBidListRow): ScheduleBlock {
     guestCount: row.guestCount,
     bookingType: row.bookingType,
     href: `/admin/bids/${row.id}`,
+    pending: false,
   };
 }
 
@@ -45,6 +51,7 @@ export function bookingRowToScheduleBlock(row: AdminBookingListRow): ScheduleBlo
     guestCount: row.guestCount,
     bookingType: row.bookingType,
     href: row.bidId ? `/admin/bids/${row.bidId}` : `/admin/bookings/${row.id}`,
+    pending: row.status === "pending_review",
   };
 }
 
@@ -106,6 +113,65 @@ const BOOKING_TYPE_SHORT: Record<AdminBookingType, string> = {
   host_an_occasion: "Occasion",
 };
 
+/** A block plus the time-band layout the timeline needs to place it. */
+interface PlacedBlock {
+  row: ScheduleBlock;
+  start: number;
+  end: number;
+  /** 0-based column within its overlap cluster. */
+  column: number;
+  /** Total columns in its overlap cluster (so all share one width). */
+  columns: number;
+}
+
+/**
+ * Side-by-side layout for overlapping blocks. Greedy interval-graph coloring:
+ * blocks are swept by start time into clusters of mutual overlap; within a
+ * cluster each block takes the first free column, and every block in the
+ * cluster is told the cluster's column count so they render at equal width.
+ * Non-overlapping blocks stay full width (columns === 1).
+ */
+function layoutBlocks(
+  rows: ReadonlyArray<ScheduleBlock>,
+  tz: string,
+): PlacedBlock[] {
+  const placed: PlacedBlock[] = rows
+    .map((row) => {
+      const start = hourInTz(row.startTime, tz);
+      return { row, start, end: start + row.durationHours, column: 0, columns: 1 };
+    })
+    .sort((a, b) => a.start - b.start || a.end - b.end);
+
+  let cluster: PlacedBlock[] = [];
+  let clusterEnd = -Infinity;
+  // Per-column running end time; reset at each cluster boundary.
+  const columnEnds: number[] = [];
+
+  const closeCluster = () => {
+    for (const block of cluster) block.columns = columnEnds.length;
+    cluster = [];
+    columnEnds.length = 0;
+  };
+
+  for (const block of placed) {
+    if (block.start >= clusterEnd) closeCluster();
+
+    let column = columnEnds.findIndex((end) => end <= block.start);
+    if (column === -1) {
+      column = columnEnds.length;
+      columnEnds.push(block.end);
+    } else {
+      columnEnds[column] = block.end;
+    }
+    block.column = column;
+    cluster.push(block);
+    clusterEnd = Math.max(clusterEnd, block.end);
+  }
+  closeCluster();
+
+  return placed;
+}
+
 export function DaySchedule({
   propertyName,
   propertySlug,
@@ -139,13 +205,18 @@ export function DaySchedule({
   }
 
   const blockVariant = SLUG_TO_BLOCK[propertySlug] ?? "block_neutral";
+  const placed = layoutBlocks(rows, tz);
+  const pendingCount = rows.reduce((count, row) => count + (row.pending ? 1 : 0), 0);
+  const confirmedCount = rows.length - pendingCount;
 
   return (
     <div className={s.wrap}>
       <div className={s.head}>
         <PropertyPill name={propertyName} slug={propertySlug} withDot />
         <span className={s.headCount}>
-          {rows.length} {rows.length === 1 ? "booking" : "bookings"}
+          {pendingCount > 0
+            ? `${confirmedCount} confirmed · ${pendingCount} pending`
+            : `${rows.length} ${rows.length === 1 ? "booking" : "bookings"}`}
         </span>
       </div>
       <div
@@ -176,8 +247,7 @@ export function DaySchedule({
           />
         )}
         {rows.length === 0 && <p className={s.empty}>Nothing scheduled.</p>}
-        {rows.map((row) => {
-          const start = hourInTz(row.startTime, tz);
+        {placed.map(({ row, start, column, columns }) => {
           const top = (start - earliest) * HOUR_HEIGHT;
           const height = Math.max(
             row.durationHours * HOUR_HEIGHT - 4,
@@ -192,14 +262,18 @@ export function DaySchedule({
                 s.block,
                 s[blockVariant] ?? s.block_neutral,
                 isShort && s.short,
+                row.pending && s.pending,
               )}
               style={{
                 ["--top" as string]: `${top}px`,
                 ["--block-height" as string]: `${height}px`,
+                ["--col" as string]: column,
+                ["--cols" as string]: columns,
               }}
             >
               <span className={s.blockTime}>
                 {formatRangeLabel(start, row.durationHours)}
+                {row.pending && <span className={s.pendingTag}>Pending</span>}
               </span>
               <span className={s.blockGuest}>{row.guestName}</span>
               <span className={s.blockMeta}>
