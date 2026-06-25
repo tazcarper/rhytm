@@ -16,6 +16,7 @@ import type {
 } from "@/src/services/admin/catalog";
 import { formatMoney } from "@/src/services/public/format";
 import { DeactivateConfirm } from "./deactivate-confirm";
+import { AdminModal } from "./admin-modal";
 import s from "./catalog.module.css";
 
 interface CatalogAddOnsPanelProps {
@@ -91,6 +92,10 @@ export function CatalogAddOnsPanel({
     setDraftPrice("");
     setDraftLinkedServiceIds(new Set(activeServices.map((service) => service.id)));
     setCreateError(null);
+  };
+  const cancelAdd = () => {
+    setShowAdd(false);
+    resetDraft();
   };
   const [reorderBusy, setReorderBusy] = useState(false);
   const [deactivateTarget, setDeactivateTarget] =
@@ -262,44 +267,70 @@ export function CatalogAddOnsPanel({
           and check the box next to it.
         </p>
 
-        {showAdd && (
-          <div className={s.addBlock}>
-            <div className={s.addForm}>
-              <label>
-                <span className={s.fieldLabel}>Name</span>
-                <input
-                  className={s.input}
-                  value={draftName}
-                  onChange={(e) => setDraftName(e.target.value)}
-                  placeholder="e.g. Ammunition (box of 25)"
-                  autoFocus
-                />
-              </label>
-              <label>
-                <span className={s.fieldLabel}>Description (optional)</span>
-                <textarea
-                  className={s.textarea}
-                  value={draftDesc}
-                  onChange={(e) => setDraftDesc(e.target.value)}
-                  rows={2}
-                />
-              </label>
-              <label>
-                <span className={s.fieldLabel}>Price (USD)</span>
-                <input
-                  className={s.input}
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  inputMode="decimal"
-                  value={draftPrice}
-                  onChange={(e) => setDraftPrice(e.target.value)}
-                  placeholder="0.00"
-                />
-              </label>
+      </Card>
 
-              <div>
-                <span className={s.fieldLabel}>Available for</span>
+      {showAdd && (
+        <AdminModal
+          title="Add add-on"
+          size="md"
+          onClose={cancelAdd}
+          footer={
+            <>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={cancelAdd}
+                disabled={createBusy}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleCreate}
+                loading={createBusy}
+                disabled={!draftName.trim() || !draftPrice || createBusy}
+              >
+                Create
+              </Button>
+            </>
+          }
+        >
+          <label className={s.field}>
+            <span className={s.fieldLabel}>Name</span>
+            <input
+              className={s.input}
+              value={draftName}
+              onChange={(e) => setDraftName(e.target.value)}
+              placeholder="e.g. Ammunition (box of 25)"
+              autoFocus
+            />
+          </label>
+          <label className={s.field}>
+            <span className={s.fieldLabel}>Description (optional)</span>
+            <textarea
+              className={s.textarea}
+              value={draftDesc}
+              onChange={(e) => setDraftDesc(e.target.value)}
+              rows={2}
+            />
+          </label>
+          <label className={s.field}>
+            <span className={s.fieldLabel}>Price (USD)</span>
+            <input
+              className={s.input}
+              type="number"
+              min="0"
+              step="0.01"
+              inputMode="decimal"
+              value={draftPrice}
+              onChange={(e) => setDraftPrice(e.target.value)}
+              placeholder="0.00"
+            />
+          </label>
+
+          <div>
+            <span className={s.fieldLabel}>Available for</span>
                 {activeServices.length === 0 ? (
                   <p className={s.help}>
                     No active services at this property yet. Create one first
@@ -349,35 +380,11 @@ export function CatalogAddOnsPanel({
                 )}
               </div>
 
-              {createError && (
-                <span className={s.inlineError}>{createError}</span>
-              )}
-              <div className={s.addFormActions}>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => {
-                    setShowAdd(false);
-                    resetDraft();
-                  }}
-                  disabled={createBusy}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={handleCreate}
-                  loading={createBusy}
-                  disabled={!draftName.trim() || !draftPrice || createBusy}
-                >
-                  Create
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-      </Card>
+          {createError && (
+            <span className={s.inlineError}>{createError}</span>
+          )}
+        </AdminModal>
+      )}
 
       {deactivateTarget && (
         <DeactivateConfirm

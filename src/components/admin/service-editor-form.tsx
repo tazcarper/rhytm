@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Card } from "@/lib/ui";
 import {
+  createServiceAction,
   deleteServiceAction,
   listAllBookingsForServiceAction,
   updateServiceAction,
@@ -26,16 +27,15 @@ const SERVICE_IMAGE_MAX_EDGE = 2000;
 interface ServiceEditorFormProps {
   propertyId: string;
   propertySlug: string;
-  service: AdminCatalogService;
-  /** All add-ons available at this property (active only — see editor page). */
+  /** Omit to render the form in create mode (a brand-new experience). */
+  service?: AdminCatalogService;
+  /** All add-ons available at this property (active only). */
   availableAddOns: ReadonlyArray<AdminCatalogAddOn>;
-  /** IDs of add-ons currently linked to this service. */
-  initialLinkedAddOnIds: ReadonlyArray<string>;
-  /**
-   * When rendered inside the workspace drawer, close it after a delete /
-   * deactivate (and refresh in place) instead of navigating to the old
-   * standalone catalog page.
-   */
+  /** IDs of add-ons currently linked to this service (edit mode). */
+  initialLinkedAddOnIds?: ReadonlyArray<string>;
+  /** Display order for a newly created experience (append to the end). */
+  createDisplayOrder?: number;
+  /** Close the surrounding modal after save / create / delete. */
   onClose?: () => void;
 }
 
@@ -50,33 +50,37 @@ export function ServiceEditorForm({
   propertySlug,
   service,
   availableAddOns,
-  initialLinkedAddOnIds,
+  initialLinkedAddOnIds = [],
+  createDisplayOrder = 0,
   onClose,
 }: ServiceEditorFormProps) {
+  const isCreate = service === undefined;
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
 
-  const [name, setName] = useState(service.name);
-  const [description, setDescription] = useState(service.description ?? "");
-  const [isActive, setIsActive] = useState(service.isActive);
-  const [imageUrl, setImageUrl] = useState(service.imageUrl ?? "");
+  const [name, setName] = useState(service?.name ?? "");
+  const [description, setDescription] = useState(service?.description ?? "");
+  const [isActive, setIsActive] = useState(service?.isActive ?? true);
+  const [imageUrl, setImageUrl] = useState(service?.imageUrl ?? "");
 
   // Estimate pricing fields.
-  const [pricingKind, setPricingKind] = useState(service.pricingKind);
-  const [membersOnly, setMembersOnly] = useState(service.membersOnly);
+  const [pricingKind, setPricingKind] = useState(
+    service?.pricingKind ?? "guest_fee_tier",
+  );
+  const [membersOnly, setMembersOnly] = useState(service?.membersOnly ?? false);
   const [lessonLadderText, setLessonLadderText] = useState(
-    (service.lessonLadder ?? []).join(", "),
+    (service?.lessonLadder ?? []).join(", "),
   );
   const [lessonCohortSize, setLessonCohortSize] = useState(
-    String(service.lessonCohortSize),
+    String(service?.lessonCohortSize ?? 5),
   );
   const [classPriceMember, setClassPriceMember] = useState(
-    service.classPriceMember === null ? "" : String(service.classPriceMember),
+    service?.classPriceMember == null ? "" : String(service.classPriceMember),
   );
   const [classPricePublic, setClassPricePublic] = useState(
-    service.classPricePublic === null ? "" : String(service.classPricePublic),
+    service?.classPricePublic == null ? "" : String(service.classPricePublic),
   );
   const [linkedIds, setLinkedIds] = useState<Set<string>>(
     new Set(initialLinkedAddOnIds),
@@ -111,19 +115,14 @@ export function ServiceEditorForm({
     if (fileRef.current) fileRef.current.value = "";
   };
 
-  // Drawer mode closes in place + refreshes; standalone falls back to the
-  // catalog page (kept for any non-drawer caller).
+  // Close the surrounding modal + refresh after a delete / deactivate.
   const afterRemoval = () => {
-    if (onClose) {
-      onClose();
-      router.refresh();
-    } else {
-      router.push(`/admin/properties/${propertyId}/catalog`);
-      router.refresh();
-    }
+    onClose?.();
+    router.refresh();
   };
 
   const handleDelete = async () => {
+    if (!service) return { ok: false, error: "Nothing to delete." };
     const result = await deleteServiceAction(
       { propertyId, propertySlug },
       service.id,
@@ -133,6 +132,7 @@ export function ServiceEditorForm({
   };
 
   const handleDeactivateFallback = async () => {
+    if (!service) return { ok: false, error: "Nothing to deactivate." };
     const result = await updateServiceAction(
       { propertyId, propertySlug },
       {
@@ -188,7 +188,41 @@ export function ServiceEditorForm({
       .map(Number)
       .filter((n) => !Number.isNaN(n));
 
+    // Pricing payload is identical for create and update.
+    const pricing = {
+      pricingKind,
+      membersOnly,
+      lessonLadder: ladderValues.length > 0 ? ladderValues : null,
+      lessonCohortSize: lessonCohortSize.trim() === "" ? 5 : Number(lessonCohortSize),
+      classPriceMember: classPriceMember.trim() === "" ? null : Number(classPriceMember),
+      classPricePublic: classPricePublic.trim() === "" ? null : Number(classPricePublic),
+    };
+
     startTransition(async () => {
+      if (!service) {
+        const result = await createServiceAction(
+          { propertyId, propertySlug },
+          {
+            propertyId,
+            name,
+            description: description.trim() || null,
+            displayOrder: createDisplayOrder,
+            isActive,
+            imageUrl: imageUrl.trim() || null,
+            linkedAddOnIds: [...linkedIds],
+            newAddOns: trimmedDrafts,
+            ...pricing,
+          },
+        );
+        if (!result.ok) {
+          setError(result.error ?? "Could not create.");
+          return;
+        }
+        onClose?.();
+        router.refresh();
+        return;
+      }
+
       const result = await updateServiceAction(
         { propertyId, propertySlug },
         {
@@ -200,12 +234,7 @@ export function ServiceEditorForm({
           imageUrl: imageUrl.trim() || null,
           linkedAddOnIds: [...linkedIds],
           newAddOns: trimmedDrafts,
-          pricingKind,
-          membersOnly,
-          lessonLadder: ladderValues.length > 0 ? ladderValues : null,
-          lessonCohortSize: lessonCohortSize.trim() === "" ? 5 : Number(lessonCohortSize),
-          classPriceMember: classPriceMember.trim() === "" ? null : Number(classPriceMember),
-          classPricePublic: classPricePublic.trim() === "" ? null : Number(classPricePublic),
+          ...pricing,
         },
       );
       if (!result.ok) {
@@ -246,7 +275,7 @@ export function ServiceEditorForm({
             />
           </label>
           <label className={s.formGroup}>
-            <span className={s.fieldLabel}>Description (markdown supported)</span>
+            <span className={s.fieldLabel}>Description (optional, markdown supported)</span>
             <textarea
               className={s.textarea}
               value={description}
@@ -259,7 +288,7 @@ export function ServiceEditorForm({
           </label>
 
           <div className={s.formGroup}>
-            <span className={s.fieldLabel}>Card photo</span>
+            <span className={s.fieldLabel}>Card photo (optional)</span>
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap" }}>
               <input
                 ref={fileRef}
@@ -368,7 +397,7 @@ export function ServiceEditorForm({
           {pricingKind === "guest_fee_tier" && (
             <p className={s.help}>
               Priced from this property&rsquo;s guest-fee schedule (edit it on the
-              catalog page). Guests pay the tiered fee; members shoot on dues.
+              Guest fees tab). Guests pay the tiered fee; members shoot on dues.
             </p>
           )}
 
@@ -557,46 +586,55 @@ export function ServiceEditorForm({
         </div>
       </Card>
 
-      <div className={s.stickyActions}>
-        <Button
-          asChild
-          variant="secondary"
-          disabled={isPending}
-        >
-          <a href={`/admin/properties/${propertyId}/catalog`}>Cancel</a>
-        </Button>
-        <Button type="submit" variant="primary" loading={isPending}>
-          {isPending ? "Saving…" : "Save"}
-        </Button>
-      </div>
+      {!isCreate && service && (
+        <Card padding="loose" elevation="soft">
+          <h2
+            className={s.panelTitle}
+            style={{ marginBottom: "var(--space-2)", color: "var(--accent-error)" }}
+          >
+            WARNING
+          </h2>
+          <p className={s.help} style={{ marginBottom: "var(--space-3)" }}>
+            Permanently remove this service. If any booking ever referenced it,
+            delete is blocked at the database level — you&rsquo;ll be offered
+            deactivate as a fallback. Prefer deactivate in normal operation;
+            delete is for cleaning up mistakes.
+          </p>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setShowDelete(true)}
+            style={{
+              color: "var(--accent-error)",
+              borderColor: "var(--accent-error)",
+            }}
+          >
+            Delete service…
+          </Button>
+        </Card>
+      )}
 
-      <Card padding="loose" elevation="soft">
-        <h2
-          className={s.panelTitle}
-          style={{ marginBottom: "var(--space-2)", color: "var(--accent-error)" }}
-        >
-          WARNING
-        </h2>
-        <p className={s.help} style={{ marginBottom: "var(--space-3)" }}>
-          Permanently remove this service. If any booking ever referenced it,
-          delete is blocked at the database level — you&rsquo;ll be offered
-          deactivate as a fallback. Prefer deactivate in normal operation;
-          delete is for cleaning up mistakes.
-        </p>
+      <div className={s.stickyActions}>
         <Button
           type="button"
           variant="secondary"
-          onClick={() => setShowDelete(true)}
-          style={{
-            color: "var(--accent-error)",
-            borderColor: "var(--accent-error)",
-          }}
+          onClick={() => onClose?.()}
+          disabled={isPending}
         >
-          Delete service…
+          Cancel
         </Button>
-      </Card>
+        <Button type="submit" variant="primary" loading={isPending}>
+          {isPending
+            ? isCreate
+              ? "Creating…"
+              : "Saving…"
+            : isCreate
+              ? "Create experience"
+              : "Save"}
+        </Button>
+      </div>
 
-      {showDelete && (
+      {showDelete && service && (
         <DeleteCatalogItemConfirm
           noun="service"
           itemName={service.name}

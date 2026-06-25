@@ -482,18 +482,9 @@ const newAddOnDraftSchema = z.object({
 });
 export type NewAddOnDraft = z.infer<typeof newAddOnDraftSchema>;
 
-export const CreateServiceInputSchema = z.object({
-  propertyId: uuidSchema,
-  name: nameSchema,
-  description: descriptionSchema,
-  displayOrder: displayOrderSchema.default(0),
-});
-export type CreateServiceInput = z.infer<typeof CreateServiceInputSchema>;
-export type CreateServiceRawInput = z.input<typeof CreateServiceInputSchema>;
-
-// Estimate experience pricing fields. Optional on update so the deactivate
+// Estimate experience pricing fields. Optional everywhere so the deactivate
 // paths (which only flip is_active) can omit them and preserve current values;
-// the experience editor sends the full set.
+// the experience editor and the create form both send the full set.
 const pricingKindSchema = z.enum([
   "guest_fee_tier",
   "lesson_ladder",
@@ -502,6 +493,30 @@ const pricingKindSchema = z.enum([
 ]);
 const ladderEntrySchema = z.coerce.number().min(0).max(100000);
 const classPriceSchema = z.coerce.number().min(0).max(100000).nullable();
+const servicePricingFields = {
+  pricingKind: pricingKindSchema.optional(),
+  membersOnly: z.boolean().optional(),
+  lessonLadder: z.array(ladderEntrySchema).max(20).nullable().optional(),
+  lessonCohortSize: z.coerce.number().int().min(1).max(50).optional(),
+  classPriceMember: classPriceSchema.optional(),
+  classPricePublic: classPriceSchema.optional(),
+} as const;
+
+export const CreateServiceInputSchema = z.object({
+  propertyId: uuidSchema,
+  name: nameSchema,
+  description: descriptionSchema,
+  displayOrder: displayOrderSchema.default(0),
+  // Optional so a bare create still works; the shared experience form sends the
+  // full set so create reaches parity with edit.
+  isActive: z.boolean().optional(),
+  imageUrl: imageUrlSchema.optional(),
+  linkedAddOnIds: z.array(uuidSchema).max(200).default([]),
+  newAddOns: z.array(newAddOnDraftSchema).max(50).default([]),
+  ...servicePricingFields,
+});
+export type CreateServiceInput = z.infer<typeof CreateServiceInputSchema>;
+export type CreateServiceRawInput = z.input<typeof CreateServiceInputSchema>;
 
 export const UpdateServiceInputSchema = z.object({
   serviceId: uuidSchema,
@@ -512,12 +527,7 @@ export const UpdateServiceInputSchema = z.object({
   imageUrl: imageUrlSchema,
   linkedAddOnIds: z.array(uuidSchema).max(200),
   newAddOns: z.array(newAddOnDraftSchema).max(50),
-  pricingKind: pricingKindSchema.optional(),
-  membersOnly: z.boolean().optional(),
-  lessonLadder: z.array(ladderEntrySchema).max(20).nullable().optional(),
-  lessonCohortSize: z.coerce.number().int().min(1).max(50).optional(),
-  classPriceMember: classPriceSchema.optional(),
-  classPricePublic: classPriceSchema.optional(),
+  ...servicePricingFields,
 });
 export type UpdateServiceInput = z.infer<typeof UpdateServiceInputSchema>;
 export type UpdateServiceRawInput = z.input<typeof UpdateServiceInputSchema>;
@@ -567,20 +577,46 @@ export async function createCatalogService(
   supabase: SupabaseClient,
   input: CreateServiceInput,
 ): Promise<{ ok: true; service: AdminCatalogService } | { ok: false; error: string }> {
+  // Pricing fields are only written when supplied; otherwise the row falls back
+  // to the table defaults (mirrors updateCatalogService).
+  const insertFields: Record<string, unknown> = {
+    property_id: input.propertyId,
+    name: input.name,
+    description: input.description,
+    display_order: input.displayOrder,
+  };
+  if (input.isActive !== undefined) insertFields.is_active = input.isActive;
+  if (input.imageUrl !== undefined) insertFields.image_url = input.imageUrl;
+  if (input.pricingKind !== undefined) insertFields.pricing_kind = input.pricingKind;
+  if (input.membersOnly !== undefined) insertFields.members_only = input.membersOnly;
+  if (input.lessonLadder !== undefined) insertFields.lesson_ladder = input.lessonLadder;
+  if (input.lessonCohortSize !== undefined) insertFields.lesson_cohort_size = input.lessonCohortSize;
+  if (input.classPriceMember !== undefined) insertFields.class_price_member = input.classPriceMember;
+  if (input.classPricePublic !== undefined) insertFields.class_price_public = input.classPricePublic;
+
   const { data, error } = await supabase
     .from("services")
-    .insert({
-      property_id: input.propertyId,
-      name: input.name,
-      description: input.description,
-      display_order: input.displayOrder,
-    })
+    .insert(insertFields)
     .select(SERVICE_COLUMNS)
     .single();
   if (error) {
     return { ok: false, error: `Couldn't create service: ${error.message}` };
   }
-  return { ok: true, service: rowToService(data as ServiceRow) };
+  const service = rowToService(data as ServiceRow);
+
+  if (input.linkedAddOnIds.length > 0 || input.newAddOns.length > 0) {
+    const linkResult = await syncServiceAddOns(supabase, {
+      serviceId: service.id,
+      propertyId: input.propertyId,
+      linkedAddOnIds: input.linkedAddOnIds,
+      newAddOns: input.newAddOns,
+    });
+    if (!linkResult.ok) {
+      return { ok: false, error: linkResult.error ?? "Couldn't link add-ons." };
+    }
+  }
+
+  return { ok: true, service };
 }
 
 export async function updateCatalogService(
@@ -614,6 +650,26 @@ export async function updateCatalogService(
     };
   }
 
+  return syncServiceAddOns(supabase, {
+    serviceId: input.serviceId,
+    propertyId: input.propertyId,
+    linkedAddOnIds: input.linkedAddOnIds,
+    newAddOns: input.newAddOns,
+  });
+}
+
+// Reconcile a service's add-on links to exactly `linkedAddOnIds`, first creating
+// any inline `newAddOns` (property-wide) and linking those too. Shared by create
+// and update so both reach the same end state from an empty or existing set.
+async function syncServiceAddOns(
+  supabase: SupabaseClient,
+  input: {
+    serviceId: string;
+    propertyId: string;
+    linkedAddOnIds: ReadonlyArray<string>;
+    newAddOns: ReadonlyArray<NewAddOnDraft>;
+  },
+): Promise<MutationResult> {
   let linkedIds = [...new Set(input.linkedAddOnIds)];
 
   if (input.newAddOns.length > 0) {

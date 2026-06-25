@@ -11,6 +11,7 @@ import {
 } from "@/app/admin/properties/[id]/catalog/actions";
 import type { AdminCateringOption } from "@/src/services/admin/catering";
 import { formatMoney } from "@/src/services/public/format";
+import { AdminModal } from "./admin-modal";
 import s from "./catalog.module.css";
 
 interface CatalogCateringPanelProps {
@@ -48,6 +49,10 @@ export function CatalogCateringPanel({
     setVendor("");
     setPrice("");
     setCreateError(null);
+  };
+  const cancelAdd = () => {
+    setShowAdd(false);
+    resetDraft();
   };
 
   const handleCreate = async () => {
@@ -88,6 +93,7 @@ export function CatalogCateringPanel({
   };
 
   return (
+    <>
     <Card padding="loose" elevation="soft" className={s.panel}>
       <div className={s.panelHead}>
         <div className={s.panelHeadText}>
@@ -132,50 +138,19 @@ export function CatalogCateringPanel({
         ))}
       </div>
 
+    </Card>
+
       {showAdd && (
-        <div className={s.addBlock}>
-          <div className={s.addForm}>
-            <label>
-              <span className={s.fieldLabel}>Tier</span>
-              <input
-                className={s.input}
-                value={tier}
-                onChange={(e) => setTier(e.target.value)}
-                placeholder="Good / Better / Best"
-                autoFocus
-              />
-            </label>
-            <label>
-              <span className={s.fieldLabel}>Vendor</span>
-              <input
-                className={s.input}
-                value={vendor}
-                onChange={(e) => setVendor(e.target.value)}
-                placeholder="e.g. The Salt Lick BBQ"
-              />
-            </label>
-            <label>
-              <span className={s.fieldLabel}>Price per head (USD)</span>
-              <input
-                className={s.input}
-                type="number"
-                min="0"
-                step="0.01"
-                inputMode="decimal"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="0.00"
-              />
-            </label>
-            {createError && <span className={s.inlineError}>{createError}</span>}
-            <div className={s.addFormActions}>
+        <AdminModal
+          title="Add catering option"
+          size="md"
+          onClose={cancelAdd}
+          footer={
+            <>
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => {
-                  setShowAdd(false);
-                  resetDraft();
-                }}
+                onClick={cancelAdd}
                 disabled={createBusy}
               >
                 Cancel
@@ -189,11 +164,45 @@ export function CatalogCateringPanel({
               >
                 Create
               </Button>
-            </div>
-          </div>
-        </div>
+            </>
+          }
+        >
+          <label className={s.field}>
+            <span className={s.fieldLabel}>Tier</span>
+            <input
+              className={s.input}
+              value={tier}
+              onChange={(e) => setTier(e.target.value)}
+              placeholder="Good / Better / Best"
+              autoFocus
+            />
+          </label>
+          <label className={s.field}>
+            <span className={s.fieldLabel}>Vendor</span>
+            <input
+              className={s.input}
+              value={vendor}
+              onChange={(e) => setVendor(e.target.value)}
+              placeholder="e.g. The Salt Lick BBQ"
+            />
+          </label>
+          <label className={s.field}>
+            <span className={s.fieldLabel}>Price per head (USD)</span>
+            <input
+              className={s.input}
+              type="number"
+              min="0"
+              step="0.01"
+              inputMode="decimal"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="0.00"
+            />
+          </label>
+          {createError && <span className={s.inlineError}>{createError}</span>}
+        </AdminModal>
       )}
-    </Card>
+    </>
   );
 }
 

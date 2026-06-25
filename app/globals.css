@@ -21,6 +21,9 @@
   --border: rgba(63, 74, 33, 0.15);
   --border-strong: rgba(63, 74, 33, 0.28);
 
+  /* Overlay scrim behind modals / drawers — a tint of --olive (#3f4a21) */
+  --scrim: rgba(63, 74, 33, 0.6);
+
   /* Semantic accents */
   --accent-error: #8b3030;
   --accent-warn: #8c5e0f;

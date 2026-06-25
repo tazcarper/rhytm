@@ -18,7 +18,7 @@ import { CatalogServicesPanel } from "./catalog-services-panel";
 import { CatalogAddOnsPanel } from "./catalog-add-ons-panel";
 import { CatalogCateringPanel } from "./catalog-catering-panel";
 import { EstimateGuestFeesEditor } from "./estimate-guest-fees-editor";
-import { CatalogItemDrawer } from "./catalog-item-drawer";
+import { AdminModal } from "./admin-modal";
 import { ServiceEditorForm } from "./service-editor-form";
 import { AddOnEditorForm } from "./add-on-editor-form";
 import w from "./property-workspace.module.css";
@@ -89,12 +89,14 @@ export function PropertyWorkspace({
   const openItem = (next: string) => navigate(section, next);
   const closeDrawer = () => navigate(section, null);
 
+  // `itemId === "new"` is the create sentinel (deep-linkable at /<section>/new).
+  const creatingService = section === "experiences" && itemId === "new";
   const openService =
-    section === "experiences" && itemId
+    section === "experiences" && itemId && itemId !== "new"
       ? catalog.services.find((service) => service.id === itemId)
       : undefined;
   const openAddOn =
-    section === "add-ons" && itemId
+    section === "add-ons" && itemId && itemId !== "new"
       ? catalog.addOns.find((addOn) => addOn.id === itemId)
       : undefined;
 
@@ -138,6 +140,7 @@ export function PropertyWorkspace({
             services={catalog.services}
             links={catalog.links}
             onEditItem={openItem}
+            onAddItem={() => openItem("new")}
           />
         )}
 
@@ -169,8 +172,20 @@ export function PropertyWorkspace({
         )}
       </div>
 
+      {creatingService && (
+        <AdminModal title="Add experience" size="lg" onClose={closeDrawer}>
+          <ServiceEditorForm
+            propertyId={property.id}
+            propertySlug={property.slug}
+            availableAddOns={activeAddOns}
+            createDisplayOrder={catalog.services.length}
+            onClose={closeDrawer}
+          />
+        </AdminModal>
+      )}
+
       {openService && (
-        <CatalogItemDrawer title="Edit experience" onClose={closeDrawer}>
+        <AdminModal title="Edit experience" size="lg" onClose={closeDrawer}>
           <ServiceEditorForm
             key={openService.id}
             propertyId={property.id}
@@ -180,11 +195,11 @@ export function PropertyWorkspace({
             initialLinkedAddOnIds={linkedAddOnIds}
             onClose={closeDrawer}
           />
-        </CatalogItemDrawer>
+        </AdminModal>
       )}
 
       {openAddOn && (
-        <CatalogItemDrawer title="Edit add-on" onClose={closeDrawer}>
+        <AdminModal title="Edit add-on" size="lg" onClose={closeDrawer}>
           <AddOnEditorForm
             key={openAddOn.id}
             propertyId={property.id}
@@ -192,7 +207,7 @@ export function PropertyWorkspace({
             addOn={openAddOn}
             onClose={closeDrawer}
           />
-        </CatalogItemDrawer>
+        </AdminModal>
       )}
     </div>
   );

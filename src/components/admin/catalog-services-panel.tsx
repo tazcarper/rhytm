@@ -4,7 +4,6 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card } from "@/lib/ui";
 import {
-  createServiceAction,
   reorderServicesAction,
   updateServiceAction,
   listActiveBookingsForServiceAction,
@@ -28,8 +27,10 @@ interface CatalogServicesPanelProps {
   services: ReadonlyArray<AdminCatalogService>;
   /** All current service↔add-on links — used so a deactivate save can preserve the linked set. */
   links: ReadonlyArray<AdminCatalogLink>;
-  /** Open the inline editor drawer for a service (handled by the workspace). */
+  /** Open the editor modal for a service (handled by the workspace). */
   onEditItem: (serviceId: string) => void;
+  /** Open the create-experience modal (handled by the workspace). */
+  onAddItem: () => void;
 }
 
 export function CatalogServicesPanel({
@@ -38,15 +39,11 @@ export function CatalogServicesPanel({
   services,
   links,
   onEditItem,
+  onAddItem,
 }: CatalogServicesPanelProps) {
   const router = useRouter();
   const [, startTransition] = useTransition();
 
-  const [showAdd, setShowAdd] = useState(false);
-  const [draftName, setDraftName] = useState("");
-  const [draftDesc, setDraftDesc] = useState("");
-  const [createBusy, setCreateBusy] = useState(false);
-  const [createError, setCreateError] = useState<string | null>(null);
   const [reorderBusy, setReorderBusy] = useState(false);
   const [deactivateTarget, setDeactivateTarget] =
     useState<AdminCatalogService | null>(null);
@@ -64,26 +61,6 @@ export function CatalogServicesPanel({
     .sort((a, b) => a.name.localeCompare(b.name));
 
   const ctx = { propertyId, propertySlug };
-
-  const handleCreate = async () => {
-    setCreateError(null);
-    setCreateBusy(true);
-    const result = await createServiceAction(ctx, {
-      propertyId,
-      name: draftName,
-      description: draftDesc || null,
-      displayOrder: sortedActive.length,
-    });
-    setCreateBusy(false);
-    if (!result.ok) {
-      setCreateError(result.error);
-      return;
-    }
-    setDraftName("");
-    setDraftDesc("");
-    setShowAdd(false);
-    startTransition(() => router.refresh());
-  };
 
   const handleMove = async (serviceId: string, direction: "up" | "down") => {
     const index = sortedActive.findIndex((service) => service.id === serviceId);
@@ -160,15 +137,9 @@ export function CatalogServicesPanel({
               pricing and which add-ons attach to it.
             </p>
           </div>
-          {!showAdd && (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setShowAdd(true)}
-            >
-              + Add experience
-            </Button>
-          )}
+          <Button variant="primary" size="sm" onClick={onAddItem}>
+            + Add experience
+          </Button>
         </div>
 
         <div className={s.list}>
@@ -210,59 +181,6 @@ export function CatalogServicesPanel({
             </>
           )}
         </div>
-
-        {showAdd && (
-          <div className={s.addBlock}>
-            <div className={s.addForm}>
-              <label>
-                <span className={s.fieldLabel}>Name</span>
-                <input
-                  className={s.input}
-                  value={draftName}
-                  onChange={(e) => setDraftName(e.target.value)}
-                  placeholder="e.g. Sporting Clays"
-                  autoFocus
-                />
-              </label>
-              <label>
-                <span className={s.fieldLabel}>Description (optional)</span>
-                <textarea
-                  className={s.textarea}
-                  value={draftDesc}
-                  onChange={(e) => setDraftDesc(e.target.value)}
-                  rows={2}
-                />
-              </label>
-              {createError && (
-                <span className={s.inlineError}>{createError}</span>
-              )}
-              <div className={s.addFormActions}>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => {
-                    setShowAdd(false);
-                    setDraftName("");
-                    setDraftDesc("");
-                    setCreateError(null);
-                  }}
-                  disabled={createBusy}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={handleCreate}
-                  loading={createBusy}
-                  disabled={!draftName.trim() || createBusy}
-                >
-                  Create
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
       </Card>
 
       {deactivateTarget && (
