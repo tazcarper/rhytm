@@ -336,15 +336,6 @@ export function AddOnEditorForm({
         </div>
       </Card>
 
-      <div className={s.stickyActions}>
-        <Button asChild variant="secondary" disabled={isPending}>
-          <a href={`/admin/properties/${propertyId}/catalog`}>Cancel</a>
-        </Button>
-        <Button type="submit" variant="primary" loading={isPending}>
-          {isPending ? "Saving…" : "Save"}
-        </Button>
-      </div>
-
       <Card padding="loose" elevation="soft">
         <h2
           className={s.panelTitle}
@@ -370,6 +361,20 @@ export function AddOnEditorForm({
           Delete add-on…
         </Button>
       </Card>
+
+      <div className={s.stickyActions}>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => onClose?.()}
+          disabled={isPending}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" variant="primary" loading={isPending}>
+          {isPending ? "Saving…" : "Save"}
+        </Button>
+      </div>
 
       {showDelete && (
         <DeleteCatalogItemConfirm
