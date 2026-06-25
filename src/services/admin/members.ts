@@ -461,6 +461,7 @@ async function loadMemberBookings(
     `,
     )
     .eq("member_user_id", memberUserId)
+    .is("deleted_at", null)
     .order("start_time", { ascending: false });
 
   if (error) {

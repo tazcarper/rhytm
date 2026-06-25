@@ -275,6 +275,7 @@ export async function getBidDetail(
       `,
     )
     .eq("id", bidRow.booking_id)
+    .is("deleted_at", null)
     .single<BookingJoinedRow>();
 
   // Bid exists but its booking/property doesn't (FK race, soft-delete,

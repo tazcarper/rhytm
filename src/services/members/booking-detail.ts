@@ -217,6 +217,7 @@ export async function getMyBookingDetail(
     .from("bookings")
     .select(BOOKING_DETAIL_SELECT)
     .eq("id", bookingId)
+    .is("deleted_at", null)
     .maybeSingle();
 
   if (error) {

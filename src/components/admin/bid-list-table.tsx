@@ -10,6 +10,7 @@ import {
 import type { AdminBidListRow } from "@/src/services/admin/bids";
 import { BidStatusBadge } from "./bid-status-badge";
 import { BidProgress } from "./bid-progress";
+import { BidRestoreButton } from "./bid-delete-controls";
 import { PropertyPill } from "./property-pill";
 import s from "./queue-list.module.css";
 
@@ -137,9 +138,13 @@ export function BidListTable({ rows }: { rows: ReadonlyArray<AdminBidListRow> })
                 </td>
                 <td className={s.createdAt}>{formatRelative(row.createdAt)}</td>
                 <td>
-                  <Link href={`/admin/bids/${row.id}`} className={s.viewLink}>
-                    View →
-                  </Link>
+                  {row.deletedAt ? (
+                    <BidRestoreButton bidId={row.id} bookingId={row.bookingId} />
+                  ) : (
+                    <Link href={`/admin/bids/${row.id}`} className={s.viewLink}>
+                      View →
+                    </Link>
+                  )}
                 </td>
               </tr>
             );

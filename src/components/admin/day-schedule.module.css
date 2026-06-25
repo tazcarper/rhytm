@@ -9,13 +9,41 @@
   justify-content: space-between;
   align-items: baseline;
   padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
 }
 
 .headCount {
   font-family: var(--sans);
   font-size: var(--text-micro);
   color: var(--gray);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A zero-count column gets a quieter count so a busy property reads first. */
+.headCountEmpty {
+  font-style: italic;
+  color: var(--gray-light);
+}
+
+/* Collapsed stand-in for a day with no bookings — far less dead space than a
+   full empty hourly grid. Dashed frame distinguishes "nothing here" from the
+   solid grid of a real schedule. */
+.emptyDay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 92px;
+  padding: var(--space-4);
+  background: var(--paper);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-card);
+}
+
+.emptyDayText {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  font-style: italic;
+  color: var(--gray-light);
 }
 
 .grid {
@@ -46,6 +74,18 @@
   pointer-events: none;
 }
 
+/* Vertical hairline separating the time gutter from the event canvas — gives
+   the grid an anchored left edge instead of labels floating in space. */
+.gutterRule {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 56px;
+  width: 1px;
+  background: var(--border);
+  pointer-events: none;
+}
+
 .hourLine {
   position: absolute;
   left: 56px;
@@ -60,7 +100,7 @@
   left: 56px;
   right: 0;
   height: 0;
-  border-top: 2px solid #dc2626;
+  border-top: 2px solid var(--accent-error);
   top: var(--top, 0);
   z-index: 1;
   pointer-events: none;
@@ -74,7 +114,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #dc2626;
+  background: var(--accent-error);
 }
 
 .block {
@@ -185,16 +225,4 @@
    name doesn't collide with the bottom edge. */
 .block.short .blockMeta {
   display: none;
-}
-
-.empty {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-style: italic;
-  color: var(--gray-light);
-  font-size: var(--text-micro);
-  pointer-events: none;
 }

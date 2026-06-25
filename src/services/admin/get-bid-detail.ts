@@ -75,6 +75,11 @@ export interface AdminBidDetail {
     dropboxSignEnvelopeId: string | null;
     createdAt: string;
     updatedAt: string;
+    // Soft-delete timestamp. Non-null = this bid + its booking are hidden
+    // everywhere and the slot is released; the detail page shows a "Deleted"
+    // banner with a Restore action. The detail query deliberately does NOT
+    // filter on this so an admin can still open and restore a deleted bid.
+    deletedAt: string | null;
   };
   booking: {
     id: string;
@@ -191,6 +196,7 @@ type AdminBidJoinedRow = {
   dropbox_sign_envelope_id: string | null;
   created_at: string;
   updated_at: string;
+  deleted_at: string | null;
   // One-to-one embed (bid_id is UNIQUE) -> PostgREST returns an object,
   // not an array.
   waiver_documents: { pdf_sha256: string; signed_name: string } | null;
@@ -252,7 +258,7 @@ export async function getAdminBidDetail(
       quote_note, staff_notes, denial_reason, refund_amount, refund_payment_intent_id,
       expires_at, signed_at, paid_at, cancelled_at,
       dropbox_sign_envelope_id,
-      created_at, updated_at,
+      created_at, updated_at, deleted_at,
       waiver_documents ( pdf_sha256, signed_name ),
       bookings (
         id, booking_type, status, start_time, end_time, duration_hours,
@@ -351,6 +357,7 @@ export async function getAdminBidDetail(
       dropboxSignEnvelopeId: data.dropbox_sign_envelope_id,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
+      deletedAt: data.deleted_at,
     },
     booking: {
       id: booking.id,

@@ -31,6 +31,11 @@ import {
   type AvailableAddOn,
 } from "@/src/components/admin/bid-add-ons-editor";
 import { RefundDepositButton } from "@/src/components/admin/refund-deposit-button";
+import {
+  BidDeleteButton,
+  BidRestoreButton,
+} from "@/src/components/admin/bid-delete-controls";
+import { canManageTeam } from "@/lib/auth/portal";
 import { PropertyPill } from "@/src/components/admin/property-pill";
 import { MarkdownProse } from "@/src/components/shared/markdown";
 import s from "@/src/components/admin/bid-detail.module.css";
@@ -111,6 +116,10 @@ export default async function AdminBidDetail({
   const viewerRole =
     (userData.user?.app_metadata as { role?: string } | undefined)?.role ?? null;
   const canWaive = canWaiveBid(viewerRole, bid.status);
+  // Delete / restore are super_admin + admin only (matches the RPC's is_admin
+  // gate). Hidden for everyone else; the action re-checks regardless.
+  const canDelete = canManageTeam(viewerRole);
+  const isDeleted = bid.deletedAt !== null;
 
   const origin = siteOriginFromHeaders(await headers());
   const { url: bidUrl } = await getBidUrlForAdmin(supabase, bid.id, origin);
@@ -198,6 +207,21 @@ export default async function AdminBidDetail({
           </p>
         </div>
       </div>
+
+      {isDeleted && (
+        <div className={s.deletedBanner}>
+          <div>
+            <p className={s.deletedTitle}>This bid is deleted</p>
+            <p className={s.deletedBody}>
+              It&rsquo;s hidden from the dashboard and the guest&rsquo;s bid link,
+              and its time slot is free for rebooking. The record is preserved.
+            </p>
+          </div>
+          {canDelete && (
+            <BidRestoreButton bidId={bid.id} bookingId={booking.id} />
+          )}
+        </div>
+      )}
 
       {/* Walk-in waiver quick actions — surfaced up top since staff reach for
           the QR most when a party arrives. */}
@@ -442,6 +466,9 @@ export default async function AdminBidDetail({
                     amountPaid={booking.amountPaid}
                   />
                 )}
+              {canDelete && !isDeleted && (
+                <BidDeleteButton bidId={bid.id} bookingId={booking.id} />
+              )}
             </div>
           </Card>
 

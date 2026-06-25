@@ -109,7 +109,10 @@ export async function getAdminBookingsList(
       { count: "exact" },
     )
     .order("start_time", { ascending: true })
-    .range(rangeFrom, rangeTo);
+    .range(rangeFrom, rangeTo)
+    // Soft-deleted bookings are gone from the schedule (list + calendar both
+    // read through here). They're recoverable from the bids "Deleted" view.
+    .is("deleted_at", null);
 
   if (filters.status) {
     query = query.eq("status", filters.status);

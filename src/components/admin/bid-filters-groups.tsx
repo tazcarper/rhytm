@@ -30,17 +30,27 @@ const ACTIVE_REFINE: ReadonlyArray<{
 ];
 
 export function BidFiltersGroups({ current, basePath }: BidFiltersGroupsProps) {
-  const noGroupSelected = !current.statusGroup;
+  const noGroupSelected = !current.statusGroup && !current.onlyDeleted;
 
   // Every group change resets the exact-status sub-refine and pagination,
-  // so each bucket opens clean.
+  // so each bucket opens clean. Leaving the Deleted view also clears it.
   function groupHref(statusGroup: AdminBidListFilters["statusGroup"]): string {
     return buildBidsHref(basePath, current, {
       statusGroup,
       status: undefined,
+      onlyDeleted: undefined,
       page: undefined,
     });
   }
+
+  // The Deleted view is orthogonal to the workflow groups: it clears the
+  // group/status refine and lists only soft-deleted bids (each restorable).
+  const deletedHref = buildBidsHref(basePath, current, {
+    statusGroup: undefined,
+    status: undefined,
+    onlyDeleted: true,
+    page: undefined,
+  });
 
   return (
     <div className={s.layoutStack}>
@@ -57,12 +67,20 @@ export function BidFiltersGroups({ current, basePath }: BidFiltersGroupsProps) {
             href={groupHref(group.key)}
             className={cn(
               s.pill,
-              current.statusGroup === group.key && s.pillActive,
+              !current.onlyDeleted &&
+                current.statusGroup === group.key &&
+                s.pillActive,
             )}
           >
             {group.label}
           </Link>
         ))}
+        <Link
+          href={deletedHref}
+          className={cn(s.pill, current.onlyDeleted && s.pillActive)}
+        >
+          Deleted
+        </Link>
       </div>
 
       {current.statusGroup === "active" && (

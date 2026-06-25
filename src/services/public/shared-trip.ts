@@ -86,6 +86,7 @@ export async function getSharedTrip(
     .from("bookings")
     .select(SHARED_TRIP_SELECT)
     .eq("share_token", token)
+    .is("deleted_at", null)
     .maybeSingle();
 
   if (error || !data) return null;

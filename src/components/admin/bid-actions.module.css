@@ -78,3 +78,17 @@
   outline: 2px solid var(--olive);
   outline-offset: 1px;
 }
+
+/* Destructive trigger: a secondary button tinted toward the error accent so
+   Delete reads as distinct from the neutral actions next to it, without
+   shouting like a filled red button. */
+.dangerTrigger {
+  color: var(--accent-error);
+  border-color: color-mix(in srgb, var(--accent-error) 35%, var(--border));
+}
+
+.restore {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}

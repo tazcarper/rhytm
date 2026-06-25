@@ -56,6 +56,7 @@ export async function getStaleUnsignedBidsByProperty(
     .eq("status", "confirmed")
     .not("confirmed_at", "is", null)
     .lte("confirmed_at", cutoffIso)
+    .is("deleted_at", null)
     .order("confirmed_at", { ascending: true });
 
   if (error) {

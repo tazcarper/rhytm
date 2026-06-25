@@ -87,6 +87,7 @@ export async function getEventGameplan(
       `,
     )
     .eq("id", bookingId)
+    .is("deleted_at", null)
     .maybeSingle<GameplanRow>();
 
   if (error) {

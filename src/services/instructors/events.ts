@@ -56,6 +56,7 @@ export async function getMyUpcomingEvents(
     )
     .gte("start_time", nowIso)
     .in("status", [...CONFIRMED_UPCOMING_STATUSES])
+    .is("deleted_at", null)
     .order("start_time", { ascending: true });
 
   if (error) {

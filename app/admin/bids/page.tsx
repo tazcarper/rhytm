@@ -44,6 +44,7 @@ function parseFilters(params: RawSearchParams): AdminBidListFilters {
   const from = first(params.from) || undefined;
   const to = first(params.to) || undefined;
   const searchTerm = first(params.q)?.trim() || undefined;
+  const onlyDeleted = first(params.deleted) === "1";
   const pageValue = first(params.page);
   const page = pageValue ? Math.max(0, parseInt(pageValue, 10) || 0) : 0;
 
@@ -54,6 +55,7 @@ function parseFilters(params: RawSearchParams): AdminBidListFilters {
     from,
     to,
     q: searchTerm,
+    onlyDeleted,
     page,
   };
 }

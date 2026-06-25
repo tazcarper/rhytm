@@ -17,6 +17,7 @@ type DashboardBidRow = {
   updated_at: string;
   signed_at: string | null;
   paid_at: string | null;
+  deleted_at: string | null;
   booking_id: string;
   bookings: {
     booking_type: AdminBookingType;
@@ -39,7 +40,7 @@ type DashboardBidRow = {
 };
 
 const SELECT = `
-  id, slug, status, created_at, updated_at, signed_at, paid_at, booking_id,
+  id, slug, status, created_at, updated_at, signed_at, paid_at, deleted_at, booking_id,
   bookings!inner (
     booking_type, start_time, duration_hours,
     guest_name, guest_email, guest_count,
@@ -80,6 +81,7 @@ function toRow(r: DashboardBidRow): AdminBidListRow {
     amountPaid: toNumber(r.bookings.amount_paid) ?? 0,
     signedAt: r.signed_at,
     paidAt: r.paid_at,
+    deletedAt: r.deleted_at,
   };
 }
 
@@ -97,9 +99,10 @@ export interface PropertyColumn {
 export interface AdminDashboardData {
   pendingBidCount: number;
   recentPending: AdminBidListRow[];
-  confirmedNext24hCount: number;
-  confirmedTodayByProperty: PropertyColumn[];
-  confirmedTomorrowByProperty: PropertyColumn[];
+  // Next-24h timeline counts/columns include pending holds, not just confirmed.
+  next24hCount: number;
+  todayByProperty: PropertyColumn[];
+  tomorrowByProperty: PropertyColumn[];
   upcomingWeekCount: number;
   upcomingByProperty: PropertyColumn[];
   recentActivity: DashboardActivityRow[];
@@ -123,7 +126,20 @@ function ctDateOf(iso: string): string {
 const PENDING_LIMIT = 5;
 const TIMELINE_LIMIT = 15;
 const WEEK_LIMIT = 30;
-const ACTIVITY_LIMIT = 10;
+// Wider than what the feed shows at once (DISPLAY_MAX in activity-feed.tsx):
+// the surplus lets a status filter surface recent matches that aren't in the
+// newest handful.
+const ACTIVITY_LIMIT = 40;
+
+// Everything that occupies the next-24h timeline: confirmed/signed/paid are
+// locked events, pending_review is a provisional hold. The schedule renders
+// pending distinctly (hatched) — same as the /admin/bookings day view.
+const NEXT_24H_STATUSES = [
+  "pending_review",
+  "confirmed",
+  "signed",
+  "paid",
+] as const;
 
 export async function getAdminDashboardData(
   supabase: SupabaseClient,
@@ -142,12 +158,14 @@ export async function getAdminDashboardData(
         .from("bids")
         .select(SELECT, { count: "exact" })
         .eq("status", "pending_review")
+        .is("deleted_at", null)
         .order("created_at", { ascending: false })
         .range(0, PENDING_LIMIT - 1),
       supabase
         .from("bids")
         .select(SELECT, { count: "exact" })
-        .eq("status", "confirmed")
+        .in("status", [...NEXT_24H_STATUSES])
+        .is("deleted_at", null)
         .gte("bookings.start_time", nowIso)
         .lte("bookings.start_time", in24hIso)
         .order("start_time", { ascending: true, referencedTable: "bookings" })
@@ -156,6 +174,7 @@ export async function getAdminDashboardData(
         .from("bids")
         .select(SELECT, { count: "exact" })
         .in("status", ["confirmed", "signed", "paid"])
+        .is("deleted_at", null)
         .gte("bookings.start_time", nowIso)
         .lte("bookings.start_time", in7dIso)
         .order("start_time", { ascending: true, referencedTable: "bookings" })
@@ -163,6 +182,7 @@ export async function getAdminDashboardData(
       supabase
         .from("bids")
         .select(SELECT)
+        .is("deleted_at", null)
         .order("updated_at", { ascending: false })
         .range(0, ACTIVITY_LIMIT - 1),
       supabase
@@ -190,17 +210,17 @@ export async function getAdminDashboardData(
   const upcomingRows = ((upcoming.data ?? []) as unknown as DashboardBidRow[]).map(
     toRow,
   );
-  const confirmedRows = (
+  const next24hRows = (
     (confirmedSoon.data ?? []) as unknown as DashboardBidRow[]
   ).map(toRow);
 
   const todayCt = ctDateOf(now.toISOString());
   const tomorrowCt = ctDateOf(in24h.toISOString());
 
-  const confirmedToday = confirmedRows.filter(
+  const todayRows = next24hRows.filter(
     (r) => ctDateOf(r.startTime) === todayCt,
   );
-  const confirmedTomorrow = confirmedRows.filter(
+  const tomorrowRows = next24hRows.filter(
     (r) => ctDateOf(r.startTime) === tomorrowCt,
   );
 
@@ -221,9 +241,9 @@ export async function getAdminDashboardData(
   return {
     pendingBidCount: pending.count ?? 0,
     recentPending: ((pending.data ?? []) as unknown as DashboardBidRow[]).map(toRow),
-    confirmedNext24hCount: confirmedSoon.count ?? 0,
-    confirmedTodayByProperty: groupByProperty(confirmedToday),
-    confirmedTomorrowByProperty: groupByProperty(confirmedTomorrow),
+    next24hCount: confirmedSoon.count ?? 0,
+    todayByProperty: groupByProperty(todayRows),
+    tomorrowByProperty: groupByProperty(tomorrowRows),
     upcomingWeekCount: upcoming.count ?? 0,
     upcomingByProperty: groupByProperty(upcomingRows),
     recentActivity: ((activity.data ?? []) as unknown as DashboardBidRow[]).map(

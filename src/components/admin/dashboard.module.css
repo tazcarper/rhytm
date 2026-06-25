@@ -1,3 +1,12 @@
+.pageIntro {
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  line-height: 1.5;
+  color: var(--gray);
+  margin: var(--space-3) 0 0;
+  max-width: 68ch;
+}
+
 .stack {
   display: flex;
   flex-direction: column;
@@ -19,10 +28,17 @@
 
 .cardHead {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: var(--space-2);
-  margin-bottom: var(--space-3);
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.cardHeadText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
 }
 
 .cardEyebrow {
@@ -34,11 +50,31 @@
   margin: 0;
 }
 
+/* Section headline — the serif title that names the card at a glance. */
+.cardTitle {
+  font-family: var(--serif);
+  font-size: var(--text-h3);
+  line-height: 1.1;
+  color: var(--olive);
+  margin: 0;
+}
+
+/* One-line "what this is for" beneath the headline. */
+.cardDesc {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  line-height: 1.45;
+  color: var(--gray);
+  margin: 0;
+  max-width: 56ch;
+}
+
 .cardCount {
   font-family: var(--serif);
   font-size: var(--text-h3);
   color: var(--olive);
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .cardLink {
@@ -404,6 +440,46 @@
 }
 .status_expired {
   border-left-color: #dc2626; /* same red — both terminal "not happening" */
+}
+
+/* Interactive version of the legend: the same color swatches, now clickable
+   chips that filter the activity list. Sits above the list as a control. */
+.activityFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
+.filterChip {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    color var(--motion-fast) ease;
+}
+
+.filterChip:hover {
+  background: var(--cream);
+}
+
+.filterChipActive {
+  background: var(--cream);
+  border-color: var(--border-strong);
+  color: var(--olive);
+  font-weight: 500;
 }
 
 .legend {

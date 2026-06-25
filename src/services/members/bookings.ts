@@ -122,6 +122,7 @@ export async function getMyBookings(
   const { data, error } = await supabase
     .from("bookings")
     .select(BOOKINGS_SELECT)
+    .is("deleted_at", null)
     .order("start_time", { ascending: false });
 
   if (error) {
@@ -148,6 +149,7 @@ export async function getBookingsForMember(
     .from("bookings")
     .select(BOOKINGS_SELECT)
     .in("member_user_id", userIds)
+    .is("deleted_at", null)
     .order("start_time", { ascending: false });
 
   if (error) {

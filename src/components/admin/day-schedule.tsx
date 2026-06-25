@@ -25,8 +25,9 @@ export interface ScheduleBlock {
   pending: boolean;
 }
 
-/** Dashboard bid rows → blocks: the row id *is* the bid id. Dashboard already
-    scopes to confirmed bids, so nothing here is pending. */
+/** Dashboard bid rows → blocks: the row id *is* the bid id. A pending_review
+    bid sits on a provisional, not-yet-locked slot, so it renders as a held
+    (hatched) block — same treatment as the bookings calendar. */
 export function bidRowToScheduleBlock(row: AdminBidListRow): ScheduleBlock {
   return {
     id: row.id,
@@ -36,7 +37,7 @@ export function bidRowToScheduleBlock(row: AdminBidListRow): ScheduleBlock {
     guestCount: row.guestCount,
     bookingType: row.bookingType,
     href: `/admin/bids/${row.id}`,
-    pending: false,
+    pending: row.status === "pending_review",
   };
 }
 
@@ -73,6 +74,9 @@ const HOUR_HEIGHT = 72;
 // A block needs roughly this many pixels to show all three lines (time +
 // guest + activity meta) without clipping; below it we drop the meta line.
 const META_MIN_HEIGHT = 64;
+// Vertical breathing room inside the grid so the first/last hour labels (which
+// are vertically centered on their line) aren't clipped by the rounded frame.
+const GRID_PAD = 14;
 
 const SLUG_TO_BLOCK: Record<string, string> = {
   "horseshoe-bay": "block_hsb",
@@ -191,16 +195,19 @@ export function DaySchedule({
     if (end > latest) latest = Math.ceil(end);
   }
   const hourCount = latest - earliest;
-  const gridHeight = hourCount * HOUR_HEIGHT;
+  const gridHeight = hourCount * HOUR_HEIGHT + GRID_PAD * 2;
   const hours: number[] = [];
   for (let h = earliest; h <= latest; h++) hours.push(h);
+
+  // Pixel offset for a given fractional hour, including the top padding.
+  const offsetFor = (hour: number) => (hour - earliest) * HOUR_HEIGHT + GRID_PAD;
 
   // Now line — only draw if this schedule is today.
   let nowOffset: number | null = null;
   if (dateInTz === todayInTz) {
     const nowHour = hourInTz(new Date().toISOString(), tz);
     if (nowHour >= earliest && nowHour <= latest) {
-      nowOffset = (nowHour - earliest) * HOUR_HEIGHT;
+      nowOffset = offsetFor(nowHour);
     }
   }
 
@@ -208,26 +215,36 @@ export function DaySchedule({
   const placed = layoutBlocks(rows, tz);
   const pendingCount = rows.reduce((count, row) => count + (row.pending ? 1 : 0), 0);
   const confirmedCount = rows.length - pendingCount;
+  const isEmpty = rows.length === 0;
 
   return (
     <div className={s.wrap}>
       <div className={s.head}>
         <PropertyPill name={propertyName} slug={propertySlug} withDot />
-        <span className={s.headCount}>
+        <span className={cn(s.headCount, isEmpty && s.headCountEmpty)}>
           {pendingCount > 0
             ? `${confirmedCount} confirmed · ${pendingCount} pending`
             : `${rows.length} ${rows.length === 1 ? "booking" : "bookings"}`}
         </span>
       </div>
+
+      {isEmpty ? (
+        // A whole empty hourly grid is wasted vertical space (and, at launch,
+        // every column is empty). Collapse to a calm placeholder instead.
+        <div className={s.emptyDay}>
+          <span className={s.emptyDayText}>No bookings — the day is open</span>
+        </div>
+      ) : (
       <div
         className={s.grid}
         style={{ ["--grid-height" as string]: `${gridHeight}px` }}
       >
+        <span className={s.gutterRule} aria-hidden="true" />
         {hours.map((h) => (
           <span
             key={`label-${h}`}
             className={s.hourLabel}
-            style={{ ["--top" as string]: `${(h - earliest) * HOUR_HEIGHT}px` }}
+            style={{ ["--top" as string]: `${offsetFor(h)}px` }}
           >
             {formatHourLabel(h)}
           </span>
@@ -236,7 +253,7 @@ export function DaySchedule({
           <span
             key={`line-${h}`}
             className={s.hourLine}
-            style={{ ["--top" as string]: `${(h - earliest) * HOUR_HEIGHT}px` }}
+            style={{ ["--top" as string]: `${offsetFor(h)}px` }}
           />
         ))}
         {nowOffset !== null && (
@@ -246,9 +263,8 @@ export function DaySchedule({
             aria-label="Current time"
           />
         )}
-        {rows.length === 0 && <p className={s.empty}>Nothing scheduled.</p>}
         {placed.map(({ row, start, column, columns }) => {
-          const top = (start - earliest) * HOUR_HEIGHT;
+          const top = offsetFor(start);
           const height = Math.max(
             row.durationHours * HOUR_HEIGHT - 4,
             HOUR_HEIGHT - 4,
@@ -285,6 +301,7 @@ export function DaySchedule({
           );
         })}
       </div>
+      )}
     </div>
   );
 }

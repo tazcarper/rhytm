@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service";
-import { hasAdminAccess } from "@/lib/auth/portal";
+import { hasAdminAccess, canManageTeam } from "@/lib/auth/portal";
 import {
   confirmBid,
   denyBid,
@@ -13,6 +13,11 @@ import {
   type TransitionResult,
 } from "@/src/services/admin/transition-bid";
 import { lockBookingSlot } from "@/src/services/admin/lock-booking-slot";
+import {
+  softDeleteBooking,
+  restoreBooking,
+  type SoftDeleteResult,
+} from "@/src/services/admin/soft-delete-booking";
 
 function siteOriginFromHeaders(h: Headers): string {
   const fromEnv = process.env.NEXT_PUBLIC_SITE_URL;
@@ -104,6 +109,65 @@ export async function denyBidAction(
   if (result.ok) {
     revalidatePath(`/admin/bids/${bidId}`);
     revalidatePath("/admin/bids");
+    revalidatePath("/admin");
+  }
+  return result;
+}
+
+// Soft-delete a bid + its booking. Hides them from every admin/public surface
+// and releases the time slot; reversible via restoreBidAction. Admin-only
+// (super_admin / admin) — the RPC re-checks is_admin(), this just fails fast
+// and keeps the control hidden for everyone else.
+export async function deleteBidAction(
+  bidId: string,
+  bookingId: string,
+): Promise<SoftDeleteResult> {
+  if (!bidId || !bookingId) {
+    return { ok: false, error: "Missing bid or booking id." };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const role = userData.user?.app_metadata?.role as string | undefined;
+  if (!userData.user) return { ok: false, error: "Sign in required." };
+  if (!canManageTeam(role)) {
+    return { ok: false, error: "Admin access required to delete." };
+  }
+
+  const result = await softDeleteBooking(supabase, bookingId);
+  if (result.ok) {
+    revalidatePath(`/admin/bids/${bidId}`);
+    revalidatePath("/admin/bids");
+    revalidatePath("/admin/bookings");
+    revalidatePath("/admin");
+  }
+  return result;
+}
+
+// Restore a previously soft-deleted bid + booking. Can fail if the slot was
+// re-booked in the interim — softDeleteBooking's RPC surfaces that as a
+// capacity/travel error message.
+export async function restoreBidAction(
+  bidId: string,
+  bookingId: string,
+): Promise<SoftDeleteResult> {
+  if (!bidId || !bookingId) {
+    return { ok: false, error: "Missing bid or booking id." };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const role = userData.user?.app_metadata?.role as string | undefined;
+  if (!userData.user) return { ok: false, error: "Sign in required." };
+  if (!canManageTeam(role)) {
+    return { ok: false, error: "Admin access required to restore." };
+  }
+
+  const result = await restoreBooking(supabase, bookingId);
+  if (result.ok) {
+    revalidatePath(`/admin/bids/${bidId}`);
+    revalidatePath("/admin/bids");
+    revalidatePath("/admin/bookings");
     revalidatePath("/admin");
   }
   return result;

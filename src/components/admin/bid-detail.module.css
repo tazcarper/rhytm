@@ -84,6 +84,36 @@
   flex-wrap: wrap;
 }
 
+/* Deleted-state banner: error-tinted so it reads as "this record is removed"
+   the instant the page opens, with the Restore action on the right. */
+.deletedBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+  padding: var(--space-4) var(--space-5);
+  background: color-mix(in srgb, var(--accent-error) 8%, var(--paper-warm));
+  border: 1px solid color-mix(in srgb, var(--accent-error) 35%, var(--border));
+  border-radius: var(--radius-card);
+}
+
+.deletedTitle {
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  font-weight: 500;
+  color: var(--accent-error);
+  margin: 0;
+}
+
+.deletedBody {
+  font-family: var(--sans);
+  font-size: var(--text-micro);
+  color: var(--gray);
+  margin: 2px 0 0;
+}
+
 
 /* Wrapper the BidSectionNav puts around the layout to drive which section is
    visible on tablet/mobile. `display: contents` makes it layout-invisible, so

@@ -60,6 +60,10 @@ export interface AdminBidListFilters {
   q?: string;
   page?: number;
   pageSize?: number;
+  // The "Deleted" view. Default (false/undefined) lists only live bids;
+  // true lists ONLY soft-deleted bids (the restore surface). Soft-delete is
+  // orthogonal to status, so it's a separate flag rather than a status group.
+  onlyDeleted?: boolean;
 }
 
 export interface AdminBidListRow {
@@ -92,6 +96,9 @@ export interface AdminBidListRow {
   // is not fixed).
   signedAt: string | null;
   paidAt: string | null;
+  // Soft-delete timestamp — non-null only in the "Deleted" view, where the
+  // row offers a Restore action instead of the usual workflow.
+  deletedAt: string | null;
 }
 
 export interface AdminBidListResult {
@@ -111,6 +118,7 @@ type BidsRow = {
   created_at: string;
   signed_at: string | null;
   paid_at: string | null;
+  deleted_at: string | null;
   booking_id: string;
   bookings: {
     booking_type: AdminBookingType;
@@ -150,7 +158,7 @@ export async function getAdminBidsList(
     .from("bids")
     .select(
       `
-      id, slug, status, created_at, signed_at, paid_at, booking_id,
+      id, slug, status, created_at, signed_at, paid_at, deleted_at, booking_id,
       bookings!inner (
         booking_type, start_time, duration_hours,
         guest_name, guest_email, guest_count,
@@ -163,6 +171,15 @@ export async function getAdminBidsList(
     )
     .order("created_at", { ascending: false })
     .range(rangeFrom, rangeTo);
+
+  // Soft-delete gate: live bids by default, only deleted bids in the
+  // "Deleted" view. Always one of the two — a deleted bid never shows in a
+  // normal list.
+  if (filters.onlyDeleted) {
+    query = query.not("deleted_at", "is", null);
+  } else {
+    query = query.is("deleted_at", null);
+  }
 
   if (filters.status) {
     query = query.eq("status", filters.status);
@@ -219,6 +236,7 @@ export async function getAdminBidsList(
       amountPaid: toNumber(row.bookings.amount_paid) ?? 0,
       signedAt: row.signed_at,
       paidAt: row.paid_at,
+      deletedAt: row.deleted_at,
     }),
   );
 

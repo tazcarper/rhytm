@@ -18,6 +18,7 @@ export function buildBidsHref(
   if (merged.from) queryParams.set("from", merged.from);
   if (merged.to) queryParams.set("to", merged.to);
   if (merged.q) queryParams.set("q", merged.q);
+  if (merged.onlyDeleted) queryParams.set("deleted", "1");
   if (merged.page && merged.page > 0) queryParams.set("page", String(merged.page));
 
   const queryString = queryParams.toString();

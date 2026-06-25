@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { Alert, Card, cn, Eyebrow, Heading, PageShell } from "@/lib/ui";
+import { Alert, Card, Eyebrow, Heading, PageShell } from "@/lib/ui";
 import {
   formatDateLongTz,
   formatSlotLabelTz,
@@ -8,20 +8,15 @@ import {
 import {
   getAdminDashboardData,
   type AdminDashboardData,
-  type DashboardActivityRow,
   type PropertyColumn,
 } from "@/src/services/admin/dashboard-data";
-import {
-  ADMIN_BID_STATUSES,
-  type AdminBidListRow,
-  type AdminBidStatus,
-} from "@/src/services/admin/bids";
-import { bidStatusLabel } from "@/src/components/admin/bid-status-badge";
+import { type AdminBidListRow } from "@/src/services/admin/bids";
 import { PropertyPill } from "@/src/components/admin/property-pill";
 import {
   DaySchedule,
   bidRowToScheduleBlock,
 } from "@/src/components/admin/day-schedule";
+import { ActivityFeed } from "@/src/components/admin/activity-feed";
 import s from "@/src/components/admin/dashboard.module.css";
 
 export const dynamic = "force-dynamic";
@@ -45,18 +40,6 @@ function timelineDateLabel(iso: string, tz: string): string {
     .format(today);
   if (targetDay === todayInTz) return "Today";
   return noWeekday;
-}
-
-function formatRelative(iso: string): string {
-  const ms = Date.now() - new Date(iso).getTime();
-  const sec = Math.floor(ms / 1000);
-  if (sec < 60) return `${sec}s ago`;
-  const min = Math.floor(sec / 60);
-  if (min < 60) return `${min}m ago`;
-  const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr}h ago`;
-  const day = Math.floor(hr / 24);
-  return `${day}d ago`;
 }
 
 function PendingMiniRow({ row }: { row: AdminBidListRow }) {
@@ -120,50 +103,6 @@ function PropertyColumnView({ column }: { column: PropertyColumn }) {
   );
 }
 
-function statusClass(status: AdminBidStatus): string {
-  return s[`status_${status}`] ?? "";
-}
-
-function ActivityRow({ row }: { row: DashboardActivityRow }) {
-  return (
-    <li>
-      <Link
-        href={`/admin/bids/${row.id}`}
-        className={cn(s.activityRow, statusClass(row.status))}
-        aria-label={`${bidStatusLabel(row.status)} bid for ${row.guestName}`}
-      >
-        <div className={s.activityMain}>
-          <span className={s.activityGuest}>{row.guestName}</span>
-          <span className={s.activityType}>
-            {BOOKING_TYPE_SHORT[row.bookingType]}
-          </span>
-        </div>
-        <span className={s.activityProperty}>
-          <PropertyPill name={row.propertyName} slug={row.propertySlug} />
-        </span>
-        <span className={s.activityTime}>{formatRelative(row.updatedAt)}</span>
-      </Link>
-    </li>
-  );
-}
-
-function ActivityLegend() {
-  return (
-    <div className={s.legend}>
-      <span className={s.legendLabel}>Status</span>
-      {ADMIN_BID_STATUSES.map((status) => (
-        <span
-          key={status}
-          className={cn(s.legendItem, statusClass(status))}
-        >
-          <span className={s.legendStripe} aria-hidden="true" />
-          {bidStatusLabel(status)}
-        </span>
-      ))}
-    </div>
-  );
-}
-
 export default async function AdminHome() {
   const supabase = await createServerSupabaseClient();
 
@@ -183,6 +122,11 @@ export default async function AdminHome() {
       <Heading level={1} size="h2" underline>
         Dashboard
       </Heading>
+      <p className={s.pageIntro}>
+        A live read on what needs your attention and what&rsquo;s on the books —
+        review pending bids, track recent changes, and see the schedule across
+        all three clubs.
+      </p>
 
       {error && (
         <div className="mt-4">
@@ -197,8 +141,13 @@ export default async function AdminHome() {
           <div className={s.topRow}>
             <Card padding="loose" elevation="soft">
               <div className={s.cardHead}>
-                <p className={s.cardEyebrow}>Pending review</p>
-                <span className={s.cardCount}>{data.pendingBidCount}</span>
+                <div className={s.cardHeadText}>
+                  <h2 className={s.cardTitle}>Needs review</h2>
+                  <p className={s.cardDesc}>
+                    Bids waiting on your decision — confirm or deny each one
+                    before it reaches the guest.
+                  </p>
+                </div>
               </div>
               {data.recentPending.length === 0 ? (
                 <p className={s.miniEmpty}>No pending bids.</p>
@@ -220,29 +169,34 @@ export default async function AdminHome() {
             </Card>
 
             <Card padding="loose" elevation="soft">
-              <div className={s.cardHead}>
-                <p className={s.cardEyebrow}>Recent activity</p>
-                <span className={s.cardCount}>{data.recentActivity.length}</span>
-              </div>
               {data.recentActivity.length === 0 ? (
-                <p className={s.miniEmpty}>No activity yet.</p>
-              ) : (
                 <>
-                  <ul className={s.activityList}>
-                    {data.recentActivity.map((row) => (
-                      <ActivityRow key={row.id} row={row} />
-                    ))}
-                  </ul>
-                  <ActivityLegend />
+                  <div className={s.cardHead}>
+                    <div className={s.cardHeadText}>
+                      <h2 className={s.cardTitle}>Recent activity</h2>
+                      <p className={s.cardDesc}>
+                        The latest status change on every bid, newest first.
+                      </p>
+                    </div>
+                  </div>
+                  <p className={s.miniEmpty}>No activity yet.</p>
                 </>
+              ) : (
+                <ActivityFeed rows={data.recentActivity} />
               )}
             </Card>
           </div>
 
           <Card padding="loose" elevation="soft">
             <div className={s.cardHead}>
-              <p className={s.cardEyebrow}>Confirmed · next 24 hours</p>
-              <span className={s.cardCount}>{data.confirmedNext24hCount}</span>
+              <div className={s.cardHeadText}>
+                <h2 className={s.cardTitle}>Next 24 hours</h2>
+                <p className={s.cardDesc}>
+                  Today and tomorrow, hour-by-hour for each club — confirmed
+                  bookings plus pending holds (shown hatched) not yet locked in.
+                </p>
+              </div>
+              <span className={s.cardCount}>{data.next24hCount}</span>
             </div>
             {(() => {
               const tz = "America/Chicago";
@@ -264,7 +218,7 @@ export default async function AdminHome() {
               const tomorrowCt = dateFmt.format(tomorrow);
               const todayLong = longFmt.format(now);
               const tomorrowLong = longFmt.format(tomorrow);
-              const hasTomorrow = data.confirmedTomorrowByProperty.some(
+              const hasTomorrow = data.tomorrowByProperty.some(
                 (c) => c.rows.length > 0,
               );
               return (
@@ -274,7 +228,7 @@ export default async function AdminHome() {
                     <span className={s.dayLabelDate}>{todayLong}</span>
                   </p>
                   <div className={s.columnGrid}>
-                    {data.confirmedTodayByProperty.map((col) => (
+                    {data.todayByProperty.map((col) => (
                       <DaySchedule
                         key={col.propertyId}
                         propertyId={col.propertyId}
@@ -296,7 +250,7 @@ export default async function AdminHome() {
                         <span className={s.dayLabelDate}>{tomorrowLong}</span>
                       </p>
                       <div className={s.columnGrid}>
-                        {data.confirmedTomorrowByProperty.map((col) => (
+                        {data.tomorrowByProperty.map((col) => (
                           <DaySchedule
                             key={col.propertyId}
                             propertyId={col.propertyId}
@@ -314,15 +268,21 @@ export default async function AdminHome() {
               );
             })()}
             <div className="mt-3">
-              <Link href="/admin/bids?status=confirmed" className={s.cardLink}>
-                See all confirmed →
+              <Link href="/admin/bookings" className={s.cardLink}>
+                Open bookings calendar →
               </Link>
             </div>
           </Card>
 
           <Card padding="loose" elevation="soft">
             <div className={s.cardHead}>
-              <p className={s.cardEyebrow}>Upcoming · next 7 days · by property</p>
+              <div className={s.cardHeadText}>
+                <h2 className={s.cardTitle}>The week ahead</h2>
+                <p className={s.cardDesc}>
+                  Every confirmed booking across the next seven days, grouped
+                  by club.
+                </p>
+              </div>
               <span className={s.cardCount}>{data.upcomingWeekCount}</span>
             </div>
             <div className={s.columnGrid}>
