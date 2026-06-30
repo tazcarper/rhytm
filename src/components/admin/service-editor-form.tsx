@@ -301,8 +301,8 @@ export function ServiceEditorForm({
         <h2 className={s.panelTitle} style={{ marginBottom: "var(--space-3)" }}>
           Details
         </h2>
-        <div className={s.formGroup}>
-          <label className={s.formGroup}>
+        <div className={s.fieldStack}>
+          <label className={s.field}>
             <span className={s.fieldLabel}>Name</span>
             <input
               className={s.input}
@@ -311,7 +311,7 @@ export function ServiceEditorForm({
               required
             />
           </label>
-          <label className={s.formGroup}>
+          <label className={s.field}>
             <span className={s.fieldLabel}>Description (optional, markdown supported)</span>
             <textarea
               className={s.textarea}
@@ -412,8 +412,8 @@ export function ServiceEditorForm({
           How this experience is priced on the public Request-an-Estimate page.
           It appears there whenever it&rsquo;s active — deactivate to hide it.
         </p>
-        <div className={s.formGroup}>
-          <label className={s.formGroup}>
+        <div className={s.fieldStack}>
+          <label className={s.field}>
             <span className={s.fieldLabel}>Pricing strategy</span>
             <select
               className={s.input}
@@ -441,7 +441,7 @@ export function ServiceEditorForm({
 
           {pricingKind === "lesson_ladder" && (
             <>
-              <label className={s.formGroup}>
+              <label className={s.field}>
                 <span className={s.fieldLabel}>Per-student ladder (comma-separated $)</span>
                 <input
                   className={s.input}
@@ -455,7 +455,7 @@ export function ServiceEditorForm({
                   length.
                 </span>
               </label>
-              <label className={s.formGroup}>
+              <label className={s.field}>
                 <span className={s.fieldLabel}>Cohort size (students per instructor)</span>
                 <input
                   className={s.input}
@@ -473,7 +473,7 @@ export function ServiceEditorForm({
 
           {pricingKind === "class_per_person" && (
             <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
-              <label className={s.formGroup} style={{ flex: 1, minWidth: 160 }}>
+              <label className={s.field} style={{ flex: 1, minWidth: 160 }}>
                 <span className={s.fieldLabel}>Member price / person (USD)</span>
                 <input
                   className={s.input}
@@ -486,7 +486,7 @@ export function ServiceEditorForm({
                   placeholder="0.00"
                 />
               </label>
-              <label className={s.formGroup} style={{ flex: 1, minWidth: 160 }}>
+              <label className={s.field} style={{ flex: 1, minWidth: 160 }}>
                 <span className={s.fieldLabel}>Public price / person (USD)</span>
                 <input
                   className={s.input}
@@ -505,7 +505,7 @@ export function ServiceEditorForm({
           {pricingKind === "per_target" && (
             <>
               <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
-                <label className={s.formGroup} style={{ flex: 1, minWidth: 160 }}>
+                <label className={s.field} style={{ flex: 1, minWidth: 160 }}>
                   <span className={s.fieldLabel}>Member rate / target (USD)</span>
                   <input
                     className={s.input}
@@ -518,7 +518,7 @@ export function ServiceEditorForm({
                     placeholder="2.50"
                   />
                 </label>
-                <label className={s.formGroup} style={{ flex: 1, minWidth: 160 }}>
+                <label className={s.field} style={{ flex: 1, minWidth: 160 }}>
                   <span className={s.fieldLabel}>Public rate / target (USD)</span>
                   <input
                     className={s.input}
@@ -533,7 +533,7 @@ export function ServiceEditorForm({
                 </label>
               </div>
               <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
-                <label className={s.formGroup} style={{ flex: 1, minWidth: 160 }}>
+                <label className={s.field} style={{ flex: 1, minWidth: 160 }}>
                   <span className={s.fieldLabel}>Allotment size (targets per block)</span>
                   <input
                     className={s.input}
@@ -547,7 +547,7 @@ export function ServiceEditorForm({
                     placeholder="30"
                   />
                 </label>
-                <label className={s.formGroup} style={{ flex: 1, minWidth: 160 }}>
+                <label className={s.field} style={{ flex: 1, minWidth: 160 }}>
                   <span className={s.fieldLabel}>Maximum targets (optional)</span>
                   <input
                     className={s.input}
@@ -560,7 +560,7 @@ export function ServiceEditorForm({
                     placeholder="no limit"
                   />
                 </label>
-                <label className={s.formGroup} style={{ flex: 1, minWidth: 160 }}>
+                <label className={s.field} style={{ flex: 1, minWidth: 160 }}>
                   <span className={s.fieldLabel}>Unit label</span>
                   <input
                     className={s.input}
@@ -588,7 +588,7 @@ export function ServiceEditorForm({
 
           {/* Reusable per-outing flat fee — applies to any pricing kind. */}
           <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
-            <label className={s.formGroup} style={{ flex: 1, minWidth: 160 }}>
+            <label className={s.field} style={{ flex: 1, minWidth: 160 }}>
               <span className={s.fieldLabel}>Session fee / outing (USD, optional)</span>
               <input
                 className={s.input}
@@ -601,7 +601,7 @@ export function ServiceEditorForm({
                 placeholder="49.50"
               />
             </label>
-            <label className={s.formGroup} style={{ flex: 1, minWidth: 160 }}>
+            <label className={s.field} style={{ flex: 1, minWidth: 160 }}>
               <span className={s.fieldLabel}>Session fee label</span>
               <input
                 className={s.input}
@@ -611,7 +611,7 @@ export function ServiceEditorForm({
               />
             </label>
           </div>
-          <label className={s.formGroup}>
+          <label className={s.field}>
             <span className={s.fieldLabel}>Session fee description (optional)</span>
             <input
               className={s.input}
