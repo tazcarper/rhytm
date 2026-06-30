@@ -44,6 +44,8 @@ export interface SubmitEstimateInput {
   experienceIds: string[];
   // Add-on id → chosen quantity (0/1 for a Yes/No add-on).
   addOnQuantities: Record<string, number>;
+  // per_target experience id → chosen target count (multiple of the allotment).
+  targetQuantities: Record<string, number>;
   // Selected catering option id (catering_options.id), or null.
   cateringId: string | null;
   // Party composition.
@@ -103,6 +105,10 @@ type CarriedKind =
 // private lesson — the core experience.
 function carriedKind(line: EstimateLine): CarriedKind {
   if (line.tbd) return "other";
+  // Explicit intent hint from computeEstimate wins over label/flag heuristics
+  // (per-target target line → base_experience, session fee → fee).
+  if (line.kind === "base") return "base_experience";
+  if (line.kind === "fee") return "fee";
   if (/guest fee/i.test(line.label)) return "guest_fee";
   if (line.exempt) return "base_experience";
   return "other";
@@ -197,6 +203,7 @@ export async function submitEstimateAction(
     guestAdults: Math.max(0, input.guestAdults),
     guestJuniors: Math.max(0, input.guestJuniors),
     addOnQuantities: input.addOnQuantities ?? {},
+    targetQuantities: input.targetQuantities ?? {},
     cateringId: input.cateringId,
     staffMode: false,
     discountValue: 0,

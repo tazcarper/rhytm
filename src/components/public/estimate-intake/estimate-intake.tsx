@@ -68,6 +68,8 @@ interface IntakeState {
   exps: string[];
   // Add-on id → chosen quantity (0/1 for a Yes/No add-on).
   addOnQuantities: Record<string, number>;
+  // per_target experience id → chosen target count (multiple of the allotment).
+  targetQuantities: Record<string, number>;
   // Selected catering option id (catering_options.id), or null.
   cateringId: string | null;
   // Party composition. members shoot on dues (only meaningful for a member
@@ -95,6 +97,7 @@ const INITIAL: IntakeState = {
   club: "hsb",
   exps: [],
   addOnQuantities: {},
+  targetQuantities: {},
   cateringId: null,
   members: 1,
   guestAdults: 0,
@@ -161,6 +164,7 @@ export function EstimateIntake({
       guestAdults: st.guestAdults,
       guestJuniors: st.guestJuniors,
       addOnQuantities: st.addOnQuantities,
+      targetQuantities: st.targetQuantities,
       cateringId: st.cateringId,
       staffMode: st.staffMode,
       discountValue: st.discountValue,
@@ -186,7 +190,7 @@ export function EstimateIntake({
     if (lockedClub) return; // club is fixed by the link
     if (isComingSoon(club)) return; // coming soon — not selectable / submittable yet
     // Catalog + slots differ per club, so clear experience/add-on/catering/date.
-    set({ club, exps: [], addOnQuantities: {}, cateringId: null, date: "", slotStart: undefined });
+    set({ club, exps: [], addOnQuantities: {}, targetQuantities: {}, cateringId: null, date: "", slotStart: undefined });
   }
 
   // Calendar data for the selected club; absent (coming-soon / unconfigured)
@@ -207,19 +211,44 @@ export function EstimateIntake({
       host === "member"
         ? { members: 1, guestAdults: 0, guestJuniors: 0 }
         : { members: 0, guestAdults: 1, guestJuniors: 0 };
-    set({ host, exps: [], addOnQuantities: {}, cateringId: null, ...party });
+    set({ host, exps: [], addOnQuantities: {}, targetQuantities: {}, cateringId: null, ...party });
   }
   function toggleExp(id: string) {
-    set({
-      exps: st.exps.includes(id)
-        ? st.exps.filter((e) => e !== id)
-        : [...st.exps, id],
-    });
+    const turningOn = !st.exps.includes(id);
+    const exps = turningOn ? [...st.exps, id] : st.exps.filter((e) => e !== id);
+    // A per_target experience defaults to one allotment when selected (the
+    // default lives in state, not as a read-site fallback), and is cleared when
+    // deselected so a stale count can't ride along.
+    const exp = availableExperiences.find((e) => e.id === id);
+    const targetQuantities = { ...st.targetQuantities };
+    if (exp?.pricingKind === "per_target") {
+      if (turningOn) {
+        targetQuantities[id] = exp.targetAllotmentSize > 0 ? exp.targetAllotmentSize : 30;
+      } else {
+        delete targetQuantities[id];
+      }
+    }
+    set({ exps, targetQuantities });
   }
 
   function setAddOnQty(id: string, quantity: number, maxQuantity: number) {
     const clamped = Math.max(0, Math.min(maxQuantity, quantity));
     set({ addOnQuantities: { ...st.addOnQuantities, [id]: clamped } });
+  }
+  // Step a per_target experience's target count by whole allotments (min 1 block,
+  // capped at the optional maximum — the largest whole allotment within it).
+  function stepTargets(
+    id: string,
+    deltaBlocks: number,
+    allotment: number,
+    maxCount: number | null,
+  ) {
+    const current = st.targetQuantities[id] ?? allotment;
+    let blocks = Math.max(1, Math.round(current / allotment) + deltaBlocks);
+    if (maxCount && maxCount > 0) {
+      blocks = Math.min(blocks, Math.max(1, Math.floor(maxCount / allotment)));
+    }
+    set({ targetQuantities: { ...st.targetQuantities, [id]: blocks * allotment } });
   }
   function pickCatering(id: string | null) {
     set({ cateringId: id });
@@ -262,6 +291,7 @@ export function EstimateIntake({
           host: st.host,
           experienceIds: st.exps,
           addOnQuantities: st.addOnQuantities,
+          targetQuantities: st.targetQuantities,
           cateringId: st.cateringId,
           members: memberHost ? st.members : 0,
           guestAdults: st.guestAdults,
@@ -429,6 +459,38 @@ export function EstimateIntake({
                     </button>
                   );
                 })}
+                {selectedExperiences
+                  .filter((e) => e.pricingKind === "per_target")
+                  .map((e) => {
+                    const allotment =
+                      e.targetAllotmentSize > 0 ? e.targetAllotmentSize : 30;
+                    const targets = st.targetQuantities[e.id] ?? allotment;
+                    return (
+                      <div key={`tgt-${e.id}`} style={{ marginTop: "12px" }}>
+                        <label className={s.fld}>
+                          {e.name} — {e.targetUnitLabel}s (sold in {allotment}s)
+                          {e.targetMaxCount
+                            ? ` · max ${e.targetMaxCount} ${e.targetUnitLabel}s`
+                            : ""}
+                        </label>
+                        <div className={s.qty}>
+                          <button
+                            type="button"
+                            onClick={() => stepTargets(e.id, -1, allotment, e.targetMaxCount)}
+                          >
+                            −
+                          </button>
+                          <input readOnly value={targets} />
+                          <button
+                            type="button"
+                            onClick={() => stepTargets(e.id, +1, allotment, e.targetMaxCount)}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 {lessonSelected && (
                   <div style={{ marginTop: "12px" }}>
                     <label className={s.fld}>

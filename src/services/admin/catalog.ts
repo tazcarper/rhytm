@@ -24,6 +24,16 @@ export interface AdminCatalogService {
   lessonCohortSize: number;
   classPriceMember: number | null;
   classPricePublic: number | null;
+  // per_target pricing (migration 20260630120000): member vs public per-target
+  // rate, allotment size, unit label, and the reusable per-outing session fee.
+  perTargetRateMember: number | null;
+  perTargetRatePublic: number | null;
+  targetAllotmentSize: number;
+  targetMaxCount: number | null;
+  targetUnitLabel: string;
+  sessionFee: number | null;
+  sessionFeeLabel: string | null;
+  sessionFeeDescription: string | null;
 }
 
 export interface AdminCatalogAddOn {
@@ -88,6 +98,14 @@ type ServiceRow = {
   lesson_cohort_size: number;
   class_price_member: string | number | null;
   class_price_public: string | number | null;
+  per_target_rate_member: string | number | null;
+  per_target_rate_public: string | number | null;
+  target_allotment_size: number;
+  target_max_count: number | null;
+  target_unit_label: string;
+  session_fee: string | number | null;
+  session_fee_label: string | null;
+  session_fee_description: string | null;
 };
 
 type AddOnRow = {
@@ -129,6 +147,14 @@ function rowToService(row: ServiceRow): AdminCatalogService {
     lessonCohortSize: row.lesson_cohort_size,
     classPriceMember: parseNullableNumber(row.class_price_member),
     classPricePublic: parseNullableNumber(row.class_price_public),
+    perTargetRateMember: parseNullableNumber(row.per_target_rate_member),
+    perTargetRatePublic: parseNullableNumber(row.per_target_rate_public),
+    targetAllotmentSize: row.target_allotment_size,
+    targetMaxCount: row.target_max_count,
+    targetUnitLabel: row.target_unit_label,
+    sessionFee: parseNullableNumber(row.session_fee),
+    sessionFeeLabel: row.session_fee_label,
+    sessionFeeDescription: row.session_fee_description,
   };
 }
 
@@ -153,7 +179,7 @@ function rowToAddOn(row: AddOnRow): AdminCatalogAddOn {
 // =============================================================================
 
 const SERVICE_COLUMNS =
-  "id, property_id, name, description, is_active, display_order, image_url, pricing_kind, members_only, lesson_ladder, lesson_cohort_size, class_price_member, class_price_public";
+  "id, property_id, name, description, is_active, display_order, image_url, pricing_kind, members_only, lesson_ladder, lesson_cohort_size, class_price_member, class_price_public, per_target_rate_member, per_target_rate_public, target_allotment_size, target_max_count, target_unit_label, session_fee, session_fee_label, session_fee_description";
 const ADDON_COLUMNS =
   "id, property_id, name, description, price, is_active, display_order, image_url, included_detail, max_quantity, estimate_member_discount";
 
@@ -490,9 +516,14 @@ const pricingKindSchema = z.enum([
   "lesson_ladder",
   "class_per_person",
   "quote",
+  "per_target",
 ]);
 const ladderEntrySchema = z.coerce.number().min(0).max(100000);
 const classPriceSchema = z.coerce.number().min(0).max(100000).nullable();
+// per_target: rates and the session fee are nullable money; allotment is a
+// positive integer; the labels are short free text (nullable).
+const rateSchema = z.coerce.number().min(0).max(100000).nullable();
+const shortLabelSchema = z.string().trim().max(60).nullable();
 const servicePricingFields = {
   pricingKind: pricingKindSchema.optional(),
   membersOnly: z.boolean().optional(),
@@ -500,6 +531,14 @@ const servicePricingFields = {
   lessonCohortSize: z.coerce.number().int().min(1).max(50).optional(),
   classPriceMember: classPriceSchema.optional(),
   classPricePublic: classPriceSchema.optional(),
+  perTargetRateMember: rateSchema.optional(),
+  perTargetRatePublic: rateSchema.optional(),
+  targetAllotmentSize: z.coerce.number().int().min(1).max(1000).optional(),
+  targetMaxCount: z.coerce.number().int().min(1).max(100000).nullable().optional(),
+  targetUnitLabel: z.string().trim().min(1).max(40).optional(),
+  sessionFee: rateSchema.optional(),
+  sessionFeeLabel: shortLabelSchema.optional(),
+  sessionFeeDescription: z.string().trim().max(300).nullable().optional(),
 } as const;
 
 export const CreateServiceInputSchema = z.object({
@@ -593,6 +632,14 @@ export async function createCatalogService(
   if (input.lessonCohortSize !== undefined) insertFields.lesson_cohort_size = input.lessonCohortSize;
   if (input.classPriceMember !== undefined) insertFields.class_price_member = input.classPriceMember;
   if (input.classPricePublic !== undefined) insertFields.class_price_public = input.classPricePublic;
+  if (input.perTargetRateMember !== undefined) insertFields.per_target_rate_member = input.perTargetRateMember;
+  if (input.perTargetRatePublic !== undefined) insertFields.per_target_rate_public = input.perTargetRatePublic;
+  if (input.targetAllotmentSize !== undefined) insertFields.target_allotment_size = input.targetAllotmentSize;
+  if (input.targetMaxCount !== undefined) insertFields.target_max_count = input.targetMaxCount;
+  if (input.targetUnitLabel !== undefined) insertFields.target_unit_label = input.targetUnitLabel;
+  if (input.sessionFee !== undefined) insertFields.session_fee = input.sessionFee;
+  if (input.sessionFeeLabel !== undefined) insertFields.session_fee_label = input.sessionFeeLabel;
+  if (input.sessionFeeDescription !== undefined) insertFields.session_fee_description = input.sessionFeeDescription;
 
   const { data, error } = await supabase
     .from("services")
@@ -638,6 +685,14 @@ export async function updateCatalogService(
   if (input.lessonCohortSize !== undefined) serviceUpdateFields.lesson_cohort_size = input.lessonCohortSize;
   if (input.classPriceMember !== undefined) serviceUpdateFields.class_price_member = input.classPriceMember;
   if (input.classPricePublic !== undefined) serviceUpdateFields.class_price_public = input.classPricePublic;
+  if (input.perTargetRateMember !== undefined) serviceUpdateFields.per_target_rate_member = input.perTargetRateMember;
+  if (input.perTargetRatePublic !== undefined) serviceUpdateFields.per_target_rate_public = input.perTargetRatePublic;
+  if (input.targetAllotmentSize !== undefined) serviceUpdateFields.target_allotment_size = input.targetAllotmentSize;
+  if (input.targetMaxCount !== undefined) serviceUpdateFields.target_max_count = input.targetMaxCount;
+  if (input.targetUnitLabel !== undefined) serviceUpdateFields.target_unit_label = input.targetUnitLabel;
+  if (input.sessionFee !== undefined) serviceUpdateFields.session_fee = input.sessionFee;
+  if (input.sessionFeeLabel !== undefined) serviceUpdateFields.session_fee_label = input.sessionFeeLabel;
+  if (input.sessionFeeDescription !== undefined) serviceUpdateFields.session_fee_description = input.sessionFeeDescription;
 
   const serviceUpdate = await supabase
     .from("services")

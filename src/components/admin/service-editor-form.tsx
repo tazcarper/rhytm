@@ -82,6 +82,31 @@ export function ServiceEditorForm({
   const [classPricePublic, setClassPricePublic] = useState(
     service?.classPricePublic == null ? "" : String(service.classPricePublic),
   );
+  const [perTargetRateMember, setPerTargetRateMember] = useState(
+    service?.perTargetRateMember == null ? "" : String(service.perTargetRateMember),
+  );
+  const [perTargetRatePublic, setPerTargetRatePublic] = useState(
+    service?.perTargetRatePublic == null ? "" : String(service.perTargetRatePublic),
+  );
+  const [targetAllotmentSize, setTargetAllotmentSize] = useState(
+    String(service?.targetAllotmentSize ?? 30),
+  );
+  const [targetMaxCount, setTargetMaxCount] = useState(
+    service?.targetMaxCount == null ? "" : String(service.targetMaxCount),
+  );
+  const [targetUnitLabel, setTargetUnitLabel] = useState(
+    service?.targetUnitLabel ?? "target",
+  );
+  // Reusable per-outing session fee — applies to any pricing kind.
+  const [sessionFee, setSessionFee] = useState(
+    service?.sessionFee == null ? "" : String(service.sessionFee),
+  );
+  const [sessionFeeLabel, setSessionFeeLabel] = useState(
+    service?.sessionFeeLabel ?? "",
+  );
+  const [sessionFeeDescription, setSessionFeeDescription] = useState(
+    service?.sessionFeeDescription ?? "",
+  );
   const [linkedIds, setLinkedIds] = useState<Set<string>>(
     new Set(initialLinkedAddOnIds),
   );
@@ -196,6 +221,18 @@ export function ServiceEditorForm({
       lessonCohortSize: lessonCohortSize.trim() === "" ? 5 : Number(lessonCohortSize),
       classPriceMember: classPriceMember.trim() === "" ? null : Number(classPriceMember),
       classPricePublic: classPricePublic.trim() === "" ? null : Number(classPricePublic),
+      perTargetRateMember:
+        perTargetRateMember.trim() === "" ? null : Number(perTargetRateMember),
+      perTargetRatePublic:
+        perTargetRatePublic.trim() === "" ? null : Number(perTargetRatePublic),
+      targetAllotmentSize:
+        targetAllotmentSize.trim() === "" ? 30 : Number(targetAllotmentSize),
+      targetMaxCount: targetMaxCount.trim() === "" ? null : Number(targetMaxCount),
+      targetUnitLabel: targetUnitLabel.trim() === "" ? "target" : targetUnitLabel.trim(),
+      sessionFee: sessionFee.trim() === "" ? null : Number(sessionFee),
+      sessionFeeLabel: sessionFeeLabel.trim() === "" ? null : sessionFeeLabel.trim(),
+      sessionFeeDescription:
+        sessionFeeDescription.trim() === "" ? null : sessionFeeDescription.trim(),
     };
 
     startTransition(async () => {
@@ -390,6 +427,7 @@ export function ServiceEditorForm({
               </option>
               <option value="lesson_ladder">Private lesson (per-student ladder)</option>
               <option value="class_per_person">Class / clinic (per person)</option>
+              <option value="per_target">Per-target (e.g. Helice — rate × targets)</option>
               <option value="quote">Quote (&ldquo;we&rsquo;ll quote this&rdquo;)</option>
             </select>
           </label>
@@ -464,12 +502,128 @@ export function ServiceEditorForm({
             </div>
           )}
 
+          {pricingKind === "per_target" && (
+            <>
+              <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
+                <label className={s.formGroup} style={{ flex: 1, minWidth: 160 }}>
+                  <span className={s.fieldLabel}>Member rate / target (USD)</span>
+                  <input
+                    className={s.input}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    value={perTargetRateMember}
+                    onChange={(e) => setPerTargetRateMember(e.target.value)}
+                    placeholder="2.50"
+                  />
+                </label>
+                <label className={s.formGroup} style={{ flex: 1, minWidth: 160 }}>
+                  <span className={s.fieldLabel}>Public rate / target (USD)</span>
+                  <input
+                    className={s.input}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    value={perTargetRatePublic}
+                    onChange={(e) => setPerTargetRatePublic(e.target.value)}
+                    placeholder="2.95"
+                  />
+                </label>
+              </div>
+              <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
+                <label className={s.formGroup} style={{ flex: 1, minWidth: 160 }}>
+                  <span className={s.fieldLabel}>Allotment size (targets per block)</span>
+                  <input
+                    className={s.input}
+                    type="number"
+                    min="1"
+                    max="1000"
+                    step="1"
+                    inputMode="numeric"
+                    value={targetAllotmentSize}
+                    onChange={(e) => setTargetAllotmentSize(e.target.value)}
+                    placeholder="30"
+                  />
+                </label>
+                <label className={s.formGroup} style={{ flex: 1, minWidth: 160 }}>
+                  <span className={s.fieldLabel}>Maximum targets (optional)</span>
+                  <input
+                    className={s.input}
+                    type="number"
+                    min="1"
+                    step="1"
+                    inputMode="numeric"
+                    value={targetMaxCount}
+                    onChange={(e) => setTargetMaxCount(e.target.value)}
+                    placeholder="no limit"
+                  />
+                </label>
+                <label className={s.formGroup} style={{ flex: 1, minWidth: 160 }}>
+                  <span className={s.fieldLabel}>Unit label</span>
+                  <input
+                    className={s.input}
+                    value={targetUnitLabel}
+                    onChange={(e) => setTargetUnitLabel(e.target.value)}
+                    placeholder="target"
+                  />
+                </label>
+              </div>
+              <p className={s.help}>
+                Priced as rate × targets, sold in allotments (e.g. 30 / 60 / 90).
+                The per-target price is all-in; ammo is a separate add-on.
+                Non-member guests also pay the property guest fee; members shoot on
+                dues.
+              </p>
+            </>
+          )}
+
           {pricingKind === "quote" && (
             <p className={s.help}>
               Shown as &ldquo;we&rsquo;ll quote this&rdquo; with no number — the
               team prices it on the bid.
             </p>
           )}
+
+          {/* Reusable per-outing flat fee — applies to any pricing kind. */}
+          <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
+            <label className={s.formGroup} style={{ flex: 1, minWidth: 160 }}>
+              <span className={s.fieldLabel}>Session fee / outing (USD, optional)</span>
+              <input
+                className={s.input}
+                type="number"
+                min="0"
+                step="0.01"
+                inputMode="decimal"
+                value={sessionFee}
+                onChange={(e) => setSessionFee(e.target.value)}
+                placeholder="49.50"
+              />
+            </label>
+            <label className={s.formGroup} style={{ flex: 1, minWidth: 160 }}>
+              <span className={s.fieldLabel}>Session fee label</span>
+              <input
+                className={s.input}
+                value={sessionFeeLabel}
+                onChange={(e) => setSessionFeeLabel(e.target.value)}
+                placeholder="Setup / ring fee"
+              />
+            </label>
+          </div>
+          <label className={s.formGroup}>
+            <span className={s.fieldLabel}>Session fee description (optional)</span>
+            <input
+              className={s.input}
+              value={sessionFeeDescription}
+              onChange={(e) => setSessionFeeDescription(e.target.value)}
+              placeholder="We staff the ring every session."
+            />
+            <span className={s.help}>
+              A flat fee charged once per outing to everyone (members + guests).
+              Leave the amount blank for no session fee.
+            </span>
+          </label>
 
           <label
             style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}

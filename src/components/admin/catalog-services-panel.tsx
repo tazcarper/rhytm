@@ -19,6 +19,7 @@ const PRICING_KIND_LABEL: Record<EstimatePricingKind, string> = {
   lesson_ladder: "lesson",
   class_per_person: "class",
   quote: "quote",
+  per_target: "per-target",
 };
 
 interface CatalogServicesPanelProps {

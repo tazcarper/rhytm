@@ -54,6 +54,9 @@ export interface EstimateSelections {
   guestJuniors: number;
   // Add-on id → chosen quantity (0/1 for a Yes/No add-on).
   addOnQuantities: Record<string, number>;
+  // per_target experience id → chosen target count (a multiple of the
+  // experience's allotment size, e.g. 30/60/90). Empty for non-per-target.
+  targetQuantities: Record<string, number>;
   cateringId: string | null;
   // Staff phone-intake extras.
   staffMode: boolean;
@@ -79,6 +82,11 @@ export interface EstimateLine {
   exempt?: boolean;
   tbd?: boolean;
   negative?: boolean;
+  // Snapshot-kind hint for the carried bid line. Lets the submit action
+  // classify a line by intent instead of guessing from its label text:
+  // "base" → base_experience, "fee" → a flat fee. Absent for lines the
+  // existing label/flag heuristics already classify (guest fee, lesson, etc.).
+  kind?: "base" | "fee";
 }
 
 export interface EstimateResult {
@@ -95,7 +103,18 @@ export interface EstimateResult {
 }
 
 export function money(n: number): string {
-  return "$" + Math.round(n).toLocaleString();
+  // Whole-dollar amounts render bare ("$478"); amounts carrying cents render
+  // them ("$124.50", "$2.95"). Per-target rates and the session fee are the
+  // first sub-dollar/half-dollar figures in the catalog, so rounding them to
+  // whole dollars (the prior behaviour) would misstate the quote.
+  const rounded = Math.round(n * 100) / 100;
+  return Number.isInteger(rounded)
+    ? "$" + rounded.toLocaleString()
+    : "$" +
+        rounded.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
 }
 
 // First band whose ceiling covers the guest count; the top band catches
@@ -163,7 +182,10 @@ export function computeEstimate(
   // Guest fees apply to any guest-fee-tier or lesson experience (a lesson still
   // carries the club entry fee on top of its ladder); class & quote do not.
   const usesGuestFee = selected.some(
-    (e) => e.pricingKind === "guest_fee_tier" || e.pricingKind === "lesson_ladder",
+    (e) =>
+      e.pricingKind === "guest_fee_tier" ||
+      e.pricingKind === "lesson_ladder" ||
+      e.pricingKind === "per_target",
   );
 
   // Guest fees on GUESTS only (members excluded), tiered by guest count.
@@ -228,6 +250,42 @@ export function computeEstimate(
         amount: cost,
       });
       total += cost;
+    }
+  }
+
+  // Per-target experiences (Helice & future per-target games) — rate × targets,
+  // member rate vs public rate, sold in fixed allotments. The per-target price
+  // is all-in for the target (like clays); ammo is a separate add-on. The
+  // reusable session fee is charged once per outing to EVERYONE (member +
+  // non-member). Non-member guests also pay tiered guest fees (handled above
+  // via usesGuestFee); members shoot on dues, so no guest fee for them.
+  for (const exp of selected.filter((e) => e.pricingKind === "per_target")) {
+    // Clamp to the optional maximum (null = no cap) so a crafted payload can't
+    // price above the allowed ceiling — the stepper enforces the same bound.
+    const requested = Math.max(0, selections.targetQuantities[exp.id] ?? 0);
+    const targets =
+      exp.targetMaxCount && exp.targetMaxCount > 0
+        ? Math.min(requested, exp.targetMaxCount)
+        : requested;
+    const rate = memberHost
+      ? exp.perTargetRateMember ?? 0
+      : exp.perTargetRatePublic ?? 0;
+    if (targets > 0 && rate > 0) {
+      const cost = targets * rate;
+      lines.push({
+        label: `${exp.name} · ${targets} ${exp.targetUnitLabel}${targets === 1 ? "" : "s"} × ${money(rate)}`,
+        amount: cost,
+        kind: "base",
+      });
+      total += cost;
+    }
+    if (exp.sessionFee && exp.sessionFee > 0) {
+      lines.push({
+        label: exp.sessionFeeLabel ?? "Setup fee",
+        amount: exp.sessionFee,
+        kind: "fee",
+      });
+      total += exp.sessionFee;
     }
   }
 

@@ -20,7 +20,8 @@ export type EstimatePricingKind =
   | "guest_fee_tier"
   | "lesson_ladder"
   | "class_per_person"
-  | "quote";
+  | "quote"
+  | "per_target";
 
 export interface EstimateExperience {
   id: string;
@@ -35,6 +36,19 @@ export interface EstimateExperience {
   // class_per_person kind only: member vs public per-head rate.
   classPriceMember: number | null;
   classPricePublic: number | null;
+  // per_target kind only: member vs public per-target (e.g. per-bird) rate,
+  // sold in fixed allotments. unit label drives the line copy ("30 targets").
+  perTargetRateMember: number | null;
+  perTargetRatePublic: number | null;
+  targetAllotmentSize: number;
+  // Optional cap on total targets (null = no maximum). Stepped by allotment.
+  targetMaxCount: number | null;
+  targetUnitLabel: string;
+  // Reusable per-outing flat fee (any kind). null = no session fee. The label
+  // names it on the line; the description is optional "what this is for" copy.
+  sessionFee: number | null;
+  sessionFeeLabel: string | null;
+  sessionFeeDescription: string | null;
 }
 
 // Every active add-on shows on the estimate (deactivate to hide). An add-on is
@@ -97,6 +111,14 @@ type ServiceRow = {
   lesson_cohort_size: number;
   class_price_member: string | number | null;
   class_price_public: string | number | null;
+  per_target_rate_member: string | number | null;
+  per_target_rate_public: string | number | null;
+  target_allotment_size: number;
+  target_max_count: number | null;
+  target_unit_label: string;
+  session_fee: string | number | null;
+  session_fee_label: string | null;
+  session_fee_description: string | null;
 };
 
 type AddOnRow = {
@@ -172,6 +194,16 @@ function rowToExperience(row: ServiceRow): EstimateExperience {
       row.class_price_member === null ? null : parseNumeric(row.class_price_member),
     classPricePublic:
       row.class_price_public === null ? null : parseNumeric(row.class_price_public),
+    perTargetRateMember:
+      row.per_target_rate_member === null ? null : parseNumeric(row.per_target_rate_member),
+    perTargetRatePublic:
+      row.per_target_rate_public === null ? null : parseNumeric(row.per_target_rate_public),
+    targetAllotmentSize: row.target_allotment_size,
+    targetMaxCount: row.target_max_count,
+    targetUnitLabel: row.target_unit_label,
+    sessionFee: row.session_fee === null ? null : parseNumeric(row.session_fee),
+    sessionFeeLabel: row.session_fee_label,
+    sessionFeeDescription: row.session_fee_description,
   };
 }
 
@@ -200,7 +232,7 @@ export async function getEstimateCatalog(
       supabase
         .from("services")
         .select(
-          "id, name, description, pricing_kind, members_only, lesson_ladder, lesson_cohort_size, class_price_member, class_price_public",
+          "id, name, description, pricing_kind, members_only, lesson_ladder, lesson_cohort_size, class_price_member, class_price_public, per_target_rate_member, per_target_rate_public, target_allotment_size, target_max_count, target_unit_label, session_fee, session_fee_label, session_fee_description",
         )
         .eq("property_id", propertyId)
         .eq("is_active", true)
