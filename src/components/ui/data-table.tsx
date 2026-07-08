@@ -42,6 +42,17 @@ interface DataTableProps<TData, TValue> {
   /** Row click → e.g. navigate to a detail page. Optional. */
   onRowClick?: (row: TData) => void;
   pageSize?: number;
+  /**
+   * Client-side pagination controls. Turn off for lists that already
+   * paginate server-side via URL params (Bids, Members) — the page keeps
+   * its own Prev/Next and the table just renders the current server page.
+   */
+  showPagination?: boolean;
+  /** Search box + column-visibility toolbar. Off for pages with their own
+      server-side filter bar. */
+  showToolbar?: boolean;
+  /** Accessible empty-state message. */
+  emptyMessage?: string;
 }
 
 /**
@@ -57,6 +68,9 @@ export function DataTable<TData, TValue>({
   filterPlaceholder = "Search…",
   onRowClick,
   pageSize = 10,
+  showPagination = true,
+  showToolbar = true,
+  emptyMessage = "No results.",
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] =
@@ -71,9 +85,25 @@ export function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize } },
+    // Without client pagination the row model must stay unpaginated —
+    // a mounted table keeps its state across server-page navigations, so a
+    // stale pageSize would silently truncate the next page's rows.
+    ...(showPagination
+      ? {
+          getPaginationRowModel: getPaginationRowModel(),
+          initialState: { pagination: { pageSize } },
+        }
+      : {}),
   });
+
+  // A row click must not hijack clicks on the row's own interactive
+  // elements (links, buttons, form controls) — those navigate themselves.
+  function isInteractiveTarget(target: EventTarget | null): boolean {
+    return (
+      target instanceof HTMLElement &&
+      target.closest("a, button, input, select, textarea") !== null
+    );
+  }
 
   const filterColumn = filterColumnId
     ? table.getColumn(filterColumnId)
@@ -82,6 +112,7 @@ export function DataTable<TData, TValue>({
   return (
     <div className="flex flex-col gap-3">
       {/* Toolbar: search + column visibility */}
+      {showToolbar && (
       <div className="flex flex-wrap items-center gap-2">
         {filterColumn ? (
           <Input
@@ -123,6 +154,7 @@ export function DataTable<TData, TValue>({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      )}
 
       <Table>
         <TableHeader>
@@ -169,7 +201,26 @@ export function DataTable<TData, TValue>({
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() ? "selected" : undefined}
-                onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+                role={onRowClick ? "link" : undefined}
+                tabIndex={onRowClick ? 0 : undefined}
+                onClick={
+                  onRowClick
+                    ? (event) => {
+                        if (isInteractiveTarget(event.target)) return;
+                        onRowClick(row.original);
+                      }
+                    : undefined
+                }
+                onKeyDown={
+                  onRowClick
+                    ? (event) => {
+                        if (event.key !== "Enter" && event.key !== " ") return;
+                        if (isInteractiveTarget(event.target)) return;
+                        event.preventDefault();
+                        onRowClick(row.original);
+                      }
+                    : undefined
+                }
                 className={onRowClick ? "cursor-pointer" : undefined}
               >
                 {row.getVisibleCells().map((cell) => (
@@ -185,7 +236,7 @@ export function DataTable<TData, TValue>({
                 colSpan={columns.length}
                 className="py-12 text-center text-muted-foreground"
               >
-                No results.
+                {emptyMessage}
               </TableCell>
             </TableRow>
           )}
@@ -193,6 +244,7 @@ export function DataTable<TData, TValue>({
       </Table>
 
       {/* Pagination */}
+      {showPagination && (
       <div className="flex items-center justify-between gap-3">
         <p className="text-micro text-muted-foreground">
           {table.getFilteredRowModel().rows.length} row(s) · page{" "}
@@ -217,6 +269,7 @@ export function DataTable<TData, TValue>({
           </Button>
         </div>
       </div>
+      )}
     </div>
   );
 }

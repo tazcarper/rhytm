@@ -1,6 +1,8 @@
 # Dashboard Migration — shadcn/ui + TanStack Table + Tremor
 
-**Status:** 🟡 Prototype in progress
+**Status:** 🟢 Redesign pass 1 implemented (shell + home + 3 lists) — awaiting visual review
+**See also:** `docs/dashboard-redesign-plan.md` (the 2026-07-08 redesign pass),
+`docs/dashboard-redesign-research.md`, `docs/dashboard-ui-audit.md`
 **Owner:** Taz
 **Started:** 2026-07-01
 **Tracking doc for:** replacing the hand-rolled admin dashboard views with a
@@ -71,17 +73,27 @@ fit).
       charts path).
 - [ ] **Visual review by Taz** (dev server) — approve brand fidelity before Phase 1.
 
-### Phase 1 — Bids view (biggest, highest value)  ⬜
+### Phase 1 — Bids view (biggest, highest value)  🟡
 The Bids list + detail is the largest, most table+drawer-heavy feature. Migrating
 it proves tables, dialogs, badges, and brand fidelity in one real view.
-- [ ] Bids list → `<DataTable>` (replace `bid-list-table.tsx`).
-- [ ] Status badges → shadcn `Badge` variants mapped to bid statuses.
+- [x] Bids list → `<DataTable>` (replaced `bid-list-table.tsx` with
+      `bids-data-table.tsx`; server filters/pagination kept, sorting + row click added).
 - [ ] Editor drawer → shadcn `Sheet`/`Dialog` (replace `admin-modal`).
-- [ ] Line-items / pricing-history / add-ons → shadcn `Card` + `Table`.
-- [ ] Delete superseded CSS Modules.
+- [ ] Bid detail: line-items / pricing-history / add-ons → shadcn `Card` + `Table`.
+- [ ] Delete superseded CSS Modules (queue-list.module.css partially retired).
 
-### Phase 2 — Remaining list views  ⬜
-- [ ] Members list (promote prototype from `/dev` into `/admin/members`).
+### Phase 1.5 — Shell + dashboard home (added by the 2026-07-08 redesign)  ✅
+- [x] Top-bar `AdminNav` → fixed deep-olive `AdminSidebar` (grouped nav, pending-bid
+      badge, guides section, mobile drawer). Old nav/dropdown/guides components deleted.
+- [x] Dashboard home: KPI `StatCard` row + `BrandAreaChart` (new bids, 30d) +
+      `BrandBarChart` (next 14 days by club) via new `dashboard-metrics.ts` service.
+- [x] Stray `0` card-count bug fixed (renders only when > 0).
+
+### Phase 2 — Remaining list views  🟡
+- [x] Members list → `<DataTable>` (`members-data-table.tsx`; labeled status badge
+      replaces the color-only dot).
+- [x] Adventures list → `<DataTable>` (humanized status badges, breadcrumb + standard
+      heading).
 - [ ] Estimates list + Bookings list → `<DataTable>`.
 - [ ] Instructors list; keep the custom schedule grid for now (Phase 4).
 

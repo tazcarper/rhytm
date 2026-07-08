@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { hasAdminAccess } from "@/lib/auth/portal";
-import { AdminNav } from "@/src/components/admin/admin-nav";
+import { AdminSidebar } from "@/src/components/admin/admin-sidebar";
 import { getAdminDashboardCounts } from "@/src/services/admin/dashboard";
 import { staffNeedsOnboarding } from "@/src/services/admin/team";
 
@@ -37,12 +37,19 @@ export default async function AdminLayout({
     }
   }
 
+  if (onWelcome) {
+    return <>{children}</>;
+  }
+
   return (
-    <>
-      {!onWelcome && (
-        <AdminNav email={user?.email} role={role} pendingBidCount={counts.pendingBids} />
-      )}
-      {children}
-    </>
+    <div className="min-h-screen">
+      <AdminSidebar
+        email={user?.email}
+        role={role}
+        pendingBidCount={counts.pendingBids}
+      />
+      {/* Desktop rail is fixed; give the content column room for it. */}
+      <div className="lg:pl-60">{children}</div>
+    </div>
   );
 }
