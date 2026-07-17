@@ -11,7 +11,7 @@ import {
 } from "@/src/services/admin/members";
 import { getPublicProperties } from "@/src/services/public/properties";
 import { MemberFilters } from "@/src/components/admin/member-filters";
-import { MemberListTable } from "@/src/components/admin/member-list-table";
+import { MembersDataTable } from "@/src/components/admin/members-data-table";
 import s from "@/src/components/admin/queue-list.module.css";
 
 export const dynamic = "force-dynamic";
@@ -121,7 +121,7 @@ export default async function AdminMembersList({
           : `Showing ${start}–${end} of ${list.totalCount}`}
       </div>
 
-      <MemberListTable rows={list.rows} />
+      <MembersDataTable rows={list.rows} />
 
       {(list.page > 0 || list.hasMore) && (
         <div className={s.pagination}>

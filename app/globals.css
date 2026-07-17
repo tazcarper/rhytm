@@ -175,6 +175,78 @@
   --container-prose: var(--content-prose);
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   shadcn/ui token bridge (Dashboard Migration — see DASHBOARD_MIGRATION.md).
+   shadcn components read a fixed set of *semantic* CSS variables
+   (--background, --primary, --border, --ring, --radius, …). We DON'T let them
+   pull shadcn's neutral-gray defaults — every semantic var is remapped onto a
+   brand token above, so shadcn/TanStack components render olive/tan/paper and
+   near-sharp corners out of the box. If a shadcn component ever looks
+   "default gray", a token below is the thing to fix — never the component. */
+:root {
+  --background: var(--paper);
+  --foreground: var(--olive);
+
+  --card: var(--paper);
+  --card-foreground: var(--olive);
+
+  --popover: var(--paper);
+  --popover-foreground: var(--olive);
+
+  --primary: var(--olive);
+  --primary-foreground: var(--paper);
+
+  --secondary: var(--paper-warm);
+  --secondary-foreground: var(--olive);
+
+  --muted: var(--paper-warm);
+  --muted-foreground: var(--gray);
+
+  --accent: var(--cream);          /* row/menu hover — matches table hover */
+  --accent-foreground: var(--olive);
+
+  --destructive: var(--accent-error);
+  --destructive-foreground: var(--paper);
+
+  --input: var(--border);          /* input borders = brand rule */
+  --ring: var(--olive);            /* focus ring = brand focus outline */
+
+  /* shadcn radius knob → brand card radius (near-sharp, 3px). */
+  --radius: var(--radius-card);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  /* --color-border already maps to --border (brand rule) above via --color-rule;
+     shadcn's `border-border` needs its own name, pointed at the same token. */
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* shadcn components use rounded-sm/md/lg/xl. Tailwind's defaults are round
+     (lg = 8px); the brand is near-sharp, so pin the scale to brand values.
+     ⚠️ Global: also affects any existing `rounded-md/lg` utilities. */
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 3px;
+  --radius-xl: 4px;
+}
+
 *,
 *::before,
 *::after {
