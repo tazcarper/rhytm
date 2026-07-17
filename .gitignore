@@ -27,3 +27,5 @@ CLAUDE.local.md
 
 # Playwright MCP screenshots (local design-review artifacts)
 .playwright-mcp/
+
+temporary-resources/
