@@ -17,11 +17,13 @@ import {
   House,
   LayoutDashboard,
   LogOut,
+  Mail,
   Megaphone,
   Menu,
   Network,
   Signature,
   Sparkles,
+  Ticket,
   Users,
   UserRound,
   X,
@@ -74,11 +76,13 @@ interface AdminSidebarProps {
   email: string | undefined;
   role: string | undefined;
   pendingBidCount: number;
+  newInquiryCount: number;
 }
 
 function buildNavGroups(
   role: string | undefined,
   pendingBidCount: number,
+  newInquiryCount: number,
 ): NavGroup[] {
   return [
     {
@@ -91,12 +95,19 @@ function buildNavGroups(
           icon: ClipboardList,
           badgeCount: pendingBidCount > 0 ? pendingBidCount : undefined,
         },
+        {
+          label: "Inquiries",
+          href: "/admin/inquiries",
+          icon: Mail,
+          badgeCount: newInquiryCount > 0 ? newInquiryCount : undefined,
+        },
         { label: "Bookings", href: "/admin/bookings", icon: CalendarDays },
       ],
     },
     {
       label: "Programming",
       items: [
+        { label: "Events", href: "/admin/events", icon: Ticket },
         { label: "Adventures", href: "/admin/adventures", icon: Compass },
         { label: "Promotions", href: "/admin/promotions", icon: Megaphone },
         { label: "Properties", href: "/admin/properties", icon: Building2 },
@@ -235,10 +246,11 @@ function SidebarContent({
   email,
   role,
   pendingBidCount,
+  newInquiryCount,
   onNavigate,
 }: AdminSidebarProps & { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const groups = buildNavGroups(role, pendingBidCount);
+  const groups = buildNavGroups(role, pendingBidCount, newInquiryCount);
 
   const isActive = (href: string) =>
     href === "/admin"

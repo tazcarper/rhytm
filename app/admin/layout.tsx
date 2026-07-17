@@ -18,7 +18,7 @@ export default async function AdminLayout({
 
   const [{ data: userData }, counts, requestHeaders] = await Promise.all([
     supabase.auth.getUser(),
-    getAdminDashboardCounts(supabase).catch(() => ({ pendingBids: 0 })),
+    getAdminDashboardCounts(supabase).catch(() => ({ pendingBids: 0, newInquiries: 0 })),
     headers(),
   ]);
 
@@ -47,6 +47,7 @@ export default async function AdminLayout({
         email={user?.email}
         role={role}
         pendingBidCount={counts.pendingBids}
+        newInquiryCount={counts.newInquiries}
       />
       {/* Desktop rail is fixed; give the content column room for it. */}
       <div className="lg:pl-60">{children}</div>

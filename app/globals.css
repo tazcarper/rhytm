@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../src/styles/property-themes.css";
 
 /* Brand tokens — ported from the HSB members portal reference at
    docs/reference/Members' Entrance · Horseshoe Bay Sporting Club.html.

@@ -1,0 +1,149 @@
+/* Property marketing-site theme layer — additive to app/globals.css.
+   Every property route group (app/(public)/<slug>/layout.tsx) wraps its
+   pages in a `data-property="<slug>"` element. The raw --property-*
+   variables below are scoped to that attribute, so each property gets
+   its own palette/type without touching or overriding the portal brand
+   tokens (--olive, --tan, --cream, etc.) that /admin, /member, /partner,
+   and the legacy public pages already depend on.
+
+   @theme inline maps each raw var into Tailwind's own namespaces
+   (bg-property-accent, text-property-display, ...) — one set of utility
+   names shared by every property; only the raw variable's VALUE differs
+   per data-property scope. This mirrors the exact pattern already
+   proven in app/globals.css (--olive defined once, --color-olive: var(--olive)
+   mapped in @theme inline) — the only difference is the raw var here is
+   defined per-scope instead of unconditionally at :root.
+
+   IMPORTANT: theme keys must reference a real variable (var(--property-*)),
+   never the bare keyword `initial` — Tailwind silently skips generating
+   any utility for a theme key it can't resolve to a var() reference,
+   which is what broke every property-* utility during the first pass at
+   this file (verified via getComputedStyle + inspecting the compiled
+   stylesheet: zero rules were emitted for any of them).
+
+   Font values are placeholders (next/font/google) standing in for the
+   mockups' paid Adobe Typekit families (shackleton, freight-neo-pro) and
+   the license-unresolved self-hosted OTFs (Silverspoon, Fieldstone) —
+   swap the --property-font-* values (and the next/font loader in each
+   property's layout.tsx) once real licenses are confirmed. No component
+   changes needed when that happens. */
+
+@theme inline {
+  --color-property-bg: var(--property-bg);
+  --color-property-surface-lowest: var(--property-surface-lowest);
+  --color-property-surface-low: var(--property-surface-low);
+  --color-property-surface: var(--property-surface);
+  --color-property-surface-high: var(--property-surface-high);
+  --color-property-surface-highest: var(--property-surface-highest);
+  --color-property-ink: var(--property-ink);
+  --color-property-ink-dark: var(--property-ink-dark);
+  --color-property-ink-variant: var(--property-ink-variant);
+  --color-property-scrim: var(--property-scrim);
+  --color-property-camel: var(--property-camel);
+  --color-property-accent: var(--property-accent);
+  --color-property-accent-dark: var(--property-accent-dark);
+  --color-property-brush: var(--property-brush);
+  --color-property-sage: var(--property-sage);
+  --color-property-rock: var(--property-rock);
+  --color-property-on-primary: var(--property-on-primary);
+
+  --font-property-display: var(--property-font-display);
+  --font-property-sans: var(--property-font-sans);
+
+  --text-property-wordmark: var(--property-text-wordmark);
+  --text-property-display: var(--property-text-display);
+  --text-property-display-mobile: var(--property-text-display-mobile);
+  --text-property-headline: var(--property-text-headline);
+  --text-property-eyebrow: var(--property-text-eyebrow);
+  --text-property-label: var(--property-text-label);
+  --text-property-body: var(--property-text-body);
+  --text-property-body-lg: var(--property-text-body-lg);
+
+  --radius-property: var(--property-radius);
+  --spacing-property-section-desktop: var(--property-section-desktop);
+  --spacing-property-section-mobile: var(--property-section-mobile);
+  --spacing-property-gutter: var(--property-gutter);
+  --container-property-max: var(--property-container-max);
+}
+
+/* ---- Horseshoe Bay Sporting Club ----
+   Resort/heritage register: warm sand field, deep olive ink, a single
+   orange accent used sparingly (rules, eyebrows, CTAs), sharp corners
+   throughout except pills. Palette + spacing values transcribed 1:1 from
+   temporary-resources/front-end-beta/horseshoe-bay/index.html's inline
+   tailwind.config so the built site matches the approved mockup exactly. */
+[data-property="horseshoe-bay"] {
+  --property-bg: #ede6d9;
+  --property-surface-lowest: #ffffff;
+  --property-surface-low: #f7f3ee;
+  --property-surface: #f1ede8;
+  --property-surface-high: #e7e0d2;
+  --property-surface-highest: #ded6c6;
+  --property-ink: #545230;
+  --property-ink-dark: #3e3c24;
+  --property-ink-variant: #48473d;
+  --property-scrim: #2a2a18;
+  --property-camel: #b6a081;
+  --property-accent: #eb9450;
+  --property-accent-dark: #d2762f;
+  --property-brush: #7b8869;
+  --property-sage: #6f7a5e;
+  --property-rock: #cecdc4;
+  --property-on-primary: #ffffff;
+
+  --property-font-display: var(--font-hsb-display), Georgia, serif;
+  --property-font-sans: var(--font-hsb-sans), system-ui, sans-serif;
+
+  --property-text-wordmark: 32px;
+  --property-text-display: 84px;
+  --property-text-display-mobile: 48px;
+  --property-text-headline: 42px;
+  --property-text-eyebrow: 14px;
+  --property-text-label: 13px;
+  --property-text-body: 16px;
+  --property-text-body-lg: 20px;
+
+  --property-radius: 0px;
+  --property-section-desktop: 120px;
+  --property-section-mobile: 64px;
+  --property-gutter: 32px;
+  --property-container-max: 1280px;
+}
+
+/* The rule divider — 2px, full-strength accent camel, one per section,
+   sits under the heading it belongs to. Matches the mockup's `.rule`
+   spec exactly (see index.html's inline <style> comments on why 2px and
+   why full-strength). */
+[data-property] .property-rule {
+  width: 64px;
+  height: 2px;
+  background: var(--property-camel);
+  flex: none;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+[data-property] .property-rule.property-rule-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Display-face type treatment. Browsers don't apply optical kerning by
+   default at all sizes; caps-heavy display faces need tracking that body
+   copy doesn't. Property-agnostic — every property's display face gets
+   the same treatment, only the face itself changes per data-property. */
+[data-property] .property-display,
+[data-property] .property-headline,
+[data-property] .property-wordmark {
+  font-kerning: normal;
+  font-feature-settings: "kern" 1, "liga" 1;
+  text-rendering: optimizeLegibility;
+}
+[data-property] .property-display {
+  letter-spacing: 0.03em;
+}
+[data-property] .property-headline {
+  letter-spacing: 0.01em;
+}
+[data-property] .property-wordmark {
+  letter-spacing: 0.02em;
+}
