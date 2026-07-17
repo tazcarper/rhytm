@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getPublicPropertyBySlug } from "@/src/services/public/properties";
+import { getActivePromotions } from "@/src/services/public/promotions";
+import { PromotionBand } from "@/src/components/public/promotion-band";
 import { Alert, Eyebrow, Heading } from "@/lib/ui";
 import {
   PROPERTY_COPY,
@@ -36,6 +38,11 @@ export default async function BookingTypePage({
     notFound();
   }
 
+  const promotions = await getActivePromotions(supabase, {
+    placement: "property_page",
+    propertyId: property.id,
+  });
+
   const copy = PROPERTY_COPY[property.slug] ?? PROPERTY_COPY_FALLBACK;
   const wasReset = search[BOOKING_RESET_PARAM] === BOOKING_RESET_VALUE;
 
@@ -61,6 +68,8 @@ export default async function BookingTypePage({
         <p className={s.deck}>{copy.tagline}</p>
         <p className={s.prompt}>What kind of visit are you planning?</p>
       </StepPageHead>
+
+      <PromotionBand promotions={promotions} />
 
       <BookingTypePicker />
     </StepPage>

@@ -17,6 +17,7 @@ import {
   House,
   LayoutDashboard,
   LogOut,
+  Megaphone,
   Menu,
   Network,
   Signature,
@@ -96,6 +97,7 @@ function buildNavGroups(
       label: "Programming",
       items: [
         { label: "Adventures", href: "/admin/adventures", icon: Compass },
+        { label: "Promotions", href: "/admin/promotions", icon: Megaphone },
         { label: "Properties", href: "/admin/properties", icon: Building2 },
         { label: "Homepage", href: "/admin/homepage", icon: House },
         { label: "FAQ & Gear", href: "/admin/templates", icon: CircleHelp },
