@@ -1,0 +1,33 @@
+/* Native popover API mechanics only — visual styling lives on the element
+   as Tailwind utility classes (matches this directory's convention).
+   `popover="manual"` puts the card in the browser's top layer so it's
+   never clipped by a scrolling ancestor, but the UA stylesheet gives
+   popovers `inset: 0; margin: auto` by default — reset that so the
+   component's own JS-computed top/left positioning takes over. */
+
+.card {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+}
+
+.card:popover-open {
+  animation: card-in 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card:popover-open {
+    animation: none;
+  }
+}

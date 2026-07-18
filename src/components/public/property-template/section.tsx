@@ -6,7 +6,7 @@ interface SectionProps extends HTMLAttributes<HTMLElement> {
   /** Full-bleed background color band; content still constrains to the
       container width inside it. Omit for a section with no background
       treatment of its own. */
-  tone?: "bg" | "surfaceHighest" | "sage" | "oliveDeep";
+  tone?: "bg" | "surface" | "surfaceHighest" | "sage" | "oliveDeep" | "moss" | "paper";
   /** Skip the container/gutter wrapper — for sections (like the hero)
       that need true full-bleed content. */
   bleed?: boolean;
@@ -14,9 +14,12 @@ interface SectionProps extends HTMLAttributes<HTMLElement> {
 
 const TONE_CLASS: Record<NonNullable<SectionProps["tone"]>, string> = {
   bg: "bg-property-bg",
+  surface: "bg-property-surface",
   surfaceHighest: "bg-property-surface-highest",
   sage: "bg-property-sage",
   oliveDeep: "bg-property-ink-dark",
+  moss: "bg-property-moss",
+  paper: "bg-property-paper",
 };
 
 // The section wrapper every property page composes with — enforces the

@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { getPropertyBrandTint } from "@/src/constants/admin/property-brand-tints";
 import p from "./properties-admin.module.css";
 
 export interface PropertyRailItem {
   id: string;
   name: string;
   slug: string;
+  logoUrl?: string | null;
 }
 
 // The persistent property switcher at the top of the property workspace. Lives
@@ -33,7 +35,20 @@ export function PropertyRail({
             aria-selected={selected}
             className={`${p.tab} ${selected ? p.tabActive : ""}`}
           >
-            <span className={p.tabDot} data-slug={property.slug} />
+            <span className={p.tabBadge}>
+              {property.logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={property.logoUrl} alt="" className={p.tabBadgeImg} />
+              ) : (
+                <span
+                  className={p.tabBadgeInitial}
+                  style={{ background: getPropertyBrandTint(property.slug) }}
+                  aria-hidden="true"
+                >
+                  {property.name.charAt(0)}
+                </span>
+              )}
+            </span>
             {property.name}
           </Link>
         );

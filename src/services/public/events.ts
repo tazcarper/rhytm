@@ -23,6 +23,9 @@ export interface PublicEventListItem {
   startAt: string;
   endAt: string | null;
   location: string | null;
+  type: string | null;
+  discipline: string | null;
+  featured: boolean;
   status: PublicEventStatus;
   memberPrice: number | null;
   nonMemberPrice: number | null;
@@ -32,6 +35,7 @@ export interface PublicEventListItem {
 
 export interface PublicEventDetail extends PublicEventListItem {
   description: string | null;
+  instructors: string | null;
   maxCapacity: number;
   maxGuestsPerRegistration: number;
   infoBoxes: PublicEventInfoBox[];
@@ -44,6 +48,9 @@ type ListRow = {
   start_at: string;
   end_at: string | null;
   location: string | null;
+  type: string | null;
+  discipline: string | null;
+  featured: boolean;
   status: PublicEventStatus;
   member_price: string | number | null;
   non_member_price: string | number | null;
@@ -62,6 +69,9 @@ function rowToListItem(row: ListRow): PublicEventListItem {
     startAt: row.start_at,
     endAt: row.end_at,
     location: row.location,
+    type: row.type,
+    discipline: row.discipline,
+    featured: row.featured,
     status: row.status,
     memberPrice: toMoney(row.member_price),
     nonMemberPrice: toMoney(row.non_member_price),
@@ -71,7 +81,12 @@ function rowToListItem(row: ListRow): PublicEventListItem {
 }
 
 const LIST_COLUMNS =
-  "id, title, summary, start_at, end_at, location, status, member_price, non_member_price, image_url";
+  "id, title, summary, start_at, end_at, location, type, discipline, featured, status, member_price, non_member_price, image_url";
+
+// Soonest-first, upcoming only (past events never show), capped at 6 —
+// keeps the calendar page short. Callers that want fewer (e.g. Club
+// Life's 3-up "What's Next" strip) slice further client-side.
+const UPCOMING_EVENTS_LIMIT = 6;
 
 export async function getPublicEvents(
   supabase: SupabaseClient,
@@ -81,17 +96,20 @@ export async function getPublicEvents(
     .from("events")
     .select(LIST_COLUMNS)
     .eq("property_id", propertyId)
-    .order("start_at", { ascending: true });
+    .gte("start_at", new Date().toISOString())
+    .order("start_at", { ascending: true })
+    .limit(UPCOMING_EVENTS_LIMIT);
 
   if (error || !data) return [];
   return (data as ListRow[]).map(rowToListItem);
 }
 
 const DETAIL_COLUMNS =
-  "id, title, summary, description, start_at, end_at, location, status, member_price, non_member_price, image_url, max_capacity, max_guests_per_registration, event_info_boxes ( id, box_type, heading, body, items )";
+  "id, title, summary, description, start_at, end_at, location, instructors, type, discipline, featured, status, member_price, non_member_price, image_url, max_capacity, max_guests_per_registration, event_info_boxes ( id, box_type, heading, body, items )";
 
 type DetailRow = ListRow & {
   description: string | null;
+  instructors: string | null;
   max_capacity: number;
   max_guests_per_registration: number;
   event_info_boxes: {
@@ -119,6 +137,7 @@ export async function getPublicEvent(
   return {
     ...rowToListItem(row),
     description: row.description,
+    instructors: row.instructors,
     maxCapacity: row.max_capacity,
     maxGuestsPerRegistration: row.max_guests_per_registration,
     infoBoxes: row.event_info_boxes.map((box) => ({

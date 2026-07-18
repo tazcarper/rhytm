@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Fraunces, Libre_Franklin } from "next/font/google";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentViewer } from "@/src/services/shared/viewer";
-import { getPropertyProfile } from "@/src/constants/public/property-profiles";
+import { getResolvedPropertyProfile } from "@/src/services/public/property-profile";
 import { PropertyHeader } from "@/src/components/public/property-template/property-header";
 import { PropertyFooter } from "@/src/components/public/property-template/property-footer";
 
@@ -29,13 +29,14 @@ const hsbSans = Libre_Franklin({
 const PROPERTY_SLUG = "horseshoe-bay";
 
 export default async function HorseshoeBayLayout({ children }: { children: ReactNode }) {
-  const profile = getPropertyProfile(PROPERTY_SLUG);
+  const supabase = await createServerSupabaseClient();
+  const [profile, viewer] = await Promise.all([
+    getResolvedPropertyProfile(supabase, PROPERTY_SLUG),
+    getCurrentViewer(supabase),
+  ]);
   if (!profile) {
     throw new Error(`Missing property profile for "${PROPERTY_SLUG}"`);
   }
-
-  const supabase = await createServerSupabaseClient();
-  const viewer = await getCurrentViewer(supabase);
 
   return (
     <div

@@ -11,6 +11,42 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export type EventStatus = "draft" | "published" | "sold_out" | "cancelled" | "completed";
 export type EventInfoBoxType = "description" | "list";
 
+// The editor's datetime-local inputs ("2026-08-15T10:00") carry no
+// timezone — they're the property's local wall clock, same convention as
+// the booking system's date+slot picker (see
+// supabase/migrations/20260520160000_create_public_booking_function.sql,
+// which does `(p_date + p_slot_start) AT TIME ZONE 'America/Chicago'` in
+// SQL for the identical problem). Supabase's connection defaults to UTC,
+// so writing the naive string straight through silently mis-stores it —
+// "10:00" lands as 10:00 UTC (5:00 AM Central), not 10:00 AM Central.
+// This converts the wall-clock string to a proper UTC instant before it
+// ever reaches Postgres, using the standard double-format offset trick
+// (no timezone library in this project's dependencies). Hardcodes
+// America/Chicago, matching the SQL function's own hardcoded literal —
+// every property is Texas Hill Country today.
+function chicagoWallClockToUtcIso(wallClock: string): string {
+  const [datePart, timePart] = wallClock.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour, minute] = (timePart ?? "00:00").split(":").map(Number);
+
+  const utcGuess = Date.UTC(year, month - 1, day, hour, minute);
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Chicago",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  });
+  const parts = formatter.formatToParts(new Date(utcGuess));
+  const get = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? 0);
+  const asIfLocal = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second"));
+  const offset = asIfLocal - utcGuess;
+  return new Date(utcGuess - offset).toISOString();
+}
+
 const optionalText = (max: number) =>
   z
     .string()
@@ -59,6 +95,10 @@ export const SaveEventSchema = z
       .nullable()
       .transform((value) => (value ? value : null)),
     location: optionalText(200),
+    instructors: optionalText(200),
+    type: optionalText(80),
+    discipline: optionalText(80),
+    featured: z.boolean(),
     maxCapacity: z.number().int().positive("Capacity must be at least 1"),
     maxGuestsPerRegistration: z.number().int().positive("Must be at least 1"),
     memberPrice: optionalMoney,
@@ -114,6 +154,10 @@ export interface AdminEventDetail {
   startAt: string;
   endAt: string | null;
   location: string | null;
+  instructors: string | null;
+  type: string | null;
+  discipline: string | null;
+  featured: boolean;
   maxCapacity: number;
   maxGuestsPerRegistration: number;
   memberPrice: number | null;
@@ -196,6 +240,60 @@ export async function getEventsList(
   });
 }
 
+// Upcoming events for one property's workspace "Events" tab — same row
+// shape as getEventsList (reuses EventsDataTable as-is), but scoped to a
+// single property and to events that haven't started yet, soonest first
+// (the opposite ordering of the global list, which favors "most recent
+// first" for a mixed-property history view).
+export async function getUpcomingEventsForProperty(
+  supabase: SupabaseClient,
+  propertyId: string,
+): Promise<AdminEventListRow[]> {
+  const { data, error } = await supabase
+    .from("events")
+    .select(LIST_COLUMNS)
+    .eq("property_id", propertyId)
+    .eq("is_template", false)
+    .gte("start_at", new Date().toISOString())
+    .order("start_at", { ascending: true });
+
+  if (error) throw new Error(`Couldn't load upcoming events: ${error.message}`);
+
+  const rows = data ?? [];
+  const ids = rows.map((row) => row.id as string);
+
+  const confirmedByEvent = new Map<string, number>();
+  if (ids.length > 0) {
+    const { data: registrations } = await supabase
+      .from("event_registrations")
+      .select("event_id, guest_count")
+      .in("event_id", ids)
+      .eq("status", "confirmed");
+    for (const registration of registrations ?? []) {
+      confirmedByEvent.set(
+        registration.event_id,
+        (confirmedByEvent.get(registration.event_id) ?? 0) + registration.guest_count,
+      );
+    }
+  }
+
+  return rows.map((row) => {
+    const property = pickOne(row.properties as { name: string } | { name: string }[] | null);
+    return {
+      id: row.id,
+      title: row.title,
+      propertyName: property?.name ?? "—",
+      startAt: row.start_at,
+      status: row.status as EventStatus,
+      maxCapacity: row.max_capacity,
+      confirmedCount: confirmedByEvent.get(row.id) ?? 0,
+      memberPrice: row.member_price === null ? null : Number(row.member_price),
+      nonMemberPrice: row.non_member_price === null ? null : Number(row.non_member_price),
+      isTemplate: row.is_template,
+    };
+  });
+}
+
 export async function getEventTemplates(
   supabase: SupabaseClient,
 ): Promise<AdminEventTemplateOption[]> {
@@ -214,7 +312,7 @@ export async function getEventTemplates(
 }
 
 const DETAIL_COLUMNS =
-  "id, property_id, title, summary, description, start_at, end_at, location, max_capacity, max_guests_per_registration, member_price, non_member_price, status, is_manually_sold_out, is_template, image_url, event_info_boxes ( id, box_type, heading, body, items, sort_order )";
+  "id, property_id, title, summary, description, start_at, end_at, location, instructors, type, discipline, featured, max_capacity, max_guests_per_registration, member_price, non_member_price, status, is_manually_sold_out, is_template, image_url, event_info_boxes ( id, box_type, heading, body, items, sort_order )";
 
 type DetailRow = {
   id: string;
@@ -225,6 +323,10 @@ type DetailRow = {
   start_at: string;
   end_at: string | null;
   location: string | null;
+  instructors: string | null;
+  type: string | null;
+  discipline: string | null;
+  featured: boolean;
   max_capacity: number;
   max_guests_per_registration: number;
   member_price: string | number | null;
@@ -253,6 +355,10 @@ function rowToDetail(row: DetailRow): AdminEventDetail {
     startAt: row.start_at,
     endAt: row.end_at,
     location: row.location,
+    instructors: row.instructors,
+    type: row.type,
+    discipline: row.discipline,
+    featured: row.featured,
     maxCapacity: row.max_capacity,
     maxGuestsPerRegistration: row.max_guests_per_registration,
     memberPrice: row.member_price === null ? null : Number(row.member_price),
@@ -302,9 +408,13 @@ export async function saveEvent(
     title: input.title,
     summary: input.summary,
     description: input.description,
-    start_at: input.startAt,
-    end_at: input.endAt,
+    start_at: chicagoWallClockToUtcIso(input.startAt),
+    end_at: input.endAt ? chicagoWallClockToUtcIso(input.endAt) : null,
     location: input.location,
+    instructors: input.instructors,
+    type: input.type,
+    discipline: input.discipline,
+    featured: input.featured,
     max_capacity: input.maxCapacity,
     max_guests_per_registration: input.maxGuestsPerRegistration,
     member_price: input.memberPrice,
@@ -380,6 +490,12 @@ export async function duplicateEventFromTemplate(
     startAt: template.startAt,
     endAt: template.endAt,
     location: template.location,
+    instructors: template.instructors,
+    type: template.type,
+    discipline: template.discipline,
+    // A cloned draft never starts featured — that's a per-event editorial
+    // choice, not something a template should carry forward automatically.
+    featured: false,
     maxCapacity: template.maxCapacity,
     maxGuestsPerRegistration: template.maxGuestsPerRegistration,
     memberPrice: template.memberPrice,

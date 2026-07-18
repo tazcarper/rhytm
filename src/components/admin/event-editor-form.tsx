@@ -17,6 +17,10 @@ interface PropertyOption {
 interface EventEditorFormProps {
   event: AdminEventDetail | null;
   properties: ReadonlyArray<PropertyOption>;
+  // Pre-selects the property on a brand-new event (e.g. the "Add event"
+  // shortcut from a property's Marketing pages > Events tab). Ignored once
+  // an existing event is loaded — its own propertyId always wins.
+  defaultPropertyId?: string;
 }
 
 function toLocalInput(iso: string | null | undefined): string {
@@ -45,19 +49,25 @@ function toEditableBoxes(event: AdminEventDetail | null): EditableInfoBox[] {
 // Full editor for one event (create or edit). Client component: local field
 // state, thin Server Actions for save / delete, plus a nested info-box
 // sub-editor. Mirrors PromotionEditorForm's structure and styling.
-export function EventEditorForm({ event, properties }: EventEditorFormProps) {
+export function EventEditorForm({ event, properties, defaultPropertyId }: EventEditorFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
 
-  const [propertyId, setPropertyId] = useState(event?.propertyId ?? properties[0]?.id ?? "");
+  const [propertyId, setPropertyId] = useState(
+    event?.propertyId ?? defaultPropertyId ?? properties[0]?.id ?? "",
+  );
   const [title, setTitle] = useState(event?.title ?? "");
   const [summary, setSummary] = useState(event?.summary ?? "");
   const [description, setDescription] = useState(event?.description ?? "");
   const [startAt, setStartAt] = useState(toLocalInput(event?.startAt));
   const [endAt, setEndAt] = useState(toLocalInput(event?.endAt));
   const [location, setLocation] = useState(event?.location ?? "");
+  const [instructors, setInstructors] = useState(event?.instructors ?? "");
+  const [type, setType] = useState(event?.type ?? "");
+  const [discipline, setDiscipline] = useState(event?.discipline ?? "");
+  const [featured, setFeatured] = useState(event?.featured ?? false);
   const [maxCapacity, setMaxCapacity] = useState(String(event?.maxCapacity ?? 20));
   const [maxGuestsPerRegistration, setMaxGuestsPerRegistration] = useState(
     String(event?.maxGuestsPerRegistration ?? 4),
@@ -87,6 +97,10 @@ export function EventEditorForm({ event, properties }: EventEditorFormProps) {
         startAt,
         endAt: endAt || null,
         location: location.trim() || null,
+        instructors: instructors.trim() || null,
+        type: type.trim() || null,
+        discipline: discipline.trim() || null,
+        featured,
         maxCapacity: Number(maxCapacity) || 0,
         maxGuestsPerRegistration: Number(maxGuestsPerRegistration) || 0,
         memberPrice: memberPrice.trim() === "" ? null : Number(memberPrice),
@@ -205,6 +219,50 @@ export function EventEditorForm({ event, properties }: EventEditorFormProps) {
               className={s.input}
               placeholder="Main clubhouse"
             />
+          </label>
+          <label className={s.field}>
+            <span className={s.label}>Instructors</span>
+            <input
+              type="text"
+              value={instructors}
+              onChange={(evt) => setInstructors(evt.target.value)}
+              className={s.input}
+              placeholder="Ben Morton"
+            />
+          </label>
+        </Group>
+
+        <Group
+          eyebrow="Classification"
+          desc="Powers the events calendar's Type/Discipline filter pills — a filter only appears once some event uses it, so any value works, but stay consistent (e.g. always “Shotgun”, not sometimes “Shotguns”)."
+        >
+          <div className={h.grid2}>
+            <label className={s.field}>
+              <span className={s.label}>Type</span>
+              <input
+                type="text"
+                value={type}
+                onChange={(evt) => setType(evt.target.value)}
+                className={s.input}
+                placeholder="Training"
+              />
+            </label>
+            <label className={s.field}>
+              <span className={s.label}>Discipline</span>
+              <input
+                type="text"
+                value={discipline}
+                onChange={(evt) => setDiscipline(evt.target.value)}
+                className={s.input}
+                placeholder="Shotgun"
+              />
+            </label>
+          </div>
+          <label className="flex items-center gap-2.5">
+            <input type="checkbox" checked={featured} onChange={(evt) => setFeatured(evt.target.checked)} />
+            <span className="text-[14px] text-olive">
+              Feature this event (gets the large callout card at the top of the calendar)
+            </span>
           </label>
         </Group>
 

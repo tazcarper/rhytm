@@ -8,7 +8,12 @@ import { NewEventTemplatePicker } from "@/src/components/admin/new-event-templat
 
 export const dynamic = "force-dynamic";
 
-export default async function NewEventPage() {
+export default async function NewEventPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ propertyId?: string }>;
+}) {
+  const { propertyId } = await searchParams;
   const supabase = await createServerSupabaseClient();
   const [properties, templates] = await Promise.all([
     getAdminPropertiesList(supabase),
@@ -33,6 +38,7 @@ export default async function NewEventPage() {
       <EventEditorForm
         event={null}
         properties={properties.map((property) => ({ id: property.id, name: property.name }))}
+        defaultPropertyId={propertyId}
       />
     </PageShell>
   );

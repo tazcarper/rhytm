@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getPropertyPageContentSection } from "@/src/services/admin/property-page-content";
 
 export interface AdminProperty {
   id: string;
@@ -89,6 +90,35 @@ export async function getAdminPropertiesList(
     throw new Error(`Admin properties list failed: ${error.message}`);
   }
   return ((data ?? []) as AdminPropertyRow[]).map(rowToProperty);
+}
+
+export interface AdminPropertyWithLogo {
+  id: string;
+  name: string;
+  slug: string;
+  logoUrl: string | null;
+}
+
+// Properties plus each one's basics/logo image, for the two nav surfaces
+// that show a property switcher (the admin sidebar's expandable Properties
+// group, and the properties workspace's top rail) — both need the same
+// {id, name, slug, logoUrl} shape, so it's fetched in one place rather than
+// duplicated per layout.
+export async function getAdminPropertiesWithLogos(
+  supabase: SupabaseClient,
+): Promise<AdminPropertyWithLogo[]> {
+  const list = await getAdminPropertiesList(supabase);
+  const logos = await Promise.all(
+    list.map((property) =>
+      getPropertyPageContentSection(supabase, property.id, "basics", "logo").catch(() => null),
+    ),
+  );
+  return list.map((property, index) => ({
+    id: property.id,
+    name: property.name,
+    slug: property.slug,
+    logoUrl: logos[index]?.imageUrl ?? null,
+  }));
 }
 
 const nullableTrimmed = (max: number) =>

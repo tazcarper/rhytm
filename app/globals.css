@@ -271,8 +271,20 @@ body {
   min-height: 100vh;
 }
 
-a {
-  color: var(--tan-deep);
+/* @layer base, not a bare rule: unlayered CSS beats any Tailwind utility
+   class regardless of specificity, so a bare `a { color }` here silently
+   wins over every `text-*` utility on a link (e.g. PropertyButton's
+   `text-property-on-primary` on its <Link> branch) — same class of bug as
+   property-themes.css's own "never bare color on [data-property]" lesson,
+   just tripped by a portal-wide base style instead of a property one.
+   `@layer base` sits behind Tailwind's `@layer utilities` in cascade
+   order, so this remains the correct default for any link that doesn't
+   carry its own text-color utility, without silently overriding the ones
+   that do. */
+@layer base {
+  a {
+    color: var(--tan-deep);
+  }
 }
 
 /* No global <main> rule. Every page composes its own layout via

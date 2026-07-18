@@ -2,51 +2,98 @@ import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getPublicPropertyBySlug } from "@/src/services/public/properties";
 import { getPublicEvents } from "@/src/services/public/events";
+import { getPropertyPageSection } from "@/src/services/public/property-page-content";
 import { Section } from "@/src/components/public/property-template/section";
 import { RuleDivider } from "@/src/components/public/property-template/rule-divider";
+import { SectionHeading } from "@/src/components/public/property-template/section-heading";
 import { PropertyImage } from "@/src/components/public/property-template/property-image";
 import { PropertyButton } from "@/src/components/public/property-template/property-button";
 import { FacilityCard } from "@/src/components/public/property-template/facility-card";
 
 export const dynamic = "force-dynamic";
 
-const WAY_IN_TILES = [
-  { label: "Club Life", href: "/horseshoe-bay/club-life", file: "wayin-club-life.jpg" },
-  { label: "Adventure", href: "/horseshoe-bay/adventures", file: "wayin-adventure.jpg" },
-  { label: "Education", href: "/horseshoe-bay/education", file: "wayin-education.jpg" },
-  { label: "Calendar", href: "/horseshoe-bay/events", file: "wayin-events-calendar.jpg" },
+const DEFAULT_INTRO = {
+  heading: "A New Standard in Shooting Sports",
+  body: "Horseshoe Bay Sporting Club is a premier private shooting destination designed exclusively for the Club at Horseshoe Bay members and their families. We offer curated shooting experiences and personalized instruction in a safe, welcoming environment that honors shooting tradition while delivering elevated hospitality.\n\nMore than a range, we are where members hone their craft, celebrate the outdoors, and create meaningful connections across generations: the new third place for the Horseshoe Bay community.",
+};
+
+const DEFAULT_WAY_IN_TILES = [
+  { title: "Club Life", linkHref: "/horseshoe-bay/club-life", imageUrl: "/properties/horseshoe-bay/wayin-club-life.jpg" },
+  { title: "Adventure", linkHref: "/horseshoe-bay/adventures", imageUrl: "/properties/horseshoe-bay/wayin-adventure.jpg" },
+  { title: "Education", linkHref: "/horseshoe-bay/education", imageUrl: "/properties/horseshoe-bay/wayin-education.jpg" },
+  { title: "Calendar", linkHref: "/horseshoe-bay/events", imageUrl: "/properties/horseshoe-bay/wayin-events-calendar.jpg" },
 ];
 
-const AMENITIES = [
+const DEFAULT_AMENITIES = [
   {
     title: "Shotgun Range",
-    blurb: "Sporting clays course with Hill Country views, plus three shooting decks.",
-    items: ["12-station sporting clays course", "5-Stand and Flurry decks", "Helice ring"],
-    file: "facility-1.jpg",
+    body: "Sporting clays course with Hill Country views, plus three shooting decks.",
+    bullets: ["12-station sporting clays course", "5-Stand and Flurry decks", "Helice ring"],
+    imageUrl: "/properties/horseshoe-bay/facility-1.jpg",
   },
   {
     title: "Pistol Range",
-    blurb: "Safe, supervised sessions for shooters of all experience levels.",
-    items: ["One 50-yard pistol bay", "Three 25-yard pistol bays", "Covered pavilion with group seating"],
-    file: "facility-2.jpg",
+    body: "Safe, supervised sessions for shooters of all experience levels.",
+    bullets: ["One 50-yard pistol bay", "Three 25-yard pistol bays", "Covered pavilion with group seating"],
+    imageUrl: "/properties/horseshoe-bay/facility-2.jpg",
   },
   {
     title: "Members' Lounge",
-    blurb: "Unwind in the clubhouse or Trophy Room after your time on the range.",
-    items: [
+    body: "Unwind in the clubhouse or Trophy Room after your time on the range.",
+    bullets: [
       "Clubhouse with retail and food & beverage",
       "Trophy Room with game tables and lounge area",
       "The Last Shot bar: craft cocktails, six days a week",
     ],
-    file: "facility-3.jpg",
+    imageUrl: "/properties/horseshoe-bay/facility-3.jpg",
   },
 ];
+
+const DEFAULT_CAMPAIGN_QUOTE = {
+  heading: "Where skill and community meet tradition",
+  body: "Excellence on, and off, the range.",
+};
+
+const DEFAULT_JOIN_CTA = {
+  heading: "Join the Club",
+  body: "We are now welcoming members of the Club at Horseshoe Bay to join us on the range. Membership secures your place at the heart of the club, and invites you and your family to shape the future of our community.",
+  ctaLabel: "Learn More",
+  ctaHref: "/horseshoe-bay/membership",
+};
 
 export default async function HorseshoeBayHomePage() {
   const supabase = await createServerSupabaseClient();
   const { data: property } = await getPublicPropertyBySlug(supabase, "horseshoe-bay");
-  const events = property ? await getPublicEvents(supabase, property.id) : [];
+
+  const [events, introOverride, wayInOverride, amenitiesOverride, quoteOverride, ctaOverride] = property
+    ? await Promise.all([
+        getPublicEvents(supabase, property.id),
+        getPropertyPageSection(supabase, property.id, "home", "intro"),
+        getPropertyPageSection(supabase, property.id, "home", "find-your-way"),
+        getPropertyPageSection(supabase, property.id, "home", "amenities"),
+        getPropertyPageSection(supabase, property.id, "home", "campaign-quote"),
+        getPropertyPageSection(supabase, property.id, "home", "join-cta"),
+      ])
+    : [[], null, null, null, null, null];
+
   const featuredEvents = events.filter((event) => !event.isSoldOut || event.status === "published").slice(0, 3);
+
+  const intro = {
+    heading: introOverride?.heading || DEFAULT_INTRO.heading,
+    body: introOverride?.body || DEFAULT_INTRO.body,
+  };
+  const wayInTiles = wayInOverride?.items?.length ? wayInOverride.items : DEFAULT_WAY_IN_TILES;
+  const amenities = amenitiesOverride?.items?.length ? amenitiesOverride.items : DEFAULT_AMENITIES;
+  const campaignQuote = {
+    heading: quoteOverride?.heading || DEFAULT_CAMPAIGN_QUOTE.heading,
+    body: quoteOverride?.body || DEFAULT_CAMPAIGN_QUOTE.body,
+  };
+  const joinCta = {
+    heading: ctaOverride?.heading || DEFAULT_JOIN_CTA.heading,
+    body: ctaOverride?.body || DEFAULT_JOIN_CTA.body,
+    ctaLabel: ctaOverride?.ctaLabel || DEFAULT_JOIN_CTA.ctaLabel,
+    ctaHref: ctaOverride?.ctaHref || DEFAULT_JOIN_CTA.ctaHref,
+  };
 
   return (
     <>
@@ -69,19 +116,11 @@ export default async function HorseshoeBayHomePage() {
               Welcome to the Club
             </p>
             <h1 className="property-headline font-property-display text-property-headline uppercase text-property-ink">
-              A New Standard in Shooting Sports
+              {intro.heading}
             </h1>
             <RuleDivider />
-            <p className="font-property-sans text-property-body-lg text-property-ink-variant">
-              Horseshoe Bay Sporting Club is a premier private shooting destination designed
-              exclusively for the Club at Horseshoe Bay members and their families. We offer
-              curated shooting experiences and personalized instruction in a safe, welcoming
-              environment that honors shooting tradition while delivering elevated hospitality.
-              <br />
-              <br />
-              More than a range, we are where members hone their craft, celebrate the outdoors,
-              and create meaningful connections across generations: the new third place for the
-              Horseshoe Bay community.
+            <p className="whitespace-pre-wrap font-property-sans text-property-body-lg text-property-ink-variant">
+              {intro.body}
             </p>
             <div className="mt-10 flex w-full justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -100,32 +139,24 @@ export default async function HorseshoeBayHomePage() {
 
       {/* Find Your Way In */}
       <Section>
-        <div className="mb-12 text-center">
-          <p className="mb-3 font-property-sans text-property-eyebrow uppercase tracking-[0.2em] text-property-accent-dark">
-            The Sporting Life
-          </p>
-          <h2 className="property-headline font-property-display text-property-headline uppercase text-property-ink">
-            Find Your Way In
-          </h2>
-          <RuleDivider center />
-        </div>
+        <SectionHeading eyebrow="The Sporting Life" heading="Find Your Way In" align="center" className="mb-12" />
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
-          {WAY_IN_TILES.map((tile) => (
+          {wayInTiles.map((tile) => (
             <Link
-              key={tile.href}
-              href={tile.href}
+              key={tile.linkHref ?? tile.title}
+              href={tile.linkHref ?? "#"}
               className="group relative flex aspect-[4/5] items-end overflow-hidden border border-property-ink/10"
             >
               <PropertyImage
-                src={`/properties/horseshoe-bay/${tile.file}`}
+                src={tile.imageUrl ?? null}
                 alt=""
-                filename={tile.file}
+                filename="wayin-tile.jpg"
                 className="!absolute !inset-0 transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-property-scrim/90 via-property-scrim/45 to-transparent" />
               <div className="relative z-10 flex w-full flex-col items-center p-6 text-center">
                 <h3 className="property-headline mb-2 font-property-display text-2xl uppercase text-white">
-                  {tile.label}
+                  {tile.title}
                 </h3>
                 <span className="flex items-center font-property-sans text-property-label uppercase text-property-accent-dark transition-colors group-hover:text-property-surface-lowest">
                   Explore
@@ -142,33 +173,30 @@ export default async function HorseshoeBayHomePage() {
       {/* Campaign line */}
       <Section tone="sage" className="text-center">
         <p className="mb-6 font-property-sans text-property-eyebrow uppercase tracking-[0.2em] text-property-accent-dark">
-          Where skill and community meet tradition
+          {campaignQuote.heading}
         </p>
         <p className="property-display mx-auto max-w-3xl font-property-display text-4xl italic leading-snug text-property-bg md:text-5xl">
-          Excellence on, and off, the range.
+          {campaignQuote.body}
         </p>
       </Section>
 
       {/* Premier Amenities */}
       <Section>
-        <div className="mb-12 flex flex-col items-center text-center">
-          <p className="mb-3 font-property-sans text-property-eyebrow uppercase tracking-[0.2em] text-property-accent-dark">
-            Beyond Golf and Tennis
-          </p>
-          <h2 className="property-headline mx-auto max-w-3xl font-property-display text-property-headline uppercase text-property-ink">
-            Premier Amenities
-          </h2>
-          <RuleDivider center />
-        </div>
+        <SectionHeading
+          eyebrow="Beyond Golf and Tennis"
+          heading="Premier Amenities"
+          align="center"
+          className="mb-12 mx-auto max-w-3xl"
+        />
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          {AMENITIES.map((amenity) => (
+          {amenities.map((amenity) => (
             <FacilityCard
               key={amenity.title}
-              title={amenity.title}
-              blurb={amenity.blurb}
-              items={amenity.items}
-              imageSrc={null}
-              imageFilename={amenity.file}
+              title={amenity.title ?? ""}
+              blurb={amenity.body ?? ""}
+              items={amenity.bullets ?? []}
+              imageSrc={amenity.imageUrl ?? null}
+              imageFilename="facility.jpg"
             />
           ))}
         </div>
@@ -179,15 +207,7 @@ export default async function HorseshoeBayHomePage() {
           against our own events table. */}
       <Section tone="surfaceHighest" className="border-y border-property-ink/10">
         <div className="mb-12 flex flex-col items-end justify-between gap-6 md:flex-row">
-          <div>
-            <p className="mb-3 font-property-sans text-property-eyebrow uppercase tracking-[0.2em] text-property-accent-dark">
-              What&rsquo;s On
-            </p>
-            <h2 className="property-headline font-property-display text-property-headline uppercase text-property-ink">
-              Featured Events
-            </h2>
-            <RuleDivider />
-          </div>
+          <SectionHeading eyebrow={<>What&rsquo;s On</>} heading="Featured Events" />
           <Link
             href="/horseshoe-bay/events"
             className="border-b border-property-ink pb-1 font-property-sans text-property-eyebrow uppercase tracking-widest text-property-ink transition-colors hover:border-property-camel"
@@ -209,7 +229,7 @@ export default async function HorseshoeBayHomePage() {
                 className="group block border border-property-ink/10 bg-property-surface-lowest"
               >
                 <div className="relative aspect-[4/3] overflow-hidden">
-                  <PropertyImage src={event.imageUrl} alt="" filename="event.jpg" />
+                  <PropertyImage src={event.imageUrl} alt="" filename="events.jpg" />
                 </div>
                 <div className="p-6">
                   <h3 className="property-headline mb-2 font-property-display text-xl uppercase text-property-ink">
@@ -232,17 +252,19 @@ export default async function HorseshoeBayHomePage() {
       {/* Join CTA */}
       <Section tone="sage" className="text-center text-white">
         <div className="mx-auto flex max-w-4xl flex-col items-center">
-          <p className="mb-4 font-property-sans text-property-eyebrow uppercase tracking-[0.2em] text-property-accent-dark">
-            Membership is Open
+          <SectionHeading
+            eyebrow="Membership is Open"
+            heading={joinCta.heading}
+            size="cta"
+            tone="white"
+            align="center"
+            divider={false}
+          />
+          <p className="mb-10 max-w-2xl whitespace-pre-wrap font-property-sans text-property-body-lg leading-relaxed text-white">
+            {joinCta.body}
           </p>
-          <h2 className="property-display mb-6 font-property-display text-5xl uppercase text-white">Join the Club</h2>
-          <p className="mb-10 max-w-2xl font-property-sans text-property-body-lg leading-relaxed text-white">
-            We are now welcoming members of the Club at Horseshoe Bay to join us on the range.
-            Membership secures your place at the heart of the club, and invites you and your
-            family to shape the future of our community.
-          </p>
-          <PropertyButton href="/horseshoe-bay/membership" variant="secondary">
-            Learn More
+          <PropertyButton href={joinCta.ctaHref} variant="secondary">
+            {joinCta.ctaLabel}
           </PropertyButton>
         </div>
       </Section>

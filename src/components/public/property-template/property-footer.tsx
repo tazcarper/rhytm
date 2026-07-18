@@ -20,9 +20,9 @@ export function PropertyFooter({ profile }: PropertyFooterProps) {
       <div className="border-b border-property-surface-low/10">
         <div className="mx-auto flex max-w-property-max flex-col gap-6 px-property-section-mobile py-10 md:flex-row md:items-center md:justify-center md:gap-12 md:px-property-gutter">
           <div className="md:max-w-md">
-            <h4 className={LABEL_CLASS}>Newsletter</h4>
+            <h4 className={LABEL_CLASS}>{profile.newsletterHeading}</h4>
             <p className="font-property-sans text-property-body text-property-surface-low/80">
-              Receive regular updates and club news.
+              {profile.newsletterBlurb}
             </p>
           </div>
           <NewsletterForm />
@@ -32,7 +32,7 @@ export function PropertyFooter({ profile }: PropertyFooterProps) {
       <div className="mx-auto grid max-w-property-max grid-cols-1 gap-property-gutter px-property-section-mobile py-property-section-desktop md:grid-cols-4 md:px-property-gutter">
         <div className="col-span-1 flex items-start justify-center md:justify-start">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={profile.logoSrc} alt={profile.name} className="h-40 w-auto object-contain" />
+          <img src={profile.footerLogoSrc} alt={profile.name} className="h-40 w-auto object-contain" />
         </div>
 
         <div className="col-span-1 space-y-6">

@@ -6,6 +6,7 @@ import { hasAdminAccess } from "@/lib/auth/portal";
 import { AdminSidebar } from "@/src/components/admin/admin-sidebar";
 import { getAdminDashboardCounts } from "@/src/services/admin/dashboard";
 import { staffNeedsOnboarding } from "@/src/services/admin/team";
+import { getAdminPropertiesWithLogos } from "@/src/services/admin/properties";
 
 export const dynamic = "force-dynamic";
 
@@ -16,10 +17,11 @@ export default async function AdminLayout({
 }) {
   const supabase = await createServerSupabaseClient();
 
-  const [{ data: userData }, counts, requestHeaders] = await Promise.all([
+  const [{ data: userData }, counts, requestHeaders, properties] = await Promise.all([
     supabase.auth.getUser(),
     getAdminDashboardCounts(supabase).catch(() => ({ pendingBids: 0, newInquiries: 0 })),
     headers(),
+    getAdminPropertiesWithLogos(supabase).catch(() => []),
   ]);
 
   const user = userData.user;
@@ -48,6 +50,12 @@ export default async function AdminLayout({
         role={role}
         pendingBidCount={counts.pendingBids}
         newInquiryCount={counts.newInquiries}
+        properties={properties.map((property) => ({
+          id: property.id,
+          name: property.name,
+          slug: property.slug,
+          logoUrl: property.logoUrl,
+        }))}
       />
       {/* Desktop rail is fixed; give the content column room for it. */}
       <div className="lg:pl-60">{children}</div>

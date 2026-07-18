@@ -6,19 +6,14 @@ import { usePathname } from "next/navigation";
 import {
   BookOpen,
   Building2,
-  CalendarDays,
   ChevronDown,
   ChevronRight,
-  CircleHelp,
-  ClipboardList,
-  Compass,
   ExternalLink,
   GraduationCap,
   House,
   LayoutDashboard,
   LogOut,
   Mail,
-  Megaphone,
   Menu,
   Network,
   Signature,
@@ -32,8 +27,10 @@ import {
 import { signOut } from "@/lib/auth/actions";
 import { canManageTeam } from "@/lib/auth/portal";
 import { cn } from "@/src/components/ui/utils";
+import { getPropertyBrandTint } from "@/src/constants/admin/property-brand-tints";
 
 interface NavItem {
+  type?: "link";
   label: string;
   href: string;
   icon: LucideIcon;
@@ -42,9 +39,35 @@ interface NavItem {
   external?: boolean;
 }
 
+interface ExpandableChildItem {
+  label: string;
+  href: string;
+  /** Property slug — keys the brand-tint monogram fallback when no logo is set. */
+  slug?: string;
+  logoUrl?: string | null;
+}
+
+interface ExpandableNavItem {
+  type: "expandable";
+  label: string;
+  icon: LucideIcon;
+  /** Any pathname under this prefix counts as "within" — auto-opens the group and highlights its row. */
+  basePath: string;
+  children: ReadonlyArray<ExpandableChildItem>;
+}
+
+type NavEntry = NavItem | ExpandableNavItem;
+
 interface NavGroup {
   label: string | null;
-  items: ReadonlyArray<NavItem>;
+  items: ReadonlyArray<NavEntry>;
+}
+
+interface PropertyNavItem {
+  id: string;
+  name: string;
+  slug: string;
+  logoUrl: string | null;
 }
 
 interface GuideLink {
@@ -77,12 +100,14 @@ interface AdminSidebarProps {
   role: string | undefined;
   pendingBidCount: number;
   newInquiryCount: number;
+  properties: ReadonlyArray<PropertyNavItem>;
 }
 
 function buildNavGroups(
   role: string | undefined,
   pendingBidCount: number,
   newInquiryCount: number,
+  properties: ReadonlyArray<PropertyNavItem>,
 ): NavGroup[] {
   return [
     {
@@ -90,30 +115,36 @@ function buildNavGroups(
       items: [
         { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
         {
-          label: "Bids",
-          href: "/admin/bids",
-          icon: ClipboardList,
-          badgeCount: pendingBidCount > 0 ? pendingBidCount : undefined,
-        },
-        {
           label: "Inquiries",
           href: "/admin/inquiries",
           icon: Mail,
           badgeCount: newInquiryCount > 0 ? newInquiryCount : undefined,
         },
-        { label: "Bookings", href: "/admin/bookings", icon: CalendarDays },
       ],
     },
     {
       label: "Programming",
       items: [
         { label: "Events", href: "/admin/events", icon: Ticket },
-        { label: "Adventures", href: "/admin/adventures", icon: Compass },
-        { label: "Promotions", href: "/admin/promotions", icon: Megaphone },
-        { label: "Properties", href: "/admin/properties", icon: Building2 },
-        { label: "Homepage", href: "/admin/homepage", icon: House },
-        { label: "FAQ & Gear", href: "/admin/templates", icon: CircleHelp },
         { label: "Waivers", href: "/admin/waivers", icon: Signature },
+      ],
+    },
+    {
+      label: "Content Management",
+      items: [
+        {
+          type: "expandable",
+          label: "Properties",
+          icon: Building2,
+          basePath: "/admin/properties",
+          children: properties.map((property) => ({
+            label: property.name,
+            href: `/admin/properties/${property.id}`,
+            slug: property.slug,
+            logoUrl: property.logoUrl,
+          })),
+        },
+        { label: "Homepage", href: "/admin/homepage", icon: House },
       ],
     },
     {
@@ -203,6 +234,112 @@ function NavLink({
   );
 }
 
+// 18px logo medallion for a property row in the sidebar — mirrors the
+// properties workspace's own top-rail badge (property-rail.tsx) at a
+// smaller size for the narrower nav column. Falls back to an initial-letter
+// monogram tinted with that club's brand color when no logo is uploaded.
+function PropertyBadge({
+  slug,
+  name,
+  logoUrl,
+  active,
+}: {
+  slug: string | undefined;
+  name: string;
+  logoUrl: string | null | undefined;
+  active: boolean;
+}) {
+  return (
+    <span
+      className={cn(
+        "grid size-[18px] shrink-0 place-items-center overflow-hidden rounded-full border bg-white",
+        active ? "border-cream/40" : "border-cream/15",
+      )}
+    >
+      {logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={logoUrl} alt="" className="size-full object-contain p-[2px]" />
+      ) : (
+        <span
+          className="grid size-full place-items-center font-serif text-[9px] font-semibold leading-none text-cream"
+          style={{ background: getPropertyBrandTint(slug) }}
+          aria-hidden="true"
+        >
+          {name.charAt(0)}
+        </span>
+      )}
+    </span>
+  );
+}
+
+function ExpandableNavLink({
+  item,
+  onNavigate,
+}: {
+  item: ExpandableNavItem;
+  onNavigate?: () => void;
+}) {
+  const pathname = usePathname();
+  const within = pathname === item.basePath || pathname.startsWith(`${item.basePath}/`);
+  const [open, setOpen] = useState(within);
+
+  // Auto-open (never auto-close) whenever navigation lands inside this group.
+  useEffect(() => {
+    if (within) setOpen(true);
+  }, [within]);
+
+  const Chevron = open ? ChevronDown : ChevronRight;
+  const Icon = item.icon;
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        aria-expanded={open}
+        className={cn(
+          "flex w-full items-center gap-2.5 rounded-sharp px-3 py-2 text-[13.5px] leading-snug transition-colors",
+          within
+            ? "bg-cream/10 font-medium text-cream"
+            : "text-cream/70 hover:bg-cream/[0.06] hover:text-cream",
+        )}
+      >
+        <Icon className="size-4 shrink-0 opacity-80" aria-hidden="true" />
+        <span className="truncate">{item.label}</span>
+        <Chevron className="ml-auto size-3.5 opacity-60" aria-hidden="true" />
+      </button>
+      {open && (
+        <ul className="mt-0.5 flex flex-col gap-px pl-7">
+          {item.children.length === 0 && (
+            <li className="px-2 py-1.5 text-[12.5px] text-cream/40">No properties yet</li>
+          )}
+          {item.children.map((child) => {
+            const active = pathname === child.href || pathname.startsWith(`${child.href}/`);
+            return (
+              <li key={child.href}>
+                <Link
+                  href={child.href}
+                  aria-current={active ? "page" : undefined}
+                  onClick={onNavigate}
+                  className={cn(
+                    "flex items-center gap-2 rounded-sharp py-1.5 pl-1.5 pr-2 text-[12.5px] transition-colors",
+                    active
+                      ? "bg-cream/10 font-medium text-cream"
+                      : "text-cream/60 hover:bg-cream/[0.06] hover:text-cream",
+                  )}
+                >
+                  <PropertyBadge slug={child.slug} name={child.label} logoUrl={child.logoUrl} active={active} />
+                  <span className={active ? "text-white truncate" : "truncate"}>{child.label}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function GuidesSection({ role }: { role: string | undefined }) {
   const [open, setOpen] = useState(false);
   const Chevron = open ? ChevronDown : ChevronRight;
@@ -247,10 +384,11 @@ function SidebarContent({
   role,
   pendingBidCount,
   newInquiryCount,
+  properties,
   onNavigate,
 }: AdminSidebarProps & { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const groups = buildNavGroups(role, pendingBidCount, newInquiryCount);
+  const groups = buildNavGroups(role, pendingBidCount, newInquiryCount, properties);
 
   const isActive = (href: string) =>
     href === "/admin"
@@ -284,15 +422,21 @@ function SidebarContent({
               </p>
             )}
             <ul className="flex flex-col gap-px">
-              {group.items.map((item) => (
-                <li key={item.href}>
-                  <NavLink
-                    item={item}
-                    active={!item.external && isActive(item.href)}
-                    onNavigate={onNavigate}
-                  />
-                </li>
-              ))}
+              {group.items.map((item) =>
+                item.type === "expandable" ? (
+                  <li key={item.label}>
+                    <ExpandableNavLink item={item} onNavigate={onNavigate} />
+                  </li>
+                ) : (
+                  <li key={item.href}>
+                    <NavLink
+                      item={item}
+                      active={!item.external && isActive(item.href)}
+                      onNavigate={onNavigate}
+                    />
+                  </li>
+                ),
+              )}
             </ul>
           </div>
         ))}

@@ -44,6 +44,8 @@
   --color-property-accent-dark: var(--property-accent-dark);
   --color-property-brush: var(--property-brush);
   --color-property-sage: var(--property-sage);
+  --color-property-moss: var(--property-moss);
+  --color-property-paper: var(--property-paper);
   --color-property-rock: var(--property-rock);
   --color-property-on-primary: var(--property-on-primary);
 
@@ -89,10 +91,68 @@
   --property-brush: #7b8869;
   --property-sage: #6f7a5e;
   --property-rock: #cecdc4;
-  --property-on-primary: #ffffff;
+  /* Horseshoe Bay's accent is a light peach — white text on it fails
+     contrast (~2:1). The mockup's own accent buttons use a dark
+     olive/moss text (text-moss) for this reason; --property-ink is the
+     closest existing token to that. Hog Heaven's accent is a dark rust,
+     where white *is* the correct on-primary — see that block below. */
+  --property-on-primary: var(--property-ink);
 
   --property-font-display: var(--font-hsb-display), Georgia, serif;
   --property-font-sans: var(--font-hsb-sans), system-ui, sans-serif;
+
+  --property-text-wordmark: 32px;
+  --property-text-display: 84px;
+  --property-text-display-mobile: 48px;
+  --property-text-headline: 42px;
+  --property-text-eyebrow: 14px;
+  --property-text-label: 13px;
+  --property-text-body: 16px;
+  --property-text-body-lg: 20px;
+
+  --property-radius: 0px;
+  --property-section-desktop: 120px;
+  --property-section-mobile: 64px;
+  --property-gutter: 32px;
+  --property-container-max: 1280px;
+}
+
+/* ---- Hog Heaven Sporting Club ----
+   Hill Country ranch register: same warm sand field as Horseshoe Bay, but
+   a near-black ink instead of olive, a rust/terracotta accent instead of
+   orange, and two distinct dark-green section fields (hunter-mid, moss)
+   where Horseshoe Bay's mockup reused a single sage everywhere — hence
+   the two extra shared tokens/tones (--property-moss, --property-paper)
+   added above rather than collapsing them into the existing sage slot.
+   Palette transcribed 1:1 from
+   temporary-resources/front-end-beta/hog-heaven/index.html's inline
+   tailwind.config. The mockup's "ink-dark" hover shade doesn't exist in
+   its own config (never referenced) — set here to a plain near-black,
+   since ink is already close to black and needs only a touch of
+   hover-darkening. */
+[data-property="hog-heaven"] {
+  --property-bg: #ede6d9;
+  --property-surface-lowest: #ffffff;
+  --property-surface-low: #f7f3ee;
+  --property-surface: #f1ede8;
+  --property-surface-high: #e7e0d2;
+  --property-surface-highest: #ded6c6;
+  --property-ink: #1c261e;
+  --property-ink-dark: #0d120e;
+  --property-ink-variant: #444843;
+  --property-scrim: #141b15;
+  --property-camel: #bd8667;
+  --property-accent: #bd572a;
+  --property-accent-dark: #a8481f;
+  --property-sage: #4a5439;
+  --property-moss: #2d3a2f;
+  --property-paper: #e3dac9;
+  /* Accent here is a dark rust — white is the correct on-primary text
+     (opposite of Horseshoe Bay's light peach accent above). */
+  --property-on-primary: #ffffff;
+
+  --property-font-display: var(--font-hh-display), Georgia, serif;
+  --property-font-sans: var(--font-hh-sans), system-ui, sans-serif;
 
   --property-text-wordmark: 32px;
   --property-text-display: 84px;
