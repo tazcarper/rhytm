@@ -13,40 +13,45 @@ import { ProgramCard } from "@/src/components/public/property-template/program-c
 export const dynamic = "force-dynamic";
 
 const DEFAULT_INTRO = {
-  heading: "Expert Instruction",
-  body: "Private training and group classes for shooters at every level. Whether you are new to the sport or have years behind you, our instructors meet you where you are. One-on-one lessons in shotgun and pistol are tailored to your skill level and interests, led by professionals with decades of experience in a safe, welcoming environment.",
+  heading: "Real Skills, Taught Well",
+  body: "Precision rifle, carbine, pistol, and fieldcraft, taught by people who do it. Come as you are; we'll hold you to a real standard once you're here.",
   ctaLabel: "Meet the Instructors",
   ctaHref: "#instructors",
-  imageUrl: "/properties/horseshoe-bay/intro-education.jpg",
+  imageUrl: null as string | null,
 };
 
+// Each program deep-links into events.html filtered by ?program=... in the
+// mockup. events.type/discipline columns exist now, but getPublicEvents()
+// has no filter parameter yet (same inherited gap Horseshoe Bay and Hog
+// Heaven both shipped around) — linking to the plain unfiltered calendar
+// until that service-layer work happens, not fabricating a filtered view.
 const DEFAULT_PROGRAMS = [
   {
-    title: "Shotgun Classes",
-    body: "Sporting clays, 5-stand, and more. From intro clinics to advanced sessions, you'll learn to read targets and build a mount & swing that will have you breaking clays.",
-    linkHref: "/horseshoe-bay/events",
+    title: "Precision Rifle",
+    body: "Long range, on real terrain. Precision and accuracy, and the discipline of getting one thing exactly right.",
+    linkHref: "/packsaddle/events",
   },
   {
-    title: "Pistol Classes",
-    body: "Safe and fun training on the pistol bays, for shooters at every experience level. Fundamentals taught patiently, then built on.",
-    linkHref: "/horseshoe-bay/events",
+    title: "Pistol & Carbine",
+    body: "The tricky blend of close-and-fast and far-and-accurate. Footwork, when to move, and how to lead with your eyes.",
+    linkHref: "/packsaddle/events",
   },
   {
-    title: "Private Lessons",
-    body: "One-on-one instruction in shotgun and pistol, tailored to your level and your interests, led by professionals with decades of experience.",
-    linkHref: "#instructors",
+    title: "Uncommon Skills",
+    body: "Fieldcraft, adventure races, and fitness. Resourcefulness, grit, and the quiet confidence of always being useful.",
+    linkHref: "/packsaddle/events",
   },
 ];
 
 const DEFAULT_CTA = {
-  heading: "Book your session.",
+  heading: "Come train on the mountain.",
   ctaLabel: "Join the Club",
-  ctaHref: "/horseshoe-bay/membership",
+  ctaHref: "/packsaddle/membership",
 };
 
-export default async function EducationPage() {
+export default async function PacksaddleEducationPage() {
   const supabase = await createServerSupabaseClient();
-  const { data: property } = await getPublicPropertyBySlug(supabase, "horseshoe-bay");
+  const { data: property } = await getPublicPropertyBySlug(supabase, "packsaddle");
 
   const [introOverride, programsOverride, ctaOverride, instructors] = property
     ? await Promise.all([
@@ -79,11 +84,11 @@ export default async function EducationPage() {
       <Section>
         <div className="grid grid-cols-1 items-center gap-property-gutter md:grid-cols-2">
           <div className="flex flex-col items-start text-left">
-            <SectionHeading eyebrow="Shooting Education" heading={intro.heading} />
+            <SectionHeading heading={intro.heading} />
             <p className="mb-8 whitespace-pre-wrap font-property-sans text-property-body-lg text-property-ink-variant">
               {intro.body}
             </p>
-            <PropertyButton href={intro.ctaHref} variant="ink">
+            <PropertyButton href={intro.ctaHref} variant="primary">
               {intro.ctaLabel}
             </PropertyButton>
           </div>
@@ -93,36 +98,34 @@ export default async function EducationPage() {
         </div>
       </Section>
 
-      {/* Programs */}
-      <Section tone="surfaceHighest" className="border-y border-property-ink/10">
+      {/* Programs — mockup uses bg-surface-container-low for the section
+          and bg-surface-container for the cards (property-surface-low /
+          property-surface); applied via className since Section's tone
+          enum has no "surfaceLow" option. */}
+      <Section className="border-y border-property-ink/10 bg-property-surface-low">
         <SectionHeading
-          eyebrow="Classes & Lessons"
           heading="Programs"
           size="large"
           align="center"
-          description="Instruction runs on two tracks: group classes that build skills alongside other members, and private lessons one-on-one with an instructor. Pick the one that fits how you like to learn."
+          description="The rifle is the front door. Pick a track to see everything on the calendar."
           className="mb-16"
         />
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {programs.map((program) => (
-            <ProgramCard
-              key={program.title}
-              title={program.title ?? ""}
-              body={program.body ?? ""}
-              linkHref={program.linkHref}
-              variant="ink"
-              ctaLabel={<>{program.title === "Private Lessons" ? "Book a Lesson" : "See Classes"} →</>}
-            />
+            <ProgramCard key={program.title} title={program.title ?? ""} body={program.body ?? ""} linkHref={program.linkHref} />
           ))}
         </div>
       </Section>
 
       {/* Instructors — real /admin/instructors roster, scoped to this
-          property, filterable by discipline. */}
+          property. The mockup's own script has an interactive
+          discipline/club filter that neither Horseshoe Bay's nor Hog
+          Heaven's built page implements — same simplified, unfiltered
+          grid both properties shipped. */}
       <Section id="instructors" className="scroll-mt-32">
         <SectionHeading
           eyebrow="Private Training"
-          heading="Meet The Instructors"
+          heading="Meet Your Instructors"
           size="large"
           align="center"
           description={
@@ -146,15 +149,15 @@ export default async function EducationPage() {
               disciplines: instructor.disciplines,
               photoUrl: instructor.photoUrl,
             }))}
-            bookHref="/horseshoe-bay/membership#inquiry"
+            bookHref="/packsaddle/membership#inquiry"
           />
         )}
       </Section>
 
       {/* CTA */}
-      <Section tone="sage" className="text-center text-white">
-        <SectionHeading eyebrow="Get Started" heading={cta.heading} size="cta" tone="white" divider={false} />
-        <PropertyButton href={cta.ctaHref} variant="secondary">
+      <Section tone="moss" className="text-center text-white">
+        <SectionHeading heading={cta.heading} size="cta" tone="white" divider={false} />
+        <PropertyButton href={cta.ctaHref} variant="primary">
           {cta.ctaLabel}
         </PropertyButton>
       </Section>

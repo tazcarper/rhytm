@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getPublicPropertyBySlug } from "@/src/services/public/properties";
 import { getPublicEvents } from "@/src/services/public/events";
@@ -9,6 +8,8 @@ import { SectionHeading } from "@/src/components/public/property-template/sectio
 import { PropertyImage } from "@/src/components/public/property-template/property-image";
 import { PropertyButton } from "@/src/components/public/property-template/property-button";
 import { FacilityCard } from "@/src/components/public/property-template/facility-card";
+import { WayInGrid } from "@/src/components/public/property-template/way-in-grid";
+import { UpcomingEventsStrip } from "@/src/components/public/property-template/upcoming-events-strip";
 
 export const dynamic = "force-dynamic";
 
@@ -130,35 +131,7 @@ export default async function HogHeavenHomePage() {
 
       {/* Find Your Way In */}
       <Section>
-        <SectionHeading eyebrow="Club Life" heading="Find Your Way In" align="center" className="mb-12" />
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
-          {wayInTiles.map((tile) => (
-            <Link
-              key={tile.linkHref ?? tile.title}
-              href={tile.linkHref ?? "#"}
-              className="group relative flex aspect-[4/5] items-end overflow-hidden border border-property-ink/10"
-            >
-              <PropertyImage
-                src={tile.imageUrl ?? null}
-                alt=""
-                filename="wayin-tile.jpg"
-                className="!absolute !inset-0 transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-property-scrim/90 via-property-scrim/45 to-transparent" />
-              <div className="relative z-10 flex w-full flex-col items-center p-6 text-center">
-                <h3 className="property-headline mb-2 font-property-display text-2xl uppercase text-white">
-                  {tile.title}
-                </h3>
-                <span className="flex items-center font-property-sans text-property-label uppercase text-property-accent-dark transition-colors group-hover:text-property-surface-lowest">
-                  Explore
-                  <span className="ml-2 transition-transform duration-300 group-hover:translate-x-1" aria-hidden>
-                    →
-                  </span>
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
+        <WayInGrid eyebrow="Club Life" tiles={wayInTiles} />
       </Section>
 
       {/* Campaign line — mockup's hunter-mid field, distinct from the
@@ -196,47 +169,7 @@ export default async function HogHeavenHomePage() {
       {/* Featured events — data-driven, same server-rendered query as
           Horseshoe Bay's homepage. */}
       <Section tone="paper" className="border-y border-property-ink/10">
-        <div className="mb-12 flex flex-col items-end justify-between gap-6 md:flex-row">
-          <SectionHeading heading="Featured Events" />
-          <Link
-            href="/hog-heaven/events"
-            className="border-b border-property-ink pb-1 font-property-sans text-property-eyebrow uppercase tracking-widest text-property-ink transition-colors hover:border-property-camel"
-          >
-            View Full Calendar
-          </Link>
-        </div>
-
-        {featuredEvents.length === 0 ? (
-          <p className="font-property-sans italic text-property-ink-variant">
-            No events scheduled right now — check back soon.
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            {featuredEvents.map((event) => (
-              <Link
-                key={event.id}
-                href={`/hog-heaven/events/${event.id}`}
-                className="group block border border-property-ink/10 bg-property-surface-lowest"
-              >
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  <PropertyImage src={event.imageUrl} alt="" filename="events.jpg" />
-                </div>
-                <div className="p-6">
-                  <h3 className="property-headline mb-2 font-property-display text-xl uppercase text-property-ink">
-                    {event.title}
-                  </h3>
-                  <p className="font-property-sans text-sm text-property-ink-variant">
-                    {new Intl.DateTimeFormat("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      timeZone: "America/Chicago",
-                    }).format(new Date(event.startAt))}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
+        <UpcomingEventsStrip events={featuredEvents} basePath="/hog-heaven" heading="Featured Events" />
       </Section>
 
       {/* Join CTA */}

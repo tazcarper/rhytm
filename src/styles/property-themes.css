@@ -48,9 +48,28 @@
   --color-property-paper: var(--property-paper);
   --color-property-rock: var(--property-rock);
   --color-property-on-primary: var(--property-on-primary);
+  /* Packsaddle-only tones — its mockup uses three section backgrounds
+     (deep-olive, teal-mid, accent-deep/oxblood) neither existing
+     property's palette has a slot for. Additive: Horseshoe Bay and Hog
+     Heaven never reference these utility classes, same precedent as
+     Hog Heaven's earlier --property-moss/--property-paper addition. */
+  --color-property-deep-olive: var(--property-deep-olive);
+  --color-property-teal-mid: var(--property-teal-mid);
+  --color-property-accent-deep: var(--property-accent-deep);
 
   --font-property-display: var(--property-font-display);
   --font-property-sans: var(--property-font-sans);
+  /* Packsaddle-only: its mockup uses a third, distinct type family for
+     eyebrows/labels ("Fieldstone") that isn't the same face as its body
+     copy ("Zilla Slab") the way every other property's single sans slot
+     covers both roles with one font. The fallback to --property-font-sans
+     means Horseshoe Bay and Hog Heaven (which never set
+     --property-font-label) render font-property-label utilities exactly
+     as their existing font-property-sans — safe to use in shared
+     components (SectionHeading's eyebrow, PropertyButton, PropertyHeader
+     nav, PropertyFooter labels) without touching either property's
+     already-verified look. */
+  --font-property-label: var(--property-font-label, var(--property-font-sans));
 
   --text-property-wordmark: var(--property-text-wordmark);
   --text-property-display: var(--property-text-display);
@@ -160,6 +179,66 @@
   --property-text-headline: 42px;
   --property-text-eyebrow: 14px;
   --property-text-label: 13px;
+  --property-text-body: 16px;
+  --property-text-body-lg: 20px;
+
+  --property-radius: 0px;
+  --property-section-desktop: 120px;
+  --property-section-mobile: 64px;
+  --property-gutter: 32px;
+  --property-container-max: 1280px;
+}
+
+/* ---- Packsaddle Precision ----
+   Mountain/precision register: warm sand field (shared with the other two),
+   a near-black-green ink, a terracotta/rust accent, plus three extra section
+   tones (deep-olive, teal-mid, accent-deep/oxblood) its own mockup's section
+   backgrounds use that neither Horseshoe Bay's nor Hog Heaven's palette
+   needed. Palette transcribed 1:1 from
+   temporary-resources/front-end-beta/packsaddle/index.html's inline
+   tailwind.config. `moss` in that same config is literally identical to
+   `ink` (#3A3327) — not a transcription error, the mockup really does reuse
+   one hex for both roles; kept as-is rather than "fixed" into a different
+   shade neither the mockup nor a design decision specified. */
+[data-property="packsaddle"] {
+  --property-bg: #ede6d9;
+  --property-surface-lowest: #ffffff;
+  --property-surface-low: #f7f3ee;
+  --property-surface: #f1ede8;
+  --property-surface-high: #e7e0d2;
+  --property-surface-highest: #ded6c6;
+  --property-ink: #3a3327;
+  --property-ink-dark: #201c15;
+  --property-ink-variant: #514736;
+  --property-scrim: #201c15;
+  --property-camel: #c9a461;
+  --property-accent: #b0613b;
+  --property-accent-dark: #944b2a;
+  --property-accent-deep: #722619;
+  --property-sage: #3a3327;
+  --property-moss: #3a3327;
+  --property-paper: #f2e9cc;
+  --property-rock: #cfc7a8;
+  --property-deep-olive: #1a2e35;
+  --property-teal-mid: #24404a;
+  /* Accent is a mid terracotta/rust — white text checks out, same call as
+     Hog Heaven's rust accent (opposite of Horseshoe Bay's light peach). */
+  --property-on-primary: #ffffff;
+
+  /* All three font values below are Google Font placeholders standing in
+     for paid/unlicensed families — see this file's header comment.
+     "placa" (display) and "Fieldstone" (label) both fall in that bucket;
+     "Zilla Slab" (sans/body) is genuinely free and loads for real. */
+  --property-font-display: var(--font-ps-display), Georgia, serif;
+  --property-font-label: var(--font-ps-label), system-ui, sans-serif;
+  --property-font-sans: var(--font-ps-sans), Georgia, serif;
+
+  --property-text-wordmark: 32px;
+  --property-text-display: 84px;
+  --property-text-display-mobile: 48px;
+  --property-text-headline: 42px;
+  --property-text-eyebrow: 13px;
+  --property-text-label: 12px;
   --property-text-body: 16px;
   --property-text-body-lg: 20px;
 

@@ -6,7 +6,7 @@ interface PropertyFooterProps {
   profile: PropertyProfile;
 }
 
-const LABEL_CLASS = "font-property-sans text-property-label uppercase tracking-[0.2em] text-property-accent-dark mb-2";
+const LABEL_CLASS = "font-property-label text-property-label uppercase tracking-[0.2em] text-property-accent-dark mb-2";
 const LINE_CLASS = "text-property-surface-low/80 font-property-sans text-property-body leading-relaxed";
 
 // Shared footer — newsletter band, four-column info grid, sibling-club
@@ -98,7 +98,7 @@ export function PropertyFooter({ profile }: PropertyFooterProps) {
         </div>
       </div>
 
-      <div className="mx-auto flex max-w-property-max flex-wrap items-center justify-center gap-x-3 gap-y-1 px-property-section-mobile py-4 text-center font-property-sans text-[11px] uppercase tracking-widest text-property-surface-low/50 md:px-property-gutter">
+      <div className="mx-auto flex max-w-property-max flex-wrap items-center justify-center gap-x-3 gap-y-1 px-property-section-mobile py-4 text-center font-property-label text-[11px] uppercase tracking-widest text-property-surface-low/50 md:px-property-gutter">
         <span>
           {profile.name} is a{" "}
           <a href="/" className="underline underline-offset-2 hover:text-property-surface-lowest transition-colors">
@@ -116,7 +116,7 @@ export function PropertyFooter({ profile }: PropertyFooterProps) {
         ))}
       </div>
 
-      <div className="w-full border-t border-property-surface-low/10 px-property-section-mobile py-6 text-center font-property-sans text-property-label text-property-surface-low/50 md:px-property-gutter">
+      <div className="w-full border-t border-property-surface-low/10 px-property-section-mobile py-6 text-center font-property-label text-property-label text-property-surface-low/50 md:px-property-gutter">
         <span>&copy; {new Date().getFullYear()} {profile.name}. All Rights Reserved.</span>
       </div>
     </footer>

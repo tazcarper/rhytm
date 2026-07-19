@@ -35,7 +35,7 @@ const SIZE_CLASS: Record<PropertyButtonSize, string> = {
 };
 
 const BASE_CLASS =
-  "inline-flex items-center justify-center gap-2 font-property-sans font-semibold text-[13px] uppercase tracking-[0.1em] transition-colors duration-300";
+  "inline-flex items-center justify-center gap-2 font-property-label font-semibold text-[13px] uppercase tracking-[0.1em] transition-colors duration-300";
 
 // The mockups' single button treatment: uppercase, letter-spaced, square
 // corners (rounded-property is 0px for every property), no rounded pill

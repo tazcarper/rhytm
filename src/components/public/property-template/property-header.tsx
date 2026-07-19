@@ -15,7 +15,7 @@ interface PropertyHeaderProps {
 }
 
 const NAV_LINK_CLASS =
-  "font-property-sans text-property-eyebrow uppercase tracking-widest text-property-ink hover:text-property-accent transition-colors duration-300";
+  "font-property-label text-property-eyebrow uppercase tracking-widest text-property-ink hover:text-property-accent transition-colors duration-300";
 
 // Page nav items (Club Life / Adventure / Education / …) get an accent
 // underline on whichever one the visitor is currently on — matches the
@@ -24,7 +24,7 @@ const NAV_LINK_CLASS =
 function pageNavLinkClass(pathname: string, href: string): string {
   const active = pathname === href || pathname.startsWith(`${href}/`);
   return cn(
-    "font-property-sans text-property-eyebrow uppercase tracking-widest transition-colors duration-300",
+    "font-property-label text-property-eyebrow uppercase tracking-widest transition-colors duration-300",
     active
       ? "border-b-2 border-property-accent pb-1 font-bold text-property-ink"
       : "text-property-ink hover:text-property-accent",
@@ -68,7 +68,7 @@ export function PropertyHeader({ profile, viewer }: PropertyHeaderProps) {
             ) : (
               <Link
                 href="/login"
-                className="inline-flex items-center gap-2 py-3 font-property-sans text-[13px] font-semibold uppercase tracking-[0.1em] text-property-ink transition-colors hover:text-property-accent-dark"
+                className="inline-flex items-center gap-2 py-3 font-property-label text-[13px] font-semibold uppercase tracking-[0.1em] text-property-ink transition-colors hover:text-property-accent-dark"
               >
                 Member&rsquo;s Entrance
               </Link>

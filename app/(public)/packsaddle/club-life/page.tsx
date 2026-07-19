@@ -12,9 +12,9 @@ import { InstagramGrid } from "@/src/components/public/property-template/instagr
 // "The Latest" (a posts/blog feed) and "Always Running" (standing programs,
 // pulled from a `type` field the real events table deliberately doesn't
 // have) are in the original mockup but out of scope here, same call already
-// made for Horseshoe Bay's club-life page — see plan/frontend/
-// hog-heaven-remaining-pages.md. This page covers everything else: hero,
-// real upcoming events, The Dispatch email band, and Instagram.
+// made for both Horseshoe Bay's and Hog Heaven's club-life pages. This page
+// covers everything else: hero, real upcoming events, The Dispatch email
+// band, and Instagram.
 
 export const dynamic = "force-dynamic";
 
@@ -24,22 +24,22 @@ const DEFAULT_DISPATCH = {
 };
 
 const DEFAULT_INSTAGRAM = {
-  heading: "@hogheavensporting",
+  heading: "@packsaddleprecision",
   ctaLabel: "Follow Us",
-  ctaHref: "https://instagram.com/hogheavensporting",
+  ctaHref: "https://instagram.com/packsaddleprecision",
 };
 
 const DEFAULT_INSTAGRAM_PHOTOS = [
-  { imageUrl: undefined, linkHref: "https://instagram.com/hogheavensporting" },
-  { imageUrl: undefined, linkHref: "https://instagram.com/hogheavensporting" },
-  { imageUrl: undefined, linkHref: "https://instagram.com/hogheavensporting" },
-  { imageUrl: undefined, linkHref: "https://instagram.com/hogheavensporting" },
-  { imageUrl: undefined, linkHref: "https://instagram.com/hogheavensporting" },
+  { imageUrl: undefined, linkHref: "https://instagram.com/packsaddleprecision" },
+  { imageUrl: undefined, linkHref: "https://instagram.com/packsaddleprecision" },
+  { imageUrl: undefined, linkHref: "https://instagram.com/packsaddleprecision" },
+  { imageUrl: undefined, linkHref: "https://instagram.com/packsaddleprecision" },
+  { imageUrl: undefined, linkHref: "https://instagram.com/packsaddleprecision" },
 ];
 
-export default async function HogHeavenClubLifePage() {
+export default async function PacksaddleClubLifePage() {
   const supabase = await createServerSupabaseClient();
-  const { data: property } = await getPublicPropertyBySlug(supabase, "hog-heaven");
+  const { data: property } = await getPublicPropertyBySlug(supabase, "packsaddle");
 
   const [events, dispatchOverride, instagramOverride, instagramPhotosOverride] = property
     ? await Promise.all([
@@ -74,19 +74,17 @@ export default async function HogHeavenClubLifePage() {
       <Section tone="surfaceHighest" className="border-y border-property-ink/10">
         <UpcomingEventsStrip
           events={upcomingEvents}
-          basePath="/hog-heaven"
+          basePath="/packsaddle"
           heading="On the Calendar"
           eyebrow={<>What&rsquo;s Next</>}
         />
       </Section>
 
-      {/* The Dispatch — email, not membership. Unlike Horseshoe Bay's
-          Facebook-group CTA in this same section slot, Hog Heaven's mockup
-          embeds a real (mockup-unwired) signup form directly in the band,
-          so this renders NewsletterForm rather than a CTA link. Same
-          `club_life`/`community` section key as Horseshoe Bay — see that
-          config entry's helpText. */}
-      <Section tone="sage" className="text-white">
+      {/* The Dispatch — email, not membership. Reuses the shared
+          NewsletterForm client component (already "use client", already
+          unwired to match the mockup) — same pattern Hog Heaven's
+          club-life page uses in this slot. */}
+      <Section tone="moss" className="text-white">
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-20">
           <div>
             <SectionHeading heading={dispatch.heading} size="cta" tone="white" divider={false} />

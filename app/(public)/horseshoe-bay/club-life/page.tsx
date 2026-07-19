@@ -1,13 +1,13 @@
-import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getPublicPropertyBySlug } from "@/src/services/public/properties";
 import { getPublicEvents } from "@/src/services/public/events";
 import { getPropertyPageSection } from "@/src/services/public/property-page-content";
 import { Section } from "@/src/components/public/property-template/section";
 import { SectionHeading } from "@/src/components/public/property-template/section-heading";
-import { PropertyImage } from "@/src/components/public/property-template/property-image";
 import { PropertyButton } from "@/src/components/public/property-template/property-button";
 import { PageHero } from "@/src/components/public/property-template/page-hero";
+import { UpcomingEventsStrip } from "@/src/components/public/property-template/upcoming-events-strip";
+import { InstagramGrid } from "@/src/components/public/property-template/instagram-grid";
 
 // "The Latest" (a posts/blog feed) and "Standing Programs" (pulled from a
 // `type` field the real events table deliberately doesn't have) are in the
@@ -77,47 +77,12 @@ export default async function ClubLifePage() {
       {/* What's Next — real upcoming events, same pattern as the homepage's
           featured-events strip. */}
       <Section tone="surfaceHighest" className="border-y border-property-ink/10">
-        <div className="mb-12 flex flex-col items-end justify-between gap-6 md:flex-row">
-          <SectionHeading eyebrow={<>What&rsquo;s Next</>} heading="On the Calendar" />
-          <Link
-            href="/horseshoe-bay/events"
-            className="border-b border-property-ink pb-1 font-property-sans text-property-eyebrow uppercase tracking-widest text-property-ink transition-colors hover:border-property-camel"
-          >
-            View Full Calendar
-          </Link>
-        </div>
-
-        {upcomingEvents.length === 0 ? (
-          <p className="font-property-sans italic text-property-ink-variant">
-            No events scheduled right now — check back soon.
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            {upcomingEvents.map((event) => (
-              <Link
-                key={event.id}
-                href={`/horseshoe-bay/events/${event.id}`}
-                className="group block border border-property-ink/10 bg-property-surface-lowest"
-              >
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  <PropertyImage src={event.imageUrl} alt="" filename="events.jpg" />
-                </div>
-                <div className="p-6">
-                  <h3 className="property-headline mb-2 font-property-display text-xl uppercase text-property-ink">
-                    {event.title}
-                  </h3>
-                  <p className="font-property-sans text-sm text-property-ink-variant">
-                    {new Intl.DateTimeFormat("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      timeZone: "America/Chicago",
-                    }).format(new Date(event.startAt))}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
+        <UpcomingEventsStrip
+          events={upcomingEvents}
+          basePath="/horseshoe-bay"
+          heading="On the Calendar"
+          eyebrow={<>What&rsquo;s Next</>}
+        />
       </Section>
 
       {/* Join the Members' Group */}
@@ -145,34 +110,14 @@ export default async function ClubLifePage() {
 
       {/* Instagram */}
       <Section>
-        <div className="mb-8 flex items-end justify-between">
-          <SectionHeading eyebrow="Follow Us on Instagram" heading={instagram.heading} />
-          <PropertyButton href={instagram.ctaHref} variant="ghost" target="_blank" rel="noopener noreferrer">
-            {instagram.ctaLabel}
-          </PropertyButton>
-        </div>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-          {instagramPhotos.map((photo, index) => {
-            const content = (
-              <div className="relative aspect-[4/5] overflow-hidden">
-                <PropertyImage src={photo.imageUrl ?? null} alt="" filename="ig-photo.jpg" />
-              </div>
-            );
-            return photo.linkHref ? (
-              <a
-                key={photo.linkHref + index}
-                href={photo.linkHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group block"
-              >
-                {content}
-              </a>
-            ) : (
-              <div key={index}>{content}</div>
-            );
-          })}
-        </div>
+        <InstagramGrid
+          eyebrow="Follow Us on Instagram"
+          heading={instagram.heading}
+          ctaLabel={instagram.ctaLabel}
+          ctaHref={instagram.ctaHref}
+          photos={instagramPhotos}
+          aspect="portrait"
+        />
       </Section>
     </>
   );

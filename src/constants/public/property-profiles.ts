@@ -121,6 +121,52 @@ export const PROPERTY_PROFILES: Record<string, PropertyProfile> = {
     newsletterHeading: "Newsletter",
     newsletterBlurb: "Receive regular updates and club news.",
   },
+  "packsaddle": {
+    slug: "packsaddle",
+    name: "Packsaddle Precision",
+    shortName: "Packsaddle",
+    assetBase: "/properties/packsaddle",
+    logoSrc: "/properties/packsaddle/packsaddle_logo_primary_horizontal_on-light.svg",
+    footerLogoSrc: "/properties/packsaddle/packsaddle_logo_primary_vertical_fullcolor.png",
+    // The mockup's own footer still has these as literal bracket
+    // placeholders ("[Street Address]", "Kingsland, TX [ZIP]", "[email
+    // address]", "[phone number]") — carried through here honestly rather
+    // than inventing values that would look real. Replace once the
+    // client/developer hands off actual contact info.
+    addressLines: ["[Street Address]", "Kingsland, TX [ZIP]"],
+    email: "[email address]",
+    phone: "[phone number]",
+    phoneHref: "",
+    officeHours: [
+      { label: "Mon", hours: "Closed" },
+      { label: "Tue–Sat", hours: "10 AM – 4 PM" },
+      { label: "Sun", hours: "Closed" },
+    ],
+    navLinks: [
+      { label: "Club Life", href: "/packsaddle/club-life" },
+      { label: "Adventure", href: "/packsaddle/adventures" },
+      { label: "Education", href: "/packsaddle/education" },
+      { label: "Membership", href: "/packsaddle/membership" },
+      { label: "Events Calendar", href: "/packsaddle/events" },
+      // Deliberately no Private Events link — the mockup's own header
+      // comment flags that page as "hidden, not launching with it" for
+      // Packsaddle, unlike the other two properties. See
+      // plan/frontend/packsaddle-remaining-pages.md.
+    ],
+    socialLinks: [
+      { label: "Instagram", href: "https://instagram.com/packsaddleprecision" },
+      // Facebook is still a "#" placeholder href in the mockup footer —
+      // no real handle exists yet, so it's omitted rather than linking
+      // nowhere.
+    ],
+    siblingProperties: [
+      { name: "Hog Heaven Sporting Club", href: "/hog-heaven" },
+      { name: "Horseshoe Bay Sporting Club", href: "/horseshoe-bay" },
+      { name: "Packsaddle Precision", href: "/packsaddle" },
+    ],
+    newsletterHeading: "Newsletter",
+    newsletterBlurb: "Receive regular updates and club news.",
+  },
 };
 
 export function getPropertyProfile(slug: string): PropertyProfile | null {

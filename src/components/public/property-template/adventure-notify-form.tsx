@@ -19,7 +19,7 @@ export function AdventureNotifyForm() {
       />
       <button
         type="submit"
-        className="shrink-0 bg-property-sage px-8 py-4 font-property-sans text-[13px] font-semibold uppercase tracking-[0.1em] text-white transition-opacity duration-300 hover:opacity-90"
+        className="shrink-0 bg-property-sage px-8 py-4 font-property-label text-[13px] font-semibold uppercase tracking-[0.1em] text-white transition-opacity duration-300 hover:opacity-90"
       >
         Notify Me
       </button>

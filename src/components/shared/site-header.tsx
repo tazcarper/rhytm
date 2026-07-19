@@ -10,7 +10,7 @@ import s from "./site-header.module.css";
 // Suppress the global header on portal surfaces that ship their own
 // chrome. /admin renders <AdminSidebar>, /instructor renders <InstructorNav>,
 // and /dev has its own tooling header — a second bar there would double up.
-const SUPPRESSED_PREFIXES = ["/admin", "/instructor", "/dev", "/horseshoe-bay", "/hog-heaven"] as const;
+const SUPPRESSED_PREFIXES = ["/admin", "/instructor", "/dev", "/horseshoe-bay", "/hog-heaven", "/packsaddle"] as const;
 
 function shouldSuppress(pathname: string): boolean {
   return SUPPRESSED_PREFIXES.some(

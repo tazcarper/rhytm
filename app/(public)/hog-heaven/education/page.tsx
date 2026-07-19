@@ -8,6 +8,7 @@ import { PropertyImage } from "@/src/components/public/property-template/propert
 import { PropertyButton } from "@/src/components/public/property-template/property-button";
 import { PageHero } from "@/src/components/public/property-template/page-hero";
 import { InstructorGrid } from "@/src/components/public/property-template/instructor-grid";
+import { ProgramCard } from "@/src/components/public/property-template/program-card";
 
 export const dynamic = "force-dynamic";
 
@@ -92,18 +93,12 @@ export default async function HogHeavenEducationPage() {
         />
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {programs.map((program) => (
-            <div
+            <ProgramCard
               key={program.title}
-              className="flex flex-col border border-property-ink/5 bg-property-surface p-8 transition-colors hover:border-property-accent"
-            >
-              <h3 className="property-headline mb-4 font-property-display text-2xl uppercase text-property-ink">
-                {program.title}
-              </h3>
-              <p className="mb-8 flex-grow font-property-sans text-property-ink-variant">{program.body}</p>
-              <PropertyButton href={program.linkHref ?? "/hog-heaven/events"} variant="primary" size="sm">
-                See {program.title} Classes
-              </PropertyButton>
-            </div>
+              title={program.title ?? ""}
+              body={program.body ?? ""}
+              linkHref={program.linkHref ?? "/hog-heaven/events"}
+            />
           ))}
         </div>
       </Section>
