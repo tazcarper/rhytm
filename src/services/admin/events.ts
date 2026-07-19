@@ -234,7 +234,7 @@ type ListRow = {
   properties: { name: string } | { name: string }[] | null;
 };
 
-async function confirmedCountsByEvent(
+export async function confirmedCountsByEvent(
   supabase: SupabaseClient,
   eventIds: string[],
 ): Promise<Map<string, number>> {

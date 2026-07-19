@@ -22,6 +22,7 @@ import {
 } from "@/src/components/admin/day-schedule";
 import { ActivityFeed } from "@/src/components/admin/activity-feed";
 import { StatCard } from "@/src/components/admin/dashboard/stat-card";
+import { ChartCardHeader } from "@/src/components/admin/chart-card-header";
 import { BrandAreaChart } from "@/src/components/ui/charts/brand-area-chart";
 import {
   BrandBarChart,
@@ -115,28 +116,6 @@ function PropertyColumnView({ column }: { column: PropertyColumn }) {
           ))}
         </ul>
       )}
-    </div>
-  );
-}
-
-function ChartCardHeader({
-  eyebrow,
-  title,
-  detail,
-}: {
-  eyebrow: string;
-  title: string;
-  detail: string;
-}) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-eyebrow font-semibold uppercase tracking-label text-gray">
-        {eyebrow}
-      </span>
-      <span className="font-serif text-h3 leading-tight text-olive">
-        {title}
-      </span>
-      <span className="text-micro text-gray">{detail}</span>
     </div>
   );
 }
