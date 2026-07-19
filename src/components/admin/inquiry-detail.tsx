@@ -91,6 +91,18 @@ export function InquiryDetail({ inquiry, events }: InquiryDetailProps) {
             <dt className="text-micro text-gray">Property</dt>
             <dd className="text-[14px] text-olive">{inquiry.propertyName}</dd>
           </div>
+          {inquiry.sourceLabel && (
+            <div>
+              <dt className="text-micro text-gray">Clicked</dt>
+              <dd className="text-[14px] text-olive">{inquiry.sourceLabel}</dd>
+            </div>
+          )}
+          {inquiry.sourcePage && (
+            <div>
+              <dt className="text-micro text-gray">Page</dt>
+              <dd className="text-[14px] text-olive">{inquiry.sourcePage}</dd>
+            </div>
+          )}
           {detailEntries.map(([key, value]) => (
             <div key={key}>
               <dt className="text-micro text-gray">{humanizeEnum(key)}</dt>

@@ -186,6 +186,7 @@ export default async function HogHeavenMembershipPage() {
                 triggerVariant="primary"
                 showHearAboutUs
                 submitVariant="primary"
+                sourceLabel="Membership Intro"
               />
             ) : (
               <PropertyButton href={intro.ctaHref} variant="primary">
@@ -252,6 +253,7 @@ export default async function HogHeavenMembershipPage() {
                   triggerClassName="mt-auto w-full"
                   showHearAboutUs
                   submitVariant="primary"
+                  sourceLabel={tier.name}
                 />
               ) : (
                 <PropertyButton href="#inquiry" variant="primary" size="sm" className="mt-auto w-full">
@@ -286,6 +288,7 @@ export default async function HogHeavenMembershipPage() {
                   triggerClassName="mt-auto self-start"
                   showHearAboutUs
                   submitVariant="primary"
+                  sourceLabel="Corporate Membership"
                 />
               ) : (
                 <PropertyButton href="#inquiry" variant="primary" className="mt-auto self-start">
@@ -385,6 +388,7 @@ export default async function HogHeavenMembershipPage() {
                 triggerVariant="primary"
                 showHearAboutUs
                 submitVariant="primary"
+                sourceLabel="Schedule Onboarding"
               />
             ) : (
               <PropertyButton href="#inquiry" variant="primary">
@@ -447,6 +451,7 @@ export default async function HogHeavenMembershipPage() {
                 triggerClassName="shrink-0 whitespace-nowrap"
                 showHearAboutUs
                 submitVariant="primary"
+                sourceLabel="Schedule a Tour"
               />
             ) : (
               <PropertyButton href="#inquiry" variant="primary" className="shrink-0 whitespace-nowrap">
@@ -455,7 +460,14 @@ export default async function HogHeavenMembershipPage() {
             )}
           </div>
 
-          {property && <MembershipInquiryForm propertyId={property.id} showHearAboutUs submitVariant="primary" />}
+          {property && (
+            <MembershipInquiryForm
+              propertyId={property.id}
+              showHearAboutUs
+              submitVariant="primary"
+              sourceLabel="Membership Inquiry Form"
+            />
+          )}
         </div>
       </Section>
     </>

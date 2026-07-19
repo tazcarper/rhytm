@@ -15,6 +15,7 @@ export interface PrivateEventInquiryInput {
   desiredDate: string;
   guestCount: string;
   message: string;
+  sourcePage?: string;
 }
 
 export async function submitPrivateEventInquiryAction(
@@ -32,6 +33,8 @@ export async function submitPrivateEventInquiryAction(
       desired_date: input.desiredDate || null,
       guest_count: input.guestCount ? Number(input.guestCount) : null,
     },
+    sourcePage: input.sourcePage,
+    sourceLabel: "Request a Proposal form",
   });
 
   if (!parsed.success) {

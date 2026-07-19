@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
+import { usePathname } from "next/navigation";
 import { submitMembershipInquiryAction } from "@/app/(public)/horseshoe-bay/membership/actions";
 import { PropertyButton } from "./property-button";
 
@@ -22,11 +23,15 @@ export function MembershipInquiryForm({
   propertyId,
   showHearAboutUs = false,
   submitVariant = "ink",
+  sourceLabel,
 }: {
   propertyId: string;
   showHearAboutUs?: boolean;
   submitVariant?: "ink" | "primary";
+  /** Human-readable description of which CTA opened this form, e.g. "Legacy Family" or "Schedule a Tour". Surfaced to admins so they know what the guest clicked, not just which property. */
+  sourceLabel?: string;
 }) {
+  const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +55,8 @@ export function MembershipInquiryForm({
         phone,
         message,
         hearAboutUs: hearAboutUs || undefined,
+        sourcePage: pathname,
+        sourceLabel,
       });
       if (!result.ok) {
         setStatus("error");

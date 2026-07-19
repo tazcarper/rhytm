@@ -42,6 +42,13 @@ const inquiryColumns: ColumnDef<AdminInquiryListRow>[] = [
     header: "Property",
   },
   {
+    accessorKey: "sourceLabel",
+    header: "Source",
+    cell: ({ row }) => (
+      <span className="text-[13px] text-gray">{row.original.sourceLabel ?? "—"}</span>
+    ),
+  },
+  {
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => <InquiryStatusBadge status={row.original.status} />,

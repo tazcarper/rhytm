@@ -15,6 +15,8 @@ export interface MembershipInquiryInput {
   phone: string;
   message: string;
   hearAboutUs?: string;
+  sourcePage?: string;
+  sourceLabel?: string;
 }
 
 export async function submitMembershipInquiryAction(
@@ -28,6 +30,8 @@ export async function submitMembershipInquiryAction(
     phone: input.phone,
     message: input.message,
     details: input.hearAboutUs ? { hear_about_us: input.hearAboutUs } : {},
+    sourcePage: input.sourcePage,
+    sourceLabel: input.sourceLabel,
   });
 
   if (!parsed.success) {

@@ -95,7 +95,7 @@ export default async function HogHeavenClubLifePage() {
             </p>
           </div>
           <div className="w-full lg:max-w-md lg:justify-self-end">
-            <NewsletterForm />
+            <NewsletterForm propertySlug="hog-heaven" />
             <p className="mt-4 font-property-sans text-sm leading-snug text-white/70">
               Members and neighbors both. Every couple of weeks, and you can leave any time.
             </p>

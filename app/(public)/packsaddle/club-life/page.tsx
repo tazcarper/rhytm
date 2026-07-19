@@ -81,8 +81,7 @@ export default async function PacksaddleClubLifePage() {
       </Section>
 
       {/* The Dispatch — email, not membership. Reuses the shared
-          NewsletterForm client component (already "use client", already
-          unwired to match the mockup) — same pattern Hog Heaven's
+          NewsletterForm client component — same pattern Hog Heaven's
           club-life page uses in this slot. */}
       <Section tone="moss" className="text-white">
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-20">
@@ -93,7 +92,7 @@ export default async function PacksaddleClubLifePage() {
             </p>
           </div>
           <div className="w-full lg:max-w-md lg:justify-self-end">
-            <NewsletterForm />
+            <NewsletterForm propertySlug="packsaddle" />
             <p className="mt-4 font-property-sans text-sm leading-snug text-white/70">
               Members and neighbors both. Every couple of weeks, and you can leave any time.
             </p>

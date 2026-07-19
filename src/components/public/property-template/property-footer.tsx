@@ -11,9 +11,7 @@ const LINE_CLASS = "text-property-surface-low/80 font-property-sans text-propert
 
 // Shared footer — newsletter band, four-column info grid, sibling-club
 // cross-links, copyright bar. Identical structure across every property;
-// only the profile's content differs. The newsletter form is
-// intentionally non-functional (matches the mockups, which ship it
-// unwired — not in scope for this build).
+// only the profile's content differs.
 export function PropertyFooter({ profile }: PropertyFooterProps) {
   return (
     <footer className="mt-auto w-full bg-property-ink text-property-surface-low">
@@ -25,7 +23,7 @@ export function PropertyFooter({ profile }: PropertyFooterProps) {
               {profile.newsletterBlurb}
             </p>
           </div>
-          <NewsletterForm />
+          <NewsletterForm propertySlug={profile.slug} />
         </div>
       </div>
 

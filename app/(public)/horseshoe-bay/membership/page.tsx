@@ -147,6 +147,7 @@ export default async function MembershipPage() {
                 propertyId={property.id}
                 triggerLabel={intro.ctaLabel}
                 triggerVariant="ink"
+                sourceLabel="Membership Intro"
               />
             ) : (
               <PropertyButton href={intro.ctaHref} variant="ink">
@@ -189,6 +190,7 @@ export default async function MembershipPage() {
                 propertyId={property.id}
                 triggerLabel="Reserve Your Place"
                 triggerVariant="ink"
+                sourceLabel="Sporting Club Membership Pricing"
               />
             ) : (
               <PropertyButton href="#inquiry" variant="ink">
@@ -275,6 +277,7 @@ export default async function MembershipPage() {
                 propertyId={property.id}
                 triggerLabel="Schedule Onboarding"
                 triggerVariant="primary"
+                sourceLabel="Schedule Onboarding"
               />
             ) : (
               <PropertyButton href="#inquiry" variant="primary">
@@ -340,6 +343,7 @@ export default async function MembershipPage() {
                 triggerLabel="Schedule a Tour"
                 triggerVariant="ink"
                 triggerClassName="shrink-0 whitespace-nowrap"
+                sourceLabel="Schedule a Tour"
               />
             ) : (
               <PropertyButton href="#inquiry" variant="ink" className="shrink-0 whitespace-nowrap">
@@ -360,7 +364,9 @@ export default async function MembershipPage() {
             .
           </p>
 
-          {property && <MembershipInquiryForm propertyId={property.id} />}
+          {property && (
+            <MembershipInquiryForm propertyId={property.id} sourceLabel="Membership Inquiry Form" />
+          )}
         </div>
       </Section>
     </>

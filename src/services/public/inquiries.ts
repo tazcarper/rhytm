@@ -27,6 +27,8 @@ export const SubmitInquirySchema = z.object({
     .nullable()
     .transform((value) => (value ? value : null)),
   details: z.record(z.string(), z.unknown()).default({}),
+  sourcePage: z.string().trim().max(300).optional().nullable(),
+  sourceLabel: z.string().trim().max(200).optional().nullable(),
 });
 
 export type SubmitInquiryInput = z.infer<typeof SubmitInquirySchema>;
@@ -46,6 +48,8 @@ export async function createInquiry(
     phone: input.phone,
     message: input.message,
     details: input.details,
+    source_page: input.sourcePage ?? null,
+    source_label: input.sourceLabel ?? null,
   });
 
   if (error) return { ok: false, error: "Couldn't submit — please try again." };

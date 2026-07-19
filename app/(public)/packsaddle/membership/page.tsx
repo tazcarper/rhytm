@@ -139,6 +139,7 @@ export default async function PacksaddleMembershipPage() {
                 triggerVariant="primary"
                 showHearAboutUs
                 submitVariant="primary"
+                sourceLabel="Membership Intro"
               />
             ) : (
               <PropertyButton href={intro.ctaHref} variant="primary">
@@ -212,6 +213,7 @@ export default async function PacksaddleMembershipPage() {
                   triggerClassName="mt-8 w-full"
                   showHearAboutUs
                   submitVariant="primary"
+                  sourceLabel={tier.name}
                 />
               ) : (
                 <PropertyButton href="#inquiry" variant="primary" className="mt-8 w-full">
@@ -304,6 +306,7 @@ export default async function PacksaddleMembershipPage() {
                 triggerClassName="shrink-0 whitespace-nowrap"
                 showHearAboutUs
                 submitVariant="primary"
+                sourceLabel="Schedule a Tour"
               />
             ) : (
               <PropertyButton href="#inquiry" variant="primary" className="shrink-0 whitespace-nowrap">
@@ -312,7 +315,14 @@ export default async function PacksaddleMembershipPage() {
             )}
           </div>
 
-          {property && <MembershipInquiryForm propertyId={property.id} showHearAboutUs submitVariant="primary" />}
+          {property && (
+            <MembershipInquiryForm
+              propertyId={property.id}
+              showHearAboutUs
+              submitVariant="primary"
+              sourceLabel="Membership Inquiry Form"
+            />
+          )}
         </div>
       </Section>
     </>

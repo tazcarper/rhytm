@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
+import { usePathname } from "next/navigation";
 import { submitPrivateEventInquiryAction } from "@/app/(public)/horseshoe-bay/private-events/actions";
 import { PropertyButton } from "./property-button";
 
@@ -25,6 +26,7 @@ export function PrivateEventInquiryForm({
   propertyId: string;
   submitVariant?: "ink" | "primary";
 }) {
+  const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +50,7 @@ export function PrivateEventInquiryForm({
         desiredDate,
         guestCount,
         message,
+        sourcePage: pathname,
       });
       if (!result.ok) {
         setStatus("error");

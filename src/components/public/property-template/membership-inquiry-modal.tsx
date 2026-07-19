@@ -18,6 +18,8 @@ interface MembershipInquiryModalProps {
   heading?: string;
   showHearAboutUs?: boolean;
   submitVariant?: "ink" | "primary";
+  /** Human-readable description of which CTA opened this modal, e.g. "Legacy Family" or "Schedule a Tour". */
+  sourceLabel?: string;
 }
 
 // A CTA that used to anchor-scroll the page down to the on-page "Membership
@@ -35,6 +37,7 @@ export function MembershipInquiryModal({
   heading = "Membership Inquiry",
   showHearAboutUs = false,
   submitVariant = "ink",
+  sourceLabel,
 }: MembershipInquiryModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -93,6 +96,7 @@ export function MembershipInquiryModal({
               propertyId={propertyId}
               showHearAboutUs={showHearAboutUs}
               submitVariant={submitVariant}
+              sourceLabel={sourceLabel}
             />
           </div>
         </div>

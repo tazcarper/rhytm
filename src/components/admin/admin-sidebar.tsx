@@ -16,6 +16,7 @@ import {
   Mail,
   Menu,
   Network,
+  Send,
   Signature,
   Sparkles,
   Ticket,
@@ -120,6 +121,7 @@ function buildNavGroups(
           icon: Mail,
           badgeCount: newInquiryCount > 0 ? newInquiryCount : undefined,
         },
+        { label: "Newsletter", href: "/admin/newsletter", icon: Send },
       ],
     },
     {

@@ -15,6 +15,7 @@ export interface AdminInquiryListRow {
   name: string;
   email: string;
   propertyName: string;
+  sourceLabel: string | null;
   status: InquiryStatus;
   createdAt: string;
 }
@@ -29,6 +30,8 @@ export interface AdminInquiryDetail {
   phone: string | null;
   message: string | null;
   details: Record<string, unknown>;
+  sourcePage: string | null;
+  sourceLabel: string | null;
   status: InquiryStatus;
   createdAt: string;
 }
@@ -45,7 +48,8 @@ function pickOne<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? (value[0] ?? null) : value;
 }
 
-const LIST_COLUMNS = "id, inquiry_type, name, email, status, created_at, properties ( name )";
+const LIST_COLUMNS =
+  "id, inquiry_type, name, email, status, created_at, source_label, properties ( name )";
 
 export async function getInquiriesList(
   supabase: SupabaseClient,
@@ -67,6 +71,7 @@ export async function getInquiriesList(
       name: row.name,
       email: row.email,
       propertyName: property?.name ?? "—",
+      sourceLabel: row.source_label,
       status: row.status,
       createdAt: row.created_at,
     };
@@ -83,7 +88,7 @@ export async function getNewInquiryCount(supabase: SupabaseClient): Promise<numb
 }
 
 const DETAIL_COLUMNS =
-  "id, property_id, inquiry_type, name, email, phone, message, details, status, created_at, properties ( name )";
+  "id, property_id, inquiry_type, name, email, phone, message, details, source_page, source_label, status, created_at, properties ( name )";
 
 export async function getInquiry(
   supabase: SupabaseClient,
@@ -109,6 +114,8 @@ export async function getInquiry(
     phone: data.phone,
     message: data.message,
     details: (data.details ?? {}) as Record<string, unknown>,
+    sourcePage: data.source_page,
+    sourceLabel: data.source_label,
     status: data.status,
     createdAt: data.created_at,
   };
