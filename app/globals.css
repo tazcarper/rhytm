@@ -90,6 +90,7 @@
   /* Layout */
   --content-max: 1180px;
   --content-xl: 1440px;
+  --content-xxl: 1600px;
   --content-narrow: 720px;
   --content-prose: 620px;
 }

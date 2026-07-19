@@ -80,6 +80,16 @@ const InfoBoxSchema = z
     { message: "A description box needs body text; a list box needs at least one item", path: ["body"] },
   );
 
+const optionalStartAt = z
+  .string()
+  .trim()
+  .optional()
+  .nullable()
+  .transform((value) => (value ? value : null));
+
+export const EventAudienceValues = ["members_and_public", "members_only"] as const;
+export type EventAudience = (typeof EventAudienceValues)[number];
+
 export const SaveEventSchema = z
   .object({
     id: z.string().uuid().optional(),
@@ -87,7 +97,11 @@ export const SaveEventSchema = z
     title: z.string().trim().min(1, "Title is required").max(200),
     summary: optionalText(300),
     description: optionalText(8000),
-    startAt: z.string().trim().min(1, "Start date/time is required"),
+    // Exactly one of startAt / scheduleText is required — a dated event has
+    // a start time, a Standing program has a schedule string instead. See
+    // the event_has_date_or_schedule DB constraint this mirrors.
+    startAt: optionalStartAt,
+    scheduleText: optionalText(300),
     endAt: z
       .string()
       .trim()
@@ -99,6 +113,8 @@ export const SaveEventSchema = z
     type: optionalText(80),
     discipline: optionalText(80),
     featured: z.boolean(),
+    includedWithMembership: z.boolean(),
+    audience: z.enum(EventAudienceValues),
     maxCapacity: z.number().int().positive("Capacity must be at least 1"),
     maxGuestsPerRegistration: z.number().int().positive("Must be at least 1"),
     memberPrice: optionalMoney,
@@ -109,8 +125,12 @@ export const SaveEventSchema = z
     imageUrl: optionalText(2000),
     infoBoxes: z.array(InfoBoxSchema).max(20),
   })
+  .refine((value) => Boolean(value.startAt) || Boolean(value.scheduleText), {
+    message: "Give the event a date, or a schedule for a Standing programme",
+    path: ["startAt"],
+  })
   .refine(
-    (value) => !value.endAt || new Date(value.endAt) >= new Date(value.startAt),
+    (value) => !value.endAt || !value.startAt || new Date(value.endAt) >= new Date(value.startAt),
     { message: "End must be on or after the start", path: ["endAt"] },
   )
   .refine((value) => value.maxGuestsPerRegistration <= value.maxCapacity, {
@@ -127,8 +147,10 @@ export interface AdminEventListRow {
   id: string;
   title: string;
   propertyName: string;
-  startAt: string;
+  startAt: string | null;
+  scheduleText: string | null;
   status: EventStatus;
+  type: string | null;
   maxCapacity: number;
   confirmedCount: number;
   memberPrice: number | null;
@@ -151,13 +173,16 @@ export interface AdminEventDetail {
   title: string;
   summary: string | null;
   description: string | null;
-  startAt: string;
+  startAt: string | null;
+  scheduleText: string | null;
   endAt: string | null;
   location: string | null;
   instructors: string | null;
   type: string | null;
   discipline: string | null;
   featured: boolean;
+  includedWithMembership: boolean;
+  audience: EventAudience;
   maxCapacity: number;
   maxGuestsPerRegistration: number;
   memberPrice: number | null;
@@ -188,11 +213,64 @@ export interface EventRosterRow {
 }
 
 const LIST_COLUMNS =
-  "id, title, start_at, status, max_capacity, member_price, non_member_price, is_template, properties ( name )";
+  "id, title, start_at, schedule_text, status, type, max_capacity, member_price, non_member_price, is_template, properties ( name )";
 
 function pickOne<T>(value: T | T[] | null | undefined): T | null {
   if (!value) return null;
   return Array.isArray(value) ? (value[0] ?? null) : value;
+}
+
+type ListRow = {
+  id: string;
+  title: string;
+  start_at: string | null;
+  schedule_text: string | null;
+  status: EventStatus;
+  type: string | null;
+  max_capacity: number;
+  member_price: string | number | null;
+  non_member_price: string | number | null;
+  is_template: boolean;
+  properties: { name: string } | { name: string }[] | null;
+};
+
+async function confirmedCountsByEvent(
+  supabase: SupabaseClient,
+  eventIds: string[],
+): Promise<Map<string, number>> {
+  const confirmedByEvent = new Map<string, number>();
+  if (eventIds.length === 0) return confirmedByEvent;
+
+  const { data: registrations } = await supabase
+    .from("event_registrations")
+    .select("event_id, guest_count")
+    .in("event_id", eventIds)
+    .eq("status", "confirmed");
+  for (const registration of registrations ?? []) {
+    confirmedByEvent.set(
+      registration.event_id,
+      (confirmedByEvent.get(registration.event_id) ?? 0) + registration.guest_count,
+    );
+  }
+  return confirmedByEvent;
+}
+
+function toListRow(row: ListRow, confirmedByEvent: Map<string, number>): AdminEventListRow {
+  const property = pickOne(row.properties);
+  return {
+    id: row.id,
+    title: row.title,
+    propertyName: property?.name ?? "—",
+    startAt: row.start_at,
+    scheduleText: row.schedule_text,
+    status: row.status,
+    type: row.type,
+    maxCapacity: row.max_capacity,
+    confirmedCount: confirmedByEvent.get(row.id) ?? 0,
+    memberPrice: row.member_price === null ? null : Number(row.member_price),
+    nonMemberPrice: row.non_member_price === null ? null : Number(row.non_member_price),
+    isTemplate: row.is_template,
+  };
 }
 
 export async function getEventsList(
@@ -201,97 +279,59 @@ export async function getEventsList(
   const { data, error } = await supabase
     .from("events")
     .select(LIST_COLUMNS)
-    .order("start_at", { ascending: false });
+    .order("start_at", { ascending: false, nullsFirst: false });
 
   if (error) throw new Error(`Couldn't load events: ${error.message}`);
 
-  const rows = data ?? [];
-  const ids = rows.map((row) => row.id as string);
+  const rows = (data ?? []) as unknown as ListRow[];
+  const confirmedByEvent = await confirmedCountsByEvent(
+    supabase,
+    rows.map((row) => row.id),
+  );
 
-  const confirmedByEvent = new Map<string, number>();
-  if (ids.length > 0) {
-    const { data: registrations } = await supabase
-      .from("event_registrations")
-      .select("event_id, guest_count")
-      .in("event_id", ids)
-      .eq("status", "confirmed");
-    for (const registration of registrations ?? []) {
-      confirmedByEvent.set(
-        registration.event_id,
-        (confirmedByEvent.get(registration.event_id) ?? 0) + registration.guest_count,
-      );
-    }
-  }
-
-  return rows.map((row) => {
-    const property = pickOne(row.properties as { name: string } | { name: string }[] | null);
-    return {
-      id: row.id,
-      title: row.title,
-      propertyName: property?.name ?? "—",
-      startAt: row.start_at,
-      status: row.status as EventStatus,
-      maxCapacity: row.max_capacity,
-      confirmedCount: confirmedByEvent.get(row.id) ?? 0,
-      memberPrice: row.member_price === null ? null : Number(row.member_price),
-      nonMemberPrice: row.non_member_price === null ? null : Number(row.non_member_price),
-      isTemplate: row.is_template,
-    };
-  });
+  return rows.map((row) => toListRow(row, confirmedByEvent));
 }
 
 // Upcoming events for one property's workspace "Events" tab — same row
 // shape as getEventsList (reuses EventsDataTable as-is), but scoped to a
-// single property and to events that haven't started yet, soonest first
-// (the opposite ordering of the global list, which favors "most recent
-// first" for a mixed-property history view).
+// single property. Two queries merged: dated events that haven't started
+// yet (soonest first), plus Standing programmes (no start_at — they run
+// indefinitely, so "upcoming" doesn't apply; they're always current).
 export async function getUpcomingEventsForProperty(
   supabase: SupabaseClient,
   propertyId: string,
 ): Promise<AdminEventListRow[]> {
-  const { data, error } = await supabase
-    .from("events")
-    .select(LIST_COLUMNS)
-    .eq("property_id", propertyId)
-    .eq("is_template", false)
-    .gte("start_at", new Date().toISOString())
-    .order("start_at", { ascending: true });
+  const [datedResult, standingResult] = await Promise.all([
+    supabase
+      .from("events")
+      .select(LIST_COLUMNS)
+      .eq("property_id", propertyId)
+      .eq("is_template", false)
+      .not("start_at", "is", null)
+      .gte("start_at", new Date().toISOString())
+      .order("start_at", { ascending: true }),
+    supabase
+      .from("events")
+      .select(LIST_COLUMNS)
+      .eq("property_id", propertyId)
+      .eq("is_template", false)
+      .is("start_at", null)
+      .order("title", { ascending: true }),
+  ]);
 
-  if (error) throw new Error(`Couldn't load upcoming events: ${error.message}`);
+  if (datedResult.error) throw new Error(`Couldn't load upcoming events: ${datedResult.error.message}`);
+  if (standingResult.error) throw new Error(`Couldn't load standing programmes: ${standingResult.error.message}`);
 
-  const rows = data ?? [];
-  const ids = rows.map((row) => row.id as string);
+  const rows = [
+    ...((standingResult.data ?? []) as unknown as ListRow[]),
+    ...((datedResult.data ?? []) as unknown as ListRow[]),
+  ];
+  const confirmedByEvent = await confirmedCountsByEvent(
+    supabase,
+    rows.map((row) => row.id),
+  );
 
-  const confirmedByEvent = new Map<string, number>();
-  if (ids.length > 0) {
-    const { data: registrations } = await supabase
-      .from("event_registrations")
-      .select("event_id, guest_count")
-      .in("event_id", ids)
-      .eq("status", "confirmed");
-    for (const registration of registrations ?? []) {
-      confirmedByEvent.set(
-        registration.event_id,
-        (confirmedByEvent.get(registration.event_id) ?? 0) + registration.guest_count,
-      );
-    }
-  }
-
-  return rows.map((row) => {
-    const property = pickOne(row.properties as { name: string } | { name: string }[] | null);
-    return {
-      id: row.id,
-      title: row.title,
-      propertyName: property?.name ?? "—",
-      startAt: row.start_at,
-      status: row.status as EventStatus,
-      maxCapacity: row.max_capacity,
-      confirmedCount: confirmedByEvent.get(row.id) ?? 0,
-      memberPrice: row.member_price === null ? null : Number(row.member_price),
-      nonMemberPrice: row.non_member_price === null ? null : Number(row.non_member_price),
-      isTemplate: row.is_template,
-    };
-  });
+  return rows.map((row) => toListRow(row, confirmedByEvent));
 }
 
 export async function getEventTemplates(
@@ -312,7 +352,7 @@ export async function getEventTemplates(
 }
 
 const DETAIL_COLUMNS =
-  "id, property_id, title, summary, description, start_at, end_at, location, instructors, type, discipline, featured, max_capacity, max_guests_per_registration, member_price, non_member_price, status, is_manually_sold_out, is_template, image_url, event_info_boxes ( id, box_type, heading, body, items, sort_order )";
+  "id, property_id, title, summary, description, start_at, schedule_text, end_at, location, instructors, type, discipline, featured, included_with_membership, audience, max_capacity, max_guests_per_registration, member_price, non_member_price, status, is_manually_sold_out, is_template, image_url, event_info_boxes ( id, box_type, heading, body, items, sort_order )";
 
 type DetailRow = {
   id: string;
@@ -320,13 +360,16 @@ type DetailRow = {
   title: string;
   summary: string | null;
   description: string | null;
-  start_at: string;
+  start_at: string | null;
+  schedule_text: string | null;
   end_at: string | null;
   location: string | null;
   instructors: string | null;
   type: string | null;
   discipline: string | null;
   featured: boolean;
+  included_with_membership: boolean;
+  audience: EventAudience;
   max_capacity: number;
   max_guests_per_registration: number;
   member_price: string | number | null;
@@ -353,12 +396,15 @@ function rowToDetail(row: DetailRow): AdminEventDetail {
     summary: row.summary,
     description: row.description,
     startAt: row.start_at,
+    scheduleText: row.schedule_text,
     endAt: row.end_at,
     location: row.location,
     instructors: row.instructors,
     type: row.type,
     discipline: row.discipline,
     featured: row.featured,
+    includedWithMembership: row.included_with_membership,
+    audience: row.audience,
     maxCapacity: row.max_capacity,
     maxGuestsPerRegistration: row.max_guests_per_registration,
     memberPrice: row.member_price === null ? null : Number(row.member_price),
@@ -408,13 +454,16 @@ export async function saveEvent(
     title: input.title,
     summary: input.summary,
     description: input.description,
-    start_at: chicagoWallClockToUtcIso(input.startAt),
+    start_at: input.startAt ? chicagoWallClockToUtcIso(input.startAt) : null,
+    schedule_text: input.scheduleText,
     end_at: input.endAt ? chicagoWallClockToUtcIso(input.endAt) : null,
     location: input.location,
     instructors: input.instructors,
     type: input.type,
     discipline: input.discipline,
     featured: input.featured,
+    included_with_membership: input.includedWithMembership,
+    audience: input.audience,
     max_capacity: input.maxCapacity,
     max_guests_per_registration: input.maxGuestsPerRegistration,
     member_price: input.memberPrice,
@@ -488,6 +537,7 @@ export async function duplicateEventFromTemplate(
     summary: template.summary,
     description: template.description,
     startAt: template.startAt,
+    scheduleText: template.scheduleText,
     endAt: template.endAt,
     location: template.location,
     instructors: template.instructors,
@@ -496,6 +546,8 @@ export async function duplicateEventFromTemplate(
     // A cloned draft never starts featured — that's a per-event editorial
     // choice, not something a template should carry forward automatically.
     featured: false,
+    includedWithMembership: template.includedWithMembership,
+    audience: template.audience,
     maxCapacity: template.maxCapacity,
     maxGuestsPerRegistration: template.maxGuestsPerRegistration,
     memberPrice: template.memberPrice,
@@ -512,6 +564,48 @@ export async function duplicateEventFromTemplate(
       sortOrder: box.sortOrder,
     })),
   });
+}
+
+// Creates one event per date in `wallClockStartDates`, each an independent
+// row with its own capacity pool and roster — not one row with a dates
+// array. This keeps every event's registration/capacity trigger working
+// exactly as it does for a single event (see check_event_capacity in the
+// events migration); a "recurring" event here is a bulk-create convenience,
+// not a new data shape. `baseInput.startAt` and `baseInput.endAt` supply the
+// time-of-day; only the date portion is swapped per occurrence.
+export type SaveRecurringEventsResult =
+  | { ok: true; ids: string[] }
+  | { ok: false; error: string; createdIds: string[] };
+
+function replaceDatePart(wallClock: string, date: string): string {
+  const [, timePart] = wallClock.split("T");
+  return `${date}T${timePart ?? "00:00"}`;
+}
+
+export async function saveRecurringEvents(
+  supabase: SupabaseClient,
+  baseInput: SaveEventInput,
+  wallClockStartDates: ReadonlyArray<string>,
+): Promise<SaveRecurringEventsResult> {
+  if (!baseInput.startAt) {
+    return { ok: false, error: "A recurring event needs a starting date and time.", createdIds: [] };
+  }
+
+  const createdIds: string[] = [];
+  for (const date of wallClockStartDates) {
+    const result = await saveEvent(supabase, {
+      ...baseInput,
+      id: undefined,
+      startAt: replaceDatePart(baseInput.startAt, date),
+      endAt: baseInput.endAt ? replaceDatePart(baseInput.endAt, date) : null,
+    });
+    if (!result.ok) {
+      return { ok: false, error: result.error, createdIds };
+    }
+    createdIds.push(result.id);
+  }
+
+  return { ok: true, ids: createdIds };
 }
 
 export async function getEventRoster(

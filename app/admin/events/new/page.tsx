@@ -3,6 +3,7 @@ import { Heading, PageShell } from "@/lib/ui";
 import { AdminBreadcrumb } from "@/src/components/admin/admin-breadcrumb";
 import { getAdminPropertiesList } from "@/src/services/admin/properties";
 import { getEventTemplates } from "@/src/services/admin/events";
+import { getAdminInstructors, getAssignableDisciplines } from "@/src/services/admin/instructors";
 import { EventEditorForm } from "@/src/components/admin/event-editor-form";
 import { NewEventTemplatePicker } from "@/src/components/admin/new-event-template-picker";
 
@@ -19,9 +20,13 @@ export default async function NewEventPage({
     getAdminPropertiesList(supabase),
     getEventTemplates(supabase),
   ]);
+  const [disciplineOptions, instructorOptions] = await Promise.all([
+    getAssignableDisciplines(supabase, properties.map((property) => property.id)),
+    getAdminInstructors(supabase),
+  ]);
 
   return (
-    <PageShell width="wide">
+    <PageShell width="xxl">
       <AdminBreadcrumb
         segments={[
           { label: "Admin", href: "/admin" },
@@ -38,6 +43,8 @@ export default async function NewEventPage({
       <EventEditorForm
         event={null}
         properties={properties.map((property) => ({ id: property.id, name: property.name }))}
+        disciplineOptions={disciplineOptions}
+        instructorOptions={instructorOptions}
         defaultPropertyId={propertyId}
       />
     </PageShell>

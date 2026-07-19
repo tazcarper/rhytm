@@ -31,27 +31,27 @@ interface PropertyWorkspaceProps {
 // Next keeps usePathname in sync, so tab switches re-render instantly with
 // no server round-trip, while refresh / deep-link / browser back all "just
 // work".
-function parseSection(pathname: string, propertyId: string): PropertySectionKey {
-  const prefix = `/admin/properties/${propertyId}`;
+function parseSection(pathname: string, propertySlug: string): PropertySectionKey {
+  const prefix = `/admin/properties/${propertySlug}`;
   const rest = pathname.startsWith(prefix) ? pathname.slice(prefix.length) : "";
   const sectionRaw = rest.split("/").filter(Boolean)[0] ?? DEFAULT_PROPERTY_SECTION;
   return isPropertySectionKey(sectionRaw) ? sectionRaw : DEFAULT_PROPERTY_SECTION;
 }
 
-function buildPath(propertyId: string, section: PropertySectionKey): string {
-  const base = `/admin/properties/${propertyId}`;
+function buildPath(propertySlug: string, section: PropertySectionKey): string {
+  const base = `/admin/properties/${propertySlug}`;
   return section === DEFAULT_PROPERTY_SECTION ? base : `${base}/${section}`;
 }
 
 export function PropertyWorkspace({ property, pageContent, upcomingEvents }: PropertyWorkspaceProps) {
   const pathname = usePathname();
-  const section = parseSection(pathname, property.id);
+  const section = parseSection(pathname, property.slug);
 
   const selectSection = useCallback(
     (next: PropertySectionKey) => {
-      window.history.pushState(null, "", buildPath(property.id, next));
+      window.history.pushState(null, "", buildPath(property.slug, next));
     },
-    [property.id],
+    [property.slug],
   );
 
   return (

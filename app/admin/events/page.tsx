@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { Alert, Button, Heading, PageShell, Text } from "@/lib/ui";
 import { AdminBreadcrumb } from "@/src/components/admin/admin-breadcrumb";
 import { getEventsList } from "@/src/services/admin/events";
+import { getAdminPropertiesList } from "@/src/services/admin/properties";
 import { EventsDataTable } from "@/src/components/admin/events-data-table";
 
 export const dynamic = "force-dynamic";
@@ -19,9 +20,10 @@ export default async function AdminEventsPage() {
   } catch (err) {
     loadError = err instanceof Error ? err.message : "Failed to load events";
   }
+  const properties = await getAdminPropertiesList(supabase);
 
   return (
-    <PageShell width="xl">
+    <PageShell width="xxl">
       <AdminBreadcrumb segments={[{ label: "Admin", href: "/admin" }, { label: "Events" }]} />
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -45,7 +47,10 @@ export default async function AdminEventsPage() {
         </Alert>
       )}
 
-      <EventsDataTable rows={rows} />
+      <EventsDataTable
+        rows={rows}
+        properties={properties.map((property) => ({ id: property.id, name: property.name }))}
+      />
     </PageShell>
   );
 }

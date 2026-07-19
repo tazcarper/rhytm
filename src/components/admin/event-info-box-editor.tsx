@@ -23,11 +23,8 @@ interface EventInfoBoxEditorProps {
 // description/list boxes ("what to expect", "required gear") the admin can
 // add, reorder, and remove, rather than fixed schema columns.
 export function EventInfoBoxEditor({ boxes, onChange }: EventInfoBoxEditorProps) {
-  function addBox() {
-    onChange([
-      ...boxes,
-      { key: crypto.randomUUID(), boxType: "description", heading: "", body: "", items: [""] },
-    ]);
+  function addBox(boxType: EventInfoBoxType) {
+    onChange([...boxes, { key: crypto.randomUUID(), boxType, heading: "", body: "", items: [""] }]);
   }
 
   function removeBox(key: string) {
@@ -100,75 +97,82 @@ export function EventInfoBoxEditor({ boxes, onChange }: EventInfoBoxEditorProps)
             </div>
           </div>
 
-          <div className={h.grid2}>
-            <label className={s.field}>
-              <span className={s.label}>Type</span>
-              <select
-                value={box.boxType}
-                onChange={(event) =>
-                  updateBox(box.key, { boxType: event.target.value as EventInfoBoxType })
-                }
-                className={s.input}
-              >
-                <option value="description">Description</option>
-                <option value="list">List</option>
-              </select>
-            </label>
-            <label className={s.field}>
-              <span className={s.label}>Heading</span>
-              <input
-                type="text"
-                value={box.heading}
-                onChange={(event) => updateBox(box.key, { heading: event.target.value })}
-                className={s.input}
-                placeholder="What to expect"
-              />
-            </label>
-          </div>
-
-          {box.boxType === "description" ? (
-            <label className={s.field}>
-              <span className={s.label}>Body</span>
-              <textarea
-                value={box.body}
-                onChange={(event) => updateBox(box.key, { body: event.target.value })}
-                className={s.input}
-                rows={4}
-              />
-            </label>
-          ) : (
-            <div className="flex flex-col gap-2">
-              <span className={s.label}>Items</span>
-              {box.items.map((item, itemIndex) => (
-                <div key={itemIndex} className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={item}
-                    onChange={(event) => updateItem(box.key, itemIndex, event.target.value)}
-                    className={s.input}
-                    placeholder="Eye and ear protection"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeItem(box.key, itemIndex)}
-                  >
-                    ✕
-                  </Button>
-                </div>
-              ))}
-              <Button type="button" variant="secondary" size="sm" onClick={() => addItem(box.key)}>
-                Add item
-              </Button>
+          <div className="flex flex-col gap-4">
+            <div className={h.grid2}>
+              <label className={s.field}>
+                <span className={s.label}>Type</span>
+                <select
+                  value={box.boxType}
+                  onChange={(event) =>
+                    updateBox(box.key, { boxType: event.target.value as EventInfoBoxType })
+                  }
+                  className={s.input}
+                >
+                  <option value="description">Description</option>
+                  <option value="list">List</option>
+                </select>
+              </label>
+              <label className={s.field}>
+                <span className={s.label}>Heading</span>
+                <input
+                  type="text"
+                  value={box.heading}
+                  onChange={(event) => updateBox(box.key, { heading: event.target.value })}
+                  className={s.input}
+                  placeholder="What to expect"
+                />
+              </label>
             </div>
-          )}
+
+            {box.boxType === "description" ? (
+              <label className={s.field}>
+                <span className={s.label}>Body</span>
+                <textarea
+                  value={box.body}
+                  onChange={(event) => updateBox(box.key, { body: event.target.value })}
+                  className={s.input}
+                  rows={4}
+                />
+              </label>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <span className={s.label}>Items</span>
+                {box.items.map((item, itemIndex) => (
+                  <div key={itemIndex} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={item}
+                      onChange={(event) => updateItem(box.key, itemIndex, event.target.value)}
+                      className={s.input}
+                      placeholder="Eye and ear protection"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeItem(box.key, itemIndex)}
+                    >
+                      ✕
+                    </Button>
+                  </div>
+                ))}
+                <Button type="button" variant="secondary" size="sm" onClick={() => addItem(box.key)}>
+                  Add item
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       ))}
 
-      <Button type="button" variant="secondary" onClick={addBox}>
-        Add info box
-      </Button>
+      <div className="flex gap-2">
+        <Button type="button" variant="secondary" onClick={() => addBox("description")}>
+          + Text box
+        </Button>
+        <Button type="button" variant="secondary" onClick={() => addBox("list")}>
+          + List of items
+        </Button>
+      </div>
     </div>
   );
 }

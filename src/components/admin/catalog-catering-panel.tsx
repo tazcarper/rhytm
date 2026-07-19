@@ -8,7 +8,7 @@ import {
   updateCateringAction,
   deleteCateringAction,
   reorderCateringAction,
-} from "@/app/admin/properties/[id]/catalog/actions";
+} from "@/app/admin/properties/[slug]/catalog/actions";
 import type { AdminCateringOption } from "@/src/services/admin/catering";
 import { formatMoney } from "@/src/services/public/format";
 import { AdminModal } from "./admin-modal";

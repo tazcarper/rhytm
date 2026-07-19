@@ -78,6 +78,26 @@ export async function getAdminPropertyById(
   return data ? rowToProperty(data as AdminPropertyRow) : null;
 }
 
+// Slug lookup for the admin property workspace route
+// (/admin/properties/[slug]/...), which uses the same human-readable slug
+// as the public site rather than a raw UUID in the URL. Every write path
+// downstream still keys off the returned `id` (the real UUID) — only the
+// route segment itself is slug-based.
+export async function getAdminPropertyBySlug(
+  supabase: SupabaseClient,
+  slug: string,
+): Promise<AdminProperty | null> {
+  const { data, error } = await supabase
+    .from("properties")
+    .select(SELECT_COLUMNS)
+    .eq("slug", slug)
+    .maybeSingle();
+  if (error) {
+    throw new Error(`Admin property read failed: ${error.message}`);
+  }
+  return data ? rowToProperty(data as AdminPropertyRow) : null;
+}
+
 export async function getAdminPropertiesList(
   supabase: SupabaseClient,
 ): Promise<AdminProperty[]> {

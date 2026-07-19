@@ -1,6 +1,6 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getPublicPropertyBySlug } from "@/src/services/public/properties";
-import { getPublicEvents } from "@/src/services/public/events";
+import { getPublicEvents, getPublicStandingPrograms } from "@/src/services/public/events";
 import { getPropertyPageSection } from "@/src/services/public/property-page-content";
 import { Section } from "@/src/components/public/property-template/section";
 import { SectionHeading } from "@/src/components/public/property-template/section-heading";
@@ -25,13 +25,14 @@ export default async function PacksaddleEventsPage() {
   const supabase = await createServerSupabaseClient();
   const { data: property } = await getPublicPropertyBySlug(supabase, "packsaddle");
 
-  const [events, includedOverride, ctaOverride] = property
+  const [events, standingPrograms, includedOverride, ctaOverride] = property
     ? await Promise.all([
         getPublicEvents(supabase, property.id),
+        getPublicStandingPrograms(supabase, property.id),
         getPropertyPageSection(supabase, property.id, "events", "included-band"),
         getPropertyPageSection(supabase, property.id, "events", "members-cta"),
       ])
-    : [[], null, null];
+    : [[], [], null, null];
 
   const includedBand = { body: includedOverride?.body || DEFAULT_INCLUDED_BAND.body };
   const membersCta = {
@@ -55,7 +56,7 @@ export default async function PacksaddleEventsPage() {
         </p>
       </Section>
 
-      <EventsListing events={events} basePath="/packsaddle" />
+      <EventsListing events={events} standingPrograms={standingPrograms} basePath="/packsaddle" />
 
       {/* Membership CTA */}
       <Section tone="moss" className="text-center text-white">

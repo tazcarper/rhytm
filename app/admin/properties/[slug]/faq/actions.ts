@@ -10,6 +10,7 @@ import {
   type SaveFaqEntryResult,
   type DeleteFaqEntryResult,
 } from "@/src/services/admin/faq";
+import { getAdminPropertyById } from "@/src/services/admin/properties";
 
 export async function saveFaqEntryAction(
   input: SaveFaqEntryRawInput,
@@ -26,7 +27,8 @@ export async function saveFaqEntryAction(
   const supabase = await createServerSupabaseClient();
   const result = await saveFaqEntry(supabase, parsed.data);
   if (result.ok) {
-    revalidatePath(`/admin/properties/${parsed.data.propertyId}/faq`);
+    const property = await getAdminPropertyById(supabase, parsed.data.propertyId);
+    revalidatePath(`/admin/properties/${property?.slug ?? parsed.data.propertyId}/faq`);
     revalidatePath("/horseshoe-bay/faq");
   }
   return result;
@@ -39,7 +41,8 @@ export async function deleteFaqEntryAction(
   const supabase = await createServerSupabaseClient();
   const result = await deleteFaqEntry(supabase, id);
   if (result.ok) {
-    revalidatePath(`/admin/properties/${propertyId}/faq`);
+    const property = await getAdminPropertyById(supabase, propertyId);
+    revalidatePath(`/admin/properties/${property?.slug ?? propertyId}/faq`);
     revalidatePath("/horseshoe-bay/faq");
   }
   return result;

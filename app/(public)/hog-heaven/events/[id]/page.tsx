@@ -30,6 +30,10 @@ function formatTime(iso: string): string {
   }).format(new Date(iso));
 }
 
+function audienceLabel(audience: "members_and_public" | "members_only"): string {
+  return audience === "members_only" ? "Members Only" : "Members & Public";
+}
+
 function formatPrice(value: number | null): string {
   return value === null ? "Free" : `$${value.toFixed(0)}`;
 }
@@ -48,11 +52,16 @@ export default async function HogHeavenEventDetailPage({ params }: { params: Pro
 
   const instructorRoster = property ? await getPublicInstructorsForProperty(supabase, property.id) : [];
 
-  const infoRows: Array<[string, ReactNode]> = [
-    ["Date", formatDate(event.startAt)],
-    ["Time", formatTime(event.startAt)],
-    ["Location", event.location || property?.name || "Hog Heaven Sporting Club"],
-  ];
+  const infoRows: Array<[string, ReactNode]> = event.startAt
+    ? [
+        ["Date", formatDate(event.startAt)],
+        ["Time", formatTime(event.startAt)],
+        ["Location", event.location || property?.name || "Hog Heaven Sporting Club"],
+      ]
+    : [
+        ["Schedule", event.scheduleText || "—"],
+        ["Location", event.location || property?.name || "Hog Heaven Sporting Club"],
+      ];
   if (event.instructors) {
     infoRows.push(["Instructors", <InstructorRowValue instructorsText={event.instructors} roster={instructorRoster} />]);
   }
@@ -85,6 +94,18 @@ export default async function HogHeavenEventDetailPage({ params }: { params: Pro
                 {[event.type, event.discipline].filter(Boolean).join(" · ")}
               </p>
             )}
+            <div className="mb-3 flex flex-wrap gap-2">
+              {event.includedWithMembership && (
+                <span className="inline-block border border-property-ink/20 px-3 py-1 font-property-sans text-[11px] uppercase tracking-widest text-property-ink">
+                  ✓ Included with Membership
+                </span>
+              )}
+              {event.audience === "members_only" && (
+                <span className="inline-block border border-property-ink/20 px-3 py-1 font-property-sans text-[11px] uppercase tracking-widest text-property-ink">
+                  {audienceLabel(event.audience)}
+                </span>
+              )}
+            </div>
             {event.isSoldOut && (
               <p className="mb-3 font-property-sans text-[13px] uppercase tracking-[0.2em] text-property-accent-dark">
                 Sold Out — Waitlist Open

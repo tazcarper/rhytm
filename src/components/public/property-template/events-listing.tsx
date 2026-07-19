@@ -8,11 +8,15 @@ import { PropertyButton } from "./property-button";
 
 interface EventsListingProps {
   events: ReadonlyArray<PublicEventListItem>;
+  /** Standing (indefinite, schedule-only) programmes — no start_at, shown in
+   *  their own section rather than mixed into the dated list/featured slot. */
+  standingPrograms?: ReadonlyArray<PublicEventListItem>;
   /** e.g. "/horseshoe-bay" — prefixes every event detail link. */
   basePath: string;
 }
 
-function formatEventDate(iso: string): string {
+function formatEventDate(iso: string | null): string {
+  if (!iso) return "";
   return new Intl.DateTimeFormat("en-US", {
     weekday: "short",
     month: "short",
@@ -22,13 +26,15 @@ function formatEventDate(iso: string): string {
   }).format(new Date(iso));
 }
 
-function formatMonth(iso: string): string {
+function formatMonth(iso: string | null): string {
+  if (!iso) return "";
   return new Intl.DateTimeFormat("en-US", { month: "short", timeZone: "America/Chicago" })
     .format(new Date(iso))
     .toUpperCase();
 }
 
-function formatDay(iso: string): string {
+function formatDay(iso: string | null): string {
+  if (!iso) return "";
   return new Intl.DateTimeFormat("en-US", { day: "numeric", timeZone: "America/Chicago" }).format(new Date(iso));
 }
 
@@ -84,7 +90,7 @@ function FilterGroup({
 // are derived from the events actually present, so a pill never appears
 // with nothing behind it (e.g. no Pistol pill shows until a Pistol event
 // exists).
-export function EventsListing({ events, basePath }: EventsListingProps) {
+export function EventsListing({ events, standingPrograms = [], basePath }: EventsListingProps) {
   const [type, setType] = useState("All");
   const [discipline, setDiscipline] = useState("All");
 
@@ -214,6 +220,53 @@ export function EventsListing({ events, basePath }: EventsListingProps) {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {standingPrograms.length > 0 && (
+          <div className="mt-24">
+            <div className="flex items-center gap-4 mb-8">
+              <h3 className="property-headline font-property-display text-[24px] uppercase tracking-wider text-property-ink">
+                Standing Programs
+              </h3>
+              <div className="h-px flex-grow bg-property-ink/20" />
+            </div>
+            <div className="flex flex-col gap-8">
+              {standingPrograms.map((program) => (
+                <div
+                  key={program.id}
+                  className="grid grid-cols-1 items-center gap-6 border-b border-property-ink/10 pb-8 md:grid-cols-12"
+                >
+                  <div className="md:col-span-8">
+                    {catLine(program) && (
+                      <span className="mb-2 block font-property-sans text-[11px] uppercase tracking-[0.2em] text-property-accent-dark">
+                        {catLine(program)}
+                      </span>
+                    )}
+                    <Link href={`${basePath}/events/${program.id}`} className="group block">
+                      <h4 className="property-headline font-property-display text-[22px] uppercase text-property-ink transition-colors group-hover:text-property-accent-dark">
+                        {program.title}
+                      </h4>
+                    </Link>
+                    {program.scheduleText && (
+                      <p className="mt-1 font-property-sans text-property-body text-property-ink-variant">
+                        {program.scheduleText}
+                      </p>
+                    )}
+                  </div>
+                  <div className="md:col-span-4 md:text-right">
+                    <PropertyButton
+                      href={`${basePath}/events/${program.id}`}
+                      variant="ink"
+                      size="sm"
+                      className="w-full md:w-auto"
+                    >
+                      Details
+                    </PropertyButton>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

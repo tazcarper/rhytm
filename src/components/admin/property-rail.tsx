@@ -25,7 +25,7 @@ export function PropertyRail({
   return (
     <div className={p.switcher} role="tablist" aria-label="Properties">
       {properties.map((property) => {
-        const href = `/admin/properties/${property.id}`;
+        const href = `/admin/properties/${property.slug}`;
         const selected = pathname === href || pathname.startsWith(`${href}/`);
         return (
           <Link

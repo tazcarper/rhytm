@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Card } from "@/lib/ui";
-import { savePropertyPageContentAction } from "@/app/admin/properties/[id]/content/actions";
+import { savePropertyPageContentAction } from "@/app/admin/properties/[slug]/content/actions";
 import type { PropertyPageKey, PropertyContentItem } from "@/src/services/public/property-page-content";
 import type { AdminPropertyPageSection } from "@/src/services/admin/property-page-content";
 import type { ItemFieldKey } from "@/src/constants/admin/property-page-sections";

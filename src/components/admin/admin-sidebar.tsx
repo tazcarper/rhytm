@@ -139,7 +139,7 @@ function buildNavGroups(
           basePath: "/admin/properties",
           children: properties.map((property) => ({
             label: property.name,
-            href: `/admin/properties/${property.id}`,
+            href: `/admin/properties/${property.slug}`,
             slug: property.slug,
             logoUrl: property.logoUrl,
           })),

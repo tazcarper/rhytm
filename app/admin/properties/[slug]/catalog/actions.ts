@@ -63,7 +63,7 @@ interface CatalogActionContext {
 }
 
 function revalidateCatalogSurfaces(ctx: CatalogActionContext) {
-  revalidatePath(`/admin/properties/${ctx.propertyId}/catalog`);
+  revalidatePath(`/admin/properties/${ctx.propertySlug}/catalog`);
   revalidatePath(`/book/${ctx.propertySlug}`);
   // The estimate front door reads the same catalog (experiences, add-ons,
   // guest-fee tiers, catering).
@@ -103,7 +103,7 @@ export async function updateServiceAction(
   if (result.ok) {
     revalidateCatalogSurfaces(ctx);
     revalidatePath(
-      `/admin/properties/${ctx.propertyId}/catalog/services/${parsed.data.serviceId}/edit`,
+      `/admin/properties/${ctx.propertySlug}/catalog/services/${parsed.data.serviceId}/edit`,
     );
   }
   return result;
@@ -214,7 +214,7 @@ export async function updateAddOnAction(
   if (result.ok) {
     revalidateCatalogSurfaces(ctx);
     revalidatePath(
-      `/admin/properties/${ctx.propertyId}/catalog/add-ons/${parsed.data.addOnId}/edit`,
+      `/admin/properties/${ctx.propertySlug}/catalog/add-ons/${parsed.data.addOnId}/edit`,
     );
   }
   return result;

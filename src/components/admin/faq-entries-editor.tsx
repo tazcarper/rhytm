@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Card } from "@/lib/ui";
-import { saveFaqEntryAction, deleteFaqEntryAction } from "@/app/admin/properties/[id]/faq/actions";
+import { saveFaqEntryAction, deleteFaqEntryAction } from "@/app/admin/properties/[slug]/faq/actions";
 import type { AdminFaqEntry } from "@/src/services/admin/faq";
 import s from "./bid-editor-form.module.css";
 import h from "./homepage-hero-form.module.css";

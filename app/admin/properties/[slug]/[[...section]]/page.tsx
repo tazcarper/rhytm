@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getAdminPropertyById } from "@/src/services/admin/properties";
+import { getAdminPropertyBySlug } from "@/src/services/admin/properties";
 import {
   getPropertyPageContentSection,
   type AdminPropertyPageSection,
@@ -21,12 +21,12 @@ export const dynamic = "force-dynamic";
 export default async function PropertyWorkspacePage({
   params,
 }: {
-  params: Promise<{ id: string; section?: string[] }>;
+  params: Promise<{ slug: string; section?: string[] }>;
 }) {
-  const { id } = await params;
+  const { slug } = await params;
   const supabase = await createServerSupabaseClient();
 
-  const property = await getAdminPropertyById(supabase, id);
+  const property = await getAdminPropertyBySlug(supabase, slug);
   if (!property) notFound();
 
   const [pageContentRows, upcomingEvents] = await Promise.all([

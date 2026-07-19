@@ -10,6 +10,7 @@ import {
   type SavePropertyPageSectionRawInput,
   type SavePropertyPageSectionResult,
 } from "@/src/services/admin/property-page-content";
+import { getAdminPropertyById } from "@/src/services/admin/properties";
 import { createPropertyContentImageStorage } from "@/lib/storage/property-content-image-storage";
 import {
   uploadPublicImage,
@@ -43,7 +44,8 @@ export async function savePropertyPageContentAction(
   const supabase = await createServerSupabaseClient();
   const result = await savePropertyPageSection(supabase, parsed.data);
   if (result.ok) {
-    revalidatePath(`/admin/properties/${parsed.data.propertyId}/content`);
+    const property = await getAdminPropertyById(supabase, parsed.data.propertyId);
+    revalidatePath(`/admin/properties/${property?.slug ?? parsed.data.propertyId}/content`);
     if (parsed.data.pageKey === "basics" || parsed.data.pageKey === "layout") {
       // Both feed the shared header/footer chrome rendered by every page
       // under the property's layout — revalidate the whole subtree.

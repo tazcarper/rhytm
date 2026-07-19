@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { uploadPropertyContentImageAction } from "@/app/admin/properties/[id]/content/actions";
+import { uploadPropertyContentImageAction } from "@/app/admin/properties/[slug]/content/actions";
 import { downscaleImage } from "./downscale-image";
 
 // Single-image upload widget for property_page_content editors (marketing

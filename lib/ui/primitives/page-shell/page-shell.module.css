@@ -13,6 +13,9 @@
 .xl {
   max-width: var(--content-xl);
 }
+.xxl {
+  max-width: var(--content-xxl);
+}
 .prose {
   max-width: var(--content-prose);
 }

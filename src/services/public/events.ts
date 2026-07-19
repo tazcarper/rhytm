@@ -16,16 +16,21 @@ export interface PublicEventInfoBox {
   items: string[] | null;
 }
 
+export type PublicEventAudience = "members_and_public" | "members_only";
+
 export interface PublicEventListItem {
   id: string;
   title: string;
   summary: string | null;
-  startAt: string;
+  startAt: string | null;
+  scheduleText: string | null;
   endAt: string | null;
   location: string | null;
   type: string | null;
   discipline: string | null;
   featured: boolean;
+  includedWithMembership: boolean;
+  audience: PublicEventAudience;
   status: PublicEventStatus;
   memberPrice: number | null;
   nonMemberPrice: number | null;
@@ -45,12 +50,15 @@ type ListRow = {
   id: string;
   title: string;
   summary: string | null;
-  start_at: string;
+  start_at: string | null;
+  schedule_text: string | null;
   end_at: string | null;
   location: string | null;
   type: string | null;
   discipline: string | null;
   featured: boolean;
+  included_with_membership: boolean;
+  audience: PublicEventAudience;
   status: PublicEventStatus;
   member_price: string | number | null;
   non_member_price: string | number | null;
@@ -67,11 +75,14 @@ function rowToListItem(row: ListRow): PublicEventListItem {
     title: row.title,
     summary: row.summary,
     startAt: row.start_at,
+    scheduleText: row.schedule_text,
     endAt: row.end_at,
     location: row.location,
     type: row.type,
     discipline: row.discipline,
     featured: row.featured,
+    includedWithMembership: row.included_with_membership,
+    audience: row.audience,
     status: row.status,
     memberPrice: toMoney(row.member_price),
     nonMemberPrice: toMoney(row.non_member_price),
@@ -81,7 +92,7 @@ function rowToListItem(row: ListRow): PublicEventListItem {
 }
 
 const LIST_COLUMNS =
-  "id, title, summary, start_at, end_at, location, type, discipline, featured, status, member_price, non_member_price, image_url";
+  "id, title, summary, start_at, schedule_text, end_at, location, type, discipline, featured, included_with_membership, audience, status, member_price, non_member_price, image_url";
 
 // Soonest-first, upcoming only (past events never show), capped at 6 —
 // keeps the calendar page short. Callers that want fewer (e.g. Club
@@ -96,6 +107,7 @@ export async function getPublicEvents(
     .from("events")
     .select(LIST_COLUMNS)
     .eq("property_id", propertyId)
+    .not("start_at", "is", null)
     .gte("start_at", new Date().toISOString())
     .order("start_at", { ascending: true })
     .limit(UPCOMING_EVENTS_LIMIT);
@@ -104,8 +116,26 @@ export async function getPublicEvents(
   return (data as ListRow[]).map(rowToListItem);
 }
 
+// Standing (indefinite, schedule-only) programmes for one property — no
+// start_at, so "upcoming" doesn't apply; they're always current and shown
+// in their own calendar section rather than mixed into the dated list.
+export async function getPublicStandingPrograms(
+  supabase: SupabaseClient,
+  propertyId: string,
+): Promise<PublicEventListItem[]> {
+  const { data, error } = await supabase
+    .from("events")
+    .select(LIST_COLUMNS)
+    .eq("property_id", propertyId)
+    .is("start_at", null)
+    .order("title", { ascending: true });
+
+  if (error || !data) return [];
+  return (data as ListRow[]).map(rowToListItem);
+}
+
 const DETAIL_COLUMNS =
-  "id, title, summary, description, start_at, end_at, location, instructors, type, discipline, featured, status, member_price, non_member_price, image_url, max_capacity, max_guests_per_registration, event_info_boxes ( id, box_type, heading, body, items )";
+  "id, title, summary, description, start_at, schedule_text, end_at, location, instructors, type, discipline, featured, included_with_membership, audience, status, member_price, non_member_price, image_url, max_capacity, max_guests_per_registration, event_info_boxes ( id, box_type, heading, body, items )";
 
 type DetailRow = ListRow & {
   description: string | null;

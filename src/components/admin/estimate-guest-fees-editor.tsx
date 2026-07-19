@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Card } from "@/lib/ui";
-import { saveEstimateGuestFeesAction } from "@/app/admin/properties/[id]/catalog/actions";
+import { saveEstimateGuestFeesAction } from "@/app/admin/properties/[slug]/catalog/actions";
 import type { EstimateGuestFeeBand } from "@/src/services/admin/estimate-guest-fees";
 import s from "./catalog.module.css";
 
