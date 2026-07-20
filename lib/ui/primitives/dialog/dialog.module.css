@@ -1,39 +1,41 @@
-/* Shared admin modal: a full-page centered dialog with a scrim backdrop, used
-   across the admin for create/edit flows. Size variants control max width; an
-   optional footer slot holds primary/secondary actions. */
+/* Full-page centered dialog with a scrim backdrop, used for create/edit
+   flows across the admin. Size variants control max width; an optional
+   footer slot holds primary/secondary actions. */
 
-.overlay {
+.backdrop {
   position: fixed;
   inset: 0;
   z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-4);
+  background: var(--scrim);
 }
 
-.backdrop {
-  position: absolute;
-  inset: 0;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  background: var(--scrim);
+.backdrop[data-state="open"] {
   animation: fade-in 160ms ease-out;
 }
 
 .modal {
-  position: relative;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 50;
   display: flex;
   flex-direction: column;
   width: min(720px, 94vw);
   max-height: 92vh;
+  transform: translate(-50%, -50%);
   background: var(--paper);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-lift);
   overflow: hidden;
+}
+
+.modal[data-state="open"] {
   animation: pop-in 180ms ease-out;
+}
+
+.modal:focus-visible {
+  outline: none;
 }
 
 .sm {
@@ -99,11 +101,11 @@
 @keyframes pop-in {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.98);
+    transform: translate(-50%, -50%) translateY(8px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate(-50%, -50%) translateY(0) scale(1);
   }
 }
 
@@ -117,8 +119,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .modal,
-  .backdrop {
+  .modal[data-state="open"],
+  .backdrop[data-state="open"] {
     animation: none;
   }
 }

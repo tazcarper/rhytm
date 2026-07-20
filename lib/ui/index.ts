@@ -24,6 +24,9 @@ export type {
   CardPadding,
 } from "./primitives/card";
 
+export { Dialog } from "./primitives/dialog";
+export type { DialogProps, DialogSize } from "./primitives/dialog";
+
 export { Divider } from "./primitives/divider";
 export type { DividerProps, DividerVariant } from "./primitives/divider";
 

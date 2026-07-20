@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Card } from "@/lib/ui";
+import { Button, Card, Dialog } from "@/lib/ui";
 import {
   createCateringAction,
   updateCateringAction,
@@ -11,7 +11,6 @@ import {
 } from "@/app/admin/properties/[slug]/catalog/actions";
 import type { AdminCateringOption } from "@/src/services/admin/catering";
 import { formatMoney } from "@/src/services/public/format";
-import { AdminModal } from "./admin-modal";
 import s from "./catalog.module.css";
 
 interface CatalogCateringPanelProps {
@@ -141,7 +140,7 @@ export function CatalogCateringPanel({
     </Card>
 
       {showAdd && (
-        <AdminModal
+        <Dialog
           title="Add catering option"
           size="md"
           onClose={cancelAdd}
@@ -200,7 +199,7 @@ export function CatalogCateringPanel({
             />
           </label>
           {createError && <span className={s.inlineError}>{createError}</span>}
-        </AdminModal>
+        </Dialog>
       )}
     </>
   );
