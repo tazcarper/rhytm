@@ -4,13 +4,17 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Card } from "@/lib/ui";
 import { savePropertyPageContentAction } from "@/app/admin/properties/[slug]/content/actions";
-import type { PropertyPageKey, PropertyContentItem } from "@/src/services/public/property-page-content";
+import type {
+  PropertyPageKey,
+  PropertyContentItem,
+} from "@/src/services/public/property-page-content";
 import type { AdminPropertyPageSection } from "@/src/services/admin/property-page-content";
 import type { ItemFieldKey } from "@/src/constants/admin/property-page-sections";
 import { ALL_ITEM_FIELDS } from "@/src/constants/admin/property-page-sections";
 import { PropertyContentImageInput } from "./property-content-image-input";
 import s from "./bid-editor-form.module.css";
 import h from "./homepage-hero-form.module.css";
+import p from "./property-page-items-form.module.css";
 
 interface EditableItem extends PropertyContentItem {
   key: string; // client-side stable key, not persisted
@@ -53,7 +57,9 @@ export function PropertyPageItemsForm({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
-  const [items, setItems] = useState<EditableItem[]>(() => toEditable(section?.items ?? null));
+  const [items, setItems] = useState<EditableItem[]>(() =>
+    toEditable(section?.items ?? null),
+  );
 
   const showTitle = itemFields.includes("title");
   const showLink = itemFields.includes("link");
@@ -61,6 +67,10 @@ export function PropertyPageItemsForm({
   const showImage = itemFields.includes("image");
   const showBullets = itemFields.includes("bullets");
   const itemsFull = maxItems !== undefined && items.length >= maxItems;
+  // Title/body/link-only cards are short and roughly uniform in height, so
+  // they pack into a grid; an image or a variable-length bullet list makes
+  // a card's height too unpredictable for that, so those stay full-width.
+  const isCompactItem = !showImage && !showBullets;
 
   function addItem() {
     setItems([...items, { key: crypto.randomUUID() }]);
@@ -80,7 +90,9 @@ export function PropertyPageItemsForm({
   }
 
   function updateItem(key: string, patch: Partial<EditableItem>) {
-    setItems(items.map((item) => (item.key === key ? { ...item, ...patch } : item)));
+    setItems(
+      items.map((item) => (item.key === key ? { ...item, ...patch } : item)),
+    );
   }
 
   function updateBullet(key: string, index: number, value: string) {
@@ -100,7 +112,9 @@ export function PropertyPageItemsForm({
   function removeBullet(key: string, index: number) {
     const item = items.find((i) => i.key === key);
     if (!item) return;
-    updateItem(key, { bullets: (item.bullets ?? []).filter((_, i) => i !== index) });
+    updateItem(key, {
+      bullets: (item.bullets ?? []).filter((_, i) => i !== index),
+    });
   }
 
   const handleSubmit = () => {
@@ -134,7 +148,7 @@ export function PropertyPageItemsForm({
   };
 
   return (
-    <Card padding="loose" elevation="soft">
+    <Card padding="default" elevation="soft">
       <div className={h.formHead}>
         <h2 className={h.formTitle}>{sectionLabel}</h2>
       </div>
@@ -152,108 +166,157 @@ export function PropertyPageItemsForm({
       {helpText && <p className={h.groupDesc}>{helpText}</p>}
 
       <div className="flex flex-col gap-4">
-        {items.map((item, index) => (
-          <div key={item.key} className="rounded-card border border-rule p-4">
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <span className="text-micro uppercase tracking-label text-gray">Card {index + 1}</span>
-              <div className="flex gap-1">
-                <Button type="button" variant="ghost" size="sm" disabled={index === 0} onClick={() => moveItem(item.key, -1)}>
-                  ↑
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  disabled={index === items.length - 1}
-                  onClick={() => moveItem(item.key, 1)}
-                >
-                  ↓
-                </Button>
-                <Button type="button" variant="ghost" size="sm" onClick={() => removeItem(item.key)}>
-                  Remove
-                </Button>
+        <div className={isCompactItem ? p.itemGrid : "flex flex-col gap-4"}>
+          {items.map((item, index) => (
+            <div key={item.key} className="rounded-card border border-rule p-4">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <span className="text-micro uppercase tracking-label text-gray">
+                  Card {index + 1}
+                </span>
+                <div className="flex gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={index === 0}
+                    onClick={() => moveItem(item.key, -1)}
+                  >
+                    ↑
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={index === items.length - 1}
+                    onClick={() => moveItem(item.key, 1)}
+                  >
+                    ↓
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeItem(item.key)}
+                  >
+                    Remove
+                  </Button>
+                </div>
               </div>
-            </div>
 
-            {(showTitle || showLink) && (
-              <div className={showTitle && showLink ? h.grid2 : undefined}>
-                {showTitle && (
-                  <label className={s.field}>
-                    <span className={s.label}>Title</span>
-                    <input
-                      type="text"
-                      value={item.title ?? ""}
-                      onChange={(event) => updateItem(item.key, { title: event.target.value })}
-                      className={s.input}
-                    />
-                  </label>
-                )}
-                {showLink && (
-                  <label className={s.field}>
-                    <span className={s.label}>Link{showTitle ? " (optional)" : ""}</span>
-                    <input
-                      type="text"
-                      value={item.linkHref ?? ""}
-                      onChange={(event) => updateItem(item.key, { linkHref: event.target.value })}
-                      className={s.input}
-                      placeholder="/horseshoe-bay/events"
-                    />
-                  </label>
-                )}
-              </div>
-            )}
+              {(showTitle || showLink) && (
+                <div className={showTitle && showLink ? h.grid2 : undefined}>
+                  {showTitle && (
+                    <label className={s.field}>
+                      <span className={s.label}>Title</span>
+                      <input
+                        type="text"
+                        value={item.title ?? ""}
+                        onChange={(event) =>
+                          updateItem(item.key, { title: event.target.value })
+                        }
+                        className={s.input}
+                      />
+                    </label>
+                  )}
+                  {showLink && (
+                    <label className={s.field}>
+                      <span className={s.label}>
+                        Link{showTitle ? " (optional)" : ""}
+                      </span>
+                      <input
+                        type="text"
+                        value={item.linkHref ?? ""}
+                        onChange={(event) =>
+                          updateItem(item.key, { linkHref: event.target.value })
+                        }
+                        className={s.input}
+                        placeholder="/horseshoe-bay/events"
+                      />
+                    </label>
+                  )}
+                </div>
+              )}
 
-            {showBody && (
-              <label className={s.field}>
-                <span className={s.label}>Body</span>
-                <textarea
-                  value={item.body ?? ""}
-                  onChange={(event) => updateItem(item.key, { body: event.target.value })}
-                  className={s.textarea}
-                  rows={3}
+              {showBody && (
+                <label className={s.field}>
+                  <span className={s.label}>Body</span>
+                  <textarea
+                    value={item.body ?? ""}
+                    onChange={(event) =>
+                      updateItem(item.key, { body: event.target.value })
+                    }
+                    className={s.textarea}
+                    rows={3}
+                  />
+                </label>
+              )}
+
+              {showImage && (
+                <PropertyContentImageInput
+                  label="Image"
+                  value={item.imageUrl ?? ""}
+                  onChange={(url) => updateItem(item.key, { imageUrl: url })}
                 />
-              </label>
-            )}
+              )}
 
-            {showImage && (
-              <PropertyContentImageInput
-                label="Image"
-                value={item.imageUrl ?? ""}
-                onChange={(url) => updateItem(item.key, { imageUrl: url })}
-              />
-            )}
+              {showBullets && (
+                <div className="mt-3 flex flex-col gap-2">
+                  <span className={s.label}>Bullet list (optional)</span>
+                  {(item.bullets ?? []).map((bullet, bulletIndex) => (
+                    <div key={bulletIndex} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={bullet}
+                        onChange={(event) =>
+                          updateBullet(
+                            item.key,
+                            bulletIndex,
+                            event.target.value,
+                          )
+                        }
+                        className={s.input}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeBullet(item.key, bulletIndex)}
+                      >
+                        ✕
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => addBullet(item.key)}
+                  >
+                    Add bullet
+                  </Button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
 
-            {showBullets && (
-              <div className="mt-3 flex flex-col gap-2">
-                <span className={s.label}>Bullet list (optional)</span>
-                {(item.bullets ?? []).map((bullet, bulletIndex) => (
-                  <div key={bulletIndex} className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={bullet}
-                      onChange={(event) => updateBullet(item.key, bulletIndex, event.target.value)}
-                      className={s.input}
-                    />
-                    <Button type="button" variant="ghost" size="sm" onClick={() => removeBullet(item.key, bulletIndex)}>
-                      ✕
-                    </Button>
-                  </div>
-                ))}
-                <Button type="button" variant="secondary" size="sm" onClick={() => addBullet(item.key)}>
-                  Add bullet
-                </Button>
-              </div>
-            )}
-          </div>
-        ))}
-
-        <Button type="button" variant="secondary" disabled={itemsFull} onClick={addItem}>
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={itemsFull}
+          onClick={addItem}
+        >
           Add card
         </Button>
       </div>
 
       <div className={h.actions}>
-        <Button type="button" variant="primary" disabled={isPending} onClick={handleSubmit}>
+        <Button
+          type="button"
+          variant="primary"
+          disabled={isPending}
+          onClick={handleSubmit}
+        >
           {isPending ? "Saving…" : "Save changes"}
         </Button>
       </div>

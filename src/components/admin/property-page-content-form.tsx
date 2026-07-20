@@ -117,7 +117,7 @@ export function PropertyPageContentForm({
   };
 
   return (
-    <Card padding="loose" elevation="soft">
+    <Card padding="default" elevation="soft">
       <div className={h.formHead}>
         <h2 className={h.formTitle}>{sectionLabel}</h2>
       </div>
@@ -134,7 +134,7 @@ export function PropertyPageContentForm({
           </Alert>
         )}
 
-        <Group desc={helpText ?? "Blank fields fall back to the page's built-in copy — nothing breaks if you don't fill everything in."}>
+        <Group desc={helpText}>
           {fields.includes("heading") && (
             <label className={s.field}>
               <span className={s.label}>Heading</span>
@@ -219,11 +219,11 @@ export function PropertyPageContentForm({
   );
 }
 
-function Group({ desc, children }: { desc: string; children: ReactNode }) {
+function Group({ desc, children }: { desc?: string; children: ReactNode }) {
   return (
     <section className={h.group}>
-      <p className={h.groupDesc}>{desc}</p>
-      {children}
+      {desc && <p className={h.groupDesc}>{desc}</p>}
+      <div className="flex flex-col gap-4">{children}</div>
     </section>
   );
 }

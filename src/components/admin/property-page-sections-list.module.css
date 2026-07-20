@@ -1,0 +1,14 @@
+/* Consecutive kind:"single" sections (short heading/body/image/cta cards,
+   no item lists) pack into a responsive grid instead of stacking one per
+   row — they're small, comparably-sized fact cards, so side by side reads
+   better than a long single column. "items"/"hybrid" sections stay
+   full-width since their height varies with however many cards or photos
+   an admin has added. Grouping happens in place (see chunkSections in
+   property-page-sections-list.tsx), so a page's declared section order —
+   which mirrors the live page's top-to-bottom layout — is never disturbed. */
+.singleGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-5);
+  align-items: start;
+}
