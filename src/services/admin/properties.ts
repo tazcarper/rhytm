@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getPropertyPageContentSection } from "@/src/services/admin/property-page-content";
 
 export interface AdminProperty {
   id: string;
@@ -77,6 +78,26 @@ export async function getAdminPropertyById(
   return data ? rowToProperty(data as AdminPropertyRow) : null;
 }
 
+// Slug lookup for the admin property workspace route
+// (/admin/properties/[slug]/...), which uses the same human-readable slug
+// as the public site rather than a raw UUID in the URL. Every write path
+// downstream still keys off the returned `id` (the real UUID) — only the
+// route segment itself is slug-based.
+export async function getAdminPropertyBySlug(
+  supabase: SupabaseClient,
+  slug: string,
+): Promise<AdminProperty | null> {
+  const { data, error } = await supabase
+    .from("properties")
+    .select(SELECT_COLUMNS)
+    .eq("slug", slug)
+    .maybeSingle();
+  if (error) {
+    throw new Error(`Admin property read failed: ${error.message}`);
+  }
+  return data ? rowToProperty(data as AdminPropertyRow) : null;
+}
+
 export async function getAdminPropertiesList(
   supabase: SupabaseClient,
 ): Promise<AdminProperty[]> {
@@ -89,6 +110,35 @@ export async function getAdminPropertiesList(
     throw new Error(`Admin properties list failed: ${error.message}`);
   }
   return ((data ?? []) as AdminPropertyRow[]).map(rowToProperty);
+}
+
+export interface AdminPropertyWithLogo {
+  id: string;
+  name: string;
+  slug: string;
+  logoUrl: string | null;
+}
+
+// Properties plus each one's basics/logo image, for the two nav surfaces
+// that show a property switcher (the admin sidebar's expandable Properties
+// group, and the properties workspace's top rail) — both need the same
+// {id, name, slug, logoUrl} shape, so it's fetched in one place rather than
+// duplicated per layout.
+export async function getAdminPropertiesWithLogos(
+  supabase: SupabaseClient,
+): Promise<AdminPropertyWithLogo[]> {
+  const list = await getAdminPropertiesList(supabase);
+  const logos = await Promise.all(
+    list.map((property) =>
+      getPropertyPageContentSection(supabase, property.id, "basics", "logo").catch(() => null),
+    ),
+  );
+  return list.map((property, index) => ({
+    id: property.id,
+    name: property.name,
+    slug: property.slug,
+    logoUrl: logos[index]?.imageUrl ?? null,
+  }));
 }
 
 const nullableTrimmed = (max: number) =>

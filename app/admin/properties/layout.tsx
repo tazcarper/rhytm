@@ -5,7 +5,7 @@ import {
   PropertyRail,
   type PropertyRailItem,
 } from "@/src/components/admin/property-rail";
-import { getAdminPropertiesList } from "@/src/services/admin/properties";
+import { getAdminPropertiesWithLogos } from "@/src/services/admin/properties";
 import s from "./properties-page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -22,12 +22,7 @@ export default async function PropertiesLayout({
 
   let properties: PropertyRailItem[] = [];
   try {
-    const list = await getAdminPropertiesList(supabase);
-    properties = list.map((property) => ({
-      id: property.id,
-      name: property.name,
-      slug: property.slug,
-    }));
+    properties = await getAdminPropertiesWithLogos(supabase);
   } catch {
     // The child page surfaces load failures; the rail just renders empty.
   }
@@ -42,9 +37,7 @@ export default async function PropertiesLayout({
           Properties
         </Heading>
         <Text variant="lead" className={s.lead}>
-          Pick a property, then manage its basics, experiences, add-ons,
-          catering, and guest fees. Changes save per property and apply
-          immediately.
+          Pick a property, then manage its information, marketing pages, and more.
         </Text>
       </div>
 

@@ -1,0 +1,40 @@
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.toggle {
+  display: flex;
+  gap: var(--space-1);
+  padding: 3px;
+  background: var(--paper-warm);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.toggleButton {
+  font-family: var(--sans);
+  font-size: var(--text-eyebrow);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: var(--space-1) var(--space-3);
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--gray);
+  cursor: pointer;
+  transition: background var(--motion-fast) ease, color var(--motion-fast) ease;
+}
+
+.toggleButton:hover {
+  color: var(--olive);
+}
+
+.toggleActive,
+.toggleActive:hover {
+  background: var(--olive);
+  color: var(--paper);
+}

@@ -8,7 +8,7 @@ import {
   listAllBookingsForAddOnAction,
   updateAddOnAction,
   uploadAddOnImageAction,
-} from "@/app/admin/properties/[id]/catalog/actions";
+} from "@/app/admin/properties/[slug]/catalog/actions";
 import type { AdminCatalogAddOn } from "@/src/services/admin/catalog";
 import { DeleteCatalogItemConfirm } from "./delete-catalog-item-confirm";
 import { downscaleImage } from "./downscale-image";
@@ -87,7 +87,7 @@ export function AddOnEditorForm({
       onClose();
       router.refresh();
     } else {
-      router.push(`/admin/properties/${propertyId}/catalog`);
+      router.push(`/admin/properties/${propertySlug}/catalog`);
       router.refresh();
     }
   };

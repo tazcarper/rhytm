@@ -8,7 +8,7 @@ import {
   reorderAddOnsAction,
   updateAddOnAction,
   listActiveBookingsForAddOnAction,
-} from "@/app/admin/properties/[id]/catalog/actions";
+} from "@/app/admin/properties/[slug]/catalog/actions";
 import type {
   AdminCatalogAddOn,
   AdminCatalogLink,

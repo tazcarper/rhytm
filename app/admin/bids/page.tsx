@@ -12,7 +12,7 @@ import {
 } from "@/src/services/admin/bids";
 import { getPublicProperties } from "@/src/services/public/properties";
 import { BidFilters } from "@/src/components/admin/bid-filters";
-import { BidListTable } from "@/src/components/admin/bid-list-table";
+import { BidsDataTable } from "@/src/components/admin/bids-data-table";
 import { buildBidsHref } from "@/src/components/admin/bid-filter-params";
 import s from "@/src/components/admin/queue-list.module.css";
 
@@ -120,7 +120,7 @@ export default async function AdminBidsList({
           : `Showing ${start}–${end} of ${list.totalCount}`}
       </div>
 
-      <BidListTable rows={list.rows} />
+      <BidsDataTable rows={list.rows} />
 
       {(list.page > 0 || list.hasMore) && (
         <div className={s.pagination}>

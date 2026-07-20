@@ -1,21 +1,29 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getUnactionedInquiryCount } from "./inquiries";
 
 export interface AdminDashboardCounts {
   pendingBids: number;
+  newInquiries: number;
 }
 
 export async function getAdminDashboardCounts(
   supabase: SupabaseClient,
 ): Promise<AdminDashboardCounts> {
-  const { count, error } = await supabase
-    .from("bids")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "pending_review")
-    .is("deleted_at", null);
+  const [bidsResult, newInquiries] = await Promise.all([
+    supabase
+      .from("bids")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending_review")
+      .is("deleted_at", null),
+    getUnactionedInquiryCount(supabase),
+  ]);
 
-  if (error) {
-    throw new Error(`Admin dashboard counts failed: ${error.message}`);
+  if (bidsResult.error) {
+    throw new Error(`Admin dashboard counts failed: ${bidsResult.error.message}`);
   }
 
-  return { pendingBids: count ?? 0 };
+  return {
+    pendingBids: bidsResult.count ?? 0,
+    newInquiries,
+  };
 }
