@@ -78,13 +78,54 @@ export async function getInquiriesList(
   });
 }
 
-export async function getNewInquiryCount(supabase: SupabaseClient): Promise<number> {
-  const { count, error } = await supabase
+type UnactionedRow = {
+  id: string;
+  inquiry_type: InquiryType;
+  name: string;
+  email: string;
+  status: InquiryStatus;
+  created_at: string;
+  source_label: string | null;
+  properties: { name: string } | { name: string }[] | null;
+  inquiry_events: { id: string }[] | null;
+};
+
+// "Unactioned" is narrower than status = "new": a "new" inquiry that staff
+// has already logged a Contacted/Denied/Note update against (see
+// InquiryDetail) has been responded to even if it isn't formally resolved
+// yet. The nav badge and dashboard "needs attention" queue both track this
+// set, not the full "New" status bucket the /admin/inquiries tab shows.
+export async function getUnactionedInquiries(
+  supabase: SupabaseClient,
+): Promise<AdminInquiryListRow[]> {
+  const { data, error } = await supabase
     .from("inquiries")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "new");
-  if (error) throw new Error(`Couldn't count new inquiries: ${error.message}`);
-  return count ?? 0;
+    .select(`${LIST_COLUMNS}, inquiry_events ( id )`)
+    .eq("status", "new")
+    .order("created_at", { ascending: true });
+
+  if (error) throw new Error(`Couldn't load inquiries: ${error.message}`);
+
+  return ((data ?? []) as unknown as UnactionedRow[])
+    .filter((row) => (row.inquiry_events ?? []).length === 0)
+    .map((row) => {
+      const property = pickOne(row.properties);
+      return {
+        id: row.id,
+        inquiryType: row.inquiry_type,
+        name: row.name,
+        email: row.email,
+        propertyName: property?.name ?? "—",
+        sourceLabel: row.source_label,
+        status: row.status,
+        createdAt: row.created_at,
+      };
+    });
+}
+
+export async function getUnactionedInquiryCount(supabase: SupabaseClient): Promise<number> {
+  const rows = await getUnactionedInquiries(supabase);
+  return rows.length;
 }
 
 const DETAIL_COLUMNS =

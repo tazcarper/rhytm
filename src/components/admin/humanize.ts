@@ -1,7 +1,14 @@
+import type { InquiryType } from "@/src/services/admin/inquiries";
+
 // Presentation helpers for raw database vocabulary. The audit
 // (docs/dashboard-ui-audit.md) flagged snake_case enums leaking into the UI
 // (`sold_out`, `super_admin`, `plan_a_visit`); every admin surface that has
 // no bespoke label map falls back to this.
+
+export const INQUIRY_TYPE_LABEL: Record<InquiryType, string> = {
+  membership: "Membership",
+  private_event: "Private event",
+};
 
 /** "sold_out" → "Sold out", "super_admin" → "Super admin". */
 export function humanizeEnum(value: string): string {

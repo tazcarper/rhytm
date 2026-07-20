@@ -1,43 +1,30 @@
 import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { Alert, Card, Eyebrow, Heading, PageShell } from "@/lib/ui";
+import { formatDateLongTz } from "@/src/services/public/format";
 import {
-  formatDateLongTz,
-  formatSlotLabelTz,
-} from "@/src/services/public/format";
+  getUnactionedInquiries,
+  type AdminInquiryListRow,
+} from "@/src/services/admin/inquiries";
 import {
-  getAdminDashboardData,
-  type AdminDashboardData,
-  type PropertyColumn,
-} from "@/src/services/admin/dashboard-data";
+  getEventsBusinessMetrics,
+  type EventsBusinessMetrics,
+} from "@/src/services/admin/events-stats";
 import {
-  getAdminDashboardMetrics,
-  type AdminDashboardMetrics,
-} from "@/src/services/admin/dashboard-metrics";
-import { type AdminBidListRow } from "@/src/services/admin/bids";
-import { PropertyPill } from "@/src/components/admin/property-pill";
-import {
-  DaySchedule,
-  bidRowToScheduleBlock,
-} from "@/src/components/admin/day-schedule";
-import { ActivityFeed } from "@/src/components/admin/activity-feed";
+  getAdminMonthEvents,
+  eventCalendarDate,
+  type AdminEventCalendarRow,
+} from "@/src/services/admin/events-calendar";
+import { getAdminPropertiesList, type AdminProperty } from "@/src/services/admin/properties";
+import { EventsDaySchedule } from "@/src/components/admin/events-day-schedule";
 import { StatCard } from "@/src/components/admin/dashboard/stat-card";
-import { ChartCardHeader } from "@/src/components/admin/chart-card-header";
-import { BrandAreaChart } from "@/src/components/ui/charts/brand-area-chart";
-import {
-  BrandBarChart,
-  type BrandBarChartRow,
-} from "@/src/components/ui/charts/brand-bar-chart";
-import { propertyChartColor } from "@/src/components/admin/humanize";
+import { INQUIRY_TYPE_LABEL } from "@/src/components/admin/humanize";
 import s from "@/src/components/admin/dashboard.module.css";
 
 export const dynamic = "force-dynamic";
 
-const BOOKING_TYPE_SHORT: Record<AdminBidListRow["bookingType"], string> = {
-  plan_a_visit: "Plan a Visit",
-  private_lesson: "Lesson",
-  host_an_occasion: "Occasion",
-};
+const CALENDAR_TZ = "America/Chicago";
+const ATTENTION_LIMIT = 5;
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -45,112 +32,107 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
 });
 
-// "Today" / "Tomorrow" / weekday + short date in the property's timezone.
-// Strips year + weekday from the long format to keep timeline rows compact.
-function timelineDateLabel(iso: string, tz: string): string {
-  const long = formatDateLongTz(iso, tz);
-  const noYear = long.replace(/, \d{4}$/, "");
-  const noWeekday = noYear.replace(/^\w+, /, "");
-  const today = new Date();
-  const targetDay = new Intl.DateTimeFormat("en-US", { timeZone: tz })
-    .format(new Date(iso));
-  const todayInTz = new Intl.DateTimeFormat("en-US", { timeZone: tz })
-    .format(today);
-  if (targetDay === todayInTz) return "Today";
-  return noWeekday;
+function todayKeyInTz(timezone: string): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 }
 
-function PendingMiniRow({ row }: { row: AdminBidListRow }) {
+// "Today · 2:15 PM" for a same-day submission, otherwise a short date —
+// mirrors the events/bookings dashboards' "is this today" pattern, but
+// inquiries aren't scheduled events so there's no slot time to bucket by,
+// just a submission instant worth showing precisely when recent.
+function inquiryWhenLabel(iso: string): string {
+  const created = new Date(iso);
+  const dateFormatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: CALENDAR_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  if (dateFormatter.format(created) === dateFormatter.format(new Date())) {
+    const time = new Intl.DateTimeFormat("en-US", {
+      timeZone: CALENDAR_TZ,
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(created);
+    return `Today · ${time}`;
+  }
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: CALENDAR_TZ,
+    month: "short",
+    day: "numeric",
+  }).format(created);
+}
+
+function InquiryMiniRow({ row }: { row: AdminInquiryListRow }) {
   return (
     <li>
-      <Link href={`/admin/bids/${row.id}`} className={s.miniRow}>
+      <Link href={`/admin/inquiries/${row.id}`} className={s.miniRow}>
         <div className={s.miniRowTop}>
-          <span className={s.miniRowName}>{row.guestName}</span>
-          <span className={s.miniRowWhen}>
-            {timelineDateLabel(row.startTime, row.propertyTimezone)} ·{" "}
-            {formatSlotLabelTz(row.startTime, row.propertyTimezone)} CT
-          </span>
+          <span className={s.miniRowName}>{row.name}</span>
+          <span className={s.miniRowWhen}>{inquiryWhenLabel(row.createdAt)}</span>
         </div>
         <div className={s.miniRowMeta}>
-          <span>{BOOKING_TYPE_SHORT[row.bookingType]}</span>
-          <PropertyPill name={row.propertyName} slug={row.propertySlug} />
+          <span>{INQUIRY_TYPE_LABEL[row.inquiryType]}</span>
+          <span>·</span>
+          <span>{row.propertyName}</span>
         </div>
       </Link>
     </li>
   );
 }
 
-function PropertyColumnView({ column }: { column: PropertyColumn }) {
-  return (
-    <div className={s.column}>
-      <div className={s.columnHead}>
-        <PropertyPill
-          name={column.propertyName}
-          slug={column.propertySlug}
-          withDot
-        />
-        <span className={s.columnCount}>{column.rows.length}</span>
-      </div>
-      {column.rows.length === 0 ? (
-        <p className={s.columnEmpty}>Nothing this week.</p>
-      ) : (
-        <ul className={s.columnList}>
-          {column.rows.map((row) => (
-            <li key={row.id}>
-              <Link href={`/admin/bids/${row.id}`} className={s.columnRow}>
-                <div className={s.columnWhen}>
-                  {timelineDateLabel(row.startTime, row.propertyTimezone)} ·{" "}
-                  {formatSlotLabelTz(row.startTime, row.propertyTimezone)}
-                </div>
-                <div className={s.columnGuest}>{row.guestName}</div>
-                <div className={s.columnMeta}>
-                  <span>{BOOKING_TYPE_SHORT[row.bookingType]}</span>
-                  <span>·</span>
-                  <span>
-                    {row.guestCount}{" "}
-                    {row.guestCount === 1 ? "guest" : "guests"}
-                  </span>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
 export default async function AdminHome() {
   const supabase = await createServerSupabaseClient();
+  const todayKey = todayKeyInTz(CALENDAR_TZ);
+  const [year, month] = todayKey.slice(0, 7).split("-").map(Number);
 
-  let data: AdminDashboardData | null = null;
-  let metrics: AdminDashboardMetrics | null = null;
+  let unactionedInquiries: AdminInquiryListRow[] = [];
+  let metrics: EventsBusinessMetrics | null = null;
+  let todayEvents: AdminEventCalendarRow[] = [];
+  let properties: AdminProperty[] = [];
   let error: string | null = null;
-  // Each fetch fails independently — a broken metrics query must not blank
-  // the review queue, and vice versa.
-  const [dataResult, metricsResult] = await Promise.allSettled([
-    getAdminDashboardData(supabase),
-    getAdminDashboardMetrics(supabase),
-  ]);
-  if (dataResult.status === "fulfilled") data = dataResult.value;
-  else error = (dataResult.reason as Error).message;
+
+  // Each fetch fails independently — a broken events query must not blank
+  // the inquiries queue, and vice versa.
+  const [inquiriesResult, metricsResult, monthEventsResult, propertiesResult] =
+    await Promise.allSettled([
+      getUnactionedInquiries(supabase),
+      getEventsBusinessMetrics(supabase),
+      getAdminMonthEvents(supabase, { year, month, monthCount: 1 }),
+      getAdminPropertiesList(supabase),
+    ]);
+
+  if (inquiriesResult.status === "fulfilled") unactionedInquiries = inquiriesResult.value;
+  else error = (inquiriesResult.reason as Error).message;
+
   if (metricsResult.status === "fulfilled") metrics = metricsResult.value;
   else error = error ?? (metricsResult.reason as Error).message;
 
+  if (monthEventsResult.status === "fulfilled") {
+    todayEvents = monthEventsResult.value.filter((row) => eventCalendarDate(row) === todayKey);
+  } else {
+    error = error ?? (monthEventsResult.reason as Error).message;
+  }
+
+  if (propertiesResult.status === "fulfilled") properties = propertiesResult.value;
+  else error = error ?? (propertiesResult.reason as Error).message;
+
   const todayHeading = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Chicago",
+    timeZone: CALENDAR_TZ,
     weekday: "long",
     month: "long",
     day: "numeric",
   }).format(new Date());
 
-  const outlookRows: BrandBarChartRow[] = (metrics?.outlook ?? []).map(
-    (point) => ({ label: point.label, ...point.counts }),
-  );
-  const outlookSeries = (metrics?.outlookSeries ?? []).map((series) => ({
-    key: series.slug,
-    label: series.name,
-    color: propertyChartColor(series.slug),
+  const eventsByProperty = properties.map((property) => ({
+    propertyName: property.name,
+    propertySlug: property.slug,
+    rows: todayEvents.filter((row) => row.propertyId === property.id),
   }));
 
   return (
@@ -169,9 +151,8 @@ export default async function AdminHome() {
         </p>
       </div>
       <p className={s.pageIntro}>
-        A live read on what needs your attention and what&rsquo;s on the books —
-        review pending bids, track recent changes, and see the schedule across
-        all three clubs.
+        A live read on what needs your attention — new inquiries to answer and
+        what&rsquo;s on the events calendar across all three clubs.
       </p>
 
       {error && (
@@ -183,241 +164,97 @@ export default async function AdminHome() {
       )}
 
       <div className={s.stack}>
-        {data && metrics && (
-          <section
-            aria-label="Key numbers"
-            className="grid grid-cols-2 gap-4 xl:grid-cols-4"
-          >
-            <StatCard
-              label="Needs review"
-              value={String(data.pendingBidCount)}
-              hint="bids awaiting a decision"
-              href="/admin/bids?status=pending_review"
-            />
-            <StatCard
-              label="Next 24 hours"
-              value={String(data.next24hCount)}
-              hint="on the schedule, incl. pending holds"
-              href="/admin/bookings"
-            />
-            <StatCard
-              label="Week ahead"
-              value={String(data.upcomingWeekCount)}
-              hint="confirmed over the next 7 days"
-              href="/admin/bids?statusGroup=active"
-            />
-            <StatCard
-              label="Collected · 30 days"
-              value={currencyFormatter.format(metrics.collected30d)}
-              hint={`across ${metrics.paidCount30d} paid ${
-                metrics.paidCount30d === 1 ? "bid" : "bids"
-              }`}
-              href="/admin/bids?status=paid"
-            />
-          </section>
-        )}
+        <section
+          aria-label="Key numbers"
+          className="grid grid-cols-2 gap-4 xl:grid-cols-4"
+        >
+          <StatCard
+            label="New inquiries"
+            value={String(unactionedInquiries.length)}
+            hint="awaiting your response"
+            href="/admin/inquiries"
+          />
+          <StatCard
+            label="Upcoming events"
+            value={metrics ? String(metrics.upcomingCount) : "—"}
+            hint="published, across all clubs"
+            href="/admin/events#events-calendar"
+          />
+          <StatCard
+            label="Signups · 30 days"
+            value={metrics ? String(metrics.signups30d) : "—"}
+            hint="confirmed registrations"
+            href="/admin/events#events-trend"
+          />
+          <StatCard
+            label="Est. revenue · upcoming"
+            value={metrics ? currencyFormatter.format(metrics.revenueUpcoming) : "—"}
+            hint="confirmed registrations, quoted price"
+            href="/admin/events#events-table"
+          />
+        </section>
 
-        {metrics && (
-          <section
-            aria-label="Trends"
-            className="grid grid-cols-1 gap-4 lg:grid-cols-2"
-          >
-            <Card padding="loose" elevation="soft">
-              <div className="flex flex-col gap-3">
-                <ChartCardHeader
-                  eyebrow="Demand"
-                  title="New bids"
-                  detail={`${metrics.bidsCreated30d} created in the last 30 days`}
-                />
-                <BrandAreaChart data={metrics.bidTrend} height={200} />
-              </div>
-            </Card>
-            <Card padding="loose" elevation="soft">
-              <div className="flex flex-col gap-3">
-                <ChartCardHeader
-                  eyebrow="On the books"
-                  title="Next 14 days"
-                  detail={`${metrics.outlookTotal} confirmed ${
-                    metrics.outlookTotal === 1 ? "booking" : "bookings"
-                  } by club`}
-                />
-                <BrandBarChart
-                  data={outlookRows}
-                  series={outlookSeries}
-                  height={200}
-                />
-              </div>
-            </Card>
-          </section>
-        )}
-
-        {data && (
-          <>
-            <div className={s.topRow}>
-              <Card padding="loose" elevation="soft">
-                <div className={s.cardHead}>
-                  <div className={s.cardHeadText}>
-                    <h2 className={s.cardTitle}>Needs review</h2>
-                    <p className={s.cardDesc}>
-                      Bids waiting on your decision — confirm or deny each one
-                      before it reaches the guest.
-                    </p>
-                  </div>
-                </div>
-                {data.recentPending.length === 0 ? (
-                  <p className={s.miniEmpty}>No pending bids.</p>
-                ) : (
-                  <ul className={s.miniList}>
-                    {data.recentPending.map((row) => (
-                      <PendingMiniRow key={row.id} row={row} />
-                    ))}
-                  </ul>
-                )}
-                <div className="mt-3">
-                  <Link
-                    href="/admin/bids?status=pending_review"
-                    className={s.cardLink}
-                  >
-                    Open queue →
-                  </Link>
-                </div>
-              </Card>
-
-              <Card padding="loose" elevation="soft">
-                {data.recentActivity.length === 0 ? (
-                  <>
-                    <div className={s.cardHead}>
-                      <div className={s.cardHeadText}>
-                        <h2 className={s.cardTitle}>Recent activity</h2>
-                        <p className={s.cardDesc}>
-                          The latest status change on every bid, newest first.
-                        </p>
-                      </div>
-                    </div>
-                    <p className={s.miniEmpty}>No activity yet.</p>
-                  </>
-                ) : (
-                  <ActivityFeed rows={data.recentActivity} />
-                )}
-              </Card>
+        <Card padding="loose" elevation="soft">
+          <div className={s.cardHead}>
+            <div className={s.cardHeadText}>
+              <h2 className={s.cardTitle}>Needs your attention</h2>
+              <p className={s.cardDesc}>
+                New membership and private-event inquiries you haven&rsquo;t
+                responded to yet, oldest first.
+              </p>
             </div>
+            {unactionedInquiries.length > 0 && (
+              <span className={s.cardCount}>{unactionedInquiries.length}</span>
+            )}
+          </div>
+          {unactionedInquiries.length === 0 ? (
+            <p className={s.miniEmpty}>No new inquiries.</p>
+          ) : (
+            <ul className={s.miniList}>
+              {unactionedInquiries.slice(0, ATTENTION_LIMIT).map((row) => (
+                <InquiryMiniRow key={row.id} row={row} />
+              ))}
+            </ul>
+          )}
+          <div className="mt-3">
+            <Link href="/admin/inquiries" className={s.cardLink}>
+              Open inquiries →
+            </Link>
+          </div>
+        </Card>
 
-            <Card padding="loose" elevation="soft">
-              <div className={s.cardHead}>
-                <div className={s.cardHeadText}>
-                  <h2 className={s.cardTitle}>Next 24 hours</h2>
-                  <p className={s.cardDesc}>
-                    Today and tomorrow, hour-by-hour for each club — confirmed
-                    bookings plus pending holds (shown hatched) not yet locked
-                    in.
-                  </p>
-                </div>
-                {data.next24hCount > 0 && (
-                  <span className={s.cardCount}>{data.next24hCount}</span>
-                )}
-              </div>
-              {(() => {
-                const tz = "America/Chicago";
-                const dateFormatter = new Intl.DateTimeFormat("en-CA", {
-                  timeZone: tz,
-                  year: "numeric",
-                  month: "2-digit",
-                  day: "2-digit",
-                });
-                const longFormatter = new Intl.DateTimeFormat("en-US", {
-                  timeZone: tz,
-                  weekday: "long",
-                  month: "long",
-                  day: "numeric",
-                });
-                const now = new Date();
-                const tomorrow = new Date(Date.now() + 24 * 3600 * 1000);
-                const todayCt = dateFormatter.format(now);
-                const tomorrowCt = dateFormatter.format(tomorrow);
-                const todayLong = longFormatter.format(now);
-                const tomorrowLong = longFormatter.format(tomorrow);
-                const hasTomorrow = data.tomorrowByProperty.some(
-                  (column) => column.rows.length > 0,
-                );
-                return (
-                  <>
-                    <p className={s.dayLabel}>
-                      <span className={s.dayLabelName}>Today</span>
-                      <span className={s.dayLabelDate}>{todayLong}</span>
-                    </p>
-                    <div className={s.columnGrid}>
-                      {data.todayByProperty.map((col) => (
-                        <DaySchedule
-                          key={col.propertyId}
-                          propertyId={col.propertyId}
-                          propertyName={col.propertyName}
-                          propertySlug={col.propertySlug}
-                          rows={col.rows.map(bidRowToScheduleBlock)}
-                          dateInTz={todayCt}
-                          todayInTz={todayCt}
-                        />
-                      ))}
-                    </div>
-                    {hasTomorrow && (
-                      <>
-                        <p
-                          className={s.dayLabel}
-                          style={{ marginTop: "var(--space-5)" }}
-                        >
-                          <span className={s.dayLabelName}>Tomorrow</span>
-                          <span className={s.dayLabelDate}>{tomorrowLong}</span>
-                        </p>
-                        <div className={s.columnGrid}>
-                          {data.tomorrowByProperty.map((col) => (
-                            <DaySchedule
-                              key={col.propertyId}
-                              propertyId={col.propertyId}
-                              propertyName={col.propertyName}
-                              propertySlug={col.propertySlug}
-                              rows={col.rows.map(bidRowToScheduleBlock)}
-                              dateInTz={tomorrowCt}
-                              todayInTz={todayCt}
-                            />
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </>
-                );
-              })()}
-              <div className="mt-3">
-                <Link href="/admin/bookings" className={s.cardLink}>
-                  Open bookings calendar →
-                </Link>
-              </div>
-            </Card>
-
-            <Card padding="loose" elevation="soft">
-              <div className={s.cardHead}>
-                <div className={s.cardHeadText}>
-                  <h2 className={s.cardTitle}>The week ahead</h2>
-                  <p className={s.cardDesc}>
-                    Every confirmed booking across the next seven days, grouped
-                    by club.
-                  </p>
-                </div>
-                {data.upcomingWeekCount > 0 && (
-                  <span className={s.cardCount}>{data.upcomingWeekCount}</span>
-                )}
-              </div>
-              <div className={s.columnGrid}>
-                {data.upcomingByProperty.map((col) => (
-                  <PropertyColumnView key={col.propertyId} column={col} />
-                ))}
-              </div>
-              <div className="mt-3">
-                <Link href="/admin/bids" className={s.cardLink}>
-                  See full schedule →
-                </Link>
-              </div>
-            </Card>
-          </>
-        )}
+        <Card padding="loose" elevation="soft">
+          <div className={s.cardHead}>
+            <div className={s.cardHeadText}>
+              <h2 className={s.cardTitle}>Today&rsquo;s events</h2>
+              <p className={s.cardDesc}>
+                Dated occasions on the books today, by club.
+              </p>
+            </div>
+            {todayEvents.length > 0 && (
+              <span className={s.cardCount}>{todayEvents.length}</span>
+            )}
+          </div>
+          <p className={s.dayLabel}>
+            <span className={s.dayLabelName}>Today</span>
+            <span className={s.dayLabelDate}>{formatDateLongTz(new Date().toISOString(), CALENDAR_TZ)}</span>
+          </p>
+          <div className={s.columnGrid}>
+            {eventsByProperty.map((column) => (
+              <EventsDaySchedule
+                key={column.propertySlug}
+                propertyName={column.propertyName}
+                propertySlug={column.propertySlug}
+                rows={column.rows}
+              />
+            ))}
+          </div>
+          <div className="mt-3">
+            <Link href="/admin/events#events-calendar" className={s.cardLink}>
+              Open events calendar →
+            </Link>
+          </div>
+        </Card>
       </div>
     </PageShell>
   );

@@ -2,14 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { AdminInquiryListRow, InquiryType } from "@/src/services/admin/inquiries";
+import type { AdminInquiryListRow } from "@/src/services/admin/inquiries";
 import { DataTable } from "@/src/components/ui/data-table";
 import { InquiryStatusBadge } from "./inquiry-status-badge";
-
-const TYPE_LABEL: Record<InquiryType, string> = {
-  membership: "Membership",
-  private_event: "Private event",
-};
+import { INQUIRY_TYPE_LABEL } from "./humanize";
 
 function formatDate(iso: string): string {
   return new Intl.DateTimeFormat("en-US", {
@@ -34,7 +30,7 @@ const inquiryColumns: ColumnDef<AdminInquiryListRow>[] = [
     id: "inquiryType",
     header: "Type",
     cell: ({ row }) => (
-      <span className="text-[13px] text-olive">{TYPE_LABEL[row.original.inquiryType]}</span>
+      <span className="text-[13px] text-olive">{INQUIRY_TYPE_LABEL[row.original.inquiryType]}</span>
     ),
   },
   {
