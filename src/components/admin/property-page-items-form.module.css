@@ -1,0 +1,11 @@
+/* Item cards that only carry a title/body/link (no image, no bullet list —
+   see isCompactItem in property-page-items-form.tsx) are short and roughly
+   uniform in height, so they pack into a grid instead of stacking one per
+   row. Cards with an image or a variable-length bullet list stay in a full-
+   width single column, where their height doesn't fight a grid row. */
+.itemGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
