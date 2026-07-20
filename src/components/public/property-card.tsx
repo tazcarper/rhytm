@@ -2,7 +2,8 @@ import Link from "next/link";
 import s from "./property-card.module.css";
 
 export interface PropertyCardProps {
-  ordinal: string;
+  /** Omit to hide the "No. <ordinal>" mark entirely. */
+  ordinal?: string;
   name: string;
   href: string;
   locale: string;
@@ -20,7 +21,7 @@ export function PropertyCard({
 }: PropertyCardProps) {
   return (
     <Link href={href} className={s.card}>
-      <div className={s.ordinal}>No. {ordinal}</div>
+      {ordinal && <div className={s.ordinal}>No. {ordinal}</div>}
       <h3 className={s.name}>{name}</h3>
       <p className={s.locale}>{locale}</p>
       <div className={s.rule} />
