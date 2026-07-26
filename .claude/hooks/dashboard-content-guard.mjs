@@ -104,6 +104,12 @@ const DASHBOARD_TABLES = {
   // Staff / team profiles
   staff_profiles: { label: "Team", path: "/admin/team" },
 
+  // Property marketing-page content (homepage/membership/education/private
+  // events/events/adventures sections) and FAQ — edited per-property under
+  // Admin → Properties → a property → "Marketing pages" / "FAQ".
+  property_page_content: { label: "a property's Marketing pages", path: "/admin/properties" },
+  property_faq_entries: { label: "a property's FAQ", path: "/admin/properties" },
+
   // Live records — never edited by SQL; managed through their dashboard screens
   bids: { label: "Bids", path: "/admin/bids" },
   bid_line_items: { label: "Bids", path: "/admin/bids" },

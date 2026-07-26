@@ -7,7 +7,7 @@ import {
   reorderServicesAction,
   updateServiceAction,
   listActiveBookingsForServiceAction,
-} from "@/app/admin/properties/[id]/catalog/actions";
+} from "@/app/admin/properties/[slug]/catalog/actions";
 import type { AdminCatalogService, AdminCatalogLink } from "@/src/services/admin/catalog";
 import type { EstimatePricingKind } from "@/src/services/public/estimate-catalog";
 import { DeactivateConfirm } from "./deactivate-confirm";

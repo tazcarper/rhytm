@@ -10,17 +10,17 @@ export const dynamic = "force-dynamic";
 export default async function AdminPropertiesPage() {
   const supabase = await createServerSupabaseClient();
 
-  let firstPropertyId: string | null = null;
+  let firstPropertySlug: string | null = null;
   let loadError: string | null = null;
   try {
     const properties = await getAdminPropertiesList(supabase);
-    firstPropertyId = properties[0]?.id ?? null;
+    firstPropertySlug = properties[0]?.slug ?? null;
   } catch (err) {
     loadError = err instanceof Error ? err.message : "Failed to load properties";
   }
 
-  if (firstPropertyId) {
-    redirect(`/admin/properties/${firstPropertyId}`);
+  if (firstPropertySlug) {
+    redirect(`/admin/properties/${firstPropertySlug}`);
   }
 
   if (loadError) {

@@ -1,6 +1,8 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getPublicAdventures } from "@/src/services/public/adventures";
+import { getActivePromotions } from "@/src/services/public/promotions";
 import { AdventureTile } from "@/src/components/public/adventure-tile";
+import { PromotionBand } from "@/src/components/public/promotion-band";
 import { Alert } from "@/lib/ui";
 import s from "./adventures-index.module.css";
 
@@ -12,7 +14,10 @@ export const dynamic = "force-dynamic";
 // sign-up happens on each detail page, gated to members.
 export default async function AdventuresIndexPage() {
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await getPublicAdventures(supabase);
+  const [{ data, error }, promotions] = await Promise.all([
+    getPublicAdventures(supabase),
+    getActivePromotions(supabase, { placement: "adventures_page" }),
+  ]);
   const adventures = data ?? [];
   const [feature, ...rest] = adventures;
 
@@ -31,6 +36,8 @@ export default async function AdventuresIndexPage() {
           </p>
         </div>
       </header>
+
+      <PromotionBand promotions={promotions} />
 
       {error && (
         <div className={s.notice}>

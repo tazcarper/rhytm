@@ -2,13 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Card } from "@/lib/ui";
+import { Button, Card, Dialog } from "@/lib/ui";
 import {
   createAddOnAction,
   reorderAddOnsAction,
   updateAddOnAction,
   listActiveBookingsForAddOnAction,
-} from "@/app/admin/properties/[id]/catalog/actions";
+} from "@/app/admin/properties/[slug]/catalog/actions";
 import type {
   AdminCatalogAddOn,
   AdminCatalogLink,
@@ -16,7 +16,6 @@ import type {
 } from "@/src/services/admin/catalog";
 import { formatMoney } from "@/src/services/public/format";
 import { DeactivateConfirm } from "./deactivate-confirm";
-import { AdminModal } from "./admin-modal";
 import s from "./catalog.module.css";
 
 interface CatalogAddOnsPanelProps {
@@ -270,7 +269,7 @@ export function CatalogAddOnsPanel({
       </Card>
 
       {showAdd && (
-        <AdminModal
+        <Dialog
           title="Add add-on"
           size="md"
           onClose={cancelAdd}
@@ -383,7 +382,7 @@ export function CatalogAddOnsPanel({
           {createError && (
             <span className={s.inlineError}>{createError}</span>
           )}
-        </AdminModal>
+        </Dialog>
       )}
 
       {deactivateTarget && (

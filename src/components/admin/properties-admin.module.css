@@ -21,7 +21,7 @@
 .tab {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   font-family: var(--sans);
   font-size: var(--text-body);
   font-weight: 500;
@@ -29,15 +29,17 @@
   background: var(--paper-warm);
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
-  padding: var(--space-2) var(--space-5);
+  padding: var(--space-1) var(--space-5) var(--space-1) var(--space-1);
   cursor: pointer;
   transition:
     background-color 0.15s ease,
     color 0.15s ease,
-    border-color 0.15s ease;
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 .tab:hover {
   background: var(--cream);
+  box-shadow: var(--shadow-soft);
 }
 .tabActive,
 .tabActive:hover {
@@ -46,25 +48,46 @@
   border-color: var(--olive);
 }
 
-.tabDot {
-  width: 9px;
-  height: 9px;
+/* Logo medallion — always a light, neutral card regardless of the pill's
+   active/inactive state, so a property's real logo (any colorway) reads
+   consistently. Properties without an uploaded logo yet fall back to an
+   initial-letter monogram tinted with that club's own brand color. */
+.tabBadge {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: var(--gray);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  overflow: hidden;
   flex: none;
 }
-.tabDot[data-slug="horseshoe-bay"] {
-  background: #3f6e32;
+.tabActive .tabBadge {
+  border-color: color-mix(in srgb, var(--cream) 40%, transparent);
 }
-.tabDot[data-slug="hog-heaven"] {
-  background: #b88240;
+
+.tabBadgeImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
 }
-.tabDot[data-slug="packsaddle"] {
-  background: #325a8c;
-}
-/* Active override — keep last so it wins on equal specificity. */
-.tabActive .tabDot {
-  background: var(--cream);
+
+/* Background color comes inline from getPropertyBrandTint() (see
+   src/constants/admin/property-brand-tints.ts) — one source of truth
+   shared with the sidebar's property badges, instead of duplicating each
+   club's hex value in CSS. */
+.tabBadgeInitial {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font-family: var(--serif);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cream);
+  line-height: 1;
 }
 
 /* ── Editor header ─────────────────────────────────────────── */

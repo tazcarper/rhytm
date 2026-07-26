@@ -13,6 +13,7 @@ const supabaseHostname = (() => {
 })();
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
   reactStrictMode: true,
   // Ship the client setup guide markdown alongside the /admin/setup serverless
   // function so the page can read docs/CLIENT_SETUP.md at runtime (single source
