@@ -26,6 +26,7 @@
     "hellosign-embedded": "^2.12.3",
     "inngest": "^4.5.0",
     "next": "^16.2.6",
+    "openai-whisper": "^1.0.2",
     "pdf-lib": "^1.17.1",
     "qrcode.react": "^4.2.0",
     "react": "^19.0.0",

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html class="light scroll-smooth" lang="en">
+<head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Club Life | Horseshoe Bay Sporting Club</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link rel="stylesheet" href="https://use.typekit.net/kvb3svr.css">
+<style>
+  /* Silverspoon (self-hosted). Accent face. Display moments only, never body or UI. */
+  @font-face { font-family:"Silverspoon"; src:url("assets/fonts/Silverspoon-RegularItalic.otf") format("opentype"); font-weight:400; font-style:italic; font-display:swap; }
+  @font-face { font-family:"Silverspoon"; src:url("assets/fonts/Silverspoon-BoldItalic.otf") format("opentype"); font-weight:700; font-style:italic; font-display:swap; }
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/rhythm-icons.css">
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "background": "#EDE6D9",
+          "sand": "#EDE6D9",
+          "surface": "#EDE6D9",
+          "surface-bright": "#EDE6D9",
+          "surface-container-lowest": "#ffffff",
+          "surface-container-low": "#F7F3EE",
+          "surface-container": "#F1EDE8",
+          "surface-container-high": "#E7E0D2",
+          "surface-container-highest": "#DED6C6",
+          "deep-olive": "#545230",
+          "ink": "#545230",
+          "scrim": "#2A2A18",
+          "on-surface-variant": "#48473D",
+          "camel": "#B6A081",
+          "accent-deep": "#B6A081",
+          "moss": "#545230",
+          "accent": "#EB9450",
+          "accent-dark": "#D2762F",
+          "moss-dark": "#3E3C24",
+          "brush": "#7B8869",
+          "sage": "#6F7A5E",
+          "bark": "#B6A081",
+          "rock": "#CECDC4",
+          "on-primary": "#ffffff"
+        },
+        borderRadius: { "DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px" },
+        spacing: {
+          "section-padding-desktop": "120px",
+          "section-padding-mobile": "64px",
+          "unit": "8px",
+          "container-max": "1280px",
+          "gutter": "32px"
+        },
+        fontFamily: {
+          "accent": ["Silverspoon", "Georgia", "serif"],
+          "wordmark": ["shackleton", "Georgia", "serif"],
+          "display-lg": ["shackleton-condensed", "Georgia", "serif"],
+          "headline-md": ["shackleton", "Georgia", "serif"],
+          "eyebrow": ["freight-neo-pro", "system-ui", "sans-serif"],
+          "label-mono": ["freight-neo-pro", "system-ui", "sans-serif"],
+          "body-md": ["freight-neo-pro", "system-ui", "sans-serif"],
+          "body-lg": ["freight-neo-pro", "system-ui", "sans-serif"]
+        },
+        fontSize: {
+          "wordmark": ["32px", { "lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "400" }],
+          "display-lg": ["84px", { "lineHeight": "1.05", "letterSpacing": "0.03em", "fontWeight": "400" }],
+          "display-lg-mobile": ["48px", { "lineHeight": "1.05", "fontWeight": "400" }],
+          "headline-md": ["42px", { "lineHeight": "1.2", "letterSpacing": "0.01em", "fontWeight": "400" }],
+          "label-mono": ["13px", { "lineHeight": "1.4", "letterSpacing": "0.15em", "fontWeight": "400" }],
+          "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+          "body-lg": ["20px", { "lineHeight": "1.6", "fontWeight": "400" }],
+          "eyebrow": ["14px", { "lineHeight": "1", "letterSpacing": "0.2em", "fontWeight": "600" }]
+        }
+      }
+    }
+  }
+</script>
+
+<style>
+  /* TYPE TREATMENT, beyond size.
+     KERNING. CSS cannot do Adobe's optical kerning: that is a layout-engine feature, not a
+     font one. What a browser CAN do is honour the kerning pairs built into the font, which
+     is off by default at some sizes. These three lines turn it on and keep it on.
+     TRACKING. Caps need air that lowercase does not. Every all-caps display face carries
+     positive tracking; body copy carries none. See the fontSize block above. */
+  h1, h2, h3, h4, .font-display-lg, .font-headline-md, .font-wordmark {
+    font-kerning: normal;
+    font-feature-settings: "kern" 1, "liga" 1;
+    text-rendering: optimizeLegibility;
+  }
+  /* TRACKING on the FAMILY, so it reaches headers at ANY size, not only the token
+     sizes. Arbitrary sizes (text-6xl, text-2xl, text-[28px]) carry no tracking of
+     their own, which is why some headers were touching. Values match the guide. */
+  .font-display-lg  { letter-spacing: 0.03em; }
+  .font-headline-md { letter-spacing: 0.01em; }
+  .font-wordmark    { letter-spacing: 0.02em; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .scrim-hero { background: linear-gradient(to bottom, rgba(42,42,24,0.45) 0%, rgba(42,42,24,0.80) 100%); }
+  :root { --rule: #B6A081; }
+  /* THE RULE. One decorative divider, one spec.
+     2px, not 1: at 1px the accent measured 1.4-1.5:1 against the page field and vanished.
+     Full-strength accent, no opacity. Sits under the headline it belongs to. One per section. */
+  .rule { width: 64px; height: 2px; background: var(--rule); flex: none;
+           margin-top: 2rem; margin-bottom: 2rem; }
+  /* THE HAIRLINE. The other decorative line, and a different job: it is structural,
+     it runs beside a heading to fill the row, and it is neutral, never the accent.
+     Was ink/10 (1.21:1, invisible). Now ink/22, which reads without shouting. */
+  .hairline { height: 1px; background: rgba(28,28,25,0.22); }
+  /* IMAGE PLACEHOLDER. Black on purpose so an empty slot is unmistakable, outlined so you
+     can see the exact frame, and labelled with the filename it is waiting for. */
+  .img-placeholder { background-color: #000000; display: flex; align-items: center; justify-content: center;
+    outline: 2px dashed rgba(255,255,255,0.45); outline-offset: -8px; position: relative; overflow: hidden; }
+  .img-placeholder::after { content: attr(data-file); font-family: "Courier New", monospace; font-size: 12px;
+    line-height: 1.4; letter-spacing: 0.04em; color: rgba(255,255,255,0.85); text-align: center;
+    padding: 8px 12px; word-break: break-all; max-width: 90%; }
+  .img-placeholder-dark { background-color: #000000; }
+  .img-placeholder-dark::after { color: rgba(255,255,255,0.85); }
+  /* The image sits ABOVE the placeholder's dashed frame and filename label.
+     z-index only. Do NOT add `position: relative` here: `.img-placeholder > img` beats
+     Tailwind's `.absolute` on specificity, so it silently overrode `absolute inset-0`
+     on every real photo, dropping it out of its frame and blowing the layout apart.
+     Empty slots looked fine, so the bug only appeared the moment a real photo landed. */
+  /* When a real image (or video) is present, drop the placeholder chrome: no dashed
+     outline over the photo, no filename label. If the image errors and removes itself,
+     the chrome comes back automatically. */
+  /* Hard chrome kill when a photo is present. Class-based (universally supported),
+     not :has(), which was not reliably suppressing the black placeholder box. */
+  .img-placeholder.has-photo { background-color: transparent; outline: none; }
+  .img-placeholder.has-photo::after { content: ""; padding: 0; }
+  .img-placeholder:has(img), .img-placeholder:has(video) { outline: none; }
+  .img-placeholder:has(img)::after, .img-placeholder:has(video)::after { content: ""; padding: 0; }
+  .img-placeholder > img, .img-placeholder > video { z-index: 1; }
+  .hero-scrim { background: linear-gradient(to bottom, rgba(14,19,15,0.4) 0%, rgba(14,19,15,0.7) 100%); }
+</style>
+</head>
+<body class="bg-background text-ink font-body-md min-h-screen flex flex-col selection:bg-camel selection:text-white">
+
+<!-- ============ SHARED HEADER ============ -->
+<nav class="bg-background flex flex-col w-full z-50 sticky top-0 border-b border-ink/20">
+  <div class="max-w-container-max mx-auto w-full px-section-padding-mobile md:px-gutter py-4 grid grid-cols-3 items-center">
+    <div aria-hidden="true"></div>
+    <a href="index.html" class="flex items-center justify-center" aria-label="Horseshoe Bay Sporting Club, Home">
+      <img src="assets/horseshoebay_logo_primary-horizontal_fullcolor_on-light.svg" alt="Horseshoe Bay Sporting Club" class="h-16 w-auto object-contain">
+    </a>
+    <div class="flex items-center justify-end gap-6">
+      <div class="hidden md:flex items-center gap-6">
+      <button class="text-ink/55 font-eyebrow font-semibold text-[13px] uppercase tracking-[0.1em] py-3 cursor-not-allowed inline-flex items-center gap-2" title="Coming soon" disabled>Member's Entrance <span class="text-[9px] tracking-widest text-ink/40 border border-ink/20 px-2 py-0.5">Coming Soon</span></button>
+    </div>
+      <button class="md:hidden text-ink" aria-label="Open menu">
+      <span class="material-symbols-outlined text-3xl">menu</span>
+    </button>
+    </div>
+  </div>
+  <div class="hidden md:flex w-full justify-center border-t border-ink/10 py-3">
+    <ul class="flex gap-10">
+      <li><a class="font-eyebrow text-eyebrow uppercase tracking-widest text-ink font-bold border-b-2 border-accent pb-1" href="club-life.html">Club Life</a></li>
+      <li><a class="font-eyebrow text-eyebrow uppercase tracking-widest text-ink hover:text-accent transition-colors duration-300" href="adventure.html">Adventure</a></li>
+      <li><a class="font-eyebrow text-eyebrow uppercase tracking-widest text-ink hover:text-accent transition-colors duration-300" href="education.html">Education</a></li>
+      <li><a class="font-eyebrow text-eyebrow uppercase tracking-widest text-ink hover:text-accent transition-colors duration-300" href="membership.html">Membership</a></li>
+      <li><a class="font-eyebrow text-eyebrow uppercase tracking-widest text-ink hover:text-accent transition-colors duration-300" href="events.html">Events Calendar</a></li>
+      <li><a class="font-eyebrow text-eyebrow uppercase tracking-widest text-ink hover:text-accent transition-colors duration-300" href="private-events.html">Private Events</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="flex-grow">
+
+  <!-- Hero -->
+  <section class="relative w-full h-[560px] flex items-center justify-center overflow-hidden">
+    <div class="absolute inset-0 z-0 img-placeholder img-placeholder-dark has-photo" data-file="hero-club-life.jpg"><img src="assets/hero-club-life.jpg" alt="" loading="lazy" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover" style="z-index:0"></div>
+    <div class="absolute inset-0 scrim-hero z-10"></div>
+    <div class="relative z-20 text-center px-gutter max-w-4xl mx-auto">
+      <h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-white uppercase leading-tight">Club Life</h1>
+    </div>
+  </section>
+
+  <!-- The Latest. One anchor post, then the feed.
+       The anchor is deliberately FULL BLEED: it breaks the container that every other
+       section on the site respects, and that break is the whole point. It is the one
+       moment on the page where the colour runs edge to edge. Everything else, the
+       intro and the feed below it, stays inside the container. -->
+  <section class="pt-section-padding-desktop">
+    <div class="px-gutter w-full max-w-container-max mx-auto mb-12">
+      <div class="max-w-2xl">
+        <p class="font-eyebrow text-eyebrow text-accent-deep uppercase tracking-[0.2em] mb-3">From the Club</p>
+        <h2 class="font-headline-md text-headline-md text-ink uppercase mb-4">The Latest</h2>
+        <p class="font-body-lg text-body-lg text-on-surface-variant">What's happening at the club: new faces, calendar updates, event recaps, and the occasional story worth telling.</p>
+      </div>
+    </div>
+
+    <!-- the recent posts. Full-bleed rows, photo alternating sides. No gutter, no max width. -->
+    <div id="postRows" class="w-full"></div>
+
+    <!-- the archive. Everything past the newest six, collapsed to one line each.
+         Rows expand IN PLACE, because a post has no article page to link to. -->
+    <div class="px-gutter w-full max-w-container-max mx-auto pt-section-padding-desktop pb-section-padding-desktop">
+      <div id="postArchive"></div>
+      <p id="postEmpty" class="hidden font-body-md text-on-surface-variant py-10">Nothing posted yet. Check back soon.</p>
+    </div>
+  </section>
+
+  <!-- Always Running. The standing programmes, pulled from the same place the calendar uses. -->
+  <section class="py-section-padding-desktop px-gutter w-full max-w-container-max mx-auto border-t border-ink/10">
+    <div id="standingWrap" style="display:none"></div>
+  </section>
+
+  <!-- What's Next. Three upcoming events, live from the calendar. -->
+  <section class="py-section-padding-desktop bg-surface-container-highest border-y border-ink/10">
+    <div class="max-w-container-max mx-auto px-gutter">
+      <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+        <div>
+          <p class="font-eyebrow text-eyebrow uppercase tracking-[0.2em] text-accent-deep mb-3">What's Next</p>
+          <h2 class="font-headline-md text-headline-md uppercase">On the Calendar</h2>
+          <div class="rule"></div>
+        </div>
+        <a class="font-eyebrow text-eyebrow uppercase tracking-widest text-ink border-b border-ink pb-1 hover:text-on-surface-variant hover:border-on-surface-variant transition-colors" href="events.html">View Full Calendar</a>
+      </div>
+      <div id="featuredEvents" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
+    </div>
+  </section>
+
+  <!-- The Members' Group. A CTA to the private HSB members Facebook group, not an email
+       signup. This is the members' back channel: events, announcements, and chatter.
+       PLACEHOLDER LINK: href is "#" until the real Facebook group URL is dropped in. -->
+  <section class="w-full bg-moss py-20 text-white">
+    <div class="max-w-container-max mx-auto px-gutter grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
+      <div>
+        <p class="font-eyebrow text-eyebrow text-accent-deep uppercase tracking-[0.2em] mb-4">Community</p>
+        <h2 class="font-display-lg text-4xl md:text-5xl text-white uppercase mb-5 leading-[1.05]">Join the Members' Group</h2>
+        <p class="font-body-lg text-body-lg text-white/85 max-w-md leading-relaxed">Stay up to date on events, announcements, and more in our private Facebook group for members.</p>
+      </div>
+      <div class="w-full lg:justify-self-end lg:max-w-md">
+        <a href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-3 bg-sand text-moss font-eyebrow font-semibold text-[13px] uppercase tracking-[0.1em] px-9 py-5 hover:bg-surface-container-highest transition-colors duration-300">
+          <span class="material-symbols-outlined text-[18px]">group</span> Join the Facebook Group
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Instagram. A manual roll for launch: five images, each linking to its post. -->
+  <section class="py-section-padding-desktop px-gutter w-full max-w-container-max mx-auto">
+    <div class="flex items-end justify-between mb-8">
+      <div>
+        <p class="font-eyebrow text-eyebrow uppercase tracking-[0.2em] text-accent-deep mb-3">Follow Us on Instagram</p>
+        <h2 class="font-headline-md text-headline-md uppercase">@hsbsportingclub</h2>
+        <div class="rule"></div>
+      </div>
+      <a href="https://instagram.com/hsbsportingclub" target="_blank" rel="noopener noreferrer" class="font-eyebrow text-eyebrow uppercase tracking-widest text-ink border-b border-ink pb-1 hover:text-on-surface-variant hover:border-on-surface-variant transition-colors">Follow Us</a>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <a href="https://instagram.com/hsbsportingclub" target="_blank" rel="noopener noreferrer" class="group block relative aspect-[4/5] overflow-hidden"><div class="absolute inset-0 img-placeholder img-placeholder-dark has-photo" data-file="img/ig-1.jpg"><img src="assets/img/ig-1.jpg" alt="" loading="lazy" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover" style="z-index:0"></div></a>
+      <a href="https://instagram.com/hsbsportingclub" target="_blank" rel="noopener noreferrer" class="group block relative aspect-[4/5] overflow-hidden"><div class="absolute inset-0 img-placeholder img-placeholder-dark has-photo" data-file="img/ig-2.jpg"><img src="assets/img/ig-2.jpg" alt="" loading="lazy" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover" style="z-index:0"></div></a>
+      <a href="https://instagram.com/hsbsportingclub" target="_blank" rel="noopener noreferrer" class="group block relative aspect-[4/5] overflow-hidden"><div class="absolute inset-0 img-placeholder img-placeholder-dark has-photo" data-file="img/ig-3.jpg"><img src="assets/img/ig-3.jpg" alt="" loading="lazy" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover" style="z-index:0"></div></a>
+      <a href="https://instagram.com/hsbsportingclub" target="_blank" rel="noopener noreferrer" class="group block relative aspect-[4/5] overflow-hidden"><div class="absolute inset-0 img-placeholder img-placeholder-dark has-photo" data-file="img/ig-4.jpg"><img src="assets/img/ig-4.jpg" alt="" loading="lazy" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover" style="z-index:0"></div></a>
+      <a href="https://instagram.com/hsbsportingclub" target="_blank" rel="noopener noreferrer" class="group block relative aspect-[4/5] overflow-hidden"><div class="absolute inset-0 img-placeholder img-placeholder-dark has-photo" data-file="img/ig-5.jpg"><img src="assets/img/ig-5.jpg" alt="" loading="lazy" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover" style="z-index:0"></div></a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="bg-deep-olive text-surface-container-low w-full mt-auto">
+  <div class="border-b border-surface-container-low/10">
+    <div class="max-w-container-max mx-auto px-section-padding-mobile md:px-gutter py-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-center md:gap-12">
+      <div class="md:max-w-md">
+        <h4 class="font-label-mono text-label-mono uppercase tracking-[0.2em] text-accent-deep mb-2">Newsletter</h4>
+        <p class="font-body-md text-body-md text-surface-container-low/80">Receive regular updates and club news.</p>
+      </div>
+      <form class="flex flex-col sm:flex-row gap-2 w-full md:w-auto md:min-w-[440px]" onsubmit="return false;">
+        <input type="email" placeholder="Email Address" class="flex-grow bg-transparent border border-surface-container-low/20 p-3 text-surface-bright font-body-md focus:outline-none focus:border-camel transition-colors placeholder:text-surface-container-low/30">
+        <button type="submit" class="bg-accent text-moss font-bold text-[19px] uppercase tracking-[0.06em] px-8 py-3 hover:text-moss-dark hover:bg-accent-dark transition-colors duration-300">Subscribe</button>
+      </form>
+    </div>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-gutter max-w-container-max mx-auto px-section-padding-mobile md:px-gutter py-section-padding-desktop">
+    <div class="col-span-1 flex justify-center md:justify-start items-start">
+      <img src="assets/horseshoebay_logo_primary_vertical_fullcolor_on-dark.png" alt="Horseshoe Bay Sporting Club" class="h-40 w-auto object-contain">
+    </div>
+    <div class="col-span-1 space-y-6">
+      <div>
+        <h4 class="font-label-mono text-label-mono uppercase tracking-[0.2em] text-accent-deep mb-2">Location</h4>
+        <p class="text-surface-container-low/80 font-body-md text-body-md leading-relaxed">23753 State Hwy 71<br>Horseshoe Bay, TX 78657</p>
+      </div>
+      <div>
+        <h4 class="font-label-mono text-label-mono uppercase tracking-[0.2em] text-accent-deep mb-2">Contact</h4>
+        <p class="text-surface-container-low/80 font-body-md text-body-md break-words"><a class="hover:text-surface-bright transition-colors" href="mailto:info@hsbsportingclub.com">info@hsbsportingclub.com</a></p>
+        <p class="text-surface-container-low/80 font-body-md text-body-md"><a class="hover:text-surface-bright transition-colors" href="tel:+18308251550">(830) 825-1550</a></p>
+      </div>
+      <div>
+        <h4 class="font-label-mono text-label-mono uppercase tracking-[0.2em] text-accent-deep mb-2">Club Office Hours</h4>
+        <p class="text-surface-container-low/80 font-body-md text-body-md">Mon: Closed</p>
+        <p class="text-surface-container-low/80 font-body-md text-body-md">Tue-Sat: 9 AM - 5 PM</p>
+        <p class="text-surface-container-low/80 font-body-md text-body-md">Sun: 10 AM - 5 PM</p>
+      </div>
+    </div>
+    <div class="col-span-1 flex flex-col space-y-4">
+      <h4 class="font-label-mono text-label-mono uppercase tracking-[0.2em] text-accent-deep mb-2">Explore</h4>
+      <a class="text-surface-container-low/80 font-body-md text-body-md hover:text-surface-bright transition-colors" href="index.html">Home</a>
+    <a class="text-surface-container-low/80 font-body-md text-body-md hover:text-surface-bright transition-colors" href="club-life.html">Club Life</a>
+      <a class="text-surface-container-low/80 font-body-md text-body-md hover:text-surface-bright transition-colors" href="adventure.html">Adventure</a>
+      <a class="text-surface-container-low/80 font-body-md text-body-md hover:text-surface-bright transition-colors" href="education.html">Education</a>
+      <a class="text-surface-container-low/80 font-body-md text-body-md hover:text-surface-bright transition-colors" href="membership.html">Membership</a>
+      <a class="text-surface-container-low/80 font-body-md text-body-md hover:text-surface-bright transition-colors" href="events.html">Events Calendar</a>
+      <a class="text-surface-container-low/80 font-body-md text-body-md hover:text-surface-bright transition-colors" href="private-events.html">Private Events</a>
+      <a class="text-surface-container-low/80 font-body-md text-body-md hover:text-surface-bright transition-colors" href="faq.html">FAQs</a>
+    </div>
+    <div class="col-span-1 flex flex-col space-y-4">
+      <h4 class="font-label-mono text-label-mono uppercase tracking-[0.2em] text-accent-deep mb-2">Connect</h4>
+      <a class="text-surface-container-low/80 font-body-md text-body-md hover:text-surface-bright transition-colors" href="https://www.instagram.com/hsbsportingclub/" target="_blank" rel="noopener noreferrer">Instagram</a>
+      <a class="text-surface-container-low/80 font-body-md text-body-md hover:text-surface-bright transition-colors" href="https://www.facebook.com/HSBSportingClub/" target="_blank" rel="noopener noreferrer">Facebook</a>
+    </div>
+  </div>
+  <div class="max-w-container-max mx-auto px-section-padding-mobile md:px-gutter py-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center font-label-mono text-[11px] uppercase tracking-widest text-surface-container-low/50">
+    <span>Horseshoe Bay Sporting Club is a <a class="underline underline-offset-2 hover:text-surface-bright transition-colors" href="../rhythm/index.html" target="_blank" rel="noopener noreferrer">Rhythm Outdoors</a> club.</span>
+    <span class="text-surface-container-low/25">&middot;</span>
+    <a class="hover:text-surface-bright transition-colors" href="../hog-heaven/index.html">Hog Heaven Sporting Club</a>
+    <span class="text-surface-container-low/25">&middot;</span>
+    <a class="hover:text-surface-bright transition-colors" href="index.html">Horseshoe Bay Sporting Club</a>
+    <span class="text-surface-container-low/25">&middot;</span>
+    <a class="hover:text-surface-bright transition-colors" href="../packsaddle/index.html">Packsaddle Precision</a>
+  </div>
+
+  <div class="w-full border-t border-surface-container-low/10 max-w-container-max mx-auto px-section-padding-mobile md:px-gutter py-6 text-center text-label-mono font-label-mono text-surface-container-low/50">
+    <span>&copy; 2026 Horseshoe Bay Sporting Club. All Rights Reserved.</span>
+  </div>
+</footer>
+
+
+
+<script src="assets/rhythm-events.js" data-club="Horseshoe Bay Sporting Club"></script>
+<script src="assets/rhythm-posts.js" data-club="Horseshoe Bay Sporting Club"></script>
+</body>
+</html>

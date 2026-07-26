@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="en">
+<head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Rhythm Outdoors™ · Member-Based Outdoor Sporting Clubs · Austin, Texas</title>
+<meta name="description" content="Rhythm Outdoors™ is a member-based network of outdoor sporting clubs. We teach people how to live, work, and play, enhancing connection with ourselves, each other, and the natural world.">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<script id="tailwind-config">
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          "field": "#20231C",
+          "field-deep": "#15170F",
+          "otter": "#3C4233",
+          "tan": "#C3A981",
+          "tan-deep": "#9C8460",
+          "bone": "#F1ECE0",
+          "bone-low": "#E7E0D0",
+          "ink": "#2A2722",
+          "accent": "#B4541E",
+          "accent-dark": "#98461A",
+          "stone": "#8A8270",
+          "outline-variant": "#CFC6B2"
+        },
+        borderRadius: { "DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px" },
+        spacing: {
+          "section-gap-desktop": "120px",
+          "section-gap-mobile": "64px",
+          "gutter": "24px",
+          "stack-md": "16px",
+          "stack-sm": "8px",
+          "stack-lg": "32px",
+          "container-max-width": "1100px"
+        },
+        fontFamily: {
+          "display": ["Oswald", "sans-serif"],
+          "headline": ["Oswald", "sans-serif"],
+          "body": ["Source Serif 4", "Georgia", "serif"],
+          "label": ["Oswald", "sans-serif"]
+        },
+        fontSize: {
+          "display-lg": ["72px", {"lineHeight": "1.0", "letterSpacing": "0.01em", "fontWeight": "600"}],
+          "headline-xl": ["46px", {"lineHeight": "1.05", "fontWeight": "600"}],
+          "headline-lg": ["30px", {"lineHeight": "1.15", "fontWeight": "500"}],
+          "body-lg": ["18px", {"lineHeight": "1.65", "fontWeight": "400"}],
+          "body-md": ["16px", {"lineHeight": "1.7", "fontWeight": "400"}],
+          "label-md": ["12px", {"lineHeight": "1.4", "letterSpacing": "0.18em"}]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  .eyebrow { font-family: 'Oswald', sans-serif; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 600; }
+  .btn { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; display: inline-flex; align-items: center; justify-content: center; transition: background-color .3s, color .3s, border-color .3s; }
+  /* Discreet link CTA: understated underline, no filled box. */
+  .cta { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; display: inline-flex; align-items: center; border-bottom: 1px solid; padding-bottom: 2px; transition: color .3s, border-color .3s; }
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.7s ease-out, transform 0.7s ease-out; }
+  .reveal.active { opacity: 1; transform: translateY(0); }
+  html { scroll-padding-top: 72px; }
+  /* Headline tracking on the family so it reaches any size, not only the token sizes. */
+  .font-display, .font-headline { letter-spacing: 0.01em; }
+</style>
+</head>
+<body class="bg-bone text-ink font-body selection:bg-accent selection:text-bone">
+
+<!-- ============ HEADER ============ -->
+<header class="fixed top-0 inset-x-0 z-50 h-[72px] bg-field/95 backdrop-blur border-b border-bone/10">
+  <div class="max-w-container-max-width mx-auto h-full px-gutter flex items-center justify-between gap-6">
+    <a href="#top" class="shrink-0 leading-none">
+      <span class="font-display text-[22px] font-bold uppercase tracking-tight text-bone">Rhythm </span><span class="font-display text-[22px] font-bold uppercase tracking-tight text-accent">Outdoors</span><span class="align-super text-[9px] text-accent">™</span>
+    </a>
+    <nav class="hidden md:flex items-center gap-7">
+      <a href="#mission" class="eyebrow text-bone/60 hover:text-bone transition-colors">Mission</a>
+      <a href="#clubs" class="eyebrow text-bone/60 hover:text-bone transition-colors">The Clubs</a>
+      <a href="#offer" class="eyebrow text-bone/60 hover:text-bone transition-colors">What We Offer</a>
+      <a href="#partner" class="eyebrow text-bone/60 hover:text-bone transition-colors">Partner</a>
+      <a href="#contact" class="eyebrow text-tan hover:text-bone transition-colors">Contact</a>
+    </nav>
+    <a href="#contact" class="md:hidden eyebrow text-tan">Contact</a>
+  </div>
+</header>
+
+<main id="top" class="pt-[72px]">
+
+  <!-- ============ HERO ============ -->
+  <section class="relative bg-field text-bone overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-field-deep/40 via-field to-field-deep"></div>
+    <div class="relative max-w-container-max-width mx-auto px-gutter py-28 md:py-40 text-center">
+      <p class="eyebrow text-tan mb-stack-md reveal">Rhythm Outdoors™ · Austin, Texas</p>
+      <h1 class="font-display text-[52px] md:text-display-lg text-bone uppercase leading-[0.95] mb-stack-lg reveal">Who Are We <span class="text-accent italic normal-case font-body font-normal lowercase">to become?</span></h1>
+      <p class="font-body text-body-lg text-bone/85 max-w-2xl mx-auto mb-10 reveal">A member-based network of outdoor sporting clubs. Old skills, wild places, real community. Three hours at a time, close to home.</p>
+      <div class="reveal">
+        <a href="#contact" class="cta text-tan border-tan/50 hover:text-bone hover:border-bone">Become a Member →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ INTRO BAND ============ -->
+  <section class="bg-bone py-section-gap-mobile md:py-section-gap-desktop px-gutter">
+    <div class="max-w-3xl mx-auto text-center reveal">
+      <p class="font-body text-[24px] md:text-[28px] leading-snug text-ink">Rhythm Outdoors™ teaches people how to <span class="italic text-accent">live, work, and play</span>, enhancing connection with ourselves, each other, and the natural world.</p>
+    </div>
+  </section>
+
+  <!-- ============ MISSION ============ -->
+  <section id="mission" class="bg-field text-bone py-section-gap-mobile md:py-section-gap-desktop px-gutter">
+    <div class="max-w-container-max-width mx-auto">
+      <div class="max-w-3xl mx-auto text-center mb-16 reveal">
+        <p class="eyebrow text-accent mb-stack-md">We Are Not a Gun Club</p>
+        <h2 class="font-display text-headline-xl uppercase leading-tight">A member-based network of outdoor sporting clubs, built on the belief that outdoorsmanship is baseline human health.</h2>
+      </div>
+      <div class="grid md:grid-cols-2 gap-12 max-w-4xl mx-auto reveal">
+        <p class="font-body text-body-lg text-bone/80">Firearms, fly fishing, archery, field medical, fitness, cooking, navigation. Not ideology, but capability. Practices so old they feel new. A busy person can arrive, drop in, feel reconnected, and be home within three hours.</p>
+        <p class="font-body text-body-lg text-bone/80">We find remarkable properties, make them flourish, and open the gate: creating access to land, elite instruction, and real community for people who would never otherwise have it. All of it delivered with a hospitality mindset. You are not processed at Rhythm Outdoors™. You are received.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ THE RULES ============ -->
+  <section class="bg-bone-low py-section-gap-mobile md:py-section-gap-desktop px-gutter">
+    <div class="max-w-container-max-width mx-auto">
+      <div class="text-center mb-16 reveal">
+        <p class="eyebrow text-accent mb-stack-md">The Rules</p>
+        <h2 class="font-display text-headline-xl text-ink uppercase">Three Rules</h2>
+        <p class="font-body text-body-md text-ink/70 max-w-xl mx-auto mt-6">We unify around practice, not grievance. The whole culture fits on three lines.</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="bg-bone border border-outline-variant p-10 reveal">
+          <p class="eyebrow text-accent mb-4">Rule · 01</p>
+          <h3 class="font-display text-[26px] uppercase mb-4 text-ink">Be a Good Human</h3>
+          <p class="font-body text-body-md text-ink/70">Hold the door for others. Help when it gets hard. Address your flaws. Look inward before you blame outwardly. Ego is the enemy, we are all still students.</p>
+        </div>
+        <div class="bg-bone border border-outline-variant p-10 reveal">
+          <p class="eyebrow text-accent mb-4">Rule · 02</p>
+          <h3 class="font-display text-[26px] uppercase mb-4 text-ink">No Politics</h3>
+          <p class="font-body text-body-md text-ink/70">Doctors shoot next to contractors, cowboys next to hippies, all of them respectfully. Credentials stay at the gate. We unify around shared practice, not grievance or division.</p>
+        </div>
+        <div class="bg-bone border border-outline-variant p-10 reveal">
+          <p class="eyebrow text-accent mb-4">Rule · 03</p>
+          <h3 class="font-display text-[26px] uppercase mb-4 text-ink">Be Safe</h3>
+          <p class="font-body text-body-md text-ink/70">We teach what good safety looks like. Please be honest about your experience. Some things are worth being inflexible about, and safety is one of them.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FROM THE FOUNDER ============ -->
+  <section class="bg-otter text-bone py-section-gap-mobile md:py-section-gap-desktop px-gutter">
+    <div class="max-w-3xl mx-auto text-center reveal">
+      <p class="eyebrow text-tan mb-stack-md">From the Founder</p>
+      <blockquote class="font-display text-headline-xl uppercase leading-tight mb-8">Play is where people tell the truth.</blockquote>
+      <p class="font-body text-body-lg text-bone/85 mb-4">Rhythm Outdoors™ is where we practice being human. Skill earned honestly. Community without politics. Land treated like it matters. We teach people how to live, work, and play, and we started with play.</p>
+      <p class="font-body text-body-md text-bone/70 italic mb-8">If that sounds grandiose for a sporting club in the Texas Hill Country, come spend three hours with us. Then decide.</p>
+      <p class="eyebrow text-tan text-[11px]">Nicholas Vedros · Founder</p>
+    </div>
+  </section>
+
+  <!-- ============ THE CLUBS ============ -->
+  <section id="clubs" class="bg-bone py-section-gap-mobile md:py-section-gap-desktop px-gutter">
+    <div class="max-w-container-max-width mx-auto">
+      <div class="text-center mb-16 reveal">
+        <p class="eyebrow text-accent mb-stack-md">The Clubs · Rhythm Outdoors™</p>
+        <h2 class="font-display text-headline-xl text-ink uppercase">Three Properties, One Philosophy</h2>
+        <p class="font-body text-body-md text-ink/70 max-w-xl mx-auto mt-6">Each club keeps its own mark and character, and sits beneath the Rhythm Outdoors™ name.</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="bg-bone-low border border-outline-variant p-8 flex flex-col reveal">
+          <p class="eyebrow text-[10px] text-tan-deep mb-1">01 · Flagship · Austin Metro</p>
+          <h3 class="font-display text-[24px] uppercase text-ink mb-3">Hog Heaven Sporting Club</h3>
+          <p class="font-body text-body-md text-ink/70 flex-1">Wingshooting, sporting clays, fitness, community. The place you arrive without a plan and leave with a practice.</p>
+          <a href="https://www.sfhogheaven.com" target="_blank" rel="noopener noreferrer" class="btn text-accent mt-6 self-start hover:text-accent-dark">Visit sfhogheaven.com →</a>
+        </div>
+        <div class="bg-bone-low border border-outline-variant p-8 flex flex-col reveal">
+          <p class="eyebrow text-[10px] text-tan-deep mb-1">02 · Hill Country · Horseshoe Bay</p>
+          <h3 class="font-display text-[24px] uppercase text-ink mb-3">Horseshoe Bay Sporting Club</h3>
+          <p class="font-body text-body-md text-ink/70 flex-1">Hill Country and water. A resort-adjacent club where the family lands and the clays are stacked. Where members bring people they love.</p>
+          <a href="https://www.hsbsportingclub.com" target="_blank" rel="noopener noreferrer" class="btn text-accent mt-6 self-start hover:text-accent-dark">Visit hsbsportingclub.com →</a>
+        </div>
+        <div class="bg-bone-low border border-outline-variant p-8 flex flex-col reveal">
+          <p class="eyebrow text-[10px] text-tan-deep mb-1">03 · Precision · Kingsland</p>
+          <h3 class="font-display text-[24px] uppercase text-ink mb-3">Packsaddle Precision &amp; Training</h3>
+          <p class="font-body text-body-md text-ink/70 flex-1">The forge for serious shooters. Precision rifle, ELR, night shoots, guided hunts. Where craft becomes consequence.</p>
+          <a href="https://www.packsaddleprecision.com" target="_blank" rel="noopener noreferrer" class="btn text-accent mt-6 self-start hover:text-accent-dark">Visit packsaddleprecision.com →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WHAT WE OFFER ============ -->
+  <section id="offer" class="bg-bone-low py-section-gap-mobile md:py-section-gap-desktop px-gutter">
+    <div class="max-w-container-max-width mx-auto">
+      <div class="text-center mb-16 reveal">
+        <p class="eyebrow text-accent mb-stack-md">Our Services · Under the Rhythm Outdoors™ Mark</p>
+        <h2 class="font-display text-headline-xl text-ink uppercase">What We Offer</h2>
+        <p class="font-body text-body-md text-ink/70 max-w-xl mx-auto mt-6">Everything below is delivered under the Rhythm Outdoors™ name, and every one of them is open for inquiry today.</p>
+      </div>
+      <div class="space-y-6">
+        <!-- Membership -->
+        <div class="bg-bone border border-outline-variant p-8 md:flex gap-8 items-start reveal">
+          <div class="md:w-64 shrink-0 mb-4 md:mb-0">
+            <p class="eyebrow text-[10px] text-tan-deep mt-2">Service · Membership</p>
+            <h3 class="font-display text-[22px] uppercase text-ink mt-1">Private Membership, Hospitality-Minded</h3>
+          </div>
+          <p class="font-body text-body-md text-ink/75">Membership at Rhythm Outdoors™ clubs includes facility access across disciplines, member gatherings and events, clubhouse amenities, and a community that knows your name. Memberships are available now at all three clubs: individual, household, family, and corporate tiers.</p>
+        </div>
+        <!-- Education -->
+        <div class="bg-bone border border-outline-variant p-8 md:flex gap-8 items-start reveal">
+          <div class="md:w-64 shrink-0 mb-4 md:mb-0">
+            <p class="eyebrow text-[10px] text-tan-deep mt-2">Service · Education &amp; Training</p>
+            <h3 class="font-display text-[22px] uppercase text-ink mt-1">Elite Instruction, Democratized</h3>
+          </div>
+          <p class="font-body text-body-md text-ink/75">From Special Forces instructors to World Champions, we make elite knowledge accessible to everyday enthusiasts. Classes, workshops, and progressions in marksmanship, fly casting, wingshooting, sporting clays, precision rifle, archery, field medical, fitness, cooking, navigation, and field craft: what we call uncommon life skills. Some courses are member-only; many are open to the public.</p>
+        </div>
+        <!-- Adventures -->
+        <div class="bg-field text-bone p-8 reveal">
+          <div class="md:flex gap-8 items-start">
+            <div class="md:w-64 shrink-0 mb-4 md:mb-0">
+              <p class="eyebrow text-[10px] text-tan mt-2">Service · Rhythm Adventures™ · Guided Travel</p>
+              <h3 class="font-display text-[22px] uppercase text-bone mt-1">Concierge Expeditions, Local to International</h3>
+            </div>
+            <p class="font-body text-body-md text-bone/80">Rhythm Adventures™ is our travel service: we plan, book, outfit, and guide outdoor expeditions for members and their guests. Destination selection, vetted outfitter partnerships, gear recommendations, skill-readiness training. Every detail handled, from a guided day trip an hour from home to a safari on another continent.</p>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-px bg-bone/10 mt-8 border border-bone/10">
+            <div class="bg-field p-5">
+              <p class="eyebrow text-tan text-[10px] mb-2">Local</p>
+              <p class="font-body text-[14px] text-bone/70">Guided day trips. Weekend getaways. Prime hunting grounds and fishing holes within driving distance.</p>
+            </div>
+            <div class="bg-field p-5">
+              <p class="eyebrow text-tan text-[10px] mb-2">Regional</p>
+              <p class="font-body text-[14px] text-bone/70">Multi-day excursions. Trophy fish on storied rivers. Upland bird hunts. Coastal charters.</p>
+            </div>
+            <div class="bg-field p-5">
+              <p class="eyebrow text-tan text-[10px] mb-2">National</p>
+              <p class="font-body text-[14px] text-bone/70">The salmon runs of Alaska. The elk country of Montana. The redfish flats of Texas.</p>
+            </div>
+            <div class="bg-field p-5">
+              <p class="eyebrow text-tan text-[10px] mb-2">International</p>
+              <p class="font-body text-[14px] text-bone/70">Argentina dove hunting. Mexico offshore fishing. African safari.</p>
+            </div>
+          </div>
+          <div class="mt-6 border-l-4 border-accent pl-5">
+            <p class="font-body text-body-md text-bone/85"><span class="font-display uppercase text-tan text-[15px] tracking-wide">The Skill-Ready Guarantee. </span>Before every trip we assess your current skill level and train the gaps, so you arrive at every destination prepared, capable, and confident.</p>
+            <p class="font-body text-[13px] text-bone/55 mt-3 italic">Trips run and in planning: Argentina · Alaska · Texas Coast · Mexico · Africa · and more in development.</p>
+          </div>
+        </div>
+        <!-- Retail -->
+        <div class="bg-bone border border-outline-variant p-8 md:flex gap-8 items-start reveal">
+          <div class="md:w-64 shrink-0 mb-4 md:mb-0">
+            <p class="eyebrow text-[10px] text-tan-deep mt-2">Service · Club Retail</p>
+            <h3 class="font-display text-[22px] uppercase text-ink mt-1">Curated Essentials, Nothing More</h3>
+          </div>
+          <p class="font-body text-body-md text-ink/75">Lean, intentional retail at each clubhouse: range and field essentials, ammunition for the disciplines we teach, embroidered Rhythm Outdoors™ goods, and a few premium finds that fit the culture. YETI drinkware, Turtle Boxes, gear worth owning.</p>
+        </div>
+        <!-- Access & Youth -->
+        <div class="bg-bone border border-outline-variant p-8 md:flex gap-8 items-start reveal">
+          <div class="md:w-64 shrink-0 mb-4 md:mb-0">
+            <p class="eyebrow text-[10px] text-tan-deep mt-2">Programs · Access &amp; Youth</p>
+            <h3 class="font-display text-[22px] uppercase text-ink mt-1">Access for Those Who Serve and Those Who Follow</h3>
+          </div>
+          <div class="font-body text-body-md text-ink/75 space-y-4">
+            <p><strong class="text-ink">Service Access.</strong> Dedicated, reduced-barrier access for First Responders, Active Military, and Law Enforcement: space to train, decompress, and belong. Scholarships extend to high-school pistol and shotgun teams that train on our grounds; several alumni now shoot for college teams and service academies.</p>
+            <p><strong class="text-ink">Youth Education.</strong> With Alpha School and Waypoint Academy, students finish rigorous academics by late morning and spend afternoons building discipline, marksmanship, archery, and leadership with our instructors. One student at a time, off the iPad and into the field.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PARTNER / LANDOWNERS ============ -->
+  <section id="partner" class="bg-field text-bone py-section-gap-mobile md:py-section-gap-desktop px-gutter">
+    <div class="max-w-container-max-width mx-auto">
+      <div class="max-w-3xl mb-16 reveal">
+        <p class="eyebrow text-accent mb-stack-md">For Landowners · Partnership</p>
+        <h2 class="font-display text-headline-xl uppercase leading-tight mb-6">Preserve the Land. Make It Earn.</h2>
+        <p class="font-body text-body-lg text-bone/80">Legacy landowners have always faced the same menu: sell to a developer, or break even on agriculture. We built a better option. Rhythm Outdoors™ operates a club on your land, with no clearing, no paving, no subdivision. The land stays intact and in your family. We bring the operating system, the members, and the hospitality. You keep the deed, and the property finally pays for the privilege of being beautiful.</p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 border-t border-bone/15 pt-10 mb-16 reveal">
+        <div>
+          <p class="font-display text-[34px] text-accent leading-none">~150 ac</p>
+          <p class="eyebrow text-[10px] text-bone/60 mt-2">Footprint</p>
+          <p class="font-body text-[13px] text-bone/55 mt-2">What a standard project needs. The rest of your land stays wild.</p>
+        </div>
+        <div>
+          <p class="font-display text-[34px] text-accent leading-none">$4M to $7M</p>
+          <p class="eyebrow text-[10px] text-bone/60 mt-2">Improvements</p>
+          <p class="font-body text-[13px] text-bone/55 mt-2">A fraction of golf-course capex, with about 90% less water.</p>
+        </div>
+        <div>
+          <p class="font-display text-[34px] text-accent leading-none">7 figures</p>
+          <p class="eyebrow text-[10px] text-bone/60 mt-2">Stabilized Net Income</p>
+          <p class="font-body text-[13px] text-bone/55 mt-2">Cash-flow positive in 18 to 24 months, flowing through the partnership.</p>
+        </div>
+        <div>
+          <p class="font-display text-[34px] text-accent leading-none">Yours</p>
+          <p class="eyebrow text-[10px] text-bone/60 mt-2">The Deed</p>
+          <p class="font-body text-[13px] text-bone/55 mt-2">You retain ownership. Improvements ultimately revert to you.</p>
+        </div>
+      </div>
+      <div class="grid md:grid-cols-5 gap-6 reveal">
+        <div class="border-t-2 border-accent pt-4">
+          <p class="font-display text-[28px] text-tan leading-none mb-2">01</p>
+          <p class="eyebrow text-tan text-[10px] mb-2">Discovery Call</p>
+          <p class="font-body text-[13px] text-bone/65">Your property story and preservation goals. We listen first. Always.</p>
+        </div>
+        <div class="border-t-2 border-bone/25 pt-4">
+          <p class="font-display text-[28px] text-tan leading-none mb-2">02</p>
+          <p class="eyebrow text-tan text-[10px] mb-2">Site Assessment</p>
+          <p class="font-body text-[13px] text-bone/65">Location, access, terrain, water, facility potential, and the two numbers that matter: density and income in the draw zone.</p>
+        </div>
+        <div class="border-t-2 border-bone/25 pt-4">
+          <p class="font-display text-[28px] text-tan leading-none mb-2">03</p>
+          <p class="eyebrow text-tan text-[10px] mb-2">Financial Model</p>
+          <p class="font-body text-[13px] text-bone/65">Custom projections: revenue, timeline, structure, returns.</p>
+        </div>
+        <div class="border-t-2 border-bone/25 pt-4">
+          <p class="font-display text-[28px] text-tan leading-none mb-2">04</p>
+          <p class="eyebrow text-tan text-[10px] mb-2">Agreement</p>
+          <p class="font-body text-[13px] text-bone/65">A structure that protects your ownership while maximizing value.</p>
+        </div>
+        <div class="border-t-2 border-bone/25 pt-4">
+          <p class="font-display text-[28px] text-tan leading-none mb-2">05</p>
+          <p class="eyebrow text-tan text-[10px] mb-2">Build &amp; Launch</p>
+          <p class="font-body text-[13px] text-bone/65">We handle construction, permitting, staffing, and member acquisition.</p>
+        </div>
+      </div>
+      <div class="mt-16 border-t border-bone/15 pt-10 flex flex-col md:flex-row md:items-center justify-between gap-6 reveal">
+        <p class="font-body text-body-lg text-bone/85 max-w-2xl">Three operating clubs. 2,300+ acres under stewardship. Now scouting legacy properties within ninety minutes of major metros.</p>
+        <a href="#contact" class="cta text-tan border-tan/50 hover:text-bone hover:border-bone shrink-0">Partner With Us →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ THE HORIZON ============ -->
+  <section class="bg-bone py-section-gap-mobile md:py-section-gap-desktop px-gutter">
+    <div class="max-w-container-max-width mx-auto">
+      <div class="text-center mb-16 reveal">
+        <p class="eyebrow text-accent mb-stack-md">The Horizon · Live, Work, Play</p>
+        <h2 class="font-display text-headline-xl text-ink uppercase max-w-3xl mx-auto leading-tight">What begins as three clubs becomes an architecture for a different kind of life.</h2>
+      </div>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="border-t-2 border-accent pt-6 reveal">
+          <p class="eyebrow text-tan-deep mb-3">Phase I · Now · Play</p>
+          <h3 class="font-display text-[24px] uppercase text-ink mb-3">Rhythm Outdoors™</h3>
+          <p class="font-body text-body-md text-ink/70">Member-based outdoor sporting clubs. Three today; six or more by 2031. The foundation on which everything else is earned.</p>
+        </div>
+        <div class="border-t-2 border-ink/20 pt-6 reveal">
+          <p class="eyebrow text-tan-deep mb-3">Phase II · Emerging</p>
+          <h3 class="font-display text-[24px] uppercase text-ink mb-3">Rhythm Hospitality</h3>
+          <p class="font-body text-body-md text-ink/70">The plan: add lodging, intimate lodges, hotels, spa, and the gathering places that go with them. Genuine service as philosophy, not protocol.</p>
+        </div>
+        <div class="border-t-2 border-ink/20 pt-6 reveal">
+          <p class="eyebrow text-tan-deep mb-3">Phase III · Long View</p>
+          <h3 class="font-display text-[24px] uppercase text-ink mb-3">Rhythm Residential</h3>
+          <p class="font-body text-body-md text-ink/70">Communities where healthy living, working, and playing are woven in from the first stake.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ INVITATION + CONTACT ============ -->
+  <section id="contact" class="bg-field text-bone py-section-gap-mobile md:py-section-gap-desktop px-gutter">
+    <div class="max-w-container-max-width mx-auto">
+      <div class="max-w-2xl mx-auto text-center mb-16 reveal">
+        <p class="eyebrow text-tan mb-stack-md">The Invitation</p>
+        <h2 class="font-display text-headline-xl uppercase leading-tight mb-6">We offer a practice, not a destination.</h2>
+        <p class="font-body text-body-lg text-bone/80">What you need is not time to master everything, only the capacity to begin. If this sounds like something you have been looking for, you probably have been.</p>
+      </div>
+      <div class="max-w-2xl mx-auto bg-otter p-10 md:p-14 text-center reveal">
+        <p class="eyebrow text-tan mb-4">Talk to a Human</p>
+        <p class="font-body text-body-lg text-bone/85 mb-8">Book a time or send a note. You will reach a person, and we will take it from there.</p>
+        <div class="flex flex-col items-center gap-5">
+          <a href="https://calendar.app.google/xRty7ExhyVUXdE7r5" target="_blank" rel="noopener noreferrer" class="cta text-tan border-tan/50 hover:text-bone hover:border-bone">Schedule a Conversation with Nicholas →</a>
+          <a href="mailto:nicholas@rhythm.co" class="cta text-tan border-tan/50 hover:text-bone hover:border-bone">nicholas@rhythm.co</a>
+        </div>
+        <p class="eyebrow text-[10px] text-bone/40 mt-8">Rhythm Outdoors™ · Austin, Texas</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="bg-field-deep text-bone py-16 px-gutter border-t border-bone/10">
+  <div class="max-w-container-max-width mx-auto flex flex-col items-center text-center gap-4">
+    <p class="font-display text-[30px] font-bold leading-none uppercase tracking-tight">Rhythm <span class="text-accent">Outdoors</span><span class="align-super text-[11px]">™</span></p>
+    <p class="font-body text-body-md text-bone/60">ATX Outdoors Holding Co., LLC · Austin, Texas · 2026</p>
+    <p class="font-body text-[12px] text-bone/35 italic mt-2 max-w-xl">Rhythm Outdoors™ and Rhythm Adventures™ are trademarks of ATX Outdoors Holding Co., LLC.</p>
+  </div>
+</footer>
+
+<script>
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('active'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
