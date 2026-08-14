@@ -28,12 +28,12 @@ export function InviteTeamForm({
   const [role, setRole] = useState<string>("admin");
   const [propertyId, setPropertyId] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [success, setSuccess] = useState<{ title: string; body: string } | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const submit = () => {
     setError(null);
-    setSentTo(null);
+    setSuccess(null);
     startTransition(async () => {
       const result = await inviteTeamMember({
         email,
@@ -44,7 +44,11 @@ export function InviteTeamForm({
         setError(result.error ?? "Couldn't send the invite.");
         return;
       }
-      setSentTo(email);
+      setSuccess(
+        result.message
+          ? { title: "Access granted", body: result.message }
+          : { title: "Invite sent", body: `Sent an invite to ${email}.` },
+      );
       setEmail("");
       setPropertyId("");
       router.refresh();
@@ -63,9 +67,9 @@ export function InviteTeamForm({
           {error}
         </Alert>
       )}
-      {sentTo && (
-        <Alert variant="success" title="Invite sent" className="mb-3">
-          Sent an invite to <strong>{sentTo}</strong>.
+      {success && (
+        <Alert variant="success" title={success.title} className="mb-3">
+          {success.body}
         </Alert>
       )}
 

@@ -26,17 +26,20 @@ async function requireManager(): Promise<
 }
 
 // Merge changes into a user's app_metadata (read-modify-write, so we never
-// clobber unrelated claims regardless of gotrue merge semantics).
+// clobber unrelated claims regardless of gotrue merge semantics). Returns
+// whether it succeeded — most callers fire-and-forget, but callers that
+// need to report a failure back to the UI can check it.
 async function patchAppMetadata(
   admin: SupabaseClient,
   userId: string,
   changes: Record<string, unknown>,
-): Promise<void> {
+): Promise<{ ok: boolean }> {
   const { data } = await admin.auth.admin.getUserById(userId);
   const current = (data?.user?.app_metadata ?? {}) as Record<string, unknown>;
-  await admin.auth.admin.updateUserById(userId, {
+  const { error } = await admin.auth.admin.updateUserById(userId, {
     app_metadata: { ...current, ...changes },
   });
+  return { ok: !error };
 }
 
 const InviteSchema = z.object({
@@ -45,15 +48,39 @@ const InviteSchema = z.object({
   propertyId: z.string().optional(),
 });
 
-// Invite a new staff member: create the auth user (sends the invite email),
-// stamp their role so the callback routes them to /admin, and seed their
-// staff_profiles row (status 'invited', no name yet — they set it at
-// /admin/welcome on first sign-in). Gated to super_admin + admin.
+// GoTrue's invite endpoint refuses an email that already has an auth user —
+// including someone who simply signed in with Google/etc. on the public
+// site before ever being made staff. listUsers has no email filter, so we
+// paginate to find the match. Only runs on the "already registered"
+// failure path, so cost is bounded by how often that happens, not by
+// every invite.
+async function findExistingAuthUserByEmail(
+  admin: SupabaseClient,
+  email: string,
+): Promise<{ id: string } | null> {
+  const perPage = 200;
+  for (let page = 1; page <= 25; page++) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
+    if (error || !data?.users?.length) return null;
+    const match = data.users.find((candidate) => candidate.email?.toLowerCase() === email);
+    if (match) return { id: match.id };
+    if (data.users.length < perPage) return null;
+  }
+  return null;
+}
+
+// Add a staff member: either create a brand-new auth user (sends the invite
+// email) or, if the email already has an auth account (e.g. they signed in
+// with Google before being made staff), attach the role to that existing
+// account instead of failing. Either way we stamp their role so the
+// callback routes them to /admin, and seed their staff_profiles row
+// (status 'invited', no name yet — they set it at /admin/welcome on first
+// sign-in). Gated to super_admin + admin.
 export async function inviteTeamMember(input: {
   email: string;
   role: string;
   propertyId?: string;
-}): Promise<{ ok: boolean; error?: string }> {
+}): Promise<{ ok: boolean; error?: string; message?: string }> {
   const parsed = InviteSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: "Please check the email and role." };
@@ -85,23 +112,37 @@ export async function inviteTeamMember(input: {
     email,
     { redirectTo: `${origin}/auth/callback` },
   );
-  if (inviteError || !invited?.user) {
-    const message = /already|registered|exists/i.test(inviteError?.message ?? "")
-      ? "That email already has an account."
-      : inviteError?.message ?? "Couldn't send the invite.";
-    return { ok: false, error: message };
-  }
 
-  const newUserId = invited.user.id;
+  let newUserId: string;
+  let attachedToExistingAccount = false;
+
+  if (inviteError || !invited?.user) {
+    const alreadyRegistered = /already|registered|exists/i.test(inviteError?.message ?? "");
+    if (!alreadyRegistered) {
+      return { ok: false, error: inviteError?.message ?? "Couldn't send the invite." };
+    }
+    const existing = await findExistingAuthUserByEmail(admin, email);
+    if (!existing) {
+      // Genuinely can't find the account GoTrue says exists — surface the
+      // original message rather than silently pretending it worked.
+      return { ok: false, error: "That email already has an account." };
+    }
+    newUserId = existing.id;
+    attachedToExistingAccount = true;
+  } else {
+    newUserId = invited.user.id;
+  }
 
   // Stamp role (+ property for property managers) BEFORE they click — the
   // callback then routes them straight to /admin (skips member linking).
+  // Always a merge (patchAppMetadata), never a raw overwrite: an existing
+  // account (the attachedToExistingAccount branch) already carries GoTrue's
+  // own provider/providers claims, and a raw updateUserById would clobber
+  // them.
   const appMetadata: Record<string, unknown> = { role: parsed.data.role };
   if (propertyId) appMetadata.property_id = propertyId;
-  const { error: stampError } = await admin.auth.admin.updateUserById(newUserId, {
-    app_metadata: appMetadata,
-  });
-  if (stampError) {
+  const { ok: stamped } = await patchAppMetadata(admin, newUserId, appMetadata);
+  if (!stamped) {
     return { ok: false, error: "Invite sent, but the role couldn't be set — try again." };
   }
 
@@ -117,6 +158,18 @@ export async function inviteTeamMember(input: {
   );
   if (rowError) {
     return { ok: false, error: "Invite sent, but saving the profile failed." };
+  }
+
+  if (attachedToExistingAccount) {
+    // No invite email went out — they already had an account. Use
+    // "Resend invite" on their new row to hand them a fresh sign-in link.
+    revalidatePath("/admin/team");
+    return {
+      ok: true,
+      message:
+        "That email already had an account (e.g. signed in with Google before). " +
+        "Granted them staff access — use “Resend invite” on their row to send a sign-in link.",
+    };
   }
 
   await recordDevAuthEmail({ source: "team_invite", type: "invite", to: email });
