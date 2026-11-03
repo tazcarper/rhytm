@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, type FormEvent } from "react";
+import { useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Card } from "@/lib/ui";
 import { saveEventAction, saveEventExtrasAction } from "@/app/admin/events/actions";
@@ -22,10 +22,16 @@ export function EventStartForm({
   properties,
   defaultPropertyId,
   starter,
+  starterPicker,
+  footer,
 }: {
   properties: ReadonlyArray<PropertyOption>;
   defaultPropertyId?: string;
   starter: EventStarter | null;
+  // Slots: the optional starter chips above the fields, and the
+  // copy-a-template line below them.
+  starterPicker?: ReactNode;
+  footer?: ReactNode;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -92,6 +98,7 @@ export function EventStartForm({
         Just four things to begin. It's saved as a draft that guests can't see, then you add prices, tickets and
         the rest one step at a time.
       </p>
+      {starterPicker}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {error && (
@@ -190,6 +197,7 @@ export function EventStartForm({
           </Button>
         </div>
       </form>
+      {footer}
     </Card>
   );
 }

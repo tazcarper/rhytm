@@ -2,14 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Alert, Button, Card } from "@/lib/ui";
+import { Alert, Button } from "@/lib/ui";
 import { duplicateEventFromTemplateAction } from "@/app/admin/events/actions";
 import type { AdminEventTemplateOption } from "@/src/services/admin/events";
 
 // Offers a shortcut into a fresh draft pre-filled from a saved template —
 // a snapshot clone (new id, status reset to draft), not a live link back
-// to the template. Sits above the blank editor form; skip it to start
-// from scratch.
+// to the template. Sits at the foot of the "Fill it in myself" card.
 export function NewEventTemplatePicker({
   templates,
 }: {
@@ -36,10 +35,8 @@ export function NewEventTemplatePicker({
   };
 
   return (
-    <Card padding="default" elevation="soft" className="mb-6">
-      <p className="mb-2 text-[13px] font-semibold uppercase tracking-label text-tan-deep">
-        Start from a template
-      </p>
+    <div className="mt-8 border-t border-rule pt-5">
+      <p className="mb-2 text-[13px] text-gray">Or copy a saved template into a new draft:</p>
       {error && (
         <Alert variant="error" title="Couldn't create from template">
           {error}
@@ -62,9 +59,6 @@ export function NewEventTemplatePicker({
           {isPending ? "Creating…" : "Use template"}
         </Button>
       </div>
-      <p className="mt-2 text-micro text-gray">
-        Copies everything from a saved event into a new draft.
-      </p>
-    </Card>
+    </div>
   );
 }
