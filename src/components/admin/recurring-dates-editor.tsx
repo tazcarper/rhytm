@@ -11,7 +11,7 @@ import {
 } from "@/src/services/events/repeat-dates";
 import s from "./bid-editor-form.module.css";
 
-// Recurring-dates picker for the New event form only. Generates a list of
+// Recurring-dates picker for the event form. Generates a list of
 // extra ISO dates (same time-of-day as the Starts/Ends fields above) — the
 // form then bulk-creates one independent events row per date via
 // saveRecurringEventsAction, rather than modeling recurrence as an array on
@@ -30,10 +30,12 @@ export function RecurringDatesEditor({
   startDate,
   extraDates,
   onChange,
+  toggleLabel = "Repeat this event on more dates",
 }: {
   startDate: string;
   extraDates: string[];
   onChange: (dates: string[]) => void;
+  toggleLabel?: string;
 }) {
   const [enabled, setEnabled] = useState(extraDates.length > 0);
   const [frequency, setFrequency] = useState<RepeatFrequency>("weekly");
@@ -67,7 +69,7 @@ export function RecurringDatesEditor({
             if (!evt.target.checked) onChange([]);
           }}
         />
-        <span className="text-[14px] text-olive">Repeat this event on more dates</span>
+        <span className="text-[14px] text-olive">{toggleLabel}</span>
       </label>
 
       {enabled && (

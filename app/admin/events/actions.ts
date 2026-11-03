@@ -21,6 +21,7 @@ import {
   type SaveRecurringEventsResult,
 } from "@/src/services/admin/events";
 import { saveEventExtras, type SaveEventExtrasResult } from "@/src/services/admin/event-extras";
+import { copyEventToDates } from "@/src/services/admin/event-copies";
 import { SaveEventExtrasSchema } from "@/src/services/events/event-extras-contract";
 
 // Thin actions: validate → service → revalidate the surfaces an event can
@@ -68,6 +69,29 @@ export async function saveRecurringEventsAction(
     startDate ? [startDate, ...extraDates] : extraDates,
   );
   if (result.ok) revalidateEventSurfaces();
+  return result;
+}
+
+// Edit screen's "Copy to more dates": new events on the given dates, each
+// with the source event's tickets, gear and questions.
+export async function copyEventToDatesAction(
+  sourceEventId: string,
+  input: SaveEventRawInput,
+  dates: string[],
+): Promise<SaveRecurringEventsResult> {
+  const parsed = SaveEventSchema.safeParse(input);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    return {
+      ok: false,
+      error: issue ? `${issue.path.join(".")}: ${issue.message}` : "Invalid input",
+      createdIds: [],
+    };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const result = await copyEventToDates(supabase, sourceEventId, parsed.data, dates);
+  if (result.ok || result.createdIds.length > 0) revalidateEventSurfaces();
   return result;
 }
 

@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Card } from "@/lib/ui";
-import { saveEventAction, saveRecurringEventsAction, deleteEventAction } from "@/app/admin/events/actions";
+import { saveEventAction, saveRecurringEventsAction, copyEventToDatesAction, deleteEventAction } from "@/app/admin/events/actions";
 import type { AdminEventDetail, EventAudience, EventStatus } from "@/src/services/admin/events";
 import type { AdminDisciplineOption, AdminInstructorRow } from "@/src/services/admin/instructors";
 import { EVENT_TYPES, STANDING_EVENT_TYPE, eventTypeFields } from "@/src/constants/admin/event-types";
@@ -203,6 +203,9 @@ export function EventEditorForm({
   const [imageUrl, setImageUrl] = useState(initial?.imageUrl ?? "");
   const [infoBoxes, setInfoBoxes] = useState<EditableInfoBox[]>(event ? toEditableBoxes(event) : seedToEditableBoxes(seed));
   const [extraDates, setExtraDates] = useState<string[]>([]);
+  // Bumped after copying to more dates, to reset the repeat picker.
+  const [repeatPickerKey, setRepeatPickerKey] = useState(0);
+  const [copiedCount, setCopiedCount] = useState(0);
 
   const isStanding = type === STANDING_EVENT_TYPE;
   const fields = eventTypeFields(type || null);
@@ -311,14 +314,14 @@ export function EventEditorForm({
     formEvent.preventDefault();
     setError(null);
     setSavedAt(null);
+    setCopiedCount(0);
 
     startTransition(async () => {
       const payload = buildPayload();
 
-      // Recurring only applies to brand-new events (see saveRecurringEvents'
-      // rationale: each occurrence is its own row with its own capacity/
-      // roster, so "recurring" only makes sense at creation, not when
-      // editing one already-saved event).
+      // Each date is its own event row with its own capacity and roster
+      // (see saveRecurringEvents). A new event creates all of them at once;
+      // an existing one saves itself, then copies onto the extra dates.
       if (!event && extraDates.length > 0 && !isStanding) {
         const result = await saveRecurringEventsAction(payload, extraDates);
         if (!result.ok) {
@@ -334,6 +337,18 @@ export function EventEditorForm({
       if (!result.ok) {
         setError(result.error ?? "Could not save.");
         return;
+      }
+
+      if (event && extraDates.length > 0 && !isStanding) {
+        // Copies get this event's saved tickets, gear and questions.
+        const copies = await copyEventToDatesAction(event.id, payload, extraDates);
+        if (!copies.ok) {
+          setError(`Saved this event, but copying failed after ${copies.createdIds.length} dates: ${copies.error}`);
+          return;
+        }
+        setCopiedCount(copies.ids.length);
+        setExtraDates([]);
+        setRepeatPickerKey((key) => key + 1);
       }
 
       setSavedAt(Date.now());
@@ -373,7 +388,9 @@ export function EventEditorForm({
           )}
           {savedAt && !error && (
             <Alert variant="success" title="Saved">
-              The event has been saved.
+              {copiedCount > 0
+                ? `The event has been saved and copied to ${copiedCount} more ${copiedCount === 1 ? "date" : "dates"}.`
+                : "The event has been saved."}
             </Alert>
           )}
 
@@ -513,13 +530,13 @@ export function EventEditorForm({
                     />
                   </label>
                 </div>
-                {!event && (
-                  <RecurringDatesEditor
-                    startDate={startAt.split("T")[0] ?? ""}
-                    extraDates={extraDates}
-                    onChange={setExtraDates}
-                  />
-                )}
+                <RecurringDatesEditor
+                  key={repeatPickerKey}
+                  startDate={startAt.split("T")[0] ?? ""}
+                  extraDates={extraDates}
+                  onChange={setExtraDates}
+                  toggleLabel={event ? "Copy this event to more dates" : "Repeat this event on more dates"}
+                />
               </>
             )}
           </Group>
@@ -689,7 +706,13 @@ export function EventEditorForm({
 
           <div className={h.actions}>
             <Button type="submit" variant="primary" disabled={isPending}>
-              {isPending ? "Saving…" : extraDates.length > 0 && !event ? `Save ${extraDates.length + 1} events` : "Save event"}
+              {isPending
+                ? "Saving…"
+                : extraDates.length === 0
+                  ? "Save event"
+                  : event
+                    ? `Save and copy to ${extraDates.length} ${extraDates.length === 1 ? "date" : "dates"}`
+                    : `Save ${extraDates.length + 1} events`}
             </Button>
             {event && (
               <Button type="button" variant="ghost" disabled={isPending} onClick={handleDelete}>
