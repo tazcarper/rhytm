@@ -2,8 +2,9 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Alert, Button, Card } from "@/lib/ui";
-import s from "./bid-editor-form.module.css";
+import { Alert } from "@/lib/ui";
+import { FlowButton as Button } from "./event-flow-button";
+import s from "./event-flow.module.css";
 
 // "Describe your event" — the AI helper's panel on the new-event screen.
 // Framed as a form helper, not a chat window: one description in, maybe a
@@ -96,16 +97,16 @@ export function EventHelperPanel({ propertyId }: { propertyId: string | null }) 
   };
 
   return (
-    <Card padding="default" elevation="soft" className="mb-6">
+    <div className={`${s.panel} ${s.flow} mb-6`}>
       <div className="flex items-center justify-between">
-        <p className="text-[13px] font-semibold uppercase tracking-label text-tan-deep">Describe your event</p>
+        <h2 className={s.formTitle}>Describe your event</h2>
         {transcript.length > 0 && (
-          <button type="button" onClick={startOver} className="text-micro text-gray underline">
+          <button type="button" onClick={startOver} className="text-[15px] text-gray underline">
             Start over
           </button>
         )}
       </div>
-      <p className="mt-1 text-[14px] text-gray">
+      <p className="mt-1 text-[17px] text-gray">
         Write it the way you'd tell a coworker. The helper fills in a draft and asks about anything missing. Nothing is
         published until you publish it.
       </p>
@@ -115,17 +116,17 @@ export function EventHelperPanel({ propertyId }: { propertyId: string | null }) 
           {transcript.map((line, index) => (
             <li
               key={index}
-              className={`rounded-sharp px-3 py-2 text-[14px] ${
+              className={`rounded-sharp px-3 py-2 text-[17px] ${
                 line.who === "you" ? "bg-paper text-olive" : "border border-rule text-olive"
               }`}
             >
-              <span className="mr-2 text-micro uppercase tracking-label text-gray">
+              <span className="mr-2 text-[15px] font-semibold text-[#4a5650]">
                 {line.who === "you" ? "You" : "Helper"}
               </span>
               {line.text}
             </li>
           ))}
-          {pending && <li className="px-3 py-2 text-[14px] text-gray">Working on it…</li>}
+          {pending && <li className="px-3 py-2 text-[17px] text-gray">Working on it…</li>}
         </ol>
       )}
 
@@ -151,6 +152,6 @@ export function EventHelperPanel({ propertyId }: { propertyId: string | null }) 
           </Button>
         </div>
       </form>
-    </Card>
+    </div>
   );
 }

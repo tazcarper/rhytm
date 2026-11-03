@@ -2,7 +2,8 @@
 
 import { useMemo, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Alert, Button, Card } from "@/lib/ui";
+import { Alert } from "@/lib/ui";
+import { FlowButton as Button } from "./event-flow-button";
 import {
   saveEventAction,
   copyEventToDatesAction,
@@ -29,8 +30,8 @@ import { EventInfoBoxEditor, type EditableInfoBox } from "./event-info-box-edito
 import { EventImageInput } from "./event-image-input";
 import { EventLivePreview, type EventPreviewData } from "./event-live-preview";
 import { RecurringDatesEditor } from "./recurring-dates-editor";
-import s from "./bid-editor-form.module.css";
-import h from "./homepage-hero-form.module.css";
+import s from "./event-flow.module.css";
+import h from "./event-flow.module.css";
 
 interface PropertyOption {
   id: string;
@@ -84,15 +85,21 @@ const STATUS_LABEL: Record<SectionStatus, string> = {
 };
 
 const STATUS_CLASS: Record<SectionStatus, string> = {
-  done: "text-accent-success",
-  needs_attention: "text-accent-error",
-  optional: "text-gray",
+  done: "text-[#1f5b45]",
+  needs_attention: "text-[#b3261e] font-semibold",
+  optional: "text-[#5d6963]",
 };
 
 const STATUS_MARK: Record<SectionStatus, string> = {
   done: "✓",
   needs_attention: "!",
   optional: "○",
+};
+
+const STEP_NUMBER_CLASS: Record<SectionStatus, string> = {
+  done: h.stepNumberDone,
+  needs_attention: h.stepNumberProblem,
+  optional: h.stepNumberOptional,
 };
 
 function toLocalInput(iso: string | null | undefined): string {
@@ -490,35 +497,42 @@ export function EventEditorForm({
   };
 
   const isLast = active === "review";
+  const activeIndex = EVENT_BUILDER_SECTIONS.indexOf(active);
   const canPublish = status === "draft" && allProblems.length === 0;
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] items-start">
-      <div className="grid gap-6 lg:grid-cols-[13rem_minmax(0,1fr)] items-start">
-        {/* Section list: a column on wide screens, a dropdown on phones. */}
-        <nav aria-label="Event sections" className="hidden lg:block">
-          <ol className="flex flex-col gap-1">
+    <div className={`${h.flow} grid gap-8 2xl:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)] items-start`}>
+      <div className="grid gap-8 lg:grid-cols-[16rem_minmax(0,1fr)] items-start">
+        {/* Step list: a column on wide screens, a dropdown on phones. */}
+        <nav aria-label="Event steps" className="hidden lg:block">
+          <ol className="flex flex-col gap-1.5">
             {EVENT_BUILDER_SECTIONS.map((section, index) => {
               const sectionState = statusOf(section);
               const isActive = section === active;
+              const numberClass = isActive
+                ? h.stepNumberActive
+                : section === "review"
+                  ? ""
+                  : STEP_NUMBER_CLASS[sectionState];
               return (
                 <li key={section}>
                   <button
                     type="button"
                     onClick={() => setActive(section)}
                     aria-current={isActive ? "step" : undefined}
-                    className={`w-full rounded-sharp border px-3 py-2.5 text-left transition-colors ${
-                      isActive ? "border-olive bg-paper" : "border-transparent hover:border-rule"
-                    }`}
+                    className={`${h.step} ${isActive ? h.stepActive : ""}`}
                   >
-                    <span className="block text-[14px] font-semibold text-olive">
-                      {index + 1}. {SECTION_COPY[section].label}
+                    <span className={`${h.stepNumber} ${numberClass}`} aria-hidden="true">
+                      {!isActive && sectionState === "done" && section !== "review" ? "✓" : index + 1}
                     </span>
-                    {section !== "review" && (
-                      <span className={`mt-0.5 block text-micro ${STATUS_CLASS[sectionState]}`}>
-                        {STATUS_MARK[sectionState]} {STATUS_LABEL[sectionState]}
-                      </span>
-                    )}
+                    <span>
+                      <span className={h.stepLabel}>{SECTION_COPY[section].label}</span>
+                      {section !== "review" && (
+                        <span className={`${h.stepStatus} ${STATUS_CLASS[sectionState]}`}>
+                          {STATUS_LABEL[sectionState]}
+                        </span>
+                      )}
+                    </span>
                   </button>
                 </li>
               );
@@ -527,27 +541,40 @@ export function EventEditorForm({
         </nav>
         {/* Wrapper carries lg:hidden: .field sets its own display. */}
         <div className="lg:hidden">
-        <label className={s.field}>
-          <span className={s.label}>Section</span>
-          <select
-            value={active}
-            onChange={(evt) => setActive(evt.target.value as EventBuilderSection)}
-            className={s.input}
-          >
-            {EVENT_BUILDER_SECTIONS.map((section, index) => (
-              <option key={section} value={section}>
-                {index + 1}. {SECTION_COPY[section].label}
-                {section !== "review" ? ` (${STATUS_LABEL[statusOf(section)]})` : ""}
-              </option>
-            ))}
-          </select>
-        </label>
+          <label className={s.field}>
+            <span className={s.label}>Step</span>
+            <select
+              value={active}
+              onChange={(evt) => setActive(evt.target.value as EventBuilderSection)}
+              className={s.input}
+            >
+              {EVENT_BUILDER_SECTIONS.map((section, index) => (
+                <option key={section} value={section}>
+                  {index + 1}. {SECTION_COPY[section].label}
+                  {section !== "review" ? ` (${STATUS_LABEL[statusOf(section)]})` : ""}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
 
-        <Card padding="loose" elevation="soft">
+        <div className={h.panel}>
+          <div className="mb-6 flex flex-col gap-2">
+            <div className="flex items-center justify-between text-[16px] text-[#4a5650]">
+              <span>
+                Step {activeIndex + 1} of {EVENT_BUILDER_SECTIONS.length}
+              </span>
+              <span>{status === "draft" ? "Draft: guests can't see it yet" : null}</span>
+            </div>
+            <div className={h.progress} aria-hidden="true">
+              <div
+                className={h.progressFill}
+                style={{ width: `${((activeIndex + 1) / EVENT_BUILDER_SECTIONS.length) * 100}%` }}
+              />
+            </div>
+          </div>
           <div className={h.formHead}>
             <h2 className={h.formTitle}>{SECTION_COPY[active].label}</h2>
-            <span className="text-micro text-gray">{status === "draft" ? "Draft: guests can't see it" : null}</span>
           </div>
 
           {/* noValidate: hidden sections can't show the browser's own
@@ -677,7 +704,7 @@ export function EventEditorForm({
                       placeholder="e.g. Tuesday and Thursday 7:30 AM, Saturday 8:00 AM"
                     />
                   </label>
-                  <p className="text-micro text-gray">
+                  <p className="text-[15px] text-gray">
                     An ongoing programme has no set date. Guests see this schedule instead of a date.
                   </p>
                 </>
@@ -773,7 +800,7 @@ export function EventEditorForm({
                   checked={includedWithMembership}
                   onChange={(evt) => handleIncludedChange(evt.target.checked)}
                 />
-                <span className="text-[14px] text-olive">Free for members (sets the member price to $0)</span>
+                <span className="text-[17px] text-olive">Free for members (sets the member price to $0)</span>
               </label>
               <label className={s.field}>
                 <span className={s.label}>Who it's for</span>
@@ -786,7 +813,7 @@ export function EventEditorForm({
                   <option value="members_only">Members only</option>
                 </select>
               </label>
-              <p className="text-micro text-gray">“Who it's for” only labels the event. Anyone can still sign up.</p>
+              <p className="text-[15px] text-gray">“Who it's for” only labels the event. Anyone can still sign up.</p>
             </div>
 
             <div hidden={active !== "guests"}>
@@ -822,7 +849,7 @@ export function EventEditorForm({
               </section>
               <label className="flex items-center gap-2.5">
                 <input type="checkbox" checked={featured} onChange={(evt) => setFeatured(evt.target.checked)} />
-                <span className="text-[14px] text-olive">Feature this event (shows it large at the top of the calendar)</span>
+                <span className="text-[17px] text-olive">Feature this event (shows it large at the top of the calendar)</span>
               </label>
             </div>
 
@@ -848,11 +875,11 @@ export function EventEditorForm({
                   return (
                     <div key={section} className="flex items-start justify-between gap-4 py-3">
                       <div>
-                        <dt className="text-[14px] font-semibold text-olive">{SECTION_COPY[section].label}</dt>
-                        <dd className="mt-0.5 text-[14px] text-gray">{summaries[section] || "Not filled in yet"}</dd>
+                        <dt className="text-[17px] font-semibold text-olive">{SECTION_COPY[section].label}</dt>
+                        <dd className="mt-0.5 text-[17px] text-gray">{summaries[section] || "Not filled in yet"}</dd>
                       </div>
                       <div className="flex shrink-0 items-center gap-3">
-                        <span className={`text-micro ${STATUS_CLASS[sectionState]}`}>
+                        <span className={`text-[15px] ${STATUS_CLASS[sectionState]}`}>
                           {STATUS_MARK[sectionState]} {STATUS_LABEL[sectionState]}
                         </span>
                         <Button type="button" variant="link" size="sm" onClick={() => setActive(section)}>
@@ -884,13 +911,13 @@ export function EventEditorForm({
                   checked={isManuallySoldOut}
                   onChange={(evt) => setIsManuallySoldOut(evt.target.checked)}
                 />
-                <span className="text-[14px] text-olive">
+                <span className="text-[17px] text-olive">
                   Mark as sold out (stops new sign-ups, even if spots are left)
                 </span>
               </label>
               <label className="flex items-center gap-2.5">
                 <input type="checkbox" checked={isTemplate} onChange={(evt) => setIsTemplate(evt.target.checked)} />
-                <span className="text-[14px] text-olive">
+                <span className="text-[17px] text-olive">
                   Save as a template (guests won't see it; start new events from it with &quot;New from template&quot;)
                 </span>
               </label>
@@ -934,10 +961,10 @@ export function EventEditorForm({
               )}
             </div>
           </form>
-        </Card>
+        </div>
       </div>
 
-      <div className="xl:sticky xl:top-6">
+      <div className="2xl:sticky 2xl:top-6 max-w-[40rem]">
         <EventLivePreview event={previewData} />
       </div>
     </div>

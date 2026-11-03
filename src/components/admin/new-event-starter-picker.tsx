@@ -1,4 +1,5 @@
 import Link from "next/link";
+import f from "./event-flow.module.css";
 import type { EventStarter, EventStarterKey } from "@/src/constants/admin/event-starters";
 
 // Optional quick start inside the "Fill it in myself" card: pick a starter
@@ -13,8 +14,8 @@ export function NewEventStarterPicker({
   activeKey: EventStarterKey | null;
 }) {
   return (
-    <div className="mb-5">
-      <p className="mb-2 text-[13px] text-gray">
+    <div className="mb-8">
+      <p className="mb-3 text-[17px] text-[#4a5650]">
         Optional: pick a starter to fill in typical spots, tickets and gear.
         {activeKey && (
           <>
@@ -25,7 +26,7 @@ export function NewEventStarterPicker({
           </>
         )}
       </p>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-3">
         {starters.map((starter) => {
           const isActive = starter.key === activeKey;
           return (
@@ -34,9 +35,7 @@ export function NewEventStarterPicker({
               href={`/admin/events/new?starter=${starter.key}`}
               aria-current={isActive ? "true" : undefined}
               title={starter.blurb}
-              className={`rounded-sharp border px-3 py-1.5 text-[14px] transition-colors ${
-                isActive ? "border-olive bg-paper font-semibold text-olive" : "border-rule text-olive hover:border-olive"
-              }`}
+              className={`${f.chip} ${isActive ? f.chipActive : ""}`}
             >
               {isActive ? "✓ " : ""}
               {starter.label}

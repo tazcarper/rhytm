@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import f from "./event-flow.module.css";
 
 type Way = "describe" | "manual";
 
@@ -24,8 +25,8 @@ export function NewEventWayChooser({
   const [way, setWay] = useState<Way>(initialWay);
 
   return (
-    <div className="mt-6">
-      <div role="tablist" aria-label="How to start" className="mb-4 grid gap-2 sm:grid-cols-2">
+    <div className={`mt-6 ${f.flow}`}>
+      <div role="tablist" aria-label="How to start" className={`mb-6 ${f.tabs}`}>
         {WAYS.map((option) => {
           const isActive = option.key === way;
           return (
@@ -35,12 +36,10 @@ export function NewEventWayChooser({
               role="tab"
               aria-selected={isActive}
               onClick={() => setWay(option.key)}
-              className={`rounded-sharp border px-4 py-3 text-left transition-colors ${
-                isActive ? "border-olive bg-paper" : "border-rule hover:border-olive"
-              }`}
+              className={`${f.tab} ${isActive ? f.tabActive : ""}`}
             >
-              <span className="block text-[15px] font-semibold text-olive">{option.label}</span>
-              <span className="mt-0.5 block text-[13px] text-gray">{option.hint}</span>
+              <span className={f.tabLabel}>{option.label}</span>
+              <span className={f.tabHint}>{option.hint}</span>
             </button>
           );
         })}

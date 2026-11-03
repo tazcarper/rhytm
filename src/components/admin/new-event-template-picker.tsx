@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Alert, Button } from "@/lib/ui";
+import { Alert } from "@/lib/ui";
+import { FlowButton as Button } from "./event-flow-button";
 import { duplicateEventFromTemplateAction } from "@/app/admin/events/actions";
 import type { AdminEventTemplateOption } from "@/src/services/admin/events";
 
@@ -36,7 +37,7 @@ export function NewEventTemplatePicker({
 
   return (
     <div className="mt-8 border-t border-rule pt-5">
-      <p className="mb-2 text-[13px] text-gray">Or copy a saved template into a new draft:</p>
+      <p className="mb-2 text-[16px] text-gray">Or copy a saved template into a new draft:</p>
       {error && (
         <Alert variant="error" title="Couldn't create from template">
           {error}
@@ -46,7 +47,7 @@ export function NewEventTemplatePicker({
         <select
           value={templateId}
           onChange={(event) => setTemplateId(event.target.value)}
-          className="min-w-[240px] rounded-sharp border border-rule px-3 py-2 text-[14px] text-olive"
+          className="min-h-[54px] min-w-[260px] rounded-[10px] border-2 border-[#b9c4bd] bg-white px-4 text-[18px] text-[#1c2420]"
         >
           <option value="">Choose a template…</option>
           {templates.map((template) => (

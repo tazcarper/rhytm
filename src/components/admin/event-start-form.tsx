@@ -2,12 +2,13 @@
 
 import { useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Alert, Button, Card } from "@/lib/ui";
+import { Alert } from "@/lib/ui";
+import { FlowButton as Button } from "./event-flow-button";
 import { saveEventAction, saveEventExtrasAction } from "@/app/admin/events/actions";
 import { EVENT_TYPES, STANDING_EVENT_TYPE } from "@/src/constants/admin/event-types";
 import type { EventStarter } from "@/src/constants/admin/event-starters";
-import s from "./bid-editor-form.module.css";
-import h from "./homepage-hero-form.module.css";
+import s from "./event-flow.module.css";
+import h from "./event-flow.module.css";
 
 interface PropertyOption {
   id: string;
@@ -90,17 +91,17 @@ export function EventStartForm({
   };
 
   return (
-    <Card padding="loose" elevation="soft" className="mb-6">
+    <div className={`${h.panel} ${h.flow} mb-6`}>
       <div className={h.formHead}>
-        <h2 className={h.formTitle}>Start with the essentials</h2>
+        <h2 className={h.formTitle}>Let's get the basics down</h2>
       </div>
       <p className={h.groupDesc}>
-        Just four things to begin. It's saved as a draft that guests can't see, then you add prices, tickets and
-        the rest one step at a time.
+        Four things to start. It's saved as a draft that guests can't see, then you add prices, tickets and the
+        rest one step at a time.
       </p>
       {starterPicker}
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         {error && (
           <Alert variant="error" title="Couldn't start the event">
             {error}
@@ -173,7 +174,9 @@ export function EventStartForm({
               />
             </label>
             <label className={s.field}>
-              <span className={s.label}>Ends (optional)</span>
+              <span className={s.label}>
+                Ends <span className="font-normal text-[#5d6963]">(optional)</span>
+              </span>
               <input
                 type="datetime-local"
                 value={endAt}
@@ -185,7 +188,7 @@ export function EventStartForm({
           </div>
         )}
 
-        <p className="text-micro text-gray">
+        <p className={h.note}>
           {isStanding
             ? "An ongoing programme has no set date. Guests see this schedule instead."
             : "Happens more than once, like every Wednesday? You'll add the other dates in the next step."}
@@ -198,6 +201,6 @@ export function EventStartForm({
         </div>
       </form>
       {footer}
-    </Card>
+    </div>
   );
 }

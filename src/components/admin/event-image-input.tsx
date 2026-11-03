@@ -15,13 +15,13 @@ import { downscaleImage } from "./downscale-image";
 const EVENT_IMAGE_RATIO = 16 / 9;
 const EVENT_IMAGE_MAX_EDGE = 1600;
 
-const labelCls = "block font-sans text-[12px] tracking-[0.5px] uppercase text-gray mb-1";
+const labelCls = "block font-sans text-[18px] font-semibold text-[#1c2420] mb-2";
 const inputCls =
-  "w-full border border-rule rounded px-3 py-2 font-serif text-[15px] text-olive focus:border-olive focus:outline-none bg-paper";
+  "w-full border-2 border-[#b9c4bd] rounded-[10px] px-4 py-3 font-sans text-[18px] text-olive focus:border-olive focus:outline-none bg-paper";
 const uploadBtnCls =
-  "self-start font-sans text-[12px] uppercase tracking-[0.5px] text-olive border border-rule rounded-pill px-4 py-1.5 hover:bg-cream disabled:opacity-40";
+  "self-start font-sans text-[17px] font-semibold text-[#1c2420] border-2 border-[#b9c4bd] rounded-[10px] px-5 py-3 hover:bg-cream disabled:opacity-40";
 const removeBtnCls =
-  "absolute -top-2 -right-2 h-6 w-6 grid place-items-center rounded-full bg-olive text-cream text-[14px] leading-none shadow";
+  "absolute -top-2 -right-2 h-6 w-6 grid place-items-center rounded-full bg-olive text-cream text-[17px] leading-none shadow";
 
 export function EventImageInput({
   value,
@@ -111,12 +111,12 @@ export function EventImageInput({
           />
         </div>
       </div>
-      <p className="font-serif italic text-[13px] text-gray m-0">
+      <p className="font-serif italic text-[16px] text-gray m-0">
         Upload an image and it auto-crops to 16:9 — becomes both the calendar
         thumbnail and the event hero.
       </p>
-      {status && !error && <p className="font-sans text-[13px] text-gray m-0">{status}</p>}
-      {error && <p className="font-sans text-[13px] text-[color:var(--error)] m-0">{error}</p>}
+      {status && !error && <p className="font-sans text-[16px] text-gray m-0">{status}</p>}
+      {error && <p className="font-sans text-[16px] text-[color:var(--error)] m-0">{error}</p>}
     </div>
   );
 }

@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "@/lib/ui";
+import { FlowButton as Button } from "./event-flow-button";
 import {
   REPEAT_FREQUENCIES,
   MAX_REPEAT_OCCURRENCES,
   repeatDates,
   type RepeatFrequency,
 } from "@/src/services/events/repeat-dates";
-import s from "./bid-editor-form.module.css";
+import s from "./event-flow.module.css";
 
 // "Repeats" picker for the event form. Produces the list of extra dates
 // (beyond the Starts date), each at the same time of day. The form then
@@ -89,7 +89,7 @@ export function RecurringDatesEditor({
             else onChange([]);
           }}
         />
-        <span className="text-[14px] text-olive">
+        <span className="text-[17px] text-olive">
           {isExistingEvent ? "Add more dates for this event" : "This event happens more than once"}
         </span>
       </label>
@@ -97,10 +97,10 @@ export function RecurringDatesEditor({
       {enabled && (
         <div className="mt-3 rounded-card border border-dashed border-rule p-4 bg-paper-warm">
           {!startDate ? (
-            <p className="text-[14px] text-gray m-0">Pick when it starts first, then choose how often it repeats.</p>
+            <p className="text-[17px] text-gray m-0">Pick when it starts first, then choose how often it repeats.</p>
           ) : (
             <>
-              <div className="flex flex-wrap items-center gap-2 text-[14px] text-olive">
+              <div className="flex flex-wrap items-center gap-2 text-[17px] text-olive">
                 <span>Repeat</span>
                 <select
                   value={frequency}
@@ -136,7 +136,7 @@ export function RecurringDatesEditor({
                 <span>{isExistingEvent ? "dates in total, counting this one" : "dates in total"}</span>
               </div>
 
-              <p className="mt-4 mb-2 text-[13px] font-semibold text-olive">
+              <p className="mt-4 mb-2 text-[16px] font-semibold text-olive">
                 {extraDates.length === 0
                   ? "No extra dates yet."
                   : isExistingEvent
@@ -145,14 +145,14 @@ export function RecurringDatesEditor({
               </p>
               <div className="flex flex-wrap gap-2">
                 {!isExistingEvent && extraDates.length > 0 && (
-                  <span className="inline-flex items-center rounded-pill border border-rule bg-paper px-2.5 py-1 text-[12px] text-olive">
+                  <span className="inline-flex items-center rounded-pill border border-rule bg-paper px-2.5 py-1 text-[18px] text-olive">
                     {fmtDate(startDate)}
                   </span>
                 )}
                 {extraDates.map((date) => (
                   <span
                     key={date}
-                    className="inline-flex items-center gap-1.5 rounded-pill border border-rule bg-paper px-2.5 py-1 text-[12px] text-olive"
+                    className="inline-flex items-center gap-1.5 rounded-pill border border-rule bg-paper px-2.5 py-1 text-[18px] text-olive"
                   >
                     {fmtDate(date)}
                     <button
@@ -169,7 +169,7 @@ export function RecurringDatesEditor({
               </div>
 
               <div className="mt-4 flex flex-wrap items-center gap-2">
-                <span className="text-[13px] text-gray">Add one more date:</span>
+                <span className="text-[16px] text-gray">Add one more date:</span>
                 <input
                   type="date"
                   value={manualDate}
@@ -182,7 +182,7 @@ export function RecurringDatesEditor({
                 </Button>
               </div>
 
-              <p className="text-[12px] text-gray mt-3 mb-0">
+              <p className="text-[18px] text-gray mt-3 mb-0">
                 Each date is its own event, with its own sign-ups and spots. Click × to skip a date.
               </p>
             </>

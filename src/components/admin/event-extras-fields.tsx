@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/lib/ui";
+import { FlowButton as Button } from "./event-flow-button";
 import type {
   GearItemInput,
   QuestionInput,
@@ -8,7 +8,7 @@ import type {
   SaveEventExtrasInput,
   TicketTypeInput,
 } from "@/src/services/events/event-extras-contract";
-import s from "./bid-editor-form.module.css";
+import s from "./event-flow.module.css";
 
 // Fields for an event's ticket types, gear and guest questions. Controlled:
 // EventEditorForm owns the state and saves it with the rest of the event,
@@ -242,7 +242,7 @@ export function EventExtrasFields({
                 Remove
               </Button>
             </div>
-            <div className="mt-2 flex flex-wrap gap-4 text-[14px] text-olive">
+            <div className="mt-2 flex flex-wrap gap-4 text-[17px] text-olive">
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -343,7 +343,7 @@ export function EventExtrasFields({
               />
             </label>
             <div className="flex items-center gap-3">
-              <label className="flex items-center gap-2 text-[14px] text-olive">
+              <label className="flex items-center gap-2 text-[17px] text-olive">
                 <input
                   type="checkbox"
                   checked={question.isRequired}
