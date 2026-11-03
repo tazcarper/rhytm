@@ -63,7 +63,7 @@ export function NewEventTemplatePicker({
         </Button>
       </div>
       <p className="mt-2 text-micro text-gray">
-        Or skip this and fill out a blank event below.
+        Copies everything from a saved event into a new draft.
       </p>
     </Card>
   );

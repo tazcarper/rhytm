@@ -2,8 +2,9 @@ import Link from "next/link";
 import { Card } from "@/lib/ui";
 import type { EventStarter, EventStarterKey } from "@/src/constants/admin/event-starters";
 
-// The quick path for most events: pick a starter, the blank editor below
-// fills with sensible defaults, then the admin edits the details. Plain
+// The quick path for most events: pick a starter and the new draft gets its
+// sensible defaults (kind, spots, tickets, gear), then the admin edits the
+// details in the section builder. Plain
 // links (?starter=…) so the choice survives a refresh and needs no client JS.
 export function NewEventStarterPicker({
   starters,
@@ -35,7 +36,7 @@ export function NewEventStarterPicker({
       </div>
       {activeKey && (
         <p className="mt-3 text-micro text-gray">
-          The form below is pre-filled. Tickets, gear and questions come next, after you save.{" "}
+          Its tickets, spots and gear are added for you. You can change any of it next.{" "}
           <Link href="/admin/events/new" className="underline">
             Clear
           </Link>

@@ -125,12 +125,19 @@ export function toExtrasInput({ tickets, gear, questions }: EditableExtras): Sav
   };
 }
 
+export type ExtrasPart = "tickets" | "gear" | "questions";
+const ALL_PARTS: ReadonlyArray<ExtrasPart> = ["tickets", "gear", "questions"];
+
+// `parts` picks which lists to show, so the event builder can put ticket
+// options with spots and prices, and gear and questions in their own section.
 export function EventExtrasFields({
   value,
   onChange,
+  parts = ALL_PARTS,
 }: {
   value: EditableExtras;
   onChange: (next: EditableExtras) => void;
+  parts?: ReadonlyArray<ExtrasPart>;
 }) {
   const { tickets, gear, questions } = value;
   const setTickets = (next: EditableTicket[]) => onChange({ ...value, tickets: next });
@@ -141,7 +148,8 @@ export function EventExtrasFields({
     list.map((item) => (item.key === key ? { ...item, ...patch } : item));
 
   return (
-    <div>
+    <div className="flex flex-col gap-8">
+      {parts.includes("tickets") && (
       <section>
         <h3 className={s.label}>Ticket options</h3>
         {tickets.map((ticket) => (
@@ -189,8 +197,10 @@ export function EventExtrasFields({
           Add a ticket option
         </Button>
       </section>
+      )}
 
-      <section className="mt-8">
+      {parts.includes("gear") && (
+      <section>
         <h3 className={s.label}>Gear</h3>
         {gear.map((item) => (
           <div key={item.key} className="mt-3 rounded-sharp border border-rule p-3">
@@ -292,8 +302,10 @@ export function EventExtrasFields({
           Add gear item
         </Button>
       </section>
+      )}
 
-      <section className="mt-8">
+      {parts.includes("questions") && (
+      <section>
         <h3 className={s.label}>Questions for guests</h3>
         {questions.map((question) => (
           <div key={question.key} className="mt-3 grid gap-2 sm:grid-cols-[3fr_1fr_2fr_auto] items-end">
@@ -363,6 +375,7 @@ export function EventExtrasFields({
           Add a question
         </Button>
       </section>
+      )}
     </div>
   );
 }

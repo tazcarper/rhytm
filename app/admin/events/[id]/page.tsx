@@ -11,8 +11,15 @@ import { getEventExtras } from "@/src/services/admin/event-extras";
 
 export const dynamic = "force-dynamic";
 
-export default async function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EditEventPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ started?: string }>;
+}) {
   const { id } = await params;
+  const { started } = await searchParams;
   const supabase = await createServerSupabaseClient();
 
   const [event, properties, roster, extras] = await Promise.all([
@@ -31,6 +38,15 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
     getAdminInstructors(supabase),
   ]);
 
+  const registrations = (
+    <section className="mt-6 mb-10">
+      <Heading level={2} size="h3" className="mb-3">
+        Registrations
+      </Heading>
+      <EventRoster rows={roster} />
+    </section>
+  );
+
   return (
     <PageShell width="xxl">
       <AdminBreadcrumb
@@ -44,20 +60,21 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
         Edit event
       </Heading>
 
-      <section className="mt-6 mb-10">
-        <Heading level={2} size="h3" className="mb-3">
-          Registrations
-        </Heading>
-        <EventRoster rows={roster} />
-      </section>
+      {/* Sign-ups come first once there are any; a fresh draft goes straight to the builder. */}
+      {roster.length > 0 && registrations}
 
-      <EventEditorForm
-        event={event}
-        properties={properties.map((property) => ({ id: property.id, name: property.name }))}
-        disciplineOptions={disciplineOptions}
-        instructorOptions={instructorOptions}
-        extras={extras}
-      />
+      <div className="mt-6">
+        <EventEditorForm
+          event={event}
+          properties={properties.map((property) => ({ id: property.id, name: property.name }))}
+          disciplineOptions={disciplineOptions}
+          instructorOptions={instructorOptions}
+          extras={extras}
+          justStarted={started === "1"}
+        />
+      </div>
+
+      {roster.length === 0 && registrations}
     </PageShell>
   );
 }

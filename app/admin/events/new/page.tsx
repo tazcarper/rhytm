@@ -3,13 +3,11 @@ import { Heading, PageShell } from "@/lib/ui";
 import { AdminBreadcrumb } from "@/src/components/admin/admin-breadcrumb";
 import { getAdminPropertiesList } from "@/src/services/admin/properties";
 import { getEventTemplates } from "@/src/services/admin/events";
-import { getAdminInstructors, getAssignableDisciplines } from "@/src/services/admin/instructors";
-import { EventEditorForm } from "@/src/components/admin/event-editor-form";
+import { EventStartForm } from "@/src/components/admin/event-start-form";
 import { NewEventTemplatePicker } from "@/src/components/admin/new-event-template-picker";
 import { NewEventStarterPicker } from "@/src/components/admin/new-event-starter-picker";
 import { EventHelperPanel } from "@/src/components/admin/event-helper-panel";
 import { EVENT_STARTERS, isEventStarterKey } from "@/src/constants/admin/event-starters";
-import { EMPTY_EVENT_EXTRAS } from "@/src/services/events/event-extras-contract";
 
 // Roles that get the AI helper (pilot decision, 2026-11-03). Mirrors
 // HELPER_ROLES in app/api/admin/event-helper/route.ts.
@@ -33,10 +31,6 @@ export default async function NewEventPage({
     getAdminPropertiesList(supabase),
     getEventTemplates(supabase),
   ]);
-  const [disciplineOptions, instructorOptions] = await Promise.all([
-    getAssignableDisciplines(supabase, properties.map((property) => property.id)),
-    getAdminInstructors(supabase),
-  ]);
 
   return (
     <PageShell width="xxl">
@@ -55,29 +49,15 @@ export default async function NewEventPage({
 
       <NewEventStarterPicker starters={Object.values(EVENT_STARTERS)} activeKey={activeStarter?.key ?? null} />
 
-      <NewEventTemplatePicker templates={templates} />
-
-      <EventEditorForm
-        // Remount when the starter changes so the form re-reads its seed.
+      <EventStartForm
+        // Remount when the starter changes so the form re-reads its defaults.
         key={activeStarter?.key ?? "blank"}
-        seed={
-          activeStarter
-            ? {
-                type: activeStarter.defaults.type,
-                maxCapacity: activeStarter.defaults.maxCapacity,
-                maxGuestsPerRegistration: activeStarter.defaults.maxGuestsPerRegistration,
-                infoBoxes: activeStarter.defaults.infoBoxes,
-              }
-            : undefined
-        }
-        event={null}
         properties={properties.map((property) => ({ id: property.id, name: property.name }))}
-        disciplineOptions={disciplineOptions}
-        instructorOptions={instructorOptions}
         defaultPropertyId={propertyId}
-        extras={activeStarter?.extras ?? EMPTY_EVENT_EXTRAS}
-        extrasNote={activeStarter ? `Pre-filled from the ${activeStarter.label} starter.` : undefined}
+        starter={activeStarter}
       />
+
+      <NewEventTemplatePicker templates={templates} />
     </PageShell>
   );
 }
