@@ -148,12 +148,12 @@ export function EventExtrasFields({
     list.map((item) => (item.key === key ? { ...item, ...patch } : item));
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-10">
       {parts.includes("tickets") && (
       <section>
-        <h3 className={s.label}>Ticket options</h3>
+        <h3 className={s.subhead}>Ticket options</h3>
         {tickets.map((ticket) => (
-          <div key={ticket.key} className="mt-3 grid gap-2 sm:grid-cols-[2fr_1fr_3fr_auto] items-end">
+          <div key={ticket.key} className="mt-6 grid gap-4 sm:grid-cols-[minmax(0,2.2fr)_minmax(6rem,1fr)_minmax(0,2.6fr)_auto] items-end">
             <label className={s.field}>
               <span className={s.label}>Name</span>
               <input
@@ -191,7 +191,7 @@ export function EventExtrasFields({
         <Button
           type="button"
           variant="secondary"
-          className="mt-3"
+          className="mt-5"
           onClick={() => setTickets([...tickets, { key: nextKey(), name: "", price: "0", description: "" }])}
         >
           Add a ticket option
@@ -201,10 +201,10 @@ export function EventExtrasFields({
 
       {parts.includes("gear") && (
       <section>
-        <h3 className={s.label}>Gear</h3>
+        <h3 className={s.subhead}>Gear</h3>
         {gear.map((item) => (
-          <div key={item.key} className="mt-3 rounded-sharp border border-rule p-3">
-            <div className="grid gap-2 sm:grid-cols-[2fr_1fr_1fr_auto] items-end">
+          <div key={item.key} className="mt-6 rounded-[12px] border border-[#d6ddd5] p-5">
+            <div className="grid gap-4 sm:grid-cols-[minmax(0,2fr)_minmax(6rem,1fr)_minmax(6rem,1fr)_auto] items-end">
               <label className={s.field}>
                 <span className={s.label}>Item</span>
                 <input
@@ -282,7 +282,7 @@ export function EventExtrasFields({
         <Button
           type="button"
           variant="secondary"
-          className="mt-3"
+          className="mt-5"
           onClick={() =>
             setGear([
               ...gear,
@@ -306,9 +306,9 @@ export function EventExtrasFields({
 
       {parts.includes("questions") && (
       <section>
-        <h3 className={s.label}>Questions for guests</h3>
+        <h3 className={s.subhead}>Questions for guests</h3>
         {questions.map((question) => (
-          <div key={question.key} className="mt-3 grid gap-2 sm:grid-cols-[3fr_1fr_2fr_auto] items-end">
+          <div key={question.key} className="mt-6 grid gap-4 sm:grid-cols-[minmax(0,3fr)_minmax(0,1.4fr)_minmax(0,2fr)_auto] items-end">
             <label className={s.field}>
               <span className={s.label}>Question</span>
               <input
@@ -364,7 +364,7 @@ export function EventExtrasFields({
         <Button
           type="button"
           variant="secondary"
-          className="mt-3"
+          className="mt-5"
           onClick={() =>
             setQuestions([
               ...questions,

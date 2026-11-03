@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { Heading, PageShell } from "@/lib/ui";
+import { PageShell } from "@/lib/ui";
+import { EventPageSubhead, EventPageTitle } from "@/src/components/admin/event-page-title";
 import { AdminBreadcrumb } from "@/src/components/admin/admin-breadcrumb";
 import { getEvent, getEventRoster } from "@/src/services/admin/events";
 import { getAdminPropertiesList } from "@/src/services/admin/properties";
@@ -40,9 +41,7 @@ export default async function EditEventPage({
 
   const registrations = (
     <section className="mt-6 mb-10">
-      <Heading level={2} size="h3" className="mb-3">
-        Registrations
-      </Heading>
+      <EventPageSubhead>Registrations</EventPageSubhead>
       <EventRoster rows={roster} />
     </section>
   );
@@ -56,9 +55,7 @@ export default async function EditEventPage({
           { label: event.title },
         ]}
       />
-      <Heading level={1} size="h2" underline>
-        Edit event
-      </Heading>
+      <EventPageTitle>Edit event</EventPageTitle>
 
       {/* Sign-ups come first once there are any; a fresh draft goes straight to the builder. */}
       {roster.length > 0 && registrations}

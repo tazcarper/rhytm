@@ -66,13 +66,49 @@ textarea.input {
   margin-bottom: 8px;
 }
 
+/* Heading scale for the event pages (base text 18px, ratio ~1.25):
+   page title 40 → step title 30 → subsection 21. Large headings get
+   tighter line-height and slight negative tracking; spacing above a
+   heading is larger than below it, so each heading sits with the content
+   it introduces. */
+.pageTitle {
+  font-family: var(--sans);
+  font-size: clamp(32px, 4vw, 40px);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #1c2420;
+  margin: 8px 0 0;
+  text-wrap: balance;
+}
+
 .formTitle {
   font-family: var(--sans);
   font-size: 30px;
   line-height: 1.2;
   font-weight: 700;
+  letter-spacing: -0.015em;
   color: #1c2420;
   margin: 0;
+  text-wrap: balance;
+}
+
+.subhead {
+  font-family: var(--sans);
+  font-size: 21px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: #1c2420;
+  margin: 0 0 4px;
+}
+
+.eyebrow {
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #4a5650;
 }
 
 .groupDesc {

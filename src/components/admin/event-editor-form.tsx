@@ -501,7 +501,7 @@ export function EventEditorForm({
   const canPublish = status === "draft" && allProblems.length === 0;
 
   return (
-    <div className={`${h.flow} grid gap-8 2xl:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)] items-start`}>
+    <div className={`${h.flow} grid gap-8 2xl:grid-cols-[minmax(0,2.6fr)_minmax(0,1fr)] items-start`}>
       <div className="grid gap-8 lg:grid-cols-[16rem_minmax(0,1fr)] items-start">
         {/* Step list: a column on wide screens, a dropdown on phones. */}
         <nav aria-label="Event steps" className="hidden lg:block">
@@ -560,7 +560,7 @@ export function EventEditorForm({
 
         <div className={h.panel}>
           <div className="mb-6 flex flex-col gap-2">
-            <div className="flex items-center justify-between text-[16px] text-[#4a5650]">
+            <div className={`flex items-center justify-between ${h.eyebrow}`}>
               <span>
                 Step {activeIndex + 1} of {EVENT_BUILDER_SECTIONS.length}
               </span>
@@ -601,7 +601,7 @@ export function EventEditorForm({
 
             <p className={h.groupDesc}>{SECTION_COPY[active].desc}</p>
 
-            <div hidden={active !== "basics"} className="flex flex-col gap-4">
+            <div hidden={active !== "basics"} className="flex flex-col gap-7">
               <label className={s.field}>
                 <span className={s.label}>Event name</span>
                 <input
@@ -691,7 +691,7 @@ export function EventEditorForm({
               </label>
             </div>
 
-            <div hidden={active !== "when"} className="flex flex-col gap-4">
+            <div hidden={active !== "when"} className="flex flex-col gap-7">
               {isStanding ? (
                 <>
                   <label className={s.field}>
@@ -742,7 +742,7 @@ export function EventEditorForm({
               )}
             </div>
 
-            <div hidden={active !== "spots"} className="flex flex-col gap-4">
+            <div hidden={active !== "spots"} className="flex flex-col gap-10">
               <div className={h.grid2}>
                 <label className={s.field}>
                   <span className={s.label}>Total spots</span>
@@ -766,6 +766,7 @@ export function EventEditorForm({
                 </label>
               </div>
               <EventExtrasFields value={extrasState} onChange={setExtrasState} parts={["tickets"]} />
+              <div className="flex flex-col gap-4">
               <div className={h.grid2}>
                 <label className={s.field}>
                   <span className={s.label}>Member price</span>
@@ -802,6 +803,8 @@ export function EventEditorForm({
                 />
                 <span className="text-[17px] text-olive">Free for members (sets the member price to $0)</span>
               </label>
+              </div>
+              <div className="flex flex-col gap-2">
               <label className={s.field}>
                 <span className={s.label}>Who it's for</span>
                 <select
@@ -814,19 +817,20 @@ export function EventEditorForm({
                 </select>
               </label>
               <p className="text-[15px] text-gray">“Who it's for” only labels the event. Anyone can still sign up.</p>
+              </div>
             </div>
 
             <div hidden={active !== "guests"}>
               <EventExtrasFields value={extrasState} onChange={setExtrasState} parts={["gear", "questions"]} />
             </div>
 
-            <div hidden={active !== "page"} className="flex flex-col gap-6">
+            <div hidden={active !== "page"} className="flex flex-col gap-10">
               <section>
-                <h3 className={s.label}>Photo</h3>
+                <h3 className={`${s.subhead} mb-3`}>Photo</h3>
                 <EventImageInput value={imageUrl} onChange={setImageUrl} />
               </section>
               <section>
-                <h3 className={s.label}>Extra sections</h3>
+                <h3 className={s.subhead}>Extra sections</h3>
                 <p className={h.groupDesc}>
                   More sections for the event page, like “What to expect”. Each one is a paragraph or a bullet list.
                 </p>

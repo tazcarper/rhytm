@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { Heading, PageShell } from "@/lib/ui";
+import { PageShell } from "@/lib/ui";
+import { EventPageTitle } from "@/src/components/admin/event-page-title";
 import { AdminBreadcrumb } from "@/src/components/admin/admin-breadcrumb";
 import { getAdminPropertiesList } from "@/src/services/admin/properties";
 import { getEventTemplates } from "@/src/services/admin/events";
@@ -56,9 +57,7 @@ export default async function NewEventPage({
           { label: "New" },
         ]}
       />
-      <Heading level={1} size="h2" underline>
-        New event
-      </Heading>
+      <EventPageTitle>New event</EventPageTitle>
 
       {showHelper ? (
         <NewEventWayChooser
