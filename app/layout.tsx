@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Inter } from "next/font/google";
+import localFont from "next/font/local";
 import { SiteHeader } from "@/src/components/shared/site-header";
 import "./globals.css";
 
@@ -7,17 +7,21 @@ import "./globals.css";
 // no third-party request at runtime. The CSS variables are consumed
 // from app/globals.css via --serif and --sans aliases — components
 // reach for those aliases, not the font-specific names.
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["500", "600"],
-  style: ["normal", "italic"],
+const cormorant = localFont({
+  // Cormorant Garamond, latin subset, self-hosted (see src/styles/fonts/README.md).
+  src: [
+    { path: "../src/styles/fonts/cormorant-garamond-latin-italic-variable.woff2", weight: "500 600", style: "italic" },
+    { path: "../src/styles/fonts/cormorant-garamond-latin-normal-variable.woff2", weight: "500 600", style: "normal" },
+  ],
   variable: "--font-serif",
   display: "swap",
 });
 
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+const inter = localFont({
+  // Inter, latin subset, self-hosted (see src/styles/fonts/README.md).
+  src: [
+    { path: "../src/styles/fonts/inter-latin-normal-variable.woff2", weight: "400 600", style: "normal" },
+  ],
   variable: "--font-sans",
   display: "swap",
 });

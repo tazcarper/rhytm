@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Spectral, Work_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentViewer } from "@/src/services/shared/viewer";
 import { getResolvedPropertyProfile } from "@/src/services/public/property-profile";
@@ -12,17 +12,25 @@ import { PropertyFooter } from "@/src/components/public/property-template/proper
 // Deliberately a different pairing than Horseshoe Bay's Fraunces/Libre
 // Franklin so the two properties still read as visually distinct clubs
 // even in placeholder-font mode.
-const hhDisplay = Spectral({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
+const hhDisplay = localFont({
+  // Spectral, latin subset, self-hosted (see src/styles/fonts/README.md).
+  src: [
+    { path: "../../../src/styles/fonts/spectral-latin-italic-400.woff2", weight: "400", style: "italic" },
+    { path: "../../../src/styles/fonts/spectral-latin-italic-500.woff2", weight: "500", style: "italic" },
+    { path: "../../../src/styles/fonts/spectral-latin-italic-600.woff2", weight: "600", style: "italic" },
+    { path: "../../../src/styles/fonts/spectral-latin-normal-400.woff2", weight: "400", style: "normal" },
+    { path: "../../../src/styles/fonts/spectral-latin-normal-500.woff2", weight: "500", style: "normal" },
+    { path: "../../../src/styles/fonts/spectral-latin-normal-600.woff2", weight: "600", style: "normal" },
+  ],
   variable: "--font-hh-display",
   display: "swap",
 });
 
-const hhSans = Work_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+const hhSans = localFont({
+  // Work Sans, latin subset, self-hosted (see src/styles/fonts/README.md).
+  src: [
+    { path: "../../../src/styles/fonts/work-sans-latin-normal-variable.woff2", weight: "400 700", style: "normal" },
+  ],
   variable: "--font-hh-sans",
   display: "swap",
 });

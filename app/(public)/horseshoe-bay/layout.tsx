@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Fraunces, Libre_Franklin } from "next/font/google";
+import localFont from "next/font/local";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentViewer } from "@/src/services/shared/viewer";
 import { getResolvedPropertyProfile } from "@/src/services/public/property-profile";
@@ -11,17 +11,21 @@ import { PropertyFooter } from "@/src/components/public/property-template/proper
 // licensing is confirmed — see src/styles/property-themes.css's header
 // comment. Fraunces' italic carries the "Silverspoon accent" role;
 // Libre Franklin covers eyebrow/label/body, all previously freight-neo-pro.
-const hsbDisplay = Fraunces({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
+const hsbDisplay = localFont({
+  // Fraunces, latin subset, self-hosted (see src/styles/fonts/README.md).
+  src: [
+    { path: "../../../src/styles/fonts/fraunces-latin-italic-variable.woff2", weight: "400 600", style: "italic" },
+    { path: "../../../src/styles/fonts/fraunces-latin-normal-variable.woff2", weight: "400 600", style: "normal" },
+  ],
   variable: "--font-hsb-display",
   display: "swap",
 });
 
-const hsbSans = Libre_Franklin({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+const hsbSans = localFont({
+  // Libre Franklin, latin subset, self-hosted (see src/styles/fonts/README.md).
+  src: [
+    { path: "../../../src/styles/fonts/libre-franklin-latin-normal-variable.woff2", weight: "400 700", style: "normal" },
+  ],
   variable: "--font-hsb-sans",
   display: "swap",
 });

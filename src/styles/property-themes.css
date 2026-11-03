@@ -21,7 +21,8 @@
    this file (verified via getComputedStyle + inspecting the compiled
    stylesheet: zero rules were emitted for any of them).
 
-   Font values are placeholders (next/font/google) standing in for the
+   Font values are placeholders (free Google Fonts, self-hosted in
+   src/styles/fonts/) standing in for the
    mockups' paid Adobe Typekit families (shackleton, freight-neo-pro) and
    the license-unresolved self-hosted OTFs (Silverspoon, Fieldstone) —
    swap the --property-font-* values (and the next/font loader in each

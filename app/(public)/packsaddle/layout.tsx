@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { Domine, Zilla_Slab } from "next/font/google";
 import localFont from "next/font/local";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentViewer } from "@/src/services/shared/viewer";
@@ -16,17 +15,16 @@ import { PropertyFooter } from "@/src/components/public/property-template/proper
 // (body) is genuinely free and loads for real. Domine + Space Grotesk keep
 // Packsaddle visually distinct from Fraunces/Libre Franklin (Horseshoe Bay)
 // and Spectral/Work Sans (Hog Heaven).
-const psDisplay = Domine({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+const psDisplay = localFont({
+  // Domine, latin subset, self-hosted (see src/styles/fonts/README.md).
+  src: [
+    { path: "../../../src/styles/fonts/domine-latin-normal-variable.woff2", weight: "400 700", style: "normal" },
+  ],
   variable: "--font-ps-display",
   display: "swap",
 });
 
-// Space Grotesk is self-hosted (same OFL file Google serves, latin subset,
-// variable weight) because next/font/google failed Vercel builds on this
-// family: Turbopack couldn't resolve its font URLs ("next/font/google
-// queries have exactly one entry"). Loading it locally removes that fetch.
+// Space Grotesk, latin subset, self-hosted (see src/styles/fonts/README.md).
 const psLabel = localFont({
   src: "../../../src/styles/fonts/space-grotesk-latin-variable.woff2",
   weight: "500 700",
@@ -34,10 +32,18 @@ const psLabel = localFont({
   display: "swap",
 });
 
-const psSans = Zilla_Slab({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
+const psSans = localFont({
+  // Zilla Slab, latin subset, self-hosted (see src/styles/fonts/README.md).
+  src: [
+    { path: "../../../src/styles/fonts/zilla-slab-latin-italic-400.woff2", weight: "400", style: "italic" },
+    { path: "../../../src/styles/fonts/zilla-slab-latin-italic-500.woff2", weight: "500", style: "italic" },
+    { path: "../../../src/styles/fonts/zilla-slab-latin-italic-600.woff2", weight: "600", style: "italic" },
+    { path: "../../../src/styles/fonts/zilla-slab-latin-italic-700.woff2", weight: "700", style: "italic" },
+    { path: "../../../src/styles/fonts/zilla-slab-latin-normal-400.woff2", weight: "400", style: "normal" },
+    { path: "../../../src/styles/fonts/zilla-slab-latin-normal-500.woff2", weight: "500", style: "normal" },
+    { path: "../../../src/styles/fonts/zilla-slab-latin-normal-600.woff2", weight: "600", style: "normal" },
+    { path: "../../../src/styles/fonts/zilla-slab-latin-normal-700.woff2", weight: "700", style: "normal" },
+  ],
   variable: "--font-ps-sans",
   display: "swap",
 });
