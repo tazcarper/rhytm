@@ -6,7 +6,7 @@ import { Alert, Button, Card } from "@/lib/ui";
 import { saveEventAction, saveRecurringEventsAction, deleteEventAction } from "@/app/admin/events/actions";
 import type { AdminEventDetail, EventAudience, EventStatus } from "@/src/services/admin/events";
 import type { AdminDisciplineOption, AdminInstructorRow } from "@/src/services/admin/instructors";
-import { EVENT_TYPES, STANDING_EVENT_TYPE, eventTypeShowsInstructorFields } from "@/src/constants/admin/event-types";
+import { EVENT_TYPES, STANDING_EVENT_TYPE, eventTypeFields } from "@/src/constants/admin/event-types";
 import { EventInfoBoxEditor, type EditableInfoBox } from "./event-info-box-editor";
 import { EventImageInput } from "./event-image-input";
 import { EventLivePreview, type EventPreviewData } from "./event-live-preview";
@@ -205,7 +205,11 @@ export function EventEditorForm({
   const [extraDates, setExtraDates] = useState<string[]>([]);
 
   const isStanding = type === STANDING_EVENT_TYPE;
-  const showInstructorFields = eventTypeShowsInstructorFields(type);
+  const fields = eventTypeFields(type || null);
+  const showInstructorFields = fields.instructor;
+  const showDiscipline = fields.discipline;
+  // Members-only events have no non-member price to quote.
+  const showNonMemberPrice = audience !== "members_only";
 
   // Member price = 0 IS included-with-membership; both directions wired,
   // neither fires the other's handler, so there's no feedback loop — same
@@ -264,7 +268,7 @@ export function EventEditorForm({
         items: box.boxType === "list" ? box.items.filter((item) => item.trim()) : [box.body].filter(Boolean),
       })),
     memberPrice: memberPrice.trim() ? `$${memberPrice}` : "",
-    nonMemberPrice: nonMemberPrice.trim() ? `$${nonMemberPrice}` : "",
+    nonMemberPrice: showNonMemberPrice && nonMemberPrice.trim() ? `$${nonMemberPrice}` : "",
   };
 
   function buildPayload(overrideStartAt?: string) {
@@ -280,14 +284,14 @@ export function EventEditorForm({
       location: location.trim() || null,
       instructors: instructors.trim() || null,
       type: type.trim() || null,
-      discipline: discipline.trim() || null,
+      discipline: showDiscipline ? discipline.trim() || null : null,
       featured,
       includedWithMembership,
       audience,
       maxCapacity: Number(maxCapacity) || 0,
       maxGuestsPerRegistration: Number(maxGuestsPerRegistration) || 0,
       memberPrice: memberPrice.trim() === "" ? null : Number(memberPrice),
-      nonMemberPrice: nonMemberPrice.trim() === "" ? null : Number(nonMemberPrice),
+      nonMemberPrice: !showNonMemberPrice || nonMemberPrice.trim() === "" ? null : Number(nonMemberPrice),
       status,
       isManuallySoldOut,
       isTemplate,
@@ -433,7 +437,7 @@ export function EventEditorForm({
 
           <Group
             eyebrow="Classification"
-            desc="Powers the events calendar's Type/Discipline filter pills — a filter only appears once some event uses it, so any value works, but stay consistent (e.g. always “Shotgun”, not sometimes “Shotguns”)."
+            desc="Used to filter the public events calendar. Keep names consistent (always “Shotgun”, not sometimes “Shotguns”)."
           >
             <div className={h.grid2}>
               <label className={s.field}>
@@ -447,14 +451,16 @@ export function EventEditorForm({
                   ))}
                 </select>
               </label>
-              <SelectWithCustomFallback
-                label="Discipline"
-                value={discipline}
-                options={disciplineOptionNames}
-                onChange={setDiscipline}
-                placeholder="Select…"
-                disabledReason="No disciplines set up for this property yet"
-              />
+              {showDiscipline && (
+                <SelectWithCustomFallback
+                  label="Discipline"
+                  value={discipline}
+                  options={disciplineOptionNames}
+                  onChange={setDiscipline}
+                  placeholder="Select…"
+                  disabledReason="No disciplines set up for this property yet"
+                />
+              )}
             </div>
             <label className="flex items-center gap-2.5">
               <input type="checkbox" checked={featured} onChange={(evt) => setFeatured(evt.target.checked)} />
@@ -572,18 +578,20 @@ export function EventEditorForm({
                   placeholder="Leave blank if free"
                 />
               </label>
-              <label className={s.field}>
-                <span className={s.label}>Non-member price</span>
-                <input
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={nonMemberPrice}
-                  onChange={(evt) => setNonMemberPrice(evt.target.value)}
-                  className={s.input}
-                  placeholder="Leave blank if free"
-                />
-              </label>
+              {showNonMemberPrice && (
+                <label className={s.field}>
+                  <span className={s.label}>Non-member price</span>
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={nonMemberPrice}
+                    onChange={(evt) => setNonMemberPrice(evt.target.value)}
+                    className={s.input}
+                    placeholder="Leave blank if free"
+                  />
+                </label>
+              )}
             </div>
             <label className="flex items-center gap-2.5">
               <input
@@ -643,21 +651,6 @@ export function EventEditorForm({
               >
                 + What to expect
               </Button>
-              {showInstructorFields && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() =>
-                    setInfoBoxes([
-                      ...infoBoxes,
-                      { key: crypto.randomUUID(), boxType: "list", heading: "Required Gear", body: "", items: [""] },
-                    ])
-                  }
-                >
-                  + Required gear
-                </Button>
-              )}
             </div>
             <EventInfoBoxEditor boxes={infoBoxes} onChange={setInfoBoxes} />
           </Group>

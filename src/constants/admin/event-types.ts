@@ -19,8 +19,40 @@ export type EventType = (typeof EVENT_TYPES)[number];
 
 export const STANDING_EVENT_TYPE: EventType = "Standing";
 
-// Types that show the Instructor field + gear-oriented info-box quick-add,
-// mirroring the reference mockup's isTraining || isStanding grouping.
+// Which optional parts of the event editor each type uses. One map, so a
+// new type is one entry here rather than another `type === ...` check in the
+// form. Discipline lists the property's shooting disciplines, which only
+// mean something for shooting events; Social and Adventure hide it (Taz,
+// 2026-11-03).
+export interface EventTypeFields {
+  discipline: boolean;
+  instructor: boolean;
+}
+
+export const EVENT_TYPE_FIELDS: Record<EventType, EventTypeFields> = {
+  Training: { discipline: true, instructor: true },
+  League: { discipline: true, instructor: false },
+  Tournament: { discipline: true, instructor: false },
+  Social: { discipline: false, instructor: false },
+  Adventure: { discipline: false, instructor: false },
+  Standing: { discipline: true, instructor: true },
+};
+
+// Before a type is picked (or for an old free-text type), show discipline
+// but not the instructor, matching the form's earlier behaviour.
+const UNKNOWN_TYPE_FIELDS: EventTypeFields = {
+  discipline: true,
+  instructor: false,
+};
+
+function isEventType(type: string | null): type is EventType {
+  return type !== null && (EVENT_TYPES as ReadonlyArray<string>).includes(type);
+}
+
+export function eventTypeFields(type: string | null): EventTypeFields {
+  return isEventType(type) ? EVENT_TYPE_FIELDS[type] : UNKNOWN_TYPE_FIELDS;
+}
+
 export function eventTypeShowsInstructorFields(type: string | null): boolean {
-  return type === "Training" || type === STANDING_EVENT_TYPE;
+  return eventTypeFields(type).instructor;
 }
