@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition, type FormEvent } from "react";
+import { useEffect, useMemo, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Alert } from "@/lib/ui";
 import { FlowButton as Button } from "./event-flow-button";
@@ -22,6 +22,8 @@ import {
   EVENT_BUILDER_SECTIONS,
   checkEventForm,
   firstSectionWithProblems,
+  sectionFromStepSlug,
+  stepSlug,
   sectionStatus,
   type EventBuilderSection,
   type SectionStatus,
@@ -49,6 +51,8 @@ interface EventEditorFormProps {
   // True right after the start screen created this draft: shows a short
   // "here's what's next" note.
   justStarted?: boolean;
+  // The step to open first, from the page address (?step=…).
+  initialStep?: EventBuilderSection;
 }
 
 const SECTION_COPY: Record<EventBuilderSection, { label: string; desc: string }> = {
@@ -214,13 +218,33 @@ export function EventEditorForm({
   instructorOptions,
   extras,
   justStarted = false,
+  initialStep = "basics",
 }: EventEditorFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [showStartedNote, setShowStartedNote] = useState(justStarted);
-  const [active, setActive] = useState<EventBuilderSection>("basics");
+  const [active, setActive] = useState<EventBuilderSection>(initialStep);
+
+  // Mirror the open step into the address bar (?step=…) without reloading,
+  // so a step can be linked to and Back/Forward move between steps.
+  function goToStep(section: EventBuilderSection) {
+    setActive(section);
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("step") === stepSlug(section)) return;
+    url.searchParams.set("step", stepSlug(section));
+    url.searchParams.delete("started");
+    window.history.pushState(null, "", url);
+  }
+  useEffect(() => {
+    const onPopState = () => {
+      const section = sectionFromStepSlug(new URL(window.location.href).searchParams.get("step"));
+      setActive(section ?? "basics");
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
 
   const [propertyId, setPropertyId] = useState(event.propertyId);
   const [title, setTitle] = useState(event.title);
@@ -387,7 +411,7 @@ export function EventEditorForm({
     const firstProblem = firstSectionWithProblems(problems);
     if (firstProblem) {
       setError(`${SECTION_COPY[firstProblem].label}: ${problems[firstProblem][0]}`);
-      setActive(firstProblem);
+      goToStep(firstProblem);
       return;
     }
 
@@ -437,12 +461,12 @@ export function EventEditorForm({
   const goNext = () => {
     const index = EVENT_BUILDER_SECTIONS.indexOf(active);
     const next = EVENT_BUILDER_SECTIONS[index + 1];
-    if (next) setActive(next);
+    if (next) goToStep(next);
   };
   const goBack = () => {
     const index = EVENT_BUILDER_SECTIONS.indexOf(active);
     const previous = EVENT_BUILDER_SECTIONS[index - 1];
-    if (previous) setActive(previous);
+    if (previous) goToStep(previous);
   };
 
   const handleSubmit = (formEvent: FormEvent<HTMLFormElement>) => {
@@ -518,7 +542,7 @@ export function EventEditorForm({
                 <li key={section}>
                   <button
                     type="button"
-                    onClick={() => setActive(section)}
+                    onClick={() => goToStep(section)}
                     aria-current={isActive ? "step" : undefined}
                     className={`${h.step} ${isActive ? h.stepActive : ""}`}
                   >
@@ -545,7 +569,7 @@ export function EventEditorForm({
             <span className={s.label}>Step</span>
             <select
               value={active}
-              onChange={(evt) => setActive(evt.target.value as EventBuilderSection)}
+              onChange={(evt) => goToStep(evt.target.value as EventBuilderSection)}
               className={s.input}
             >
               {EVENT_BUILDER_SECTIONS.map((section, index) => (
@@ -863,7 +887,7 @@ export function EventEditorForm({
                   <ul className="mt-1 flex flex-col gap-1">
                     {allProblems.map((problem) => (
                       <li key={`${problem.section}-${problem.message}`}>
-                        <button type="button" className="underline" onClick={() => setActive(problem.section)}>
+                        <button type="button" className="underline" onClick={() => goToStep(problem.section)}>
                           {SECTION_COPY[problem.section].label}
                         </button>
                         : {problem.message}
@@ -886,7 +910,7 @@ export function EventEditorForm({
                         <span className={`text-[15px] ${STATUS_CLASS[sectionState]}`}>
                           {STATUS_MARK[sectionState]} {STATUS_LABEL[sectionState]}
                         </span>
-                        <Button type="button" variant="link" size="sm" onClick={() => setActive(section)}>
+                        <Button type="button" variant="link" size="sm" onClick={() => goToStep(section)}>
                           Change
                         </Button>
                       </div>

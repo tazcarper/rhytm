@@ -80,3 +80,24 @@ export function sectionStatus(
 export function firstSectionWithProblems(problems: EventFormProblems): EventBuilderSection | null {
   return EVENT_BUILDER_SECTIONS.find((section) => problems[section].length > 0) ?? null;
 }
+
+// The builder keeps the open step in the page address (?step=spots) so a
+// link can open a step directly and Back/Forward move between steps.
+// Readable slugs, decoupled from the internal section keys.
+const STEP_SLUGS: Readonly<Record<EventBuilderSection, string>> = {
+  basics: "basics",
+  when: "date",
+  spots: "spots",
+  guests: "gear",
+  page: "photo",
+  review: "review",
+};
+
+export function stepSlug(section: EventBuilderSection): string {
+  return STEP_SLUGS[section];
+}
+
+export function sectionFromStepSlug(slug: string | null | undefined): EventBuilderSection | null {
+  if (!slug) return null;
+  return EVENT_BUILDER_SECTIONS.find((section) => STEP_SLUGS[section] === slug) ?? null;
+}
