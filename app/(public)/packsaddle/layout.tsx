@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { Domine, Space_Grotesk, Zilla_Slab } from "next/font/google";
+import { Domine, Zilla_Slab } from "next/font/google";
+import localFont from "next/font/local";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentViewer } from "@/src/services/shared/viewer";
 import { getResolvedPropertyProfile } from "@/src/services/public/property-profile";
@@ -22,9 +23,13 @@ const psDisplay = Domine({
   display: "swap",
 });
 
-const psLabel = Space_Grotesk({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
+// Space Grotesk is self-hosted (same OFL file Google serves, latin subset,
+// variable weight) because next/font/google failed Vercel builds on this
+// family: Turbopack couldn't resolve its font URLs ("next/font/google
+// queries have exactly one entry"). Loading it locally removes that fetch.
+const psLabel = localFont({
+  src: "../../../src/styles/fonts/space-grotesk-latin-variable.woff2",
+  weight: "500 700",
   variable: "--font-ps-label",
   display: "swap",
 });
