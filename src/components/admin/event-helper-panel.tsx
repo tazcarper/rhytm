@@ -12,7 +12,7 @@ import s from "./bid-editor-form.module.css";
 
 type HelperResponse =
   | { kind: "question" | "capability" | "message"; sessionId: string; text: string }
-  | { kind: "draft"; sessionId: string; eventId: string }
+  | { kind: "draft"; sessionId: string; eventId: string; eventCount: number }
   | { kind: "error"; sessionId?: string | null; text: string };
 
 interface TranscriptLine {
@@ -52,7 +52,16 @@ export function EventHelperPanel({ propertyId }: { propertyId: string | null }) 
 
       switch (result.kind) {
         case "draft":
-          setTranscript((lines) => [...lines, { who: "helper", text: "Draft saved. Opening it in the editor…" }]);
+          setTranscript((lines) => [
+            ...lines,
+            {
+              who: "helper",
+              text:
+                result.eventCount > 1
+                  ? `Saved ${result.eventCount} dates as drafts. Opening the first one in the editor…`
+                  : "Draft saved. Opening it in the editor…",
+            },
+          ]);
           router.push(`/admin/events/${result.eventId}`);
           return;
         case "capability":

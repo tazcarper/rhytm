@@ -4,7 +4,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAnthropicEventHelperModel } from "@/lib/ai/anthropic-event-helper-model";
 import { checkRateLimit } from "@/src/services/security/rate-limit";
 import { getAdminPropertiesList } from "@/src/services/admin/properties";
-import { saveEvent, SaveEventSchema } from "@/src/services/admin/events";
+import { saveEvent, saveRecurringEvents, SaveEventSchema } from "@/src/services/admin/events";
 import { saveEventExtras } from "@/src/services/admin/event-extras";
 import { createDraftSessionStore } from "@/src/services/ai/draft-session-store";
 import { createCapabilityRequest } from "@/src/services/ai/capability-requests";
@@ -71,10 +71,20 @@ export async function POST(request: Request) {
         model: createAnthropicEventHelperModel(),
         sessions: createDraftSessionStore(supabase),
         saveDraft: async (inputs) => {
-          const saved = await saveEvent(supabase, SaveEventSchema.parse(inputs.event));
-          if (!saved.ok) return saved;
-          const extras = await saveEventExtras(supabase, saved.id, inputs.extras);
-          return extras.ok ? saved : { ok: false, error: extras.error };
+          const event = SaveEventSchema.parse(inputs.event);
+          const saved =
+            inputs.repeatDates.length > 1
+              ? await saveRecurringEvents(supabase, event, inputs.repeatDates)
+              : await saveEvent(supabase, event).then((result) =>
+                  result.ok ? { ok: true as const, ids: [result.id] } : result,
+                );
+          if (!saved.ok) return { ok: false, error: saved.error };
+          // Each date is its own event, so each gets its own tickets, gear and questions.
+          for (const id of saved.ids) {
+            const extras = await saveEventExtras(supabase, id, inputs.extras);
+            if (!extras.ok) return { ok: false, error: extras.error };
+          }
+          return { ok: true, id: saved.ids[0], count: saved.ids.length };
         },
         recordCapabilityRequest: (input) => createCapabilityRequest(supabase, input),
         profile: { businessName: BUSINESS_NAME, timezone: TIMEZONE, properties },

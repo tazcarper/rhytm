@@ -116,7 +116,7 @@ export const EVENT_STARTERS: Readonly<Record<EventStarterKey, EventStarter>> = {
       "An event that repeats on a regular schedule with the same format each time, such as a weekly league, a monthly social or a series of sessions.",
     askIfMissing: [
       "The first date, start time and end time",
-      "How often it repeats (the staff member adds the other dates in the editor)",
+      "How often it repeats and how many dates to schedule (if it never ends, ask whether to schedule a set number of dates or make it a Standing programme)",
       "The price per session or per player, and whether members pay a different price",
       "How many players each session can take",
     ],

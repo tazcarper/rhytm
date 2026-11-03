@@ -1,4 +1,5 @@
 import { SaveEventSchema } from "@/src/services/admin/events";
+import { MAX_REPEAT_OCCURRENCES } from "@/src/services/events/repeat-dates";
 import { SaveEventExtrasSchema } from "@/src/services/events/event-extras-contract";
 import {
   EventDraftSchema,
@@ -49,7 +50,9 @@ export const HELPER_LIMITS = {
 export interface EventHelperDeps {
   model: EventHelperModel;
   sessions: DraftSessionStore;
-  saveDraft: (inputs: DraftSaveInputs) => Promise<{ ok: true; id: string } | { ok: false; error: string }>;
+  // Saves the draft (every date of a repeating one) and returns the first
+  // event's id and how many events were created.
+  saveDraft: (inputs: DraftSaveInputs) => Promise<{ ok: true; id: string; count: number } | { ok: false; error: string }>;
   recordCapabilityRequest: (input: CapabilityRequestInput) => Promise<{ ok: true } | { ok: false; error: string }>;
   profile: HelperBusinessProfile;
   today: string; // "YYYY-MM-DD" in the business timezone
@@ -63,7 +66,7 @@ export interface EventHelperTurnInput {
 
 export type EventHelperResult =
   | { kind: "question"; sessionId: string; text: string }
-  | { kind: "draft"; sessionId: string; eventId: string }
+  | { kind: "draft"; sessionId: string; eventId: string; eventCount: number }
   | { kind: "capability"; sessionId: string; text: string }
   | { kind: "message"; sessionId: string; text: string }
   | { kind: "error"; sessionId: string | null; text: string };
@@ -121,6 +124,13 @@ export function checkDraft(rawInput: unknown, allowedPropertyIds: ReadonlySet<st
   for (const field of ["startAt", "endAt"] as const) {
     const value = draft.data[field];
     if (value !== null && !WALL_CLOCK.test(value)) problems.push(`${field}: use the format YYYY-MM-DDTHH:MM`);
+  }
+  const repeat = draft.data.repeat;
+  if (repeat) {
+    if (!draft.data.startAt) problems.push("repeat: a repeating event needs startAt; use null repeat for a Standing programme");
+    if (repeat.occurrences < 2 || repeat.occurrences > MAX_REPEAT_OCCURRENCES) {
+      problems.push(`repeat.occurrences: must be between 2 and ${MAX_REPEAT_OCCURRENCES}`);
+    }
   }
 
   const inputs = draftToSaveInputs(draft.data);
@@ -239,14 +249,18 @@ export async function runEventHelperTurn(
         content: [
           toolResult(
             toolUse.id,
-            saved.ok ? `Saved as draft event ${saved.id}.` : `Saving failed: ${saved.error}`,
+            saved.ok
+              ? saved.count > 1
+                ? `Saved ${saved.count} draft events; the first is ${saved.id}.`
+                : `Saved as draft event ${saved.id}.`
+              : `Saving failed: ${saved.error}`,
             !saved.ok,
           ),
         ],
       });
       if (saved.ok) {
         session.eventId = saved.id;
-        result = { kind: "draft", sessionId: session.id, eventId: saved.id };
+        result = { kind: "draft", sessionId: session.id, eventId: saved.id, eventCount: saved.count };
       } else {
         result = { kind: "error", sessionId: session.id, text: `The draft couldn't be saved: ${saved.error}` };
       }

@@ -8,6 +8,7 @@ import {
   TicketTypeSchema,
   type SaveEventExtrasInput,
 } from "@/src/services/events/event-extras-contract";
+import { REPEAT_FREQUENCIES, repeatDates } from "@/src/services/events/repeat-dates";
 
 // The shape the AI helper fills in when it proposes an event. Every field
 // is required (absent values are explicit nulls) so the tool can run in
@@ -40,6 +41,22 @@ export const EventDraftSchema = z.object({
   scheduleText: nullableText(
     'Only for a Standing programme with no single date, e.g. "Every Tuesday, 6–8 PM". Null for dated events.',
   ),
+  repeat: z
+    .object({
+      frequency: z
+        .enum(REPEAT_FREQUENCIES)
+        .describe(
+          '"weekly" for every week, "every_2_weeks", "monthly_same_weekday" for e.g. every 2nd Wednesday, "monthly_same_date" for e.g. the 15th of each month, "daily" for back-to-back days.',
+        ),
+      occurrences: z
+        .number()
+        .int()
+        .describe("Total number of dates in the series, counting the first one. Between 2 and 52."),
+    })
+    .nullable()
+    .describe(
+      "Set when the same event runs on several dates; each date becomes its own event with its own sign-ups. Needs startAt. Null for a one-off event and for a Standing programme. If staff say it repeats with no end date, ask whether to schedule a set number of dates or make it a Standing programme.",
+    ),
   location: nullableText('Where at the property it happens, e.g. "Main clubhouse" or "Five-stand deck". Null if not given.'),
   type: z
     .enum(EVENT_TYPES)
@@ -85,6 +102,9 @@ export type EventDraft = z.infer<typeof EventDraftSchema>;
 export interface DraftSaveInputs {
   event: SaveEventRawInput;
   extras: SaveEventExtrasInput;
+  // Start dates ("YYYY-MM-DD") for a repeating event, the first included.
+  // Empty for a one-off event.
+  repeatDates: string[];
 }
 
 // Maps a model draft onto the inputs the existing save paths accept.
@@ -124,6 +144,10 @@ export function draftToSaveInputs(draft: EventDraft): DraftSaveInputs {
       })),
     },
     extras: { tickets: draft.tickets, gear: draft.gear, questions: draft.questions },
+    repeatDates:
+      draft.repeat && draft.startAt
+        ? repeatDates(draft.startAt.slice(0, 10), draft.repeat.frequency, draft.repeat.occurrences)
+        : [],
   };
 }
 

@@ -2,6 +2,13 @@
 
 import { useState } from "react";
 import { Button } from "@/lib/ui";
+import {
+  REPEAT_FREQUENCIES,
+  REPEAT_FREQUENCY_LABELS,
+  MAX_REPEAT_OCCURRENCES,
+  repeatDates,
+  type RepeatFrequency,
+} from "@/src/services/events/repeat-dates";
 import s from "./bid-editor-form.module.css";
 
 // Recurring-dates picker for the New event form only. Generates a list of
@@ -11,13 +18,6 @@ import s from "./bid-editor-form.module.css";
 // a single row (see saveRecurringEvents in src/services/admin/events.ts for
 // why: this keeps every occurrence's capacity/roster independent, matching
 // how the rest of this app's event registration already works).
-
-const FREQUENCY_OPTIONS = [
-  { label: "Weekly", days: 7 },
-  { label: "Every 2 weeks", days: 14 },
-  { label: "Monthly", days: 30 },
-  { label: "Daily", days: 1 },
-];
 
 function fmtDate(date: string): string {
   const [year, month, day] = date.split("-").map(Number);
@@ -36,19 +36,14 @@ export function RecurringDatesEditor({
   onChange: (dates: string[]) => void;
 }) {
   const [enabled, setEnabled] = useState(extraDates.length > 0);
-  const [frequencyDays, setFrequencyDays] = useState(7);
+  const [frequency, setFrequency] = useState<RepeatFrequency>("weekly");
   const [occurrences, setOccurrences] = useState(4);
   const [manualDate, setManualDate] = useState("");
 
   function generate() {
     if (!startDate) return;
-    const dates: string[] = [];
-    let cursor = new Date(`${startDate}T00:00:00`);
-    for (let i = 1; i < Math.max(1, Math.min(52, occurrences)); i++) {
-      cursor = new Date(cursor.getTime() + frequencyDays * 86400000);
-      dates.push(cursor.toISOString().slice(0, 10));
-    }
-    onChange(dates);
+    // repeatDates includes the first date, which the Starts field already holds.
+    onChange(repeatDates(startDate, frequency, occurrences).slice(1));
   }
 
   function addManualDate() {
@@ -80,14 +75,14 @@ export function RecurringDatesEditor({
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <span className="text-[13px] text-gray">Quick add:</span>
             <select
-              value={frequencyDays}
-              onChange={(evt) => setFrequencyDays(Number(evt.target.value))}
+              value={frequency}
+              onChange={(evt) => setFrequency(evt.target.value as RepeatFrequency)}
               className={s.input}
               style={{ width: "auto" }}
             >
-              {FREQUENCY_OPTIONS.map((option) => (
-                <option key={option.label} value={option.days}>
-                  {option.label}
+              {REPEAT_FREQUENCIES.map((option) => (
+                <option key={option} value={option}>
+                  {REPEAT_FREQUENCY_LABELS[option]}
                 </option>
               ))}
             </select>
@@ -95,7 +90,7 @@ export function RecurringDatesEditor({
             <input
               type="number"
               min={1}
-              max={52}
+              max={MAX_REPEAT_OCCURRENCES}
               value={occurrences}
               onChange={(evt) => setOccurrences(Number(evt.target.value) || 1)}
               className={s.input}
