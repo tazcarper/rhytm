@@ -13,6 +13,7 @@
     "seed:local": "node --env-file=.env.local scripts/seed-local.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.4.0",
     "@dropbox/sign": "^1.11.0",
     "@paper-design/shaders-react": "^0.0.76",
     "@radix-ui/react-dialog": "^1.1.20",
