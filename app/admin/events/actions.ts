@@ -20,6 +20,8 @@ import {
   type SaveEventResult,
   type SaveRecurringEventsResult,
 } from "@/src/services/admin/events";
+import { saveEventExtras, type SaveEventExtrasResult } from "@/src/services/admin/event-extras";
+import { SaveEventExtrasSchema } from "@/src/services/events/event-extras-contract";
 
 // Thin actions: validate → service → revalidate the surfaces an event can
 // appear on. RLS enforces that only admin / super_admin / the owning
@@ -111,4 +113,23 @@ export async function cancelEventRegistrationAction(
 ): Promise<{ ok: boolean; error?: string }> {
   const supabase = await createServerSupabaseClient();
   return cancelEventRegistration(supabase, registrationId);
+}
+
+export async function saveEventExtrasAction(
+  eventId: string,
+  input: unknown,
+): Promise<SaveEventExtrasResult> {
+  const parsed = SaveEventExtrasSchema.safeParse(input);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    return {
+      ok: false,
+      error: issue ? `${issue.path.join(".")}: ${issue.message}` : "Invalid input",
+    };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const result = await saveEventExtras(supabase, eventId, parsed.data);
+  if (result.ok) revalidatePath(`/admin/events/${eventId}`);
+  return result;
 }

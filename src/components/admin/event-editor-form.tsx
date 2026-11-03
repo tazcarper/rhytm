@@ -28,7 +28,20 @@ interface EventEditorFormProps {
   // shortcut from a property's Marketing pages > Events tab). Ignored once
   // an existing event is loaded — its own propertyId always wins.
   defaultPropertyId?: string;
+  // Pre-fills a brand-new event from a built-in starter (see
+  // src/constants/admin/event-starters.ts). Ignored once an existing event
+  // is loaded.
+  seed?: EventFormSeed;
 }
+
+// The subset of an event a starter can pre-fill. No id — a seeded form is
+// still a create, not an edit.
+export type EventFormSeed = Partial<Omit<AdminEventDetail, "id" | "infoBoxes">> & {
+  infoBoxes?: ReadonlyArray<{ heading: string; items: ReadonlyArray<string> }>;
+  // Carried to the new event's page so its tickets/gear/questions editor
+  // can pre-fill from the same starter.
+  starterKey?: string;
+};
 
 function toLocalInput(iso: string | null | undefined): string {
   if (!iso) return "";
@@ -39,6 +52,16 @@ function toLocalInput(iso: string | null | undefined): string {
     `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
     `T${pad(date.getHours())}:${pad(date.getMinutes())}`
   );
+}
+
+function seedToEditableBoxes(seed: EventFormSeed | undefined): EditableInfoBox[] {
+  return (seed?.infoBoxes ?? []).map((box, index) => ({
+    key: `seed-${index}`,
+    boxType: "list",
+    heading: box.heading,
+    body: "",
+    items: box.items.length > 0 ? [...box.items] : [""],
+  }));
 }
 
 function toEditableBoxes(event: AdminEventDetail | null): EditableInfoBox[] {
@@ -138,43 +161,47 @@ export function EventEditorForm({
   disciplineOptions,
   instructorOptions,
   defaultPropertyId,
+  seed,
 }: EventEditorFormProps) {
+  const initial = event ?? (seed ? { ...seed, infoBoxes: undefined } : null);
+  const createdHref = (id: string) =>
+    seed?.starterKey ? `/admin/events/${id}?starter=${encodeURIComponent(seed.starterKey)}` : `/admin/events/${id}`;
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
 
   const [propertyId, setPropertyId] = useState(
-    event?.propertyId ?? defaultPropertyId ?? properties[0]?.id ?? "",
+    initial?.propertyId ?? defaultPropertyId ?? properties[0]?.id ?? "",
   );
-  const [title, setTitle] = useState(event?.title ?? "");
-  const [summary, setSummary] = useState(event?.summary ?? "");
-  const [description, setDescription] = useState(event?.description ?? "");
-  const [startAt, setStartAt] = useState(toLocalInput(event?.startAt));
-  const [endAt, setEndAt] = useState(toLocalInput(event?.endAt));
-  const [scheduleText, setScheduleText] = useState(event?.scheduleText ?? "");
-  const [location, setLocation] = useState(event?.location ?? "");
-  const [instructors, setInstructors] = useState(event?.instructors ?? "");
-  const [type, setType] = useState(event?.type ?? "");
-  const [discipline, setDiscipline] = useState(event?.discipline ?? "");
-  const [featured, setFeatured] = useState(event?.featured ?? false);
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [summary, setSummary] = useState(initial?.summary ?? "");
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [startAt, setStartAt] = useState(toLocalInput(initial?.startAt));
+  const [endAt, setEndAt] = useState(toLocalInput(initial?.endAt));
+  const [scheduleText, setScheduleText] = useState(initial?.scheduleText ?? "");
+  const [location, setLocation] = useState(initial?.location ?? "");
+  const [instructors, setInstructors] = useState(initial?.instructors ?? "");
+  const [type, setType] = useState(initial?.type ?? "");
+  const [discipline, setDiscipline] = useState(initial?.discipline ?? "");
+  const [featured, setFeatured] = useState(initial?.featured ?? false);
   const [includedWithMembership, setIncludedWithMembership] = useState(
-    event?.includedWithMembership ?? false,
+    initial?.includedWithMembership ?? false,
   );
-  const [audience, setAudience] = useState<EventAudience>(event?.audience ?? "members_and_public");
-  const [maxCapacity, setMaxCapacity] = useState(String(event?.maxCapacity ?? 20));
+  const [audience, setAudience] = useState<EventAudience>(initial?.audience ?? "members_and_public");
+  const [maxCapacity, setMaxCapacity] = useState(String(initial?.maxCapacity ?? 20));
   const [maxGuestsPerRegistration, setMaxGuestsPerRegistration] = useState(
-    String(event?.maxGuestsPerRegistration ?? 4),
+    String(initial?.maxGuestsPerRegistration ?? 4),
   );
-  const [memberPrice, setMemberPrice] = useState(event?.memberPrice != null ? String(event.memberPrice) : "");
+  const [memberPrice, setMemberPrice] = useState(initial?.memberPrice != null ? String(initial.memberPrice) : "");
   const [nonMemberPrice, setNonMemberPrice] = useState(
-    event?.nonMemberPrice != null ? String(event.nonMemberPrice) : "",
+    initial?.nonMemberPrice != null ? String(initial.nonMemberPrice) : "",
   );
-  const [status, setStatus] = useState<EventStatus>(event?.status ?? "draft");
-  const [isManuallySoldOut, setIsManuallySoldOut] = useState(event?.isManuallySoldOut ?? false);
-  const [isTemplate, setIsTemplate] = useState(event?.isTemplate ?? false);
-  const [imageUrl, setImageUrl] = useState(event?.imageUrl ?? "");
-  const [infoBoxes, setInfoBoxes] = useState<EditableInfoBox[]>(toEditableBoxes(event));
+  const [status, setStatus] = useState<EventStatus>(initial?.status ?? "draft");
+  const [isManuallySoldOut, setIsManuallySoldOut] = useState(initial?.isManuallySoldOut ?? false);
+  const [isTemplate, setIsTemplate] = useState(initial?.isTemplate ?? false);
+  const [imageUrl, setImageUrl] = useState(initial?.imageUrl ?? "");
+  const [infoBoxes, setInfoBoxes] = useState<EditableInfoBox[]>(event ? toEditableBoxes(event) : seedToEditableBoxes(seed));
   const [extraDates, setExtraDates] = useState<string[]>([]);
 
   const isStanding = type === STANDING_EVENT_TYPE;
@@ -295,7 +322,7 @@ export function EventEditorForm({
           return;
         }
         setSavedAt(Date.now());
-        router.push(`/admin/events/${result.ids[0]}`);
+        router.push(createdHref(result.ids[0]));
         return;
       }
 
@@ -307,7 +334,7 @@ export function EventEditorForm({
 
       setSavedAt(Date.now());
       if (!event) {
-        router.push(`/admin/events/${result.id}`);
+        router.push(createdHref(result.id));
         return;
       }
       router.refresh();

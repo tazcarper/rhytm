@@ -7,26 +7,39 @@ import { getAdminPropertiesList } from "@/src/services/admin/properties";
 import { getAdminInstructors, getAssignableDisciplines } from "@/src/services/admin/instructors";
 import { EventEditorForm } from "@/src/components/admin/event-editor-form";
 import { EventRoster } from "@/src/components/admin/event-roster";
+import { EventExtrasEditor } from "@/src/components/admin/event-extras-editor";
+import { getEventExtras, hasAnyExtras } from "@/src/services/admin/event-extras";
+import { EVENT_STARTERS, isEventStarterKey } from "@/src/constants/admin/event-starters";
 
 export const dynamic = "force-dynamic";
 
 export default async function EditEventPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ starter?: string }>;
 }) {
   const { id } = await params;
+  const { starter } = await searchParams;
   const supabase = await createServerSupabaseClient();
 
-  const [event, properties, roster] = await Promise.all([
+  const [event, properties, roster, savedExtras] = await Promise.all([
     getEvent(supabase, id),
     getAdminPropertiesList(supabase),
     getEventRoster(supabase, id),
+    getEventExtras(supabase, id),
   ]);
 
   if (!event) {
     notFound();
   }
+
+  // A freshly created event from a starter has nothing saved yet — offer
+  // the starter's tickets/gear/questions as a pre-fill the admin confirms.
+  const seedStarter =
+    !hasAnyExtras(savedExtras) && isEventStarterKey(starter) ? EVENT_STARTERS[starter] : null;
+  const extras = seedStarter ? seedStarter.extras : savedExtras;
 
   const [disciplineOptions, instructorOptions] = await Promise.all([
     getAssignableDisciplines(supabase, properties.map((property) => property.id)),
@@ -59,6 +72,8 @@ export default async function EditEventPage({
         disciplineOptions={disciplineOptions}
         instructorOptions={instructorOptions}
       />
+
+      <EventExtrasEditor eventId={event.id} extras={extras} seededFrom={seedStarter?.label} />
     </PageShell>
   );
 }

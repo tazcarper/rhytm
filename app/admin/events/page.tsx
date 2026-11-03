@@ -170,9 +170,14 @@ export default async function AdminEventsPage({
             each new event.
           </Text>
         </div>
-        <Button asChild variant="primary">
-          <Link href="/admin/events/new">New event</Link>
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button asChild variant="secondary">
+            <Link href="/admin/events/feature-requests">Feature requests</Link>
+          </Button>
+          <Button asChild variant="primary">
+            <Link href="/admin/events/new">New event</Link>
+          </Button>
+        </div>
       </div>
 
       {error && (
