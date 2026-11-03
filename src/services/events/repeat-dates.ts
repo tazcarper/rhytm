@@ -15,14 +15,6 @@ export const REPEAT_FREQUENCIES = [
 
 export type RepeatFrequency = (typeof REPEAT_FREQUENCIES)[number];
 
-export const REPEAT_FREQUENCY_LABELS: Record<RepeatFrequency, string> = {
-  daily: "Daily",
-  weekly: "Weekly",
-  every_2_weeks: "Every 2 weeks",
-  monthly_same_weekday: "Monthly, same weekday (e.g. 2nd Wednesday)",
-  monthly_same_date: "Monthly, same date",
-};
-
 // The editor and the helper both cap a series here: a year of weekly dates.
 export const MAX_REPEAT_OCCURRENCES = 52;
 

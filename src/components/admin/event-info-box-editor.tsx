@@ -100,7 +100,7 @@ export function EventInfoBoxEditor({ boxes, onChange }: EventInfoBoxEditorProps)
           <div className="flex flex-col gap-4">
             <div className={h.grid2}>
               <label className={s.field}>
-                <span className={s.label}>Type</span>
+                <span className={s.label}>Layout</span>
                 <select
                   value={box.boxType}
                   onChange={(event) =>
@@ -108,8 +108,8 @@ export function EventInfoBoxEditor({ boxes, onChange }: EventInfoBoxEditorProps)
                   }
                   className={s.input}
                 >
-                  <option value="description">Description</option>
-                  <option value="list">List</option>
+                  <option value="description">Paragraph</option>
+                  <option value="list">Bullet list</option>
                 </select>
               </label>
               <label className={s.field}>
@@ -126,7 +126,7 @@ export function EventInfoBoxEditor({ boxes, onChange }: EventInfoBoxEditorProps)
 
             {box.boxType === "description" ? (
               <label className={s.field}>
-                <span className={s.label}>Body</span>
+                <span className={s.label}>Text</span>
                 <textarea
                   value={box.body}
                   onChange={(event) => updateBox(box.key, { body: event.target.value })}
@@ -136,7 +136,7 @@ export function EventInfoBoxEditor({ boxes, onChange }: EventInfoBoxEditorProps)
               </label>
             ) : (
               <div className="flex flex-col gap-2">
-                <span className={s.label}>Items</span>
+                <span className={s.label}>Bullet points</span>
                 {box.items.map((item, itemIndex) => (
                   <div key={itemIndex} className="flex items-center gap-2">
                     <input
@@ -157,7 +157,7 @@ export function EventInfoBoxEditor({ boxes, onChange }: EventInfoBoxEditorProps)
                   </div>
                 ))}
                 <Button type="button" variant="secondary" size="sm" onClick={() => addItem(box.key)}>
-                  Add item
+                  Add a bullet point
                 </Button>
               </div>
             )}

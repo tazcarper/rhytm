@@ -143,7 +143,7 @@ export function EventExtrasFields({
   return (
     <div>
       <section>
-        <h3 className={s.label}>Tickets</h3>
+        <h3 className={s.label}>Ticket options</h3>
         {tickets.map((ticket) => (
           <div key={ticket.key} className="mt-3 grid gap-2 sm:grid-cols-[2fr_1fr_3fr_auto] items-end">
             <label className={s.field}>
@@ -167,7 +167,7 @@ export function EventExtrasFields({
               />
             </label>
             <label className={s.field}>
-              <span className={s.label}>Note</span>
+              <span className={s.label}>Details</span>
               <input
                 className={s.input}
                 value={ticket.description}
@@ -186,7 +186,7 @@ export function EventExtrasFields({
           className="mt-3"
           onClick={() => setTickets([...tickets, { key: nextKey(), name: "", price: "0", description: "" }])}
         >
-          Add ticket type
+          Add a ticket option
         </Button>
       </section>
 
@@ -205,26 +205,26 @@ export function EventExtrasFields({
                 />
               </label>
               <label className={s.field}>
-                <span className={s.label}>Rent ($)</span>
+                <span className={s.label}>Rental price ($)</span>
                 <input
                   className={s.input}
                   type="number"
                   min="0"
                   step="0.01"
                   value={item.rentPrice}
-                  placeholder="Not offered"
+                  placeholder="Leave blank if not offered"
                   onChange={(evt) => setGear(update(gear, item.key, { rentPrice: evt.target.value }))}
                 />
               </label>
               <label className={s.field}>
-                <span className={s.label}>Buy ($)</span>
+                <span className={s.label}>Price to buy ($)</span>
                 <input
                   className={s.input}
                   type="number"
                   min="0"
                   step="0.01"
                   value={item.buyPrice}
-                  placeholder="Not offered"
+                  placeholder="Leave blank if not offered"
                   onChange={(evt) => setGear(update(gear, item.key, { buyPrice: evt.target.value }))}
                 />
               </label>
@@ -247,7 +247,7 @@ export function EventExtrasFields({
                   checked={item.included}
                   onChange={(evt) => setGear(update(gear, item.key, { included: evt.target.checked }))}
                 />
-                Included with ticket
+                Comes with the ticket
               </label>
               <label className="flex items-center gap-2">
                 <input
@@ -255,11 +255,11 @@ export function EventExtrasFields({
                   checked={item.bringOwnAllowed}
                   onChange={(evt) => setGear(update(gear, item.key, { bringOwnAllowed: evt.target.checked }))}
                 />
-                Guests may bring their own
+                Guests can bring their own
               </label>
             </div>
             <label className={`${s.field} mt-2`}>
-              <span className={s.label}>Note</span>
+              <span className={s.label}>Details</span>
               <input
                 className={s.input}
                 value={item.notes}
@@ -289,7 +289,7 @@ export function EventExtrasFields({
             ])
           }
         >
-          Add gear
+          Add gear item
         </Button>
       </section>
 
@@ -307,7 +307,7 @@ export function EventExtrasFields({
               />
             </label>
             <label className={s.field}>
-              <span className={s.label}>Answer type</span>
+              <span className={s.label}>How they answer</span>
               <select
                 className={s.input}
                 value={question.kind}
@@ -315,18 +315,18 @@ export function EventExtrasFields({
                   setQuestions(update(questions, question.key, { kind: evt.target.value as QuestionKind }))
                 }
               >
-                <option value="short_text">Short answer</option>
-                <option value="yes_no">Yes / no</option>
-                <option value="choice">Pick one</option>
+                <option value="short_text">Type a short answer</option>
+                <option value="yes_no">Yes or no</option>
+                <option value="choice">Pick from a list</option>
               </select>
             </label>
             <label className={s.field}>
-              <span className={s.label}>Choices (comma separated)</span>
+              <span className={s.label}>List options, separated by commas</span>
               <input
                 className={s.input}
                 value={question.options}
                 disabled={question.kind !== "choice"}
-                placeholder={question.kind === "choice" ? "S, M, L, XL" : "Only for Pick one"}
+                placeholder={question.kind === "choice" ? "S, M, L, XL" : "Only for “Pick from a list”"}
                 onChange={(evt) => setQuestions(update(questions, question.key, { options: evt.target.value }))}
               />
             </label>
@@ -360,7 +360,7 @@ export function EventExtrasFields({
             ])
           }
         >
-          Add question
+          Add a question
         </Button>
       </section>
     </div>

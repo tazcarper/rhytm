@@ -128,7 +128,7 @@ function SelectWithCustomFallback({
             {option}
           </option>
         ))}
-        <option value={CUSTOM}>— Custom —</option>
+        <option value={CUSTOM}>Something else…</option>
       </select>
       {selectValue === CUSTOM && (
         <input
@@ -136,7 +136,7 @@ function SelectWithCustomFallback({
           value={value}
           onChange={(evt) => onChange(evt.target.value)}
           className={s.input}
-          placeholder="Type a value"
+          placeholder="Type it in"
           style={{ marginTop: "0.5rem" }}
         />
       )}
@@ -436,7 +436,7 @@ export function EventEditorForm({
             </Alert>
           )}
 
-          <Group eyebrow="Basics" desc="What the event is called, where it's happening, and which property it belongs to.">
+          <Group eyebrow="Basics" desc="The event's name, where it happens, and which property it's at.">
             <label className={s.field}>
               <span className={s.label}>Property</span>
               <select
@@ -453,7 +453,7 @@ export function EventEditorForm({
               </select>
             </label>
             <label className={s.field}>
-              <span className={s.label}>Title</span>
+              <span className={s.label}>Event name</span>
               <input
                 type="text"
                 value={title}
@@ -464,13 +464,13 @@ export function EventEditorForm({
               />
             </label>
             <label className={s.field}>
-              <span className={s.label}>Summary</span>
+              <span className={s.label}>Short summary</span>
               <input
                 type="text"
                 value={summary}
                 onChange={(evt) => setSummary(evt.target.value)}
                 className={s.input}
-                placeholder="Short blurb shown on the listing card"
+                placeholder="One line shown on the event card"
               />
             </label>
             <label className={s.field}>
@@ -495,14 +495,14 @@ export function EventEditorForm({
           </Group>
 
           <Group
-            eyebrow="Classification"
-            desc="Used to filter the public events calendar. Keep names consistent (always “Shotgun”, not sometimes “Shotguns”)."
+            eyebrow="Category"
+            desc="Helps guests filter the events calendar. Use the same names every time (always “Shotgun”, not sometimes “Shotguns”)."
           >
             <div className={h.grid2}>
               <label className={s.field}>
-                <span className={s.label}>Type</span>
+                <span className={s.label}>Kind of event</span>
                 <select value={type} onChange={(evt) => setType(evt.target.value)} className={s.input}>
-                  <option value="">Select…</option>
+                  <option value="">Choose…</option>
                   {EVENT_TYPES.map((option) => (
                     <option key={option} value={option}>
                       {option}
@@ -516,7 +516,7 @@ export function EventEditorForm({
                   value={discipline}
                   options={disciplineOptionNames}
                   onChange={setDiscipline}
-                  placeholder="Select…"
+                  placeholder="Choose…"
                   disabledReason="No disciplines set up for this property yet"
                 />
               )}
@@ -524,7 +524,7 @@ export function EventEditorForm({
             <label className="flex items-center gap-2.5">
               <input type="checkbox" checked={featured} onChange={(evt) => setFeatured(evt.target.checked)} />
               <span className="text-[14px] text-olive">
-                Feature this event (gets the large callout card at the top of the calendar)
+                Feature this event (shows it large at the top of the calendar)
               </span>
             </label>
           </Group>
@@ -533,13 +533,13 @@ export function EventEditorForm({
             eyebrow="Date & time"
             desc={
               isStanding
-                ? "A Standing programme runs indefinitely, so it has no date — it shows once on the calendar with this schedule instead."
-                : "When the event happens. End time is optional."
+                ? "An ongoing programme has no set date. Guests see this schedule instead of a date."
+                : "When it happens. The end time is optional."
             }
           >
             {isStanding ? (
               <label className={s.field}>
-                <span className={s.label}>Schedule</span>
+                <span className={s.label}>When it runs</span>
                 <input
                   type="text"
                   value={scheduleText}
@@ -577,32 +577,32 @@ export function EventEditorForm({
                   startDate={startAt.split("T")[0] ?? ""}
                   extraDates={extraDates}
                   onChange={setExtraDates}
-                  toggleLabel={event ? "Copy this event to more dates" : "Repeat this event on more dates"}
+                  isExistingEvent={Boolean(event)}
                 />
               </>
             )}
           </Group>
 
           {showInstructorFields && (
-            <Group eyebrow="Instructor" desc="Who's running this session, sourced from the property's roster.">
+            <Group eyebrow="Instructor" desc="Who's leading it. The list comes from this property's instructors.">
               <SelectWithCustomFallback
                 label="Instructor"
                 value={instructors}
                 options={instructorOptionNames}
                 onChange={setInstructors}
-                placeholder="Select…"
+                placeholder="Choose…"
                 disabledReason="No instructors set up for this property yet"
               />
             </Group>
           )}
 
           <Group
-            eyebrow="Capacity & pricing"
-            desc="A hard cap on total registered guests, the most one registration can claim, and quoted prices for members vs. non-members. No payment is collected at registration — prices are informational."
+            eyebrow="Spots and prices"
+            desc="How many people can come and what it costs. Guests don't pay when they sign up; prices are shown so they know what to expect."
           >
             <div className={h.grid2}>
               <label className={s.field}>
-                <span className={s.label}>Max capacity</span>
+                <span className={s.label}>Total spots</span>
                 <input
                   type="number"
                   min={1}
@@ -613,7 +613,7 @@ export function EventEditorForm({
                 />
               </label>
               <label className={s.field}>
-                <span className={s.label}>Max guests per registration</span>
+                <span className={s.label}>Most people one person can sign up</span>
                 <input
                   type="number"
                   min={1}
@@ -659,7 +659,7 @@ export function EventEditorForm({
                 onChange={(evt) => handleIncludedChange(evt.target.checked)}
               />
               <span className="text-[14px] text-olive">
-                Included with membership (free to members — sets member price to $0)
+                Free for members (sets the member price to $0)
               </span>
             </label>
             <label className="flex items-center gap-2.5">
@@ -669,39 +669,39 @@ export function EventEditorForm({
                 onChange={(evt) => setIsManuallySoldOut(evt.target.checked)}
               />
               <span className="text-[14px] text-olive">
-                Force sold out (blocks new confirmed registrations even under capacity)
+                Mark as sold out (stops new sign-ups, even if spots are left)
               </span>
             </label>
           </Group>
 
           <Group
             eyebrow="Tickets, gear and questions"
-            desc={`Ticket types guests choose from, the gear they need, and questions asked at sign-up.${extrasNote ? ` ${extrasNote}` : ""}`}
+            desc={`The ticket options guests pick from, the gear they need, and anything to ask them when they sign up.${extrasNote ? ` ${extrasNote}` : ""}`}
           >
             <EventExtrasFields value={extrasState} onChange={setExtrasState} />
           </Group>
 
-          <Group eyebrow="Who can attend" desc="Informational only — every event stays open to anyone at registration; this just labels the event.">
+          <Group eyebrow="Who can attend" desc="This only labels the event for guests. Anyone can still sign up.">
             <label className={s.field}>
-              <span className={s.label}>Audience</span>
+              <span className={s.label}>Who it's for</span>
               <select
                 value={audience}
                 onChange={(evt) => setAudience(evt.target.value as EventAudience)}
                 className={s.input}
               >
-                <option value="members_and_public">Members & public</option>
+                <option value="members_and_public">Members and the public</option>
                 <option value="members_only">Members only</option>
               </select>
             </label>
           </Group>
 
-          <Group eyebrow="Image" desc="Optional. Shown on the listing card and detail page.">
+          <Group eyebrow="Image" desc="Optional. Shown on the event card and the event page.">
             <EventImageInput value={imageUrl} onChange={setImageUrl} />
           </Group>
 
           <Group
-            eyebrow="Info boxes"
-            desc="Extra content blocks for the detail page — 'What to expect', 'Required gear', and similar. Description boxes are prose; list boxes are bullets."
+            eyebrow="Extra sections"
+            desc="More sections for the event page, like “What to expect”. Each one is either a paragraph or a bullet list."
           >
             <div className="flex gap-2 mb-3">
               <Button
@@ -721,7 +721,7 @@ export function EventEditorForm({
             <EventInfoBoxEditor boxes={infoBoxes} onChange={setInfoBoxes} />
           </Group>
 
-          <Group eyebrow="Status" desc="Draft is hidden from the public. Published is open for registration. Sold out / cancelled / completed are shown to the public but closed for new registrations.">
+          <Group eyebrow="Status" desc="Draft: only staff can see it. Published: guests can see it and sign up. Sold out, Cancelled and Completed: guests can see it but can't sign up.">
             <label className={s.field}>
               <span className={s.label}>Status</span>
               <select
@@ -748,7 +748,7 @@ export function EventEditorForm({
                 onChange={(evt) => setIsTemplate(evt.target.checked)}
               />
               <span className="text-[14px] text-olive">
-                Save as a reusable template (hidden from the public; usable via &quot;New from template&quot;)
+                Save as a template (guests won't see it; start new events from it with &quot;New from template&quot;)
               </span>
             </label>
           </Group>
