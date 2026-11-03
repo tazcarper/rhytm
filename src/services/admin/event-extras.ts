@@ -73,10 +73,6 @@ export async function getEventExtras(supabase: SupabaseClient, eventId: string):
   };
 }
 
-export function hasAnyExtras(extras: EventExtras): boolean {
-  return extras.tickets.length > 0 || extras.gear.length > 0 || extras.questions.length > 0;
-}
-
 export async function saveEventExtras(
   supabase: SupabaseClient,
   eventId: string,

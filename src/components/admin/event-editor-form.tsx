@@ -3,7 +3,18 @@
 import { useMemo, useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Card } from "@/lib/ui";
-import { saveEventAction, saveRecurringEventsAction, copyEventToDatesAction, deleteEventAction } from "@/app/admin/events/actions";
+import {
+  saveEventAction,
+  saveRecurringEventsAction,
+  copyEventToDatesAction,
+  deleteEventAction,
+  saveEventExtrasAction,
+} from "@/app/admin/events/actions";
+import {
+  SaveEventExtrasSchema,
+  type SaveEventExtrasInput,
+} from "@/src/services/events/event-extras-contract";
+import { EventExtrasFields, toEditableExtras, toExtrasInput } from "@/src/components/admin/event-extras-fields";
 import type { AdminEventDetail, EventAudience, EventStatus } from "@/src/services/admin/events";
 import type { AdminDisciplineOption, AdminInstructorRow } from "@/src/services/admin/instructors";
 import { EVENT_TYPES, STANDING_EVENT_TYPE, eventTypeFields } from "@/src/constants/admin/event-types";
@@ -32,15 +43,17 @@ interface EventEditorFormProps {
   // src/constants/admin/event-starters.ts). Ignored once an existing event
   // is loaded.
   seed?: EventFormSeed;
+  // Tickets, gear and questions: saved ones for an existing event, or a
+  // starter's defaults for a new one. Saved with the rest of the event.
+  extras: SaveEventExtrasInput;
+  // Shown under the Tickets heading when `extras` came from a starter.
+  extrasNote?: string;
 }
 
 // The subset of an event a starter can pre-fill. No id — a seeded form is
 // still a create, not an edit.
 export type EventFormSeed = Partial<Omit<AdminEventDetail, "id" | "infoBoxes">> & {
   infoBoxes?: ReadonlyArray<{ heading: string; items: ReadonlyArray<string> }>;
-  // Carried to the new event's page so its tickets/gear/questions editor
-  // can pre-fill from the same starter.
-  starterKey?: string;
 };
 
 function toLocalInput(iso: string | null | undefined): string {
@@ -162,10 +175,11 @@ export function EventEditorForm({
   instructorOptions,
   defaultPropertyId,
   seed,
+  extras,
+  extrasNote,
 }: EventEditorFormProps) {
   const initial = event ?? (seed ? { ...seed, infoBoxes: undefined } : null);
-  const createdHref = (id: string) =>
-    seed?.starterKey ? `/admin/events/${id}?starter=${encodeURIComponent(seed.starterKey)}` : `/admin/events/${id}`;
+  const createdHref = (id: string) => `/admin/events/${id}`;
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -203,6 +217,7 @@ export function EventEditorForm({
   const [imageUrl, setImageUrl] = useState(initial?.imageUrl ?? "");
   const [infoBoxes, setInfoBoxes] = useState<EditableInfoBox[]>(event ? toEditableBoxes(event) : seedToEditableBoxes(seed));
   const [extraDates, setExtraDates] = useState<string[]>([]);
+  const [extrasState, setExtrasState] = useState(() => toEditableExtras(extras));
   // Bumped after copying to more dates, to reset the repeat picker.
   const [repeatPickerKey, setRepeatPickerKey] = useState(0);
   const [copiedCount, setCopiedCount] = useState(0);
@@ -316,6 +331,23 @@ export function EventEditorForm({
     setSavedAt(null);
     setCopiedCount(0);
 
+    // Check tickets, gear and questions before anything is written, so a bad
+    // row never leaves the event saved without them.
+    const extrasInput = SaveEventExtrasSchema.safeParse(toExtrasInput(extrasState));
+    if (!extrasInput.success) {
+      const issue = extrasInput.error.issues[0];
+      setError(issue ? `Tickets, gear and questions: ${issue.message}` : "Check the tickets, gear and questions.");
+      return;
+    }
+
+    const saveExtrasFor = async (ids: ReadonlyArray<string>) => {
+      for (const id of ids) {
+        const saved = await saveEventExtrasAction(id, extrasInput.data);
+        if (!saved.ok) return saved.error;
+      }
+      return null;
+    };
+
     startTransition(async () => {
       const payload = buildPayload();
 
@@ -328,6 +360,11 @@ export function EventEditorForm({
           setError(result.error ?? "Could not save.");
           return;
         }
+        const extrasError = await saveExtrasFor(result.ids);
+        if (extrasError) {
+          setError(`The events were saved, but not their tickets, gear and questions: ${extrasError}`);
+          return;
+        }
         setSavedAt(Date.now());
         router.push(createdHref(result.ids[0]));
         return;
@@ -336,6 +373,11 @@ export function EventEditorForm({
       const result = await saveEventAction(payload);
       if (!result.ok) {
         setError(result.error ?? "Could not save.");
+        return;
+      }
+      const extrasError = await saveExtrasFor([result.id]);
+      if (extrasError) {
+        setError(`The event was saved, but not its tickets, gear and questions: ${extrasError}`);
         return;
       }
 
@@ -630,6 +672,13 @@ export function EventEditorForm({
                 Force sold out (blocks new confirmed registrations even under capacity)
               </span>
             </label>
+          </Group>
+
+          <Group
+            eyebrow="Tickets, gear and questions"
+            desc={`Ticket types guests choose from, the gear they need, and questions asked at sign-up.${extrasNote ? ` ${extrasNote}` : ""}`}
+          >
+            <EventExtrasFields value={extrasState} onChange={setExtrasState} />
           </Group>
 
           <Group eyebrow="Who can attend" desc="Informational only — every event stays open to anyone at registration; this just labels the event.">

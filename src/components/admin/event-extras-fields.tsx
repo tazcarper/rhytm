@@ -1,9 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { Alert, Button, Card } from "@/lib/ui";
-import { saveEventExtrasAction } from "@/app/admin/events/actions";
+import { Button } from "@/lib/ui";
 import type {
   GearItemInput,
   QuestionInput,
@@ -13,11 +10,11 @@ import type {
 } from "@/src/services/events/event-extras-contract";
 import s from "./bid-editor-form.module.css";
 
-// Editor for an event's ticket types, gear and guest questions — the new
-// "thin contract" that sits beside the main event fields. Kept as its own
-// card with its own save, so the existing EventEditorForm is unchanged.
+// Fields for an event's ticket types, gear and guest questions. Controlled:
+// EventEditorForm owns the state and saves it with the rest of the event,
+// so the page has a single Save.
 //
-// Form state keeps money as strings (what the inputs hold); buildPayload
+// State keeps money as strings (what the inputs hold); toExtrasInput
 // converts once at the submit boundary.
 
 interface EditableTicket {
@@ -51,7 +48,13 @@ const nextKey = () => `x${++keyCounter}`;
 const moneyToInput = (value: number | null) => (value === null ? "" : String(value));
 const inputToMoney = (value: string) => (value.trim() === "" ? null : Number(value));
 
-function toEditable(extras: SaveEventExtrasInput) {
+export interface EditableExtras {
+  tickets: EditableTicket[];
+  gear: EditableGear[];
+  questions: EditableQuestion[];
+}
+
+export function toEditableExtras(extras: SaveEventExtrasInput): EditableExtras {
   return {
     tickets: extras.tickets.map(
       (ticket): EditableTicket => ({
@@ -85,99 +88,61 @@ function toEditable(extras: SaveEventExtrasInput) {
   };
 }
 
-export function EventExtrasEditor({
-  eventId,
-  extras,
-  seededFrom,
-}: {
-  eventId: string;
-  extras: SaveEventExtrasInput;
-  // Label of the starter the values came from, when nothing is saved yet.
-  seededFrom?: string;
-}) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
-  const initial = toEditable(extras);
-  const [tickets, setTickets] = useState<EditableTicket[]>(initial.tickets);
-  const [gear, setGear] = useState<EditableGear[]>(initial.gear);
-  const [questions, setQuestions] = useState<EditableQuestion[]>(initial.questions);
-
-  function buildPayload(): SaveEventExtrasInput {
-    return {
-      tickets: tickets.map(
-        (ticket): TicketTypeInput => ({
-          name: ticket.name.trim(),
-          price: Number(ticket.price) || 0,
-          description: ticket.description.trim() || null,
-        }),
-      ),
-      gear: gear.map(
-        (item): GearItemInput => ({
-          name: item.name.trim(),
-          isRequired: item.isRequired,
-          included: item.included,
-          bringOwnAllowed: item.bringOwnAllowed,
-          rentPrice: inputToMoney(item.rentPrice),
-          buyPrice: inputToMoney(item.buyPrice),
-          notes: item.notes.trim() || null,
-        }),
-      ),
-      questions: questions.map(
-        (question): QuestionInput => ({
-          label: question.label.trim(),
-          kind: question.kind,
-          options:
-            question.kind === "choice"
-              ? question.options
-                  .split(",")
-                  .map((option) => option.trim())
-                  .filter(Boolean)
-              : null,
-          isRequired: question.isRequired,
-        }),
-      ),
-    };
-  }
-
-  const handleSave = () => {
-    setError(null);
-    setSaved(false);
-    startTransition(async () => {
-      const result = await saveEventExtrasAction(eventId, buildPayload());
-      if (!result.ok) {
-        setError(result.error);
-        return;
-      }
-      setSaved(true);
-      router.refresh();
-    });
+export function toExtrasInput({ tickets, gear, questions }: EditableExtras): SaveEventExtrasInput {
+  return {
+    tickets: tickets.map(
+      (ticket): TicketTypeInput => ({
+        name: ticket.name.trim(),
+        price: Number(ticket.price) || 0,
+        description: ticket.description.trim() || null,
+      }),
+    ),
+    gear: gear.map(
+      (item): GearItemInput => ({
+        name: item.name.trim(),
+        isRequired: item.isRequired,
+        included: item.included,
+        bringOwnAllowed: item.bringOwnAllowed,
+        rentPrice: inputToMoney(item.rentPrice),
+        buyPrice: inputToMoney(item.buyPrice),
+        notes: item.notes.trim() || null,
+      }),
+    ),
+    questions: questions.map(
+      (question): QuestionInput => ({
+        label: question.label.trim(),
+        kind: question.kind,
+        options:
+          question.kind === "choice"
+            ? question.options
+                .split(",")
+                .map((option) => option.trim())
+                .filter(Boolean)
+            : null,
+        isRequired: question.isRequired,
+      }),
+    ),
   };
+}
+
+export function EventExtrasFields({
+  value,
+  onChange,
+}: {
+  value: EditableExtras;
+  onChange: (next: EditableExtras) => void;
+}) {
+  const { tickets, gear, questions } = value;
+  const setTickets = (next: EditableTicket[]) => onChange({ ...value, tickets: next });
+  const setGear = (next: EditableGear[]) => onChange({ ...value, gear: next });
+  const setQuestions = (next: EditableQuestion[]) => onChange({ ...value, questions: next });
 
   const update = <T extends { key: string }>(list: T[], key: string, patch: Partial<T>) =>
     list.map((item) => (item.key === key ? { ...item, ...patch } : item));
 
   return (
-    <Card padding="loose" elevation="soft" className="mt-8">
-      <h2 className="font-serif text-[22px] text-olive">Tickets, gear and questions</h2>
-      <p className="mt-1 text-[14px] text-gray">
-        Ticket types, the gear guests need and the questions asked at sign-up.
-        {seededFrom ? ` Pre-filled from the ${seededFrom} starter. Save to keep it.` : ""}
-      </p>
-
-      {error && (
-        <Alert variant="error" title="Couldn't save">
-          {error}
-        </Alert>
-      )}
-      {saved && !error && (
-        <Alert variant="success" title="Saved">
-          Tickets, gear and questions have been saved.
-        </Alert>
-      )}
-
-      <section className="mt-6">
+    <div>
+      <section>
         <h3 className={s.label}>Tickets</h3>
         {tickets.map((ticket) => (
           <div key={ticket.key} className="mt-3 grid gap-2 sm:grid-cols-[2fr_1fr_3fr_auto] items-end">
@@ -398,12 +363,6 @@ export function EventExtrasEditor({
           Add question
         </Button>
       </section>
-
-      <div className="mt-8">
-        <Button type="button" variant="primary" disabled={isPending} onClick={handleSave}>
-          {isPending ? "Saving…" : "Save tickets, gear and questions"}
-        </Button>
-      </div>
-    </Card>
+    </div>
   );
 }

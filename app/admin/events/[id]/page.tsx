@@ -7,24 +7,15 @@ import { getAdminPropertiesList } from "@/src/services/admin/properties";
 import { getAdminInstructors, getAssignableDisciplines } from "@/src/services/admin/instructors";
 import { EventEditorForm } from "@/src/components/admin/event-editor-form";
 import { EventRoster } from "@/src/components/admin/event-roster";
-import { EventExtrasEditor } from "@/src/components/admin/event-extras-editor";
-import { getEventExtras, hasAnyExtras } from "@/src/services/admin/event-extras";
-import { EVENT_STARTERS, isEventStarterKey } from "@/src/constants/admin/event-starters";
+import { getEventExtras } from "@/src/services/admin/event-extras";
 
 export const dynamic = "force-dynamic";
 
-export default async function EditEventPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ starter?: string }>;
-}) {
+export default async function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { starter } = await searchParams;
   const supabase = await createServerSupabaseClient();
 
-  const [event, properties, roster, savedExtras] = await Promise.all([
+  const [event, properties, roster, extras] = await Promise.all([
     getEvent(supabase, id),
     getAdminPropertiesList(supabase),
     getEventRoster(supabase, id),
@@ -34,12 +25,6 @@ export default async function EditEventPage({
   if (!event) {
     notFound();
   }
-
-  // A freshly created event from a starter has nothing saved yet — offer
-  // the starter's tickets/gear/questions as a pre-fill the admin confirms.
-  const seedStarter =
-    !hasAnyExtras(savedExtras) && isEventStarterKey(starter) ? EVENT_STARTERS[starter] : null;
-  const extras = seedStarter ? seedStarter.extras : savedExtras;
 
   const [disciplineOptions, instructorOptions] = await Promise.all([
     getAssignableDisciplines(supabase, properties.map((property) => property.id)),
@@ -71,9 +56,8 @@ export default async function EditEventPage({
         properties={properties.map((property) => ({ id: property.id, name: property.name }))}
         disciplineOptions={disciplineOptions}
         instructorOptions={instructorOptions}
+        extras={extras}
       />
-
-      <EventExtrasEditor eventId={event.id} extras={extras} seededFrom={seedStarter?.label} />
     </PageShell>
   );
 }

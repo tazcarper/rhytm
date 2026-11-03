@@ -9,6 +9,7 @@ import { NewEventTemplatePicker } from "@/src/components/admin/new-event-templat
 import { NewEventStarterPicker } from "@/src/components/admin/new-event-starter-picker";
 import { EventHelperPanel } from "@/src/components/admin/event-helper-panel";
 import { EVENT_STARTERS, isEventStarterKey } from "@/src/constants/admin/event-starters";
+import { EMPTY_EVENT_EXTRAS } from "@/src/services/events/event-extras-contract";
 
 // Roles that get the AI helper (pilot decision, 2026-11-03). Mirrors
 // HELPER_ROLES in app/api/admin/event-helper/route.ts.
@@ -62,7 +63,6 @@ export default async function NewEventPage({
         seed={
           activeStarter
             ? {
-                starterKey: activeStarter.key,
                 type: activeStarter.defaults.type,
                 maxCapacity: activeStarter.defaults.maxCapacity,
                 maxGuestsPerRegistration: activeStarter.defaults.maxGuestsPerRegistration,
@@ -75,6 +75,8 @@ export default async function NewEventPage({
         disciplineOptions={disciplineOptions}
         instructorOptions={instructorOptions}
         defaultPropertyId={propertyId}
+        extras={activeStarter?.extras ?? EMPTY_EVENT_EXTRAS}
+        extrasNote={activeStarter ? `Pre-filled from the ${activeStarter.label} starter.` : undefined}
       />
     </PageShell>
   );
