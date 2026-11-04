@@ -121,7 +121,7 @@ const STATUS_FILTER_OPTIONS = [
   { value: "", label: "Live & drafts" },
   { value: "draft", label: "Drafts only" },
   { value: "live", label: "Live only" },
-  { value: "feature", label: "Waiting on a feature" },
+  { value: "feature", label: "Feature in progress or ready" },
 ];
 
 const matchesStatus = (row: AdminEventListRow, filter: string) => {

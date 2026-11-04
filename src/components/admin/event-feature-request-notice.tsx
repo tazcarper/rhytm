@@ -10,7 +10,7 @@ export function EventFeatureRequestNotice({ requests }: { requests: ReadonlyArra
   return (
     <>
       {waiting.length > 0 && (
-        <Alert variant="warn" title="Waiting on a new feature">
+        <Alert variant="warn" title="Feature in progress">
           <p className="m-0">
             The rest of this draft is saved. The part below isn&apos;t in the event builder yet, so it&apos;s been sent
             to the developer to build:

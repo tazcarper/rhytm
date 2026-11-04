@@ -63,7 +63,7 @@ export interface EventHelperDeps {
   ) => Promise<{ ok: true; id: string; count: number; ids: string[] } | { ok: false; error: string }>;
   recordCapabilityRequest: (input: CapabilityRequestInput) => Promise<{ ok: true } | { ok: false; error: string }>;
   // Ties this conversation's feature requests to the draft event(s), so the
-  // events pages can show "Waiting on a feature". Best effort.
+  // events pages can show "Feature in progress". Best effort.
   linkCapabilityRequests: (sessionId: string, eventIds: ReadonlyArray<string>) => Promise<unknown>;
   profile: HelperBusinessProfile;
   today: string; // "YYYY-MM-DD" in the business timezone
