@@ -189,14 +189,6 @@ export function EventStartForm({
 
   return (
     <div className={`${s.panel} ${s.flow}`}>
-      <div className={s.formHead}>
-        <h2 className={s.formTitle}>Let's get the basics down</h2>
-      </div>
-      <p className={s.groupDesc}>
-        Three quick choices. It's saved as a draft guests can't see, then you add the date, prices and the rest one
-        step at a time.
-      </p>
-
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-10">
         {error && (
           <Alert variant="error" title="Couldn't start the event">
