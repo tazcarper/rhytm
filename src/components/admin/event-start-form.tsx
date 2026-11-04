@@ -2,59 +2,128 @@
 
 import { useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import {
+  CalendarDays,
+  Compass,
+  GraduationCap,
+  PartyPopper,
+  Repeat,
+  Target,
+  Trophy,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import { Alert } from "@/lib/ui";
 import { FlowButton as Button } from "./event-flow-button";
+import { ChoiceTiles, type ChoiceTile } from "./choice-tiles";
 import { saveEventAction, saveEventExtrasAction } from "@/app/admin/events/actions";
-import { EVENT_TYPES, STANDING_EVENT_TYPE } from "@/src/constants/admin/event-types";
-import type { EventStarter } from "@/src/constants/admin/event-starters";
+import { EVENT_TYPES, EVENT_TYPE_EXAMPLES, type EventType } from "@/src/constants/admin/event-types";
+import type { EventStarter, EventStarterKey } from "@/src/constants/admin/event-starters";
+import { getPropertyBrandTint } from "@/src/constants/admin/property-brand-tints";
 import { EMPTY_EVENT_EXTRAS, type GearItemInput } from "@/src/services/events/event-extras-contract";
 import type { GearPreset } from "@/src/services/admin/gear-presets";
 import s from "./event-flow.module.css";
-import h from "./event-flow.module.css";
 
-interface PropertyOption {
+export interface StartPropertyOption {
   id: string;
   name: string;
+  slug: string;
+  tagline: string | null;
 }
 
-// The first step of a new event: only what's needed to start a draft
-// (property, name, kind, when). Everything else gets a sensible default
-// here, or the chosen starter's, and is filled in afterwards in the
-// section builder on the event's own page.
+const TYPE_ICONS: Record<EventType, LucideIcon> = {
+  Training: GraduationCap,
+  League: Users,
+  Tournament: Trophy,
+  Social: PartyPopper,
+  Adventure: Compass,
+  Standing: Repeat,
+};
+
+const STARTER_ICONS: Record<EventStarterKey, LucideIcon> = {
+  single_day: CalendarDays,
+  class_clinic: Target,
+  league: Repeat,
+};
+
+const monogram = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter((word) => /^[A-Za-z]/.test(word))
+    .slice(0, 2)
+    .map((word) => word[0]!.toUpperCase())
+    .join("");
+
+// The first step of a new event: the club, the kind of event and its name.
+// Everything else (date, spots, prices, gear) gets a default, or the
+// chosen starter's, and is filled in afterwards in the builder on the
+// event's own page. The draft has no date yet; the builder's Date step
+// asks for it and publishing waits until it's set.
 export function EventStartForm({
   properties,
   defaultPropertyId,
-  starter,
+  starters,
+  initialStarterKey = null,
   newEventGear = [],
-  starterPicker,
   footer,
 }: {
-  properties: ReadonlyArray<PropertyOption>;
+  properties: ReadonlyArray<StartPropertyOption>;
   defaultPropertyId?: string;
-  starter: EventStarter | null;
+  starters: ReadonlyArray<EventStarter>;
+  initialStarterKey?: EventStarterKey | null;
   // Saved gear marked "Add to every new event", for any property; the
   // chosen property's items go on the new draft.
   newEventGear?: ReadonlyArray<GearPreset>;
-  // Slots: the optional starter chips above the fields, and the
-  // copy-a-template line below them.
-  starterPicker?: ReactNode;
+  // Slot below the form: the copy-a-template line.
   footer?: ReactNode;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const [propertyId, setPropertyId] = useState(defaultPropertyId ?? properties[0]?.id ?? "");
+  const initialStarter = starters.find((starter) => starter.key === initialStarterKey) ?? null;
+  const knownDefault = properties.some((property) => property.id === defaultPropertyId) ? defaultPropertyId! : "";
+  const [propertyId, setPropertyId] = useState<string>(knownDefault || (properties.length === 1 ? properties[0]!.id : ""));
+  const [type, setType] = useState<EventType | "">(initialStarter?.defaults.type ?? "");
   const [title, setTitle] = useState("");
-  const [type, setType] = useState<string>(starter?.defaults.type ?? "");
-  const [startAt, setStartAt] = useState("");
-  const [endAt, setEndAt] = useState("");
-  const [scheduleText, setScheduleText] = useState("");
+  const [starterKey, setStarterKey] = useState<EventStarterKey | "">(initialStarter?.key ?? "");
+  const starter = starters.find((item) => item.key === starterKey) ?? null;
 
-  const isStanding = type === STANDING_EVENT_TYPE;
+  const chooseStarter = (key: EventStarterKey | "") => {
+    setStarterKey(key);
+    // A starter suggests a kind, but never overrides one already chosen.
+    const picked = starters.find((item) => item.key === key);
+    if (picked && !type) setType(picked.defaults.type);
+  };
+
+  const propertyTiles: ReadonlyArray<ChoiceTile<string>> = properties.map((property) => ({
+    value: property.id,
+    label: property.name,
+    example: property.tagline ?? undefined,
+    accent: getPropertyBrandTint(property.slug),
+    icon: <span className="text-[17px] font-bold tracking-wide">{monogram(property.name)}</span>,
+  }));
+
+  const typeTiles: ReadonlyArray<ChoiceTile<EventType>> = EVENT_TYPES.map((value) => {
+    const Icon = TYPE_ICONS[value];
+    return { value, label: value, example: EVENT_TYPE_EXAMPLES[value], icon: <Icon size={24} strokeWidth={2.2} /> };
+  });
+
+  const starterTiles: ReadonlyArray<ChoiceTile<EventStarterKey>> = starters.map((item) => {
+    const Icon = STARTER_ICONS[item.key];
+    return { value: item.key, label: item.label, example: item.example, icon: <Icon size={24} strokeWidth={2.2} /> };
+  });
+
+  const missing = [!propertyId && "the club", !type && "the kind of event", !title.trim() && "a name"].filter(
+    Boolean,
+  ) as string[];
 
   const handleSubmit = (formEvent: FormEvent<HTMLFormElement>) => {
     formEvent.preventDefault();
+    if (missing.length > 0) {
+      setError(`Choose ${missing.join(", ").replace(/, ([^,]*)$/, " and $1")} to continue.`);
+      return;
+    }
     setError(null);
 
     startTransition(async () => {
@@ -62,9 +131,9 @@ export function EventStartForm({
         propertyId,
         title: title.trim(),
         type: type || null,
-        startAt: isStanding ? null : startAt || null,
-        endAt: isStanding ? null : endAt || null,
-        scheduleText: isStanding ? scheduleText.trim() || null : null,
+        startAt: null,
+        endAt: null,
+        scheduleText: null,
         featured: false,
         includedWithMembership: false,
         audience: "members_and_public",
@@ -100,115 +169,64 @@ export function EventStartForm({
           return;
         }
       }
-      router.push(`/admin/events/${result.id}?started=1`);
+      router.push(`/admin/events/${result.id}?started=1&step=date`);
     });
   };
 
   return (
-    <div className={`${h.panel} ${h.flow}`}>
-      <div className={h.formHead}>
-        <h2 className={h.formTitle}>Let's get the basics down</h2>
+    <div className={`${s.panel} ${s.flow}`}>
+      <div className={s.formHead}>
+        <h2 className={s.formTitle}>Let's get the basics down</h2>
       </div>
-      <p className={h.groupDesc}>
-        Four things to start. It's saved as a draft that guests can't see, then you add prices, tickets and the
-        rest one step at a time.
+      <p className={s.groupDesc}>
+        Three quick choices. It's saved as a draft guests can't see, then you add the date, prices and the rest one
+        step at a time.
       </p>
-      {starterPicker}
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-10">
         {error && (
           <Alert variant="error" title="Couldn't start the event">
             {error}
           </Alert>
         )}
 
-        <div className={h.grid2}>
-          <label className={s.field}>
-            <span className={s.label}>Property</span>
-            <select
-              value={propertyId}
-              onChange={(evt) => setPropertyId(evt.target.value)}
-              className={s.input}
-              required
-            >
-              {properties.map((property) => (
-                <option key={property.id} value={property.id}>
-                  {property.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className={s.field}>
-            <span className={s.label}>Kind of event</span>
-            <select value={type} onChange={(evt) => setType(evt.target.value)} className={s.input}>
-              <option value="">Choose…</option>
-              {EVENT_TYPES.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+        <ChoiceTiles
+          legend="1. Which club?"
+          tiles={propertyTiles}
+          value={propertyId}
+          onChange={setPropertyId}
+          examplePrefix=""
+        />
+
+        <ChoiceTiles
+          legend="2. What kind of event?"
+          tiles={typeTiles}
+          value={type}
+          onChange={(value) => setType(value)}
+        />
 
         <label className={s.field}>
-          <span className={s.label}>Event name</span>
+          <span className="text-[19px] font-bold text-[#1c2420]">3. What's it called?</span>
           <input
             type="text"
             value={title}
             onChange={(evt) => setTitle(evt.target.value)}
             className={s.input}
-            required
-            placeholder="Mahjong Night"
+            placeholder="Thanksgiving Turkey Shoot"
+            maxLength={200}
           />
         </label>
 
-        {isStanding ? (
-          <label className={s.field}>
-            <span className={s.label}>When it runs</span>
-            <input
-              type="text"
-              value={scheduleText}
-              onChange={(evt) => setScheduleText(evt.target.value)}
-              className={s.input}
-              required
-              placeholder="e.g. Tuesday and Thursday 7:30 AM, Saturday 8:00 AM"
-            />
-          </label>
-        ) : (
-          <div className={h.grid2}>
-            <label className={s.field}>
-              <span className={s.label}>Starts</span>
-              <input
-                type="datetime-local"
-                value={startAt}
-                onChange={(evt) => setStartAt(evt.target.value)}
-                className={s.input}
-                required
-              />
-            </label>
-            <label className={s.field}>
-              <span className={s.label}>
-                Ends <span className="font-normal text-[#5d6963]">(optional)</span>
-              </span>
-              <input
-                type="datetime-local"
-                value={endAt}
-                min={startAt || undefined}
-                onChange={(evt) => setEndAt(evt.target.value)}
-                className={s.input}
-              />
-            </label>
-          </div>
-        )}
+        <ChoiceTiles
+          legend="Start from a typical setup (optional)"
+          description="Fills in usual spots, tickets and gear for you. Tap again to clear it."
+          tiles={starterTiles}
+          value={starterKey}
+          onChange={chooseStarter}
+          allowClear
+        />
 
-        <p className={h.note}>
-          {isStanding
-            ? "An ongoing programme has no set date. Guests see this schedule instead."
-            : "Happens more than once, like every Wednesday? You'll add the other dates in the next step."}
-        </p>
-
-        <div className={h.actions}>
+        <div className={s.actions}>
           <Button type="submit" variant="primary" disabled={isPending}>
             {isPending ? "Starting…" : "Continue"}
           </Button>

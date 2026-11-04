@@ -30,6 +30,8 @@ export interface EventStarter {
   label: string;
   // One line for staff in the picker.
   blurb: string;
+  // A real-world example shown under the starter on the New event screen.
+  example: string;
   // For the AI helper: which descriptions this starter fits.
   whenToUse: string;
   // For the AI helper: details it must have before drafting. It asks one
@@ -44,6 +46,7 @@ export const EVENT_STARTERS: Readonly<Record<EventStarterKey, EventStarter>> = {
     key: "single_day",
     label: "Single-day event",
     blurb: "A party, tournament, open house or other one-off event on one date.",
+    example: "Thanksgiving turkey shoot, members' holiday party",
     whenToUse:
       "Any event that happens once, on one date, with a start and end time: parties, tournaments, open houses, tastings, holiday events, fundraisers.",
     askIfMissing: [
@@ -68,6 +71,7 @@ export const EVENT_STARTERS: Readonly<Record<EventStarterKey, EventStarter>> = {
     key: "class_clinic",
     label: "Class or clinic",
     blurb: "An instructor-led session with a small group, usually with gear.",
+    example: "Intro to sporting clays, a youth safety clinic",
     whenToUse:
       "A lesson, class, clinic or training session led by an instructor, usually for a small group, often needing safety gear or equipment.",
     askIfMissing: [
@@ -112,6 +116,7 @@ export const EVENT_STARTERS: Readonly<Record<EventStarterKey, EventStarter>> = {
     key: "league",
     label: "Recurring league",
     blurb: "The same event on a regular schedule, like a weekly league night.",
+    example: "Wednesday night clays league, 8 weeks",
     whenToUse:
       "An event that repeats on a regular schedule with the same format each time, such as a weekly league, a monthly social or a series of sessions.",
     askIfMissing: [

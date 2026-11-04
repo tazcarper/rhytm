@@ -19,6 +19,17 @@ export type EventType = (typeof EVENT_TYPES)[number];
 
 export const STANDING_EVENT_TYPE: EventType = "Standing";
 
+// Shown under each kind on the New event screen, so staff can tell the
+// kinds apart at a glance.
+export const EVENT_TYPE_EXAMPLES: Record<EventType, string> = {
+  Training: "Intro to sporting clays, a youth shooting clinic",
+  League: "Wednesday night clays league, a winter 5-stand series",
+  Tournament: "Thanksgiving turkey shoot, a charity shoot",
+  Social: "Members' BBQ, a holiday party, an open house",
+  Adventure: "Guided dove hunt, a fishing trip",
+  Standing: "Open shooting Tue and Thu mornings, ongoing lessons",
+};
+
 // Which optional parts of the event editor each type uses. One map, so a
 // new type is one entry here rather than another `type === ...` check in the
 // form. Discipline lists the property's shooting disciplines, which only

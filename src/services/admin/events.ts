@@ -125,7 +125,9 @@ export const SaveEventSchema = z
     imageUrl: optionalText(2000),
     infoBoxes: z.array(InfoBoxSchema).max(20),
   })
-  .refine((value) => Boolean(value.startAt) || Boolean(value.scheduleText), {
+  // A draft may have neither yet: the New event screen creates it from the
+  // club, kind and name, and the builder's Date step fills the date in.
+  .refine((value) => value.status === "draft" || Boolean(value.startAt) || Boolean(value.scheduleText), {
     message: "Give the event a date, or a schedule for a Standing programme",
     path: ["startAt"],
   })

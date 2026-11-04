@@ -7,7 +7,6 @@ import { getEventTemplates } from "@/src/services/admin/events";
 import { getGearPresets } from "@/src/services/admin/gear-presets";
 import { EventStartForm } from "@/src/components/admin/event-start-form";
 import { NewEventTemplatePicker } from "@/src/components/admin/new-event-template-picker";
-import { NewEventStarterPicker } from "@/src/components/admin/new-event-starter-picker";
 import { EventHelperPanel } from "@/src/components/admin/event-helper-panel";
 import { EVENT_STARTERS, isEventStarterKey } from "@/src/constants/admin/event-starters";
 
@@ -37,15 +36,16 @@ export default async function NewEventPage({
 
   const manualStart = (
     <EventStartForm
-      // Remount when the starter changes so the form re-reads its defaults.
-      key={activeStarter?.key ?? "blank"}
-      properties={properties.map((property) => ({ id: property.id, name: property.name }))}
+      properties={properties.map((property) => ({
+        id: property.id,
+        name: property.name,
+        slug: property.slug,
+        tagline: property.tagline,
+      }))}
       defaultPropertyId={propertyId}
-      starter={activeStarter}
+      starters={Object.values(EVENT_STARTERS)}
+      initialStarterKey={activeStarter?.key ?? null}
       newEventGear={gearPresets.filter((preset) => preset.addToNewEvents)}
-      starterPicker={
-        <NewEventStarterPicker starters={Object.values(EVENT_STARTERS)} activeKey={activeStarter?.key ?? null} />
-      }
       footer={<NewEventTemplatePicker templates={templates} />}
     />
   );
