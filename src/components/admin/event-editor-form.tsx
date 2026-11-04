@@ -341,6 +341,21 @@ export function EventEditorForm({
   const dateLabel = isStanding ? scheduleText : fmtDateLabel(startAt);
   const timeLabel = isStanding ? "" : [fmtTimeLabel(startAt), fmtTimeLabel(endAt)].filter(Boolean).join(" – ");
 
+  const namedTickets = extrasState.tickets.filter((ticket) => ticket.name.trim());
+  const previewPrices: EventPreviewData["prices"] =
+    namedTickets.length > 0
+      ? namedTickets.map((ticket) => ({
+          label: ticket.name.trim(),
+          value: !ticket.price.trim() ? "Price not set" : Number(ticket.price) === 0 ? "Free" : `$${ticket.price.trim()}`,
+          note: ticket.description.trim(),
+        }))
+      : [
+          memberPrice.trim() ? { label: "Member", value: `$${memberPrice.trim()}`, note: "" } : null,
+          showNonMemberPrice && nonMemberPrice.trim()
+            ? { label: "Non-member", value: `$${nonMemberPrice.trim()}`, note: "" }
+            : null,
+        ].filter((price) => price !== null);
+
   const previewData: EventPreviewData = {
     title,
     type,
@@ -361,8 +376,7 @@ export function EventEditorForm({
         heading: box.heading,
         items: box.boxType === "list" ? box.items.filter((item) => item.trim()) : [box.body].filter(Boolean),
       })),
-    memberPrice: memberPrice.trim() ? `$${memberPrice}` : "",
-    nonMemberPrice: showNonMemberPrice && nonMemberPrice.trim() ? `$${nonMemberPrice}` : "",
+    prices: previewPrices,
   };
 
   function buildPayload(statusOverride?: EventStatus) {
