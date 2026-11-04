@@ -22,11 +22,12 @@ export interface ChoiceTile<T extends string> {
   icon?: ReactNode;
   // Small grey line under the label, after `examplePrefix`.
   example?: string;
-  // The icon's colour. Defaults to the event pages' green.
+  // The icon's colour (or, on a club card with no logo, the badge colour).
+  // Defaults to the brand olive.
   accent?: string;
 }
 
-const DEFAULT_ACCENT = "#1f5b45";
+const DEFAULT_ACCENT = "var(--olive)";
 
 export function ChoiceTiles<T extends string>({
   legend,
@@ -55,14 +56,14 @@ export function ChoiceTiles<T extends string>({
 
   return (
     <fieldset className="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
-      <legend className="mb-1 p-0 text-[19px] font-bold text-[#1c2420]">{legend}</legend>
-      {description && <p className="m-0 -mt-1 text-[17px] text-[#4a5650]">{description}</p>}
+      <legend className="mb-1 p-0 text-[19px] font-bold text-olive-darker">{legend}</legend>
+      {description && <p className="m-0 -mt-1 text-[17px] text-gray">{description}</p>}
       <div className={`grid gap-3 sm:gap-4 ${grid}`}>
         {tiles.map((tile) => {
           const checked = tile.value === value;
           const accent = tile.accent ?? DEFAULT_ACCENT;
           const example = tile.example && (
-            <span className="text-[14px] leading-snug text-[#5d6963] sm:text-[15px]">
+            <span className="text-[14px] leading-snug text-gray sm:text-[15px]">
               {examplePrefix && <span className="font-semibold">{examplePrefix}</span>}
               {tile.example}
             </span>
@@ -72,10 +73,10 @@ export function ChoiceTiles<T extends string>({
             return (
               <label
                 key={tile.value}
-                className={`flex cursor-pointer flex-col overflow-hidden rounded-[16px] border-2 bg-white transition-[border-color,box-shadow] has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[rgba(31,91,69,0.35)] ${
+                className={`flex cursor-pointer flex-col overflow-hidden rounded-[16px] border-2 bg-white transition-[border-color,box-shadow] has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[rgba(63,74,33,0.35)] ${
                   checked
-                    ? "border-[#1f5b45] shadow-[0_4px_16px_rgba(31,91,69,0.16)]"
-                    : "border-[#d6ddd5] hover:border-[#8f9c94] hover:shadow-[0_2px_10px_rgba(28,36,32,0.08)]"
+                    ? "border-olive shadow-[0_4px_16px_rgba(63,74,33,0.16)]"
+                    : "border-rule-strong hover:border-tan hover:shadow-[0_2px_10px_rgba(31,38,17,0.08)]"
                 }`}
               >
                 <input
@@ -89,19 +90,19 @@ export function ChoiceTiles<T extends string>({
                   }}
                   className="sr-only"
                 />
-                <span className="flex aspect-[16/7] items-center justify-center border-b border-[#e6ebe5] bg-[#f6f8f5] px-3 py-3 sm:px-6 sm:py-5">
+                <span className="flex aspect-[16/7] items-center justify-center border-b border-rule bg-paper-warm px-3 py-3 sm:px-6 sm:py-5">
                   {/* eslint-disable-next-line @next/next/no-img-element -- admin-uploaded logos of any size and type */}
                   <img src={tile.imageUrl} alt="" className="h-full w-full object-contain" />
                 </span>
                 <span className="flex flex-1 flex-col gap-1.5 px-3 pb-3 pt-3 sm:px-5 sm:pb-4 sm:pt-4">
-                  <span className="text-[17px] font-bold sm:text-[19px] leading-tight text-[#1c2420]">{tile.label}</span>
+                  <span className="text-[17px] font-bold sm:text-[19px] leading-tight text-olive-darker">{tile.label}</span>
                   {example}
                 </span>
-                <span className="border-t border-[#e6ebe5] px-3 py-3 sm:px-4">
+                <span className="border-t border-rule px-3 py-3 sm:px-4">
                   <span
                     aria-hidden="true"
                     className={`flex min-h-[44px] items-center justify-center gap-2 rounded-[10px] text-[17px] font-semibold ${
-                      checked ? "bg-[#1f5b45] text-white" : "bg-[#eef1ec] text-[#1c2420]"
+                      checked ? "bg-olive text-white" : "bg-paper-warm text-olive-darker"
                     }`}
                   >
                     {checked && <Check size={18} strokeWidth={3} />}
@@ -117,10 +118,10 @@ export function ChoiceTiles<T extends string>({
           return (
             <label
               key={tile.value}
-              className={`relative flex cursor-pointer flex-col items-center gap-3 rounded-[20px] border-2 px-3 pb-5 pt-6 text-center sm:px-6 sm:pb-7 sm:pt-8 transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[rgba(31,91,69,0.35)] ${
+              className={`relative flex cursor-pointer flex-col items-center gap-3 rounded-[20px] border-2 px-3 pb-5 pt-6 text-center sm:px-6 sm:pb-7 sm:pt-8 transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[rgba(63,74,33,0.35)] ${
                 checked
-                  ? "border-[#1f5b45] bg-[#eaf3ed]"
-                  : "border-transparent bg-[#f3f4f2] hover:bg-[#ebedea]"
+                  ? "border-olive bg-cream"
+                  : "border-transparent bg-paper-warm hover:bg-cream"
               }`}
             >
               <input
@@ -137,19 +138,19 @@ export function ChoiceTiles<T extends string>({
               {checked && (
                 <span
                   aria-hidden="true"
-                  className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-[#1f5b45] text-white"
+                  className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-olive text-white"
                 >
                   <Check size={16} strokeWidth={3} />
                 </span>
               )}
               <span
                 aria-hidden="true"
-                className="flex h-14 w-14 items-center justify-center rounded-full bg-white sm:h-16 sm:w-16 shadow-[0_1px_4px_rgba(28,36,32,0.08)]"
+                className="flex h-14 w-14 items-center justify-center rounded-full bg-white sm:h-16 sm:w-16 shadow-[0_1px_4px_rgba(31,38,17,0.08)]"
                 style={{ color: accent }}
               >
                 {tile.icon}
               </span>
-              <span className="mt-1 text-[17px] font-bold leading-tight text-[#1c2420] sm:mt-2 sm:text-[20px]">{tile.label}</span>
+              <span className="mt-1 text-[17px] font-bold leading-tight text-olive-darker sm:mt-2 sm:text-[20px]">{tile.label}</span>
               {example}
             </label>
           );

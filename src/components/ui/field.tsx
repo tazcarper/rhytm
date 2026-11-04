@@ -70,7 +70,7 @@ function Field({
   );
 }
 
-const labelVariants = cva("font-sans leading-snug text-[#1c2420] group-data-[invalid=true]/field:text-[#b3261e]", {
+const labelVariants = cva("font-sans leading-snug text-olive-darker group-data-[invalid=true]/field:text-accent-error", {
   variants: {
     size: {
       default: "text-sm font-medium",
@@ -88,13 +88,13 @@ function FieldLabel({ className, ...props }: React.ComponentProps<"label">) {
 // "(optional)" after a label, in a quieter weight.
 function FieldOptional({ className, children = "(optional)", ...props }: React.ComponentProps<"span">) {
   return (
-    <span data-slot="field-optional" className={cn("ml-1 font-normal text-[#5d6963]", className)} {...props}>
+    <span data-slot="field-optional" className={cn("ml-1 font-normal text-gray", className)} {...props}>
       {children}
     </span>
   );
 }
 
-const descriptionVariants = cva("m-0 text-[#5d6963]", {
+const descriptionVariants = cva("m-0 text-gray", {
   variants: { size: { default: "text-xs", lg: "text-[17px] leading-normal" } },
   defaultVariants: { size: "default" },
 });
@@ -104,7 +104,7 @@ function FieldDescription({ className, ...props }: React.ComponentProps<"p">) {
   return <p data-slot="field-description" className={cn(descriptionVariants({ size }), className)} {...props} />;
 }
 
-const errorVariants = cva("m-0 font-semibold text-[#b3261e]", {
+const errorVariants = cva("m-0 font-semibold text-accent-error", {
   variants: { size: { default: "text-xs", lg: "text-[17px] leading-normal" } },
   defaultVariants: { size: "default" },
 });
@@ -131,7 +131,7 @@ function FieldSet({ className, ...props }: React.ComponentProps<"fieldset">) {
   return <fieldset data-slot="field-set" className={cn("m-0 flex min-w-0 flex-col gap-3 border-0 p-0", className)} {...props} />;
 }
 
-const legendVariants = cva("mb-1 p-0 font-sans text-[#1c2420]", {
+const legendVariants = cva("mb-1 p-0 font-sans text-olive-darker", {
   variants: { size: { default: "text-sm font-semibold", lg: "text-[18px] font-bold" } },
   defaultVariants: { size: "default" },
 });

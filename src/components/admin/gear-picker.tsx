@@ -42,17 +42,17 @@ function GearCheck({
   children?: ReactNode;
 }) {
   return (
-    <li className="flex flex-col gap-1 rounded-[10px] border border-[#d6ddd5] bg-white px-4 py-3">
+    <li className="flex flex-col gap-1 rounded-[10px] border border-rule-strong bg-white px-4 py-3">
       <label className="flex cursor-pointer items-start gap-3">
         <input
           type="checkbox"
-          className="mt-1 h-5 w-5 shrink-0 accent-[#1f5b45]"
+          className="mt-1 h-5 w-5 shrink-0 accent-olive"
           checked={checked}
           onChange={(evt) => onToggle(evt.target.checked)}
         />
         <span className="flex flex-col">
-          <span className="text-[18px] font-semibold text-[#1c2420]">{item.name}</span>
-          <span className="text-[15px] text-[#5d6963]">{describe(item)}</span>
+          <span className="text-[18px] font-semibold text-olive-darker">{item.name}</span>
+          <span className="text-[15px] text-gray">{describe(item)}</span>
         </span>
       </label>
       {children}
@@ -147,11 +147,11 @@ export function GearPicker({
   };
 
   return (
-    <div className="mt-4 rounded-[14px] bg-[#f3f6f2] p-5">
+    <div className="mt-4 rounded-[14px] bg-paper-warm p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="m-0 text-[17px] text-[#3d4943]">
+        <p className="m-0 text-[17px] text-gray">
           Tick gear to add it, then change any price below.
-          {addedCount > 0 && <strong className="ml-2 text-[#1f5b45]">{addedCount} added from the list</strong>}
+          {addedCount > 0 && <strong className="ml-2 text-olive">{addedCount} added from the list</strong>}
         </p>
         <Button type="button" variant="secondary" aria-expanded={open} onClick={() => setOpen(!open)}>
           {open ? "Hide gear list" : "Pick common gear"}
@@ -162,7 +162,7 @@ export function GearPicker({
         <div className="mt-5 flex flex-col gap-6">
           {saved.length > 0 && (
             <fieldset className="m-0 border-0 p-0">
-              <legend className="mb-3 text-[17px] font-bold text-[#1c2420]">Saved for {propertyName}</legend>
+              <legend className="mb-3 text-[17px] font-bold text-olive-darker">Saved for {propertyName}</legend>
               <ul className="m-0 grid list-none gap-3 p-0 md:grid-cols-2">
                 {saved.map((preset) => (
                   <GearCheck
@@ -172,10 +172,10 @@ export function GearPicker({
                     onToggle={(checked) => toggle(preset, checked)}
                   >
                     <div className="ml-8 flex flex-wrap items-center gap-x-4 gap-y-1 text-[15px]">
-                      <label className="flex items-center gap-2 text-[#3d4943]">
+                      <label className="flex items-center gap-2 text-gray">
                         <input
                           type="checkbox"
-                          className="accent-[#1f5b45]"
+                          className="accent-olive"
                           checked={preset.addToNewEvents}
                           disabled={isPending}
                           onChange={(evt) => setEveryEvent(preset, evt.target.checked)}
@@ -186,7 +186,7 @@ export function GearPicker({
                         type="button"
                         disabled={isPending}
                         onClick={() => forget(preset)}
-                        className="text-[#5d6963] underline underline-offset-2 hover:text-[#b3261e]"
+                        className="text-gray underline underline-offset-2 hover:text-accent-error"
                       >
                         Remove from list
                       </button>
@@ -198,7 +198,7 @@ export function GearPicker({
           )}
 
           <fieldset className="m-0 border-0 p-0">
-            <legend className="mb-3 text-[17px] font-bold text-[#1c2420]">Common gear</legend>
+            <legend className="mb-3 text-[17px] font-bold text-olive-darker">Common gear</legend>
             <ul className="m-0 grid list-none gap-3 p-0 md:grid-cols-2">
               {common.map((item) => (
                 <GearCheck
@@ -211,8 +211,8 @@ export function GearPicker({
             </ul>
           </fieldset>
 
-          <div className="flex flex-col gap-2 border-t border-[#d6ddd5] pt-5">
-            <p className="m-0 text-[16px] text-[#4a5650]">
+          <div className="flex flex-col gap-2 border-t border-rule-strong pt-5">
+            <p className="m-0 text-[16px] text-gray">
               {`Use the same gear at most ${propertyName} events? Save it once and it shows up above next time. Tick`}{" "}
               &ldquo;Add to every new event&rdquo; and new drafts start with it.
             </p>
@@ -230,7 +230,7 @@ export function GearPicker({
       )}
 
       {message && (
-        <p role="status" className={`m-0 mt-4 text-[16px] ${message.kind === "error" ? "text-[#b3261e]" : "text-[#1f5b45]"}`}>
+        <p role="status" className={`m-0 mt-4 text-[16px] ${message.kind === "error" ? "text-accent-error" : "text-olive"}`}>
           {message.text}
         </p>
       )}

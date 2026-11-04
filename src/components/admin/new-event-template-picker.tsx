@@ -47,7 +47,7 @@ export function NewEventTemplatePicker({
         <select
           value={templateId}
           onChange={(event) => setTemplateId(event.target.value)}
-          className="min-h-[54px] min-w-[260px] rounded-[10px] border-2 border-[#b9c4bd] bg-white px-4 text-[18px] text-[#1c2420]"
+          className="min-h-[54px] min-w-[260px] rounded-[10px] border-2 border-gray-light bg-white px-4 text-[18px] text-olive-darker"
         >
           <option value="">Choose a template…</option>
           {templates.map((template) => (

@@ -16,7 +16,7 @@
   font-size: 18px;
   font-weight: 600;
   line-height: 1.3;
-  color: #1c2420;
+  color: var(--olive-darker);
 }
 
 .input {
@@ -24,32 +24,32 @@
   box-sizing: border-box;
   padding: 12px 16px;
   background: #ffffff;
-  border: 2px solid #b9c4bd;
+  border: 2px solid var(--gray-light);
   border-radius: 10px;
   font-family: var(--sans);
   font-size: 18px;
   line-height: 1.4;
-  color: #1c2420;
+  color: var(--olive-darker);
   width: 100%;
 }
 
 .input::placeholder {
-  color: #7a857f;
+  color: var(--gray);
 }
 
 .input:hover {
-  border-color: #8f9c94;
+  border-color: var(--tan);
 }
 
 .input:focus {
-  outline: 3px solid rgba(31, 91, 69, 0.35);
+  outline: 3px solid rgba(63, 74, 33, 0.35);
   outline-offset: 1px;
-  border-color: #1f5b45;
+  border-color: var(--olive);
 }
 
 .input:disabled {
-  background: #f3f5f2;
-  color: #5d6963;
+  background: var(--paper-warm);
+  color: var(--gray);
 }
 
 textarea.input {
@@ -77,7 +77,7 @@ textarea.input {
   line-height: 1.1;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #1c2420;
+  color: var(--olive-darker);
   margin: 8px 0 0;
   text-wrap: balance;
 }
@@ -88,7 +88,7 @@ textarea.input {
   line-height: 1.2;
   font-weight: 700;
   letter-spacing: -0.015em;
-  color: #1c2420;
+  color: var(--olive-darker);
   margin: 0;
   text-wrap: balance;
 }
@@ -99,7 +99,7 @@ textarea.input {
   line-height: 1.3;
   font-weight: 700;
   letter-spacing: -0.005em;
-  color: #1c2420;
+  color: var(--olive-darker);
   margin: 0 0 4px;
 }
 
@@ -108,13 +108,13 @@ textarea.input {
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: #4a5650;
+  color: var(--gray);
 }
 
 .groupDesc {
   font-size: 18px;
   line-height: 1.55;
-  color: #4a5650;
+  color: var(--gray);
   margin: 0 0 24px;
   max-width: 62ch;
 }
@@ -137,25 +137,25 @@ textarea.input {
   gap: 16px;
   margin-top: 32px;
   padding-top: 24px;
-  border-top: 1px solid #e3e8e2;
+  border-top: 1px solid var(--border);
 }
 
 .flow {
   font-size: 17px;
-  color: #1c2420;
+  color: var(--olive-darker);
 }
 
 /* A thin progress bar for the builder. */
 .progress {
   height: 6px;
   border-radius: 3px;
-  background: #d6ddd5;
+  background: var(--border-strong);
   overflow: hidden;
 }
 
 .progressFill {
   height: 100%;
-  background: #1f5b45;
+  background: var(--olive);
   transition: width 200ms ease;
 }
 
@@ -170,20 +170,20 @@ textarea.input {
   justify-content: center;
   font-size: 16px;
   font-weight: 700;
-  border: 2px solid #9aa79f;
-  color: #3d4943;
+  border: 2px solid var(--tan);
+  color: var(--gray);
 }
 
 .stepNumberActive {
-  background: #1f5b45;
-  border-color: #1f5b45;
+  background: var(--olive);
+  border-color: var(--olive);
   color: #ffffff;
 }
 
 .stepNumberDone {
-  background: #e4efe8;
-  border-color: #1f5b45;
-  color: #1f5b45;
+  background: var(--cream);
+  border-color: var(--olive);
+  color: var(--olive);
 }
 
 .stepNumberOptional {
@@ -191,8 +191,8 @@ textarea.input {
 }
 
 .stepNumberProblem {
-  border-color: #b3261e;
-  color: #b3261e;
+  border-color: var(--accent-error);
+  color: var(--accent-error);
 }
 
 .step {
@@ -215,14 +215,14 @@ textarea.input {
 
 .stepActive {
   background: #ffffff;
-  border-color: #1f5b45;
+  border-color: var(--olive);
 }
 
 .stepLabel {
   display: block;
   font-size: 18px;
   font-weight: 600;
-  color: #1c2420;
+  color: var(--olive-darker);
 }
 
 .stepStatus {
@@ -233,7 +233,7 @@ textarea.input {
 
 .panel {
   background: #ffffff;
-  border: 1px solid #d6ddd5;
+  border: 1px solid var(--border-strong);
   border-radius: 16px;
   padding: 36px 40px;
   box-sizing: border-box;
@@ -249,7 +249,7 @@ textarea.input {
   display: flex;
   gap: 8px;
   padding: 6px;
-  background: #e6ebe5;
+  background: var(--border);
   border-radius: 12px;
 }
 
@@ -263,13 +263,13 @@ textarea.input {
   font-family: var(--sans);
   text-align: center;
   cursor: pointer;
-  color: #3d4943;
+  color: var(--gray);
 }
 
 .tabActive {
   background: #ffffff;
-  box-shadow: 0 1px 3px rgba(28, 36, 32, 0.12);
-  color: #1c2420;
+  box-shadow: 0 1px 3px rgba(31, 38, 17, 0.12);
+  color: var(--olive-darker);
 }
 
 .tabLabel {
@@ -281,17 +281,17 @@ textarea.input {
 .tabHint {
   display: block;
   font-size: 15px;
-  color: #5d6963;
+  color: var(--gray);
 }
 
 .note {
   margin: 0;
   padding: 14px 16px;
-  background: #f3f6f2;
+  background: var(--paper-warm);
   border-radius: 10px;
   font-size: 17px;
   line-height: 1.5;
-  color: #3d4943;
+  color: var(--gray);
 }
 
 .primary {
@@ -299,7 +299,7 @@ textarea.input {
   padding: 0 32px;
   border-radius: 10px;
   border: none;
-  background: #1f5b45;
+  background: var(--olive);
   color: #ffffff;
   font-family: var(--sans);
   font-size: 18px;
@@ -308,7 +308,7 @@ textarea.input {
 }
 
 .primary:hover {
-  background: #174a38;
+  background: var(--olive-deep);
 }
 
 .primary:disabled {
@@ -320,9 +320,9 @@ textarea.input {
   min-height: 56px;
   padding: 0 24px;
   border-radius: 10px;
-  border: 2px solid #b9c4bd;
+  border: 2px solid var(--gray-light);
   background: #ffffff;
-  color: #1c2420;
+  color: var(--olive-darker);
   font-family: var(--sans);
   font-size: 18px;
   font-weight: 600;
@@ -330,7 +330,7 @@ textarea.input {
 }
 
 .secondary:hover {
-  border-color: #1f5b45;
+  border-color: var(--olive);
 }
 
 .quiet {
@@ -338,7 +338,7 @@ textarea.input {
   padding: 0 12px;
   border: none;
   background: transparent;
-  color: #1f5b45;
+  color: var(--olive);
   font-family: var(--sans);
   font-size: 17px;
   font-weight: 600;
@@ -351,9 +351,9 @@ textarea.input {
   min-height: 44px;
   padding: 8px 18px;
   border-radius: 999px;
-  border: 2px solid #b9c4bd;
+  border: 2px solid var(--gray-light);
   background: #ffffff;
-  color: #1c2420;
+  color: var(--olive-darker);
   font-size: 17px;
   text-decoration: none;
   display: inline-flex;
@@ -361,11 +361,11 @@ textarea.input {
 }
 
 .chip:hover {
-  border-color: #1f5b45;
+  border-color: var(--olive);
 }
 
 .chipActive {
-  border-color: #1f5b45;
-  background: #e4efe8;
+  border-color: var(--olive);
+  background: var(--cream);
   font-weight: 700;
 }

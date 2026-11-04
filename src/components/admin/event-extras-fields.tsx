@@ -213,7 +213,7 @@ export function EventExtrasFields({
         <h3 className={s.subhead}>Gear</h3>
         {gearPicker}
         {gear.map((item) => (
-          <div key={item.key} className="mt-6 rounded-[12px] border border-[#d6ddd5] p-5">
+          <div key={item.key} className="mt-6 rounded-[12px] border border-rule-strong p-5">
             <div className="grid gap-4 sm:grid-cols-[minmax(0,2fr)_minmax(6rem,1fr)_minmax(6rem,1fr)_auto] items-end">
               <label className={s.field}>
                 <span className={s.label}>Item</span>

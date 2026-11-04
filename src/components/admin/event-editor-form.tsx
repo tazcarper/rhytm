@@ -94,9 +94,9 @@ const STATUS_LABEL: Record<SectionStatus, string> = {
 };
 
 const STATUS_CLASS: Record<SectionStatus, string> = {
-  done: "text-[#1f5b45]",
-  needs_attention: "text-[#b3261e] font-semibold",
-  optional: "text-[#5d6963]",
+  done: "text-olive",
+  needs_attention: "text-accent-error font-semibold",
+  optional: "text-gray",
 };
 
 const STATUS_MARK: Record<SectionStatus, string> = {

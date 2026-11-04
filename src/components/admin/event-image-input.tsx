@@ -15,11 +15,11 @@ import { downscaleImage } from "./downscale-image";
 const EVENT_IMAGE_RATIO = 16 / 9;
 const EVENT_IMAGE_MAX_EDGE = 1600;
 
-const labelCls = "block font-sans text-[18px] font-semibold text-[#1c2420] mb-2";
+const labelCls = "block font-sans text-[18px] font-semibold text-olive-darker mb-2";
 const inputCls =
-  "w-full border-2 border-[#b9c4bd] rounded-[10px] px-4 py-3 font-sans text-[18px] text-olive focus:border-olive focus:outline-none bg-paper";
+  "w-full border-2 border-gray-light rounded-[10px] px-4 py-3 font-sans text-[18px] text-olive focus:border-olive focus:outline-none bg-paper";
 const uploadBtnCls =
-  "self-start font-sans text-[17px] font-semibold text-[#1c2420] border-2 border-[#b9c4bd] rounded-[10px] px-5 py-3 hover:bg-cream disabled:opacity-40";
+  "self-start font-sans text-[17px] font-semibold text-olive-darker border-2 border-gray-light rounded-[10px] px-5 py-3 hover:bg-cream disabled:opacity-40";
 const removeBtnCls =
   "absolute -top-2 -right-2 h-6 w-6 grid place-items-center rounded-full bg-olive text-cream text-[17px] leading-none shadow";
 

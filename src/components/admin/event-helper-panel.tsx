@@ -106,7 +106,7 @@ export function EventHelperPanel({ propertyId }: { propertyId: string | null }) 
           </button>
         )}
       </div>
-      <p className="mt-1 text-[17px] leading-[1.5] text-[#4a5650]">
+      <p className="mt-1 text-[17px] leading-[1.5] text-gray">
         Tell the helper about the event the way you'd tell a coworker. It fills in a draft for you and asks about
         anything missing. Nothing goes live until you publish.
       </p>
@@ -118,8 +118,8 @@ export function EventHelperPanel({ propertyId }: { propertyId: string | null }) 
               <span
                 className={`max-w-[90%] rounded-[16px] px-4 py-3 text-[17px] leading-[1.45] ${
                   line.who === "you"
-                    ? "rounded-br-[4px] bg-[#1f5b45] text-white"
-                    : "rounded-bl-[4px] bg-[#eef1ec] text-[#1c2420]"
+                    ? "rounded-br-[4px] bg-olive text-white"
+                    : "rounded-bl-[4px] bg-paper-warm text-olive-darker"
                 }`}
               >
                 <span className="sr-only">{line.who === "you" ? "You: " : "Helper: "}</span>
@@ -129,7 +129,7 @@ export function EventHelperPanel({ propertyId }: { propertyId: string | null }) 
           ))}
           {pending && (
             <li className="flex justify-start">
-              <span className="rounded-[16px] rounded-bl-[4px] bg-[#eef1ec] px-4 py-3 text-[17px] text-[#4a5650]">
+              <span className="rounded-[16px] rounded-bl-[4px] bg-paper-warm px-4 py-3 text-[17px] text-gray">
                 Working on it…
               </span>
             </li>
