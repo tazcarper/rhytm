@@ -64,17 +64,10 @@ export function EventHelperPanel({ propertyId }: { propertyId: string | null }) 
         case "draft": {
           const saved = result.eventCount > 1 ? `Saved ${result.eventCount} dates as drafts.` : "Draft saved.";
           const href = `/admin/events/${result.eventId}`;
-          if (note.length > 0) {
-            // Stay here so the feature-request note can be read; the draft is a tap away.
-            setTranscript((lines) => [
-              ...lines,
-              ...note,
-              { who: "helper", text: `${saved} Review it in the editor, then publish when it's ready.`, link: { href, label: "Open the draft" } },
-            ]);
-            break;
-          }
+          // The draft's page repeats any feature-request note at the top, so go straight there.
           setTranscript((lines) => [
             ...lines,
+            ...note,
             {
               who: "helper",
               text: result.eventCount > 1 ? `${saved} Opening the first one in the editor…` : `${saved} Opening it in the editor…`,
