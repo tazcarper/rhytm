@@ -1,4 +1,5 @@
 import { Alert } from "@/lib/ui";
+import { InProgressIndicator } from "./in-progress-indicator";
 import type { EventFeatureRequest } from "@/src/services/ai/capability-requests";
 
 // Top of a draft's page when the AI helper couldn't build part of it: says
@@ -10,7 +11,12 @@ export function EventFeatureRequestNotice({ requests }: { requests: ReadonlyArra
   return (
     <>
       {waiting.length > 0 && (
-        <Alert variant="warn" title="Feature in progress">
+        <Alert variant="warn" title={
+            <span className="inline-flex items-center gap-2">
+              <InProgressIndicator />
+              Feature in progress
+            </span>
+          }>
           <p className="m-0">
             The rest of this draft is saved. The part below isn&apos;t in the event builder yet, so it&apos;s been sent
             to the developer to build:

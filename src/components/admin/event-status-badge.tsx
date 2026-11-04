@@ -1,5 +1,6 @@
 import { Badge } from "@/lib/ui";
 import { InfoTip } from "@/src/components/ui/info-tip";
+import { InProgressIndicator } from "./in-progress-indicator";
 import type { BadgeVariant } from "@/lib/ui";
 import type { EventStatus } from "@/src/services/admin/events";
 import type { EventFeatureRequest } from "@/src/services/ai/capability-requests";
@@ -34,7 +35,10 @@ export function EventFeatureBadge({ requests }: { requests: ReadonlyArray<EventF
   const listed = inProgress ? waiting : requests;
   return (
     <span className="inline-flex items-center gap-1">
-      <Badge variant={inProgress ? "filling" : "open"}>{inProgress ? "Feature in progress" : "Feature ready"}</Badge>
+      <Badge variant={inProgress ? "filling" : "open"} className="inline-flex items-center gap-1.5">
+        {inProgress && <InProgressIndicator size={12} />}
+        {inProgress ? "Feature in progress" : "Feature ready"}
+      </Badge>
       <InfoTip label={inProgress ? "What does Feature in progress mean?" : "What does Feature ready mean?"}>
         {inProgress ? (
           <>
