@@ -33,19 +33,21 @@ export interface StartPropertyOption {
   logoUrl: string | null;
 }
 
-const TYPE_ICONS: Record<EventType, LucideIcon> = {
-  Training: GraduationCap,
-  League: Users,
-  Tournament: Trophy,
-  Social: PartyPopper,
-  Adventure: Compass,
-  Standing: Repeat,
+// Each kind and starter gets its own icon and colour so they're easy to
+// tell apart at a glance. Colours keep at least 4.5:1 contrast on white.
+const TYPE_ICONS: Record<EventType, { icon: LucideIcon; color: string }> = {
+  Training: { icon: GraduationCap, color: "#1d5fc4" },
+  League: { icon: Users, color: "#6a3fb5" },
+  Tournament: { icon: Trophy, color: "#a35a00" },
+  Social: { icon: PartyPopper, color: "#b8246a" },
+  Adventure: { icon: Compass, color: "#1f7a43" },
+  Standing: { icon: Repeat, color: "#0f6f73" },
 };
 
-const STARTER_ICONS: Record<EventStarterKey, LucideIcon> = {
-  single_day: CalendarDays,
-  class_clinic: Target,
-  league: Repeat,
+const STARTER_ICONS: Record<EventStarterKey, { icon: LucideIcon; color: string }> = {
+  single_day: { icon: CalendarDays, color: "#b8246a" },
+  class_clinic: { icon: Target, color: "#1d5fc4" },
+  league: { icon: Repeat, color: "#6a3fb5" },
 };
 
 const monogram = (name: string) =>
@@ -107,18 +109,24 @@ export function EventStartForm({
   }));
 
   const typeTiles: ReadonlyArray<ChoiceTile<EventType>> = EVENT_TYPES.map((value) => {
-    const Icon = TYPE_ICONS[value];
-    return { value, label: value, example: EVENT_TYPE_EXAMPLES[value], icon: <Icon size={30} strokeWidth={2.2} /> };
+    const { icon: Icon, color } = TYPE_ICONS[value];
+    return {
+      value,
+      label: value,
+      example: EVENT_TYPE_EXAMPLES[value],
+      accent: color,
+      icon: <Icon size={28} strokeWidth={2.2} />,
+    };
   });
 
   const starterTiles: ReadonlyArray<ChoiceTile<EventStarterKey>> = starters.map((item) => {
-    const Icon = STARTER_ICONS[item.key];
+    const { icon: Icon, color } = STARTER_ICONS[item.key];
     return {
       value: item.key,
       label: item.label,
       example: item.example,
-      accent: "#8a5a1f",
-      icon: <Icon size={30} strokeWidth={2.2} />,
+      accent: color,
+      icon: <Icon size={28} strokeWidth={2.2} />,
     };
   });
 
