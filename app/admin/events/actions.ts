@@ -13,6 +13,7 @@ import {
   saveEvent,
   saveRecurringEvents,
   deleteEvent,
+  deleteAllNonTemplateEvents,
   duplicateEventFromTemplate,
   cancelEventRegistration,
   SaveEventSchema,
@@ -155,5 +156,24 @@ export async function saveEventExtrasAction(
   const supabase = await createServerSupabaseClient();
   const result = await saveEventExtras(supabase, eventId, parsed.data);
   if (result.ok) revalidatePath(`/admin/events/${eventId}`);
+  return result;
+}
+
+// TEMPORARY (Taz, 2026-11-04): clears test events. Admins only, and never
+// on the live site: Vercel sets VERCEL_ENV=production there. Remove before
+// launch, with RemoveAllEventsButton.
+export async function removeAllEventsAction(
+  confirmation: string,
+): Promise<{ ok: true; count: number } | { ok: false; error: string }> {
+  if (process.env.VERCEL_ENV === "production") return { ok: false, error: "Not available on the live site." };
+  if (confirmation !== "DELETE") return { ok: false, error: 'Type DELETE to confirm.' };
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const role = user?.app_metadata?.role as string | undefined;
+  if (role !== "admin" && role !== "super_admin") return { ok: false, error: "Only admins can do this." };
+  const result = await deleteAllNonTemplateEvents(supabase);
+  if (result.ok) revalidateEventSurfaces();
   return result;
 }

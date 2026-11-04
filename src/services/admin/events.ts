@@ -656,3 +656,25 @@ export async function cancelEventRegistration(
   if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
+
+// TEMPORARY test cleanup (Taz, 2026-11-04): deletes every event that isn't
+// a template, with its sign-ups. Only reachable on previews and local dev
+// (see removeAllEventsAction); remove before launch.
+export async function deleteAllNonTemplateEvents(
+  supabase: SupabaseClient,
+): Promise<{ ok: true; count: number } | { ok: false; error: string }> {
+  const { data, error } = await supabase.from("events").select("id").eq("is_template", false);
+  if (error) return { ok: false, error: error.message };
+  const ids = (data ?? []).map((row) => row.id as string);
+  if (ids.length === 0) return { ok: true, count: 0 };
+
+  // Sign-ups don't cascade (see deleteEvent), so they go first.
+  for (let start = 0; start < ids.length; start += 200) {
+    const batch = ids.slice(start, start + 200);
+    const registrations = await supabase.from("event_registrations").delete().in("event_id", batch);
+    if (registrations.error) return { ok: false, error: registrations.error.message };
+    const events = await supabase.from("events").delete().in("id", batch);
+    if (events.error) return { ok: false, error: events.error.message };
+  }
+  return { ok: true, count: ids.length };
+}
