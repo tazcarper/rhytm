@@ -865,14 +865,20 @@ export function EventEditorForm({
                   </label>
                 )}
               </div>
-              <label className="flex items-center gap-2.5">
-                <input
-                  type="checkbox"
-                  checked={includedWithMembership}
-                  onChange={(evt) => handleIncludedChange(evt.target.checked)}
-                />
-                <span className="text-[17px] text-olive">Free for members (sets the member price to $0)</span>
-              </label>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2.5">
+                  <input
+                    type="checkbox"
+                    checked={includedWithMembership}
+                    onChange={(evt) => handleIncludedChange(evt.target.checked)}
+                  />
+                  <span className="text-[17px] text-olive">Free for members</span>
+                </label>
+                <InfoTip label="What does Free for members do?">
+                  Members sign up at no charge; everyone else pays the regular price. Ticking this sets the member
+                  price to $0, and the event shows as included with membership.
+                </InfoTip>
+              </div>
               </div>
               <div className="flex flex-col gap-2">
               <label className={s.field}>
@@ -931,10 +937,16 @@ export function EventEditorForm({
                 </div>
                 <EventInfoBoxEditor boxes={infoBoxes} onChange={setInfoBoxes} />
               </section>
-              <label className="flex items-center gap-2.5">
-                <input type="checkbox" checked={featured} onChange={(evt) => setFeatured(evt.target.checked)} />
-                <span className="text-[17px] text-olive">Feature this event (shows it large at the top of the calendar)</span>
-              </label>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2.5">
+                  <input type="checkbox" checked={featured} onChange={(evt) => setFeatured(evt.target.checked)} />
+                  <span className="text-[17px] text-olive">Feature this event</span>
+                </label>
+                <InfoTip label="What does Feature this event do?">
+                  Shows the event large at the top of the events calendar, so guests see it first. Best kept for one or
+                  two big events at a time, like a holiday shoot or a tournament.
+                </InfoTip>
+              </div>
             </div>
 
             <div hidden={active !== "review"} className="flex flex-col gap-6">
@@ -1000,16 +1012,22 @@ export function EventEditorForm({
                   </p>
                 </div>
               )}
-              <label className="flex items-center gap-2.5">
-                <input
-                  type="checkbox"
-                  checked={isManuallySoldOut}
-                  onChange={(evt) => setIsManuallySoldOut(evt.target.checked)}
-                />
-                <span className="text-[17px] text-olive">
-                  Mark as sold out (stops new sign-ups, even if spots are left)
-                </span>
-              </label>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2.5">
+                  <input
+                    type="checkbox"
+                    checked={isManuallySoldOut}
+                    onChange={(evt) => setIsManuallySoldOut(evt.target.checked)}
+                  />
+                  <span className="text-[17px] text-olive">Mark as sold out</span>
+                </label>
+                <InfoTip label="What does Mark as sold out do?">
+                  Stops new sign-ups right away, even if there are spots left. Guests can still see the event, and
+                  everyone already signed up keeps their place. Handy when you&apos;ve filled spots by phone or need to
+                  close sign-ups early. Untick it to open sign-ups again. You don&apos;t need it when the event is
+                  full: it closes on its own once every spot is taken.
+                </InfoTip>
+              </div>
               <div className="flex items-center gap-2">
                 <label className="flex items-center gap-2.5">
                   <input type="checkbox" checked={isTemplate} onChange={(evt) => setIsTemplate(evt.target.checked)} />
