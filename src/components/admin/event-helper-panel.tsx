@@ -12,14 +12,22 @@ import s from "./event-flow.module.css";
 // editor with a saved draft. Talks to /api/admin/event-helper.
 
 type HelperResponse =
-  | { kind: "question" | "capability" | "message"; sessionId: string; text: string }
-  | { kind: "draft"; sessionId: string; eventId: string; eventCount: number }
+  | { kind: "question" | "message"; sessionId: string; text: string; featureRequest?: string }
+  | { kind: "capability"; sessionId: string; text: string }
+  | { kind: "draft"; sessionId: string; eventId: string; eventCount: number; featureRequest?: string }
   | { kind: "error"; sessionId?: string | null; text: string };
 
 interface TranscriptLine {
   who: "you" | "helper";
   text: string;
+  // A link under the text (the saved draft, when it isn't opened right away).
+  link?: { href: string; label: string };
 }
+
+const featureRequestLine = (summary: string): TranscriptLine => ({
+  who: "helper",
+  text: `The builder can't do that yet, so I've sent it to the developer as a feature request: "${summary}". I've drafted the rest of the event without it.`,
+});
 
 const PLACEHOLDER =
   "e.g. Halloween party on Oct 31, 8 a.m. to 4 p.m. $50 adults, $10 kids. Hayride, pumpkin carving and a costume contest.";
@@ -50,33 +58,43 @@ export function EventHelperPanel({ propertyId }: { propertyId: string | null }) 
       });
       const result = (await response.json()) as HelperResponse;
       if (result.sessionId) setSessionId(result.sessionId);
+      const note = "featureRequest" in result && result.featureRequest ? [featureRequestLine(result.featureRequest)] : [];
 
       switch (result.kind) {
-        case "draft":
+        case "draft": {
+          const saved = result.eventCount > 1 ? `Saved ${result.eventCount} dates as drafts.` : "Draft saved.";
+          const href = `/admin/events/${result.eventId}`;
+          if (note.length > 0) {
+            // Stay here so the feature-request note can be read; the draft is a tap away.
+            setTranscript((lines) => [
+              ...lines,
+              ...note,
+              { who: "helper", text: `${saved} Review it in the editor, then publish when it's ready.`, link: { href, label: "Open the draft" } },
+            ]);
+            break;
+          }
           setTranscript((lines) => [
             ...lines,
             {
               who: "helper",
-              text:
-                result.eventCount > 1
-                  ? `Saved ${result.eventCount} dates as drafts. Opening the first one in the editor…`
-                  : "Draft saved. Opening it in the editor…",
+              text: result.eventCount > 1 ? `${saved} Opening the first one in the editor…` : `${saved} Opening it in the editor…`,
             },
           ]);
-          router.push(`/admin/events/${result.eventId}`);
+          router.push(href);
           return;
+        }
         case "capability":
           setTranscript((lines) => [
             ...lines,
             {
               who: "helper",
-              text: `The builder can't do that yet, so I've sent it to the developer as a feature request: "${result.text}". You can keep going, and I'll draft the rest of the event without it.`,
+              text: `The builder can't do that yet, so I've sent it to the developer as a feature request: "${result.text}". Tell me anything else about the event and I'll draft it without that part.`,
             },
           ]);
           break;
         case "question":
         case "message":
-          setTranscript((lines) => [...lines, { who: "helper", text: result.text }]);
+          setTranscript((lines) => [...lines, ...note, { who: "helper", text: result.text }]);
           break;
         case "error":
           setError(result.text);
@@ -124,6 +142,11 @@ export function EventHelperPanel({ propertyId }: { propertyId: string | null }) 
               >
                 <span className="sr-only">{line.who === "you" ? "You: " : "Helper: "}</span>
                 {line.text}
+                {line.link && (
+                  <a href={line.link.href} className="mt-2 block font-semibold text-olive underline">
+                    {line.link.label}
+                  </a>
+                )}
               </span>
             </li>
           ))}

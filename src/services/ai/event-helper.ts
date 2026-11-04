@@ -44,7 +44,8 @@ export const HELPER_LIMITS = {
   maxTokensPerReply: 8000,
   // Model calls within one turn: the first answer plus up to two fixes
   // after a draft fails validation.
-  maxModelCallsPerTurn: 3,
+  // One spare call so a turn can record a feature request and still draft.
+  maxModelCallsPerTurn: 4,
 } as const;
 
 export interface EventHelperDeps {
@@ -65,10 +66,12 @@ export interface EventHelperTurnInput {
 }
 
 export type EventHelperResult =
-  | { kind: "question"; sessionId: string; text: string }
-  | { kind: "draft"; sessionId: string; eventId: string; eventCount: number }
+  // featureRequest: set when this turn also sent the developer a request for
+  // something the builder can't do yet; the rest of the event carries on.
+  | { kind: "question"; sessionId: string; text: string; featureRequest?: string }
+  | { kind: "draft"; sessionId: string; eventId: string; eventCount: number; featureRequest?: string }
   | { kind: "capability"; sessionId: string; text: string }
-  | { kind: "message"; sessionId: string; text: string }
+  | { kind: "message"; sessionId: string; text: string; featureRequest?: string }
   | { kind: "error"; sessionId: string | null; text: string };
 
 const WALL_CLOCK = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
@@ -170,6 +173,7 @@ export async function runEventHelperTurn(
   session.turnCount += 1;
 
   let result: EventHelperResult | null = null;
+  let featureRequest: string | null = null;
 
   for (let call = 0; call < HELPER_LIMITS.maxModelCallsPerTurn && !result; call += 1) {
     const reply = await deps.model.send({
@@ -224,13 +228,16 @@ export async function runEventHelperTurn(
         content: [
           toolResult(
             toolUse.id,
-            recorded.ok ? "Recorded for the developer to review." : `Couldn't record it: ${recorded.error}`,
+            recorded.ok
+              ? "Recorded for the developer to review. Now carry on without it: ask about anything else that's missing, or propose the draft."
+              : `Couldn't record it: ${recorded.error}. Carry on with the rest of the event anyway.`,
             !recorded.ok,
           ),
         ],
       });
-      result = { kind: "capability", sessionId: session.id, text: summary };
-      break;
+      // Don't end the turn: the model goes on to draft the rest of the event.
+      if (recorded.ok) featureRequest = summary;
+      continue;
     }
 
     if (toolUse.name === TOOL_PROPOSE_DRAFT) {
@@ -273,6 +280,12 @@ export async function runEventHelperTurn(
   }
 
   await deps.sessions.save(session);
+  if (featureRequest) {
+    if (!result) return { kind: "capability", sessionId: session.id, text: featureRequest };
+    if (result.kind === "question" || result.kind === "draft" || result.kind === "message") {
+      return { ...result, featureRequest };
+    }
+  }
   return (
     result ?? {
       kind: "error",
