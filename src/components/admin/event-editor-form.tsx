@@ -15,6 +15,8 @@ import {
   type SaveEventExtrasInput,
 } from "@/src/services/events/event-extras-contract";
 import { EventExtrasFields, toEditableExtras, toExtrasInput } from "@/src/components/admin/event-extras-fields";
+import { GearPicker } from "@/src/components/admin/gear-picker";
+import type { GearPreset } from "@/src/services/admin/gear-presets";
 import type { AdminEventDetail, EventAudience, EventStatus } from "@/src/services/admin/events";
 import type { AdminDisciplineOption, AdminInstructorRow } from "@/src/services/admin/instructors";
 import { EVENT_TYPES, STANDING_EVENT_TYPE, eventTypeFields } from "@/src/constants/admin/event-types";
@@ -48,6 +50,9 @@ interface EventEditorFormProps {
   // Tickets, gear and questions already saved for the event. Saved with the
   // rest of the event.
   extras: SaveEventExtrasInput;
+  // Saved gear lists for the properties the admin can see; the Gear step
+  // shows the chosen property's list as a quick-add checklist.
+  gearPresets: ReadonlyArray<GearPreset>;
   // True right after the start screen created this draft: shows a short
   // "here's what's next" note.
   justStarted?: boolean;
@@ -217,6 +222,7 @@ export function EventEditorForm({
   disciplineOptions,
   instructorOptions,
   extras,
+  gearPresets,
   justStarted = false,
   initialStep = "basics",
 }: EventEditorFormProps) {
@@ -859,7 +865,17 @@ export function EventEditorForm({
             </div>
 
             <div hidden={active !== "guests"}>
-              <EventExtrasFields value={extrasState} onChange={setExtrasState} parts={["gear", "questions"]} />
+              <EventExtrasFields value={extrasState} onChange={setExtrasState} parts={["gear", "questions"]}
+                gearPicker={
+                  <GearPicker
+                    gear={extrasState.gear}
+                    onChange={(gear) => setExtrasState((current) => ({ ...current, gear }))}
+                    propertyId={propertyId}
+                    propertyName={properties.find((property) => property.id === propertyId)?.name ?? "this property"}
+                    presets={gearPresets}
+                  />
+                }
+              />
             </div>
 
             <div hidden={active !== "page"} className="flex flex-col gap-10">

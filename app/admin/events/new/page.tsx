@@ -4,6 +4,7 @@ import { EventPageTitle } from "@/src/components/admin/event-page-title";
 import { AdminBreadcrumb } from "@/src/components/admin/admin-breadcrumb";
 import { getAdminPropertiesList } from "@/src/services/admin/properties";
 import { getEventTemplates } from "@/src/services/admin/events";
+import { getGearPresets } from "@/src/services/admin/gear-presets";
 import { EventStartForm } from "@/src/components/admin/event-start-form";
 import { NewEventTemplatePicker } from "@/src/components/admin/new-event-template-picker";
 import { NewEventStarterPicker } from "@/src/components/admin/new-event-starter-picker";
@@ -28,9 +29,10 @@ export default async function NewEventPage({
   } = await supabase.auth.getUser();
   const showHelper = HELPER_ROLES.has((user?.app_metadata?.role as string | undefined) ?? "");
   const activeStarter = isEventStarterKey(starter) ? EVENT_STARTERS[starter] : null;
-  const [properties, templates] = await Promise.all([
+  const [properties, templates, gearPresets] = await Promise.all([
     getAdminPropertiesList(supabase),
     getEventTemplates(supabase),
+    getGearPresets(supabase),
   ]);
 
   const manualStart = (
@@ -40,6 +42,7 @@ export default async function NewEventPage({
       properties={properties.map((property) => ({ id: property.id, name: property.name }))}
       defaultPropertyId={propertyId}
       starter={activeStarter}
+      newEventGear={gearPresets.filter((preset) => preset.addToNewEvents)}
       starterPicker={
         <NewEventStarterPicker starters={Object.values(EVENT_STARTERS)} activeKey={activeStarter?.key ?? null} />
       }

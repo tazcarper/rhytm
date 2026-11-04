@@ -7,6 +7,8 @@ import { FlowButton as Button } from "./event-flow-button";
 import { saveEventAction, saveEventExtrasAction } from "@/app/admin/events/actions";
 import { EVENT_TYPES, STANDING_EVENT_TYPE } from "@/src/constants/admin/event-types";
 import type { EventStarter } from "@/src/constants/admin/event-starters";
+import { EMPTY_EVENT_EXTRAS, type GearItemInput } from "@/src/services/events/event-extras-contract";
+import type { GearPreset } from "@/src/services/admin/gear-presets";
 import s from "./event-flow.module.css";
 import h from "./event-flow.module.css";
 
@@ -23,12 +25,16 @@ export function EventStartForm({
   properties,
   defaultPropertyId,
   starter,
+  newEventGear = [],
   starterPicker,
   footer,
 }: {
   properties: ReadonlyArray<PropertyOption>;
   defaultPropertyId?: string;
   starter: EventStarter | null;
+  // Saved gear marked "Add to every new event", for any property; the
+  // chosen property's items go on the new draft.
+  newEventGear?: ReadonlyArray<GearPreset>;
   // Slots: the optional starter chips above the fields, and the
   // copy-a-template line below them.
   starterPicker?: ReactNode;
@@ -79,10 +85,18 @@ export function EventStartForm({
         setError(result.error);
         return;
       }
-      if (starter) {
-        const extras = await saveEventExtrasAction(result.id, starter.extras);
+      const starterExtras = starter?.extras ?? EMPTY_EVENT_EXTRAS;
+      const propertyGear: GearItemInput[] = newEventGear
+        .filter((preset) => preset.propertyId === propertyId)
+        .filter((preset) => !starterExtras.gear.some((item) => item.name.toLowerCase() === preset.name.toLowerCase()))
+        .map(({ id: _id, propertyId: _propertyId, addToNewEvents: _add, ...gear }) => gear);
+      if (starter || propertyGear.length > 0) {
+        const extras = await saveEventExtrasAction(result.id, {
+          ...starterExtras,
+          gear: [...starterExtras.gear, ...propertyGear],
+        });
         if (!extras.ok) {
-          setError(`The draft was saved, but not the starter's tickets and gear: ${extras.error}`);
+          setError(`The draft was saved, but not its tickets and gear: ${extras.error}`);
           return;
         }
       }

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { FlowButton as Button } from "./event-flow-button";
 import type {
   GearItemInput,
@@ -24,7 +25,7 @@ interface EditableTicket {
   description: string;
 }
 
-interface EditableGear {
+export interface EditableGear {
   key: string;
   name: string;
   isRequired: boolean;
@@ -54,6 +55,31 @@ export interface EditableExtras {
   questions: EditableQuestion[];
 }
 
+export function toEditableGear(item: GearItemInput): EditableGear {
+  return {
+    key: nextKey(),
+    name: item.name,
+    isRequired: item.isRequired,
+    included: item.included,
+    bringOwnAllowed: item.bringOwnAllowed,
+    rentPrice: moneyToInput(item.rentPrice),
+    buyPrice: moneyToInput(item.buyPrice),
+    notes: item.notes ?? "",
+  };
+}
+
+export function toGearInput(item: EditableGear): GearItemInput {
+  return {
+    name: item.name.trim(),
+    isRequired: item.isRequired,
+    included: item.included,
+    bringOwnAllowed: item.bringOwnAllowed,
+    rentPrice: inputToMoney(item.rentPrice),
+    buyPrice: inputToMoney(item.buyPrice),
+    notes: item.notes.trim() || null,
+  };
+}
+
 export function toEditableExtras(extras: SaveEventExtrasInput): EditableExtras {
   return {
     tickets: extras.tickets.map(
@@ -64,18 +90,7 @@ export function toEditableExtras(extras: SaveEventExtrasInput): EditableExtras {
         description: ticket.description ?? "",
       }),
     ),
-    gear: extras.gear.map(
-      (item): EditableGear => ({
-        key: nextKey(),
-        name: item.name,
-        isRequired: item.isRequired,
-        included: item.included,
-        bringOwnAllowed: item.bringOwnAllowed,
-        rentPrice: moneyToInput(item.rentPrice),
-        buyPrice: moneyToInput(item.buyPrice),
-        notes: item.notes ?? "",
-      }),
-    ),
+    gear: extras.gear.map(toEditableGear),
     questions: extras.questions.map(
       (question): EditableQuestion => ({
         key: nextKey(),
@@ -97,17 +112,7 @@ export function toExtrasInput({ tickets, gear, questions }: EditableExtras): Sav
         description: ticket.description.trim() || null,
       }),
     ),
-    gear: gear.map(
-      (item): GearItemInput => ({
-        name: item.name.trim(),
-        isRequired: item.isRequired,
-        included: item.included,
-        bringOwnAllowed: item.bringOwnAllowed,
-        rentPrice: inputToMoney(item.rentPrice),
-        buyPrice: inputToMoney(item.buyPrice),
-        notes: item.notes.trim() || null,
-      }),
-    ),
+    gear: gear.map(toGearInput),
     questions: questions.map(
       (question): QuestionInput => ({
         label: question.label.trim(),
@@ -134,10 +139,14 @@ export function EventExtrasFields({
   value,
   onChange,
   parts = ALL_PARTS,
+  gearPicker,
 }: {
   value: EditableExtras;
   onChange: (next: EditableExtras) => void;
   parts?: ReadonlyArray<ExtrasPart>;
+  // Slot under the Gear heading: the quick-add checklist of saved and
+  // common gear.
+  gearPicker?: ReactNode;
 }) {
   const { tickets, gear, questions } = value;
   const setTickets = (next: EditableTicket[]) => onChange({ ...value, tickets: next });
@@ -202,6 +211,7 @@ export function EventExtrasFields({
       {parts.includes("gear") && (
       <section>
         <h3 className={s.subhead}>Gear</h3>
+        {gearPicker}
         {gear.map((item) => (
           <div key={item.key} className="mt-6 rounded-[12px] border border-[#d6ddd5] p-5">
             <div className="grid gap-4 sm:grid-cols-[minmax(0,2fr)_minmax(6rem,1fr)_minmax(6rem,1fr)_auto] items-end">

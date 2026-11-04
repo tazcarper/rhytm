@@ -9,6 +9,7 @@ import { getAdminInstructors, getAssignableDisciplines } from "@/src/services/ad
 import { EventEditorForm } from "@/src/components/admin/event-editor-form";
 import { EventRoster } from "@/src/components/admin/event-roster";
 import { getEventExtras } from "@/src/services/admin/event-extras";
+import { getGearPresets } from "@/src/services/admin/gear-presets";
 import { sectionFromStepSlug } from "@/src/services/admin/event-form-check";
 
 export const dynamic = "force-dynamic";
@@ -24,11 +25,12 @@ export default async function EditEventPage({
   const { started, step } = await searchParams;
   const supabase = await createServerSupabaseClient();
 
-  const [event, properties, roster, extras] = await Promise.all([
+  const [event, properties, roster, extras, gearPresets] = await Promise.all([
     getEvent(supabase, id),
     getAdminPropertiesList(supabase),
     getEventRoster(supabase, id),
     getEventExtras(supabase, id),
+    getGearPresets(supabase),
   ]);
 
   if (!event) {
@@ -68,6 +70,7 @@ export default async function EditEventPage({
           disciplineOptions={disciplineOptions}
           instructorOptions={instructorOptions}
           extras={extras}
+          gearPresets={gearPresets}
           justStarted={started === "1"}
           initialStep={sectionFromStepSlug(step) ?? undefined}
         />
