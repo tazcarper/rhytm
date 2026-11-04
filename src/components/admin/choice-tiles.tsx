@@ -3,20 +3,31 @@
 import { useId, type ReactNode } from "react";
 import { Check } from "lucide-react";
 
-// A set of large square tiles that work like radio buttons: one choice per
-// set, keyboard arrows move between them, and the browser handles focus.
-// Used on the New event screen for the club, the kind of event and the
-// optional starter. Each tile can carry an icon and an example line.
+// A set of cards that work like radio buttons: one choice per set, arrow
+// keys move between them, and the browser handles focus. Used on the New
+// event screen for the club, the kind of event and the optional starter.
+//
+// Card layout (Taz's reference, 2026-11-04): a media area on top, then the
+// title, a short description, a
+// divider and a full-width button. The media is the tile's image at full
+// width when it has one (a club's logo), otherwise its icon, centred in a
+// strong contrasting badge.
 
 export interface ChoiceTile<T extends string> {
   value: T;
   label: string;
-  icon: ReactNode;
+  // Full-width image for the top of the card (e.g. a club's logo).
+  imageUrl?: string | null;
+  // Shown centred when there's no image.
+  icon?: ReactNode;
   // Small grey line under the label, after `examplePrefix`.
   example?: string;
-  // Optional colour for the icon badge (e.g. a club's brand colour).
+  // Colour behind the icon (e.g. a club's brand colour). Defaults to the
+  // event pages' green.
   accent?: string;
 }
+
+const DEFAULT_ACCENT = "#1f5b45";
 
 export function ChoiceTiles<T extends string>({
   legend,
@@ -26,7 +37,6 @@ export function ChoiceTiles<T extends string>({
   onChange,
   columns = 3,
   allowClear = false,
-  required = false,
   examplePrefix = "Like: ",
 }: {
   legend: string;
@@ -35,10 +45,9 @@ export function ChoiceTiles<T extends string>({
   value: T | "";
   onChange: (value: T | "") => void;
   columns?: 2 | 3;
-  // Clicking the chosen tile again clears it (for optional choices).
+  // Clicking the chosen card again clears it (for optional choices).
   allowClear?: boolean;
-  required?: boolean;
-  // Text before each example; "" shows the example on its own (a club's tagline).
+  // Text before each example; "" shows the example on its own.
   examplePrefix?: string;
 }) {
   const name = useId();
@@ -48,16 +57,17 @@ export function ChoiceTiles<T extends string>({
     <fieldset className="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
       <legend className="mb-1 p-0 text-[19px] font-bold text-[#1c2420]">{legend}</legend>
       {description && <p className="m-0 -mt-1 text-[17px] text-[#4a5650]">{description}</p>}
-      <div className={`grid grid-cols-1 gap-3 ${grid}`}>
+      <div className={`grid grid-cols-1 gap-4 ${grid}`}>
         {tiles.map((tile) => {
           const checked = tile.value === value;
+          const accent = tile.accent ?? DEFAULT_ACCENT;
           return (
             <label
               key={tile.value}
-              className={`relative flex min-h-[132px] cursor-pointer flex-col gap-3 rounded-[14px] border-2 p-5 transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[rgba(31,91,69,0.35)] ${
+              className={`flex cursor-pointer flex-col overflow-hidden rounded-[16px] border-2 bg-white transition-[border-color,box-shadow] has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[rgba(31,91,69,0.35)] ${
                 checked
-                  ? "border-[#1f5b45] bg-[#f1f7f3] shadow-[0_2px_10px_rgba(31,91,69,0.12)]"
-                  : "border-[#d6ddd5] bg-white hover:border-[#8f9c94]"
+                  ? "border-[#1f5b45] shadow-[0_4px_16px_rgba(31,91,69,0.16)]"
+                  : "border-[#d6ddd5] hover:border-[#8f9c94] hover:shadow-[0_2px_10px_rgba(28,36,32,0.08)]"
               }`}
             >
               <input
@@ -65,21 +75,34 @@ export function ChoiceTiles<T extends string>({
                 name={name}
                 value={tile.value}
                 checked={checked}
-                required={required}
                 onChange={() => onChange(tile.value)}
                 onClick={() => {
                   if (allowClear && checked) onChange("");
                 }}
                 className="sr-only"
               />
-              <span
-                aria-hidden="true"
-                className="flex h-12 w-12 items-center justify-center rounded-[12px] text-white"
-                style={{ background: tile.accent ?? (checked ? "#1f5b45" : "#4a5650") }}
-              >
-                {tile.icon}
-              </span>
-              <span className="flex flex-col gap-1">
+
+              {tile.imageUrl ? (
+                <span className="flex aspect-[16/7] items-center justify-center border-b border-[#e6ebe5] bg-[#f6f8f5] px-6 py-5">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- admin-uploaded logos of any size and type */}
+                  <img src={tile.imageUrl} alt="" className="h-full w-full object-contain" />
+                </span>
+              ) : (
+                <span
+                  aria-hidden="true"
+                  className="flex aspect-[16/7] items-center justify-center border-b border-[#e6ebe5]"
+                  style={{ background: `color-mix(in srgb, ${accent} 10%, white)` }}
+                >
+                  <span
+                    className="flex h-16 w-16 items-center justify-center rounded-full text-white shadow-[0_4px_12px_rgba(28,36,32,0.18)]"
+                    style={{ background: accent }}
+                  >
+                    {tile.icon}
+                  </span>
+                </span>
+              )}
+
+              <span className="flex flex-1 flex-col gap-1.5 px-5 pb-4 pt-4">
                 <span className="text-[19px] font-bold leading-tight text-[#1c2420]">{tile.label}</span>
                 {tile.example && (
                   <span className="text-[15px] leading-snug text-[#5d6963]">
@@ -88,14 +111,18 @@ export function ChoiceTiles<T extends string>({
                   </span>
                 )}
               </span>
-              {checked && (
+
+              <span className="border-t border-[#e6ebe5] px-4 py-3">
                 <span
                   aria-hidden="true"
-                  className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-full bg-[#1f5b45] text-white"
+                  className={`flex min-h-[44px] items-center justify-center gap-2 rounded-[10px] text-[17px] font-semibold ${
+                    checked ? "bg-[#1f5b45] text-white" : "bg-[#eef1ec] text-[#1c2420]"
+                  }`}
                 >
-                  <Check size={16} strokeWidth={3} />
+                  {checked && <Check size={18} strokeWidth={3} />}
+                  {checked ? "Selected" : "Choose"}
                 </span>
-              )}
+              </span>
             </label>
           );
         })}

@@ -28,7 +28,9 @@ export interface StartPropertyOption {
   id: string;
   name: string;
   slug: string;
-  tagline: string | null;
+  // The club's logo (uploaded in the property's Basics, or the built-in
+  // one). Null shows the club's initials instead.
+  logoUrl: string | null;
 }
 
 const TYPE_ICONS: Record<EventType, LucideIcon> = {
@@ -99,22 +101,28 @@ export function EventStartForm({
   const propertyTiles: ReadonlyArray<ChoiceTile<string>> = properties.map((property) => ({
     value: property.id,
     label: property.name,
-    example: property.tagline ?? undefined,
+    imageUrl: property.logoUrl,
     accent: getPropertyBrandTint(property.slug),
-    icon: <span className="text-[17px] font-bold tracking-wide">{monogram(property.name)}</span>,
+    icon: <span className="text-[20px] font-bold tracking-wide">{monogram(property.name)}</span>,
   }));
 
   const typeTiles: ReadonlyArray<ChoiceTile<EventType>> = EVENT_TYPES.map((value) => {
     const Icon = TYPE_ICONS[value];
-    return { value, label: value, example: EVENT_TYPE_EXAMPLES[value], icon: <Icon size={24} strokeWidth={2.2} /> };
+    return { value, label: value, example: EVENT_TYPE_EXAMPLES[value], icon: <Icon size={30} strokeWidth={2.2} /> };
   });
 
   const starterTiles: ReadonlyArray<ChoiceTile<EventStarterKey>> = starters.map((item) => {
     const Icon = STARTER_ICONS[item.key];
-    return { value: item.key, label: item.label, example: item.example, icon: <Icon size={24} strokeWidth={2.2} /> };
+    return {
+      value: item.key,
+      label: item.label,
+      example: item.example,
+      accent: "#8a5a1f",
+      icon: <Icon size={30} strokeWidth={2.2} />,
+    };
   });
 
-  const missing = [!propertyId && "the club", !type && "the kind of event", !title.trim() && "a name"].filter(
+  const missing = [!title.trim() && "a name", !propertyId && "the club", !type && "the kind of event"].filter(
     Boolean,
   ) as string[];
 
@@ -190,23 +198,8 @@ export function EventStartForm({
           </Alert>
         )}
 
-        <ChoiceTiles
-          legend="1. Which club?"
-          tiles={propertyTiles}
-          value={propertyId}
-          onChange={setPropertyId}
-          examplePrefix=""
-        />
-
-        <ChoiceTiles
-          legend="2. What kind of event?"
-          tiles={typeTiles}
-          value={type}
-          onChange={(value) => setType(value)}
-        />
-
         <label className={s.field}>
-          <span className="text-[19px] font-bold text-[#1c2420]">3. What's it called?</span>
+          <span className="text-[19px] font-bold text-[#1c2420]">1. What's this event called?</span>
           <input
             type="text"
             value={title}
@@ -216,6 +209,21 @@ export function EventStartForm({
             maxLength={200}
           />
         </label>
+
+        <ChoiceTiles
+          legend="2. Which club?"
+          tiles={propertyTiles}
+          value={propertyId}
+          onChange={setPropertyId}
+          examplePrefix=""
+        />
+
+        <ChoiceTiles
+          legend="3. What kind of event?"
+          tiles={typeTiles}
+          value={type}
+          onChange={(value) => setType(value)}
+        />
 
         <ChoiceTiles
           legend="Start from a typical setup (optional)"

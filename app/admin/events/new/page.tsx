@@ -2,7 +2,8 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { PageShell } from "@/lib/ui";
 import { EventPageTitle } from "@/src/components/admin/event-page-title";
 import { AdminBreadcrumb } from "@/src/components/admin/admin-breadcrumb";
-import { getAdminPropertiesList } from "@/src/services/admin/properties";
+import { getAdminPropertiesWithLogos } from "@/src/services/admin/properties";
+import { getPropertyProfile } from "@/src/constants/public/property-profiles";
 import { getEventTemplates } from "@/src/services/admin/events";
 import { getGearPresets } from "@/src/services/admin/gear-presets";
 import { EventStartForm } from "@/src/components/admin/event-start-form";
@@ -29,7 +30,7 @@ export default async function NewEventPage({
   const showHelper = HELPER_ROLES.has((user?.app_metadata?.role as string | undefined) ?? "");
   const activeStarter = isEventStarterKey(starter) ? EVENT_STARTERS[starter] : null;
   const [properties, templates, gearPresets] = await Promise.all([
-    getAdminPropertiesList(supabase),
+    getAdminPropertiesWithLogos(supabase),
     getEventTemplates(supabase),
     getGearPresets(supabase),
   ]);
@@ -40,7 +41,7 @@ export default async function NewEventPage({
         id: property.id,
         name: property.name,
         slug: property.slug,
-        tagline: property.tagline,
+        logoUrl: property.logoUrl ?? getPropertyProfile(property.slug)?.logoSrc ?? null,
       }))}
       defaultPropertyId={propertyId}
       starters={Object.values(EVENT_STARTERS)}
