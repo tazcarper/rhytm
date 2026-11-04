@@ -91,7 +91,7 @@ export function EventStartForm({
   };
 
   return (
-    <div className={`${h.panel} ${h.flow} mb-6`}>
+    <div className={`${h.panel} ${h.flow}`}>
       <div className={h.formHead}>
         <h2 className={h.formTitle}>Let's get the basics down</h2>
       </div>

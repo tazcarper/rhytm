@@ -8,7 +8,6 @@ import { EventStartForm } from "@/src/components/admin/event-start-form";
 import { NewEventTemplatePicker } from "@/src/components/admin/new-event-template-picker";
 import { NewEventStarterPicker } from "@/src/components/admin/new-event-starter-picker";
 import { EventHelperPanel } from "@/src/components/admin/event-helper-panel";
-import { NewEventWayChooser } from "@/src/components/admin/new-event-way-chooser";
 import { EVENT_STARTERS, isEventStarterKey } from "@/src/constants/admin/event-starters";
 
 // Roles that get the AI helper (pilot decision, 2026-11-03). Mirrors
@@ -20,9 +19,9 @@ export const dynamic = "force-dynamic";
 export default async function NewEventPage({
   searchParams,
 }: {
-  searchParams: Promise<{ propertyId?: string; starter?: string; how?: string }>;
+  searchParams: Promise<{ propertyId?: string; starter?: string }>;
 }) {
-  const { propertyId, starter, how } = await searchParams;
+  const { propertyId, starter } = await searchParams;
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
@@ -59,16 +58,20 @@ export default async function NewEventPage({
       />
       <EventPageTitle>New event</EventPageTitle>
 
-      {showHelper ? (
-        <NewEventWayChooser
-          // Picking a starter (or clearing one) means "fill it in myself".
-          initialWay={activeStarter || how === "manual" ? "manual" : "describe"}
-          describe={<EventHelperPanel propertyId={propertyId ?? null} />}
-          manual={manualStart}
-        />
-      ) : (
-        <div className="mt-6">{manualStart}</div>
-      )}
+      {/* Basics form first; the helper chat sits beside it for anyone who'd
+          rather describe the event than fill in fields. */}
+      <div
+        className={`mt-6 grid items-start gap-8 ${
+          showHelper ? "xl:grid-cols-[minmax(0,1.6fr)_minmax(22rem,1fr)]" : ""
+        }`}
+      >
+        {manualStart}
+        {showHelper && (
+          <aside aria-label="Event helper" className="xl:sticky xl:top-6">
+            <EventHelperPanel propertyId={propertyId ?? null} />
+          </aside>
+        )}
+      </div>
     </PageShell>
   );
 }

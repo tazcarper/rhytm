@@ -97,36 +97,43 @@ export function EventHelperPanel({ propertyId }: { propertyId: string | null }) 
   };
 
   return (
-    <div className={`${s.panel} ${s.flow} mb-6`}>
-      <div className="flex items-center justify-between">
-        <h2 className={s.formTitle}>Describe your event</h2>
+    <div className={`${s.panel} ${s.flow} flex flex-col`}>
+      <div className="flex items-center justify-between gap-4">
+        <h2 className={s.subhead}>Or just describe it</h2>
         {transcript.length > 0 && (
           <button type="button" onClick={startOver} className="text-[15px] text-gray underline">
             Start over
           </button>
         )}
       </div>
-      <p className="mt-1 text-[17px] text-gray">
-        Write it the way you'd tell a coworker. The helper fills in a draft and asks about anything missing. Nothing is
-        published until you publish it.
+      <p className="mt-1 text-[17px] leading-[1.5] text-[#4a5650]">
+        Tell the helper about the event the way you'd tell a coworker. It fills in a draft for you and asks about
+        anything missing. Nothing goes live until you publish.
       </p>
 
       {transcript.length > 0 && (
-        <ol className="mt-4 flex flex-col gap-2" aria-live="polite">
+        <ol className="m-0 mt-5 flex list-none flex-col gap-3 p-0" aria-live="polite">
           {transcript.map((line, index) => (
-            <li
-              key={index}
-              className={`rounded-sharp px-3 py-2 text-[17px] ${
-                line.who === "you" ? "bg-paper text-olive" : "border border-rule text-olive"
-              }`}
-            >
-              <span className="mr-2 text-[15px] font-semibold text-[#4a5650]">
-                {line.who === "you" ? "You" : "Helper"}
+            <li key={index} className={`flex ${line.who === "you" ? "justify-end" : "justify-start"}`}>
+              <span
+                className={`max-w-[90%] rounded-[16px] px-4 py-3 text-[17px] leading-[1.45] ${
+                  line.who === "you"
+                    ? "rounded-br-[4px] bg-[#1f5b45] text-white"
+                    : "rounded-bl-[4px] bg-[#eef1ec] text-[#1c2420]"
+                }`}
+              >
+                <span className="sr-only">{line.who === "you" ? "You: " : "Helper: "}</span>
+                {line.text}
               </span>
-              {line.text}
             </li>
           ))}
-          {pending && <li className="px-3 py-2 text-[17px] text-gray">Working on it…</li>}
+          {pending && (
+            <li className="flex justify-start">
+              <span className="rounded-[16px] rounded-bl-[4px] bg-[#eef1ec] px-4 py-3 text-[17px] text-[#4a5650]">
+                Working on it…
+              </span>
+            </li>
+          )}
         </ol>
       )}
 
@@ -141,10 +148,17 @@ export function EventHelperPanel({ propertyId }: { propertyId: string | null }) 
           value={message}
           onChange={(evt) => setMessage(evt.target.value)}
           className={s.input}
-          rows={transcript.length > 0 ? 2 : 4}
+          rows={transcript.length > 0 ? 2 : 5}
           maxLength={4000}
           placeholder={transcript.length > 0 ? "Your answer" : PLACEHOLDER}
           disabled={pending}
+          onKeyDown={(evt) => {
+            // Enter sends; Shift+Enter adds a new line.
+            if (evt.key === "Enter" && !evt.shiftKey) {
+              evt.preventDefault();
+              evt.currentTarget.form?.requestSubmit();
+            }
+          }}
         />
         <div>
           <Button type="submit" variant="primary" disabled={pending || !message.trim()}>

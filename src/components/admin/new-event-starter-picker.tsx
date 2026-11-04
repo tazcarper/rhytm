@@ -20,7 +20,7 @@ export function NewEventStarterPicker({
         {activeKey && (
           <>
             {" "}
-            <Link href="/admin/events/new?how=manual" className="underline">
+            <Link href="/admin/events/new" className="underline">
               Clear
             </Link>
           </>
