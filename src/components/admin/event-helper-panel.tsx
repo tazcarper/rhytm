@@ -17,7 +17,7 @@ type HelperResponse =
   | { kind: "question" | "message"; sessionId: string; text: string; featureRequest?: string }
   | { kind: "capability"; sessionId: string; text: string }
   | { kind: "draft"; sessionId: string; eventId: string; eventCount: number; updated?: boolean; featureRequest?: string }
-  | { kind: "error"; sessionId?: string | null; text: string };
+  | { kind: "error"; sessionId?: string | null; text: string; detail?: string };
 
 export interface TranscriptLine {
   who: "you" | "helper";
@@ -59,7 +59,7 @@ export function EventHelperPanel({
   const [transcript, setTranscript] = useState<TranscriptLine[]>(() => [...initialTranscript]);
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ text: string; detail?: string } | null>(null);
 
   const handleSubmit = async (formEvent: FormEvent<HTMLFormElement>) => {
     formEvent.preventDefault();
@@ -77,7 +77,18 @@ export function EventHelperPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId, message: text, propertyId, eventId }),
       });
-      const result = (await response.json()) as HelperResponse;
+      const result = (await response.json().catch(() => null)) as HelperResponse | null;
+      if (!result) {
+        // Not our JSON: usually the hosting platform cutting the request off.
+        setError({
+          text:
+            response.status === 504
+              ? "The helper took longer than the 2-minute limit, so it was stopped."
+              : "The helper's reply couldn't be read.",
+          detail: `HTTP ${response.status} ${response.statusText}`.trim(),
+        });
+        return;
+      }
       if (result.sessionId) setSessionId(result.sessionId);
       const note = "featureRequest" in result && result.featureRequest ? [featureRequestLine(result.featureRequest)] : [];
 
@@ -117,11 +128,14 @@ export function EventHelperPanel({
           setTranscript((lines) => [...lines, ...note, { who: "helper", text: result.text }]);
           break;
         case "error":
-          setError(result.text);
+          setError({ text: result.text, detail: result.detail });
           break;
       }
-    } catch {
-      setError("Couldn't reach the helper. Check your connection and try again.");
+    } catch (caught) {
+      setError({
+        text: "Couldn't reach the helper. Check your connection and try again.",
+        detail: caught instanceof Error ? caught.message : undefined,
+      });
     } finally {
       setPending(false);
     }
@@ -183,7 +197,10 @@ export function EventHelperPanel({
 
       {error && (
         <Alert variant="error" title="Helper problem">
-          {error}
+          {error.text}
+          {error.detail && (
+            <span className="mt-1.5 block break-words font-mono text-[13px] opacity-80">Reason: {error.detail}</span>
+          )}
         </Alert>
       )}
 

@@ -11,6 +11,7 @@ import { createDraftSessionStore } from "@/src/services/ai/draft-session-store";
 import { createCapabilityRequest, linkCapabilityRequestsToEvents } from "@/src/services/ai/capability-requests";
 import { HELPER_LIMITS, runEventHelperTurn } from "@/src/services/ai/event-helper";
 import { EVENT_HELPER_ROLES } from "@/src/constants/admin/event-helper";
+import { describeHelperError } from "@/src/services/ai/helper-errors";
 
 // The AI event helper's endpoint. Thin by design: check who is asking and
 // how often, then hand off to the helper service with its dependencies.
@@ -125,9 +126,7 @@ export async function POST(request: Request) {
     return NextResponse.json(result);
   } catch (error) {
     console.error("[event-helper] turn failed", { userId: user.id, error });
-    return NextResponse.json(
-      { kind: "error", sessionId: body.data.sessionId, text: "The helper hit a problem. Try again in a moment." },
-      { status: 500 },
-    );
+    const { text, detail } = describeHelperError(error);
+    return NextResponse.json({ kind: "error", sessionId: body.data.sessionId, text, detail }, { status: 500 });
   }
 }
