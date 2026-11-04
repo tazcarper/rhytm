@@ -3,7 +3,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { PageShell } from "@/lib/ui";
 import { EventPageSubhead, EventPageTitle } from "@/src/components/admin/event-page-title";
 import { AdminBreadcrumb } from "@/src/components/admin/admin-breadcrumb";
-import { getEvent, getEventRoster } from "@/src/services/admin/events";
+import { getEvent, getEventRoster, getEventTemplates } from "@/src/services/admin/events";
 import { getAdminPropertiesList } from "@/src/services/admin/properties";
 import { getAdminInstructors, getAssignableDisciplines } from "@/src/services/admin/instructors";
 import { EventEditorWorkspace } from "@/src/components/admin/event-editor-workspace";
@@ -30,13 +30,14 @@ export default async function EditEventPage({
   const { started, step, helper } = await searchParams;
   const supabase = await createServerSupabaseClient();
 
-  const [event, properties, roster, extras, gearPresets, featureRequests] = await Promise.all([
+  const [event, properties, roster, extras, gearPresets, featureRequests, templates] = await Promise.all([
     getEvent(supabase, id),
     getAdminPropertiesList(supabase),
     getEventRoster(supabase, id),
     getEventExtras(supabase, id),
     getGearPresets(supabase),
     getFeatureRequestsForEvents(supabase, [id]),
+    getEventTemplates(supabase).catch(() => []),
   ]);
 
   if (!event) {
@@ -99,6 +100,7 @@ export default async function EditEventPage({
               : null
           }
           initialSideTab={helper === "1" ? "helper" : "preview"}
+          templateNames={templates.filter((template) => template.id !== id).map((template) => template.title)}
           featuresInProgress={(featureRequests.get(id) ?? [])
             .filter((request) => request.state === "waiting")
             .map((request) => request.summary)}

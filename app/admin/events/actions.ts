@@ -22,7 +22,7 @@ import {
   type SaveEventResult,
   type SaveRecurringEventsResult,
 } from "@/src/services/admin/events";
-import { saveEventExtras, type SaveEventExtrasResult } from "@/src/services/admin/event-extras";
+import { getEventExtras, saveEventExtras, type SaveEventExtrasResult } from "@/src/services/admin/event-extras";
 import { copyEventToDates } from "@/src/services/admin/event-copies";
 import { SaveEventExtrasSchema } from "@/src/services/events/event-extras-contract";
 import { getFeaturesInProgress } from "@/src/services/ai/capability-requests";
@@ -124,7 +124,11 @@ export async function duplicateEventFromTemplateAction(
 ): Promise<SaveEventResult> {
   const supabase = await createServerSupabaseClient();
   const result = await duplicateEventFromTemplate(supabase, templateId);
-  if (result.ok) revalidateEventSurfaces();
+  if (!result.ok) return result;
+  // The template's tickets, gear and questions come along too.
+  const extras = await saveEventExtras(supabase, result.id, await getEventExtras(supabase, templateId));
+  revalidateEventSurfaces();
+  if (!extras.ok) return { ok: false, error: `The copy was made, but not its tickets and gear: ${extras.error}` };
   return result;
 }
 

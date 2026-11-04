@@ -34,6 +34,7 @@ import { EventInfoBoxEditor, type EditableInfoBox } from "./event-info-box-edito
 import { EventImageInput } from "./event-image-input";
 import { EventLivePreview, type EventPreviewData } from "./event-live-preview";
 import { InProgressIndicator } from "./in-progress-indicator";
+import { InfoTip } from "@/src/components/ui/info-tip";
 import { RecurringDatesEditor } from "./recurring-dates-editor";
 import s from "./event-flow.module.css";
 import h from "./event-flow.module.css";
@@ -62,6 +63,8 @@ interface EventEditorFormProps {
   // Features the developer is still building for this event. While there
   // are any, it can't be published (the server refuses it too).
   featuresInProgress?: ReadonlyArray<string>;
+  // Names of saved templates, shown as examples in the template tooltip.
+  templateNames?: ReadonlyArray<string>;
   // The AI helper's chat for this event. When given, the side column has
   // two tabs, the live preview and the helper; sideTab says which is open.
   helperPanel?: ReactNode;
@@ -242,6 +245,7 @@ export function EventEditorForm({
   justStarted = false,
   initialStep = "basics",
   featuresInProgress = [],
+  templateNames = [],
   helperPanel,
   sideTab = "preview",
   onSideTabChange,
@@ -1006,12 +1010,31 @@ export function EventEditorForm({
                   Mark as sold out (stops new sign-ups, even if spots are left)
                 </span>
               </label>
-              <label className="flex items-center gap-2.5">
-                <input type="checkbox" checked={isTemplate} onChange={(evt) => setIsTemplate(evt.target.checked)} />
-                <span className="text-[17px] text-olive">
-                  Save as a template (guests won't see it; start new events from it with &quot;New from template&quot;)
-                </span>
-              </label>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2.5">
+                  <input type="checkbox" checked={isTemplate} onChange={(evt) => setIsTemplate(evt.target.checked)} />
+                  <span className="text-[17px] text-olive">Save as a reusable template</span>
+                </label>
+                <InfoTip label="What's a template?">
+                  A template is a saved event setup you copy to start new events quickly. The copy brings the
+                  details, prices, spots, tickets, gear and questions, so you only change what&apos;s different,
+                  like the date. Guests never see templates. Use one from New event, under &quot;copy a saved
+                  template&quot;.
+                  <span className="mt-2 block font-semibold">
+                    {templateNames.length > 0 ? "Your templates include:" : "For example:"}
+                  </span>
+                  <ul className="mt-1 list-disc pl-4">
+                    {(templateNames.length > 0
+                      ? templateNames
+                      : ["Saturday sporting clays clinic", "Monthly members' league night", "Holiday turkey shoot"]
+                    )
+                      .slice(0, 3)
+                      .map((name) => (
+                        <li key={name}>{name}</li>
+                      ))}
+                  </ul>
+                </InfoTip>
+              </div>
             </div>
 
             <div className={`${h.actions} flex-wrap`}>
