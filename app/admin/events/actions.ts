@@ -13,6 +13,7 @@ import {
   saveEvent,
   saveRecurringEvents,
   deleteEvent,
+  getEvent,
   deleteAllNonTemplateEvents,
   duplicateEventFromTemplate,
   cancelEventRegistration,
@@ -24,6 +25,7 @@ import {
 import { saveEventExtras, type SaveEventExtrasResult } from "@/src/services/admin/event-extras";
 import { copyEventToDates } from "@/src/services/admin/event-copies";
 import { SaveEventExtrasSchema } from "@/src/services/events/event-extras-contract";
+import { getFeaturesInProgress } from "@/src/services/ai/capability-requests";
 
 // Thin actions: validate → service → revalidate the surfaces an event can
 // appear on. RLS enforces that only admin / super_admin / the owning
@@ -43,6 +45,20 @@ export async function saveEventAction(input: SaveEventRawInput): Promise<SaveEve
   }
 
   const supabase = await createServerSupabaseClient();
+  // A draft waiting on a feature the developer is building stays a draft.
+  // (An event that's already live can still be edited.)
+  if (parsed.data.id && parsed.data.status !== "draft") {
+    const [current, inProgress] = await Promise.all([
+      getEvent(supabase, parsed.data.id),
+      getFeaturesInProgress(supabase, parsed.data.id),
+    ]);
+    if (current?.status === "draft" && inProgress.length > 0) {
+      return {
+        ok: false,
+        error: `This event can't be published until the feature it needs is built: ${inProgress.join("; ")}. It's saved as a draft until then.`,
+      };
+    }
+  }
   const result = await saveEvent(supabase, parsed.data);
   if (result.ok) revalidateEventSurfaces();
   return result;

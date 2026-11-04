@@ -27,7 +27,7 @@ export function EventFeatureRequestNotice({ requests }: { requests: ReadonlyArra
             ))}
           </ul>
           <p className="m-0">
-            You&apos;ll see it marked ready here when it&apos;s done. You can keep editing, or publish without it.
+            You can keep editing, but it can&apos;t be published until this is built. You&apos;ll see it marked ready here when it&apos;s done.
           </p>
         </Alert>
       )}

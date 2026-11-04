@@ -99,6 +99,9 @@ export default async function EditEventPage({
               : null
           }
           initialSideTab={helper === "1" ? "helper" : "preview"}
+          featuresInProgress={(featureRequests.get(id) ?? [])
+            .filter((request) => request.state === "waiting")
+            .map((request) => request.summary)}
           event={event}
           properties={properties.map((property) => ({ id: property.id, name: property.name }))}
           disciplineOptions={disciplineOptions}

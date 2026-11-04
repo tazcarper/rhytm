@@ -33,6 +33,7 @@ import {
 import { EventInfoBoxEditor, type EditableInfoBox } from "./event-info-box-editor";
 import { EventImageInput } from "./event-image-input";
 import { EventLivePreview, type EventPreviewData } from "./event-live-preview";
+import { InProgressIndicator } from "./in-progress-indicator";
 import { RecurringDatesEditor } from "./recurring-dates-editor";
 import s from "./event-flow.module.css";
 import h from "./event-flow.module.css";
@@ -58,6 +59,9 @@ interface EventEditorFormProps {
   justStarted?: boolean;
   // The step to open first, from the page address (?step=…).
   initialStep?: EventBuilderSection;
+  // Features the developer is still building for this event. While there
+  // are any, it can't be published (the server refuses it too).
+  featuresInProgress?: ReadonlyArray<string>;
   // The AI helper's chat for this event. When given, the side column has
   // two tabs, the live preview and the helper; sideTab says which is open.
   helperPanel?: ReactNode;
@@ -237,6 +241,7 @@ export function EventEditorForm({
   gearPresets,
   justStarted = false,
   initialStep = "basics",
+  featuresInProgress = [],
   helperPanel,
   sideTab = "preview",
   onSideTabChange,
@@ -557,7 +562,9 @@ export function EventEditorForm({
 
   const isLast = active === "review";
   const activeIndex = EVENT_BUILDER_SECTIONS.indexOf(active);
-  const canPublish = status === "draft" && allProblems.length === 0;
+  // Only a draft is held back; a live event can still be edited.
+  const publishLocked = event.status === "draft" && featuresInProgress.length > 0;
+  const canPublish = status === "draft" && allProblems.length === 0 && !publishLocked;
 
   return (
     <div className={`${h.flow} grid gap-8 2xl:grid-cols-[minmax(0,2.6fr)_minmax(0,1fr)] items-start`}>
@@ -972,12 +979,23 @@ export function EventEditorForm({
                   className={s.input}
                 >
                   <option value="draft">Draft: only staff can see it</option>
-                  <option value="published">Published: guests can see it and sign up</option>
-                  <option value="sold_out">Sold out: guests can see it but can't sign up</option>
-                  <option value="cancelled">Cancelled: guests can see it but can't sign up</option>
-                  <option value="completed">Completed: guests can see it but can't sign up</option>
+                  <option value="published" disabled={publishLocked}>Published: guests can see it and sign up</option>
+                  <option value="sold_out" disabled={publishLocked}>Sold out: guests can see it but can't sign up</option>
+                  <option value="cancelled" disabled={publishLocked}>Cancelled: guests can see it but can't sign up</option>
+                  <option value="completed" disabled={publishLocked}>Completed: guests can see it but can't sign up</option>
                 </select>
               </label>
+              {publishLocked && (
+                <div className="flex items-start gap-2.5 rounded-[12px] border border-rule-strong bg-paper-warm px-4 py-3 text-[16px] leading-[1.5] text-olive-darker">
+                  <InProgressIndicator size={18} />
+                  <p className="m-0">
+                    <strong>Can&apos;t publish yet.</strong>{" "}
+                    This event needs a feature that&apos;s still being built:{" "}
+                    {featuresInProgress.map((summary) => summary.replace(/[.\s]+$/, "")).join("; ")}. It stays a draft
+                    until that&apos;s ready.
+                  </p>
+                </div>
+              )}
               <label className="flex items-center gap-2.5">
                 <input
                   type="checkbox"

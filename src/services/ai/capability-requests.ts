@@ -116,3 +116,12 @@ export async function getCapabilityRequests(supabase: SupabaseClient): Promise<C
     };
   });
 }
+
+// Summaries of the features still being built for an event. An event with
+// any can't leave draft (Taz, 2026-11-04: it must be fully feature-ready
+// before publishing). A failed lookup counts as none, so publishing isn't
+// blocked where the feature-request tables don't exist yet.
+export async function getFeaturesInProgress(supabase: SupabaseClient, eventId: string): Promise<string[]> {
+  const byEvent = await getFeatureRequestsForEvents(supabase, [eventId]);
+  return (byEvent.get(eventId) ?? []).filter((request) => request.state === "waiting").map((request) => request.summary);
+}

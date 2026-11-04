@@ -54,7 +54,7 @@ export function EventFeatureBadge({ requests }: { requests: ReadonlyArray<EventF
           ))}
         </ul>
         {inProgress
-          ? "The rest of the draft is saved. You can publish without that part, or wait until it's ready."
+          ? "The rest of the draft is saved. It can't be published until that part is built."
           : "Open the event to add it, then publish."}
       </InfoTip>
     </span>
