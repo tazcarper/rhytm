@@ -9,11 +9,12 @@ import { getGearPresets } from "@/src/services/admin/gear-presets";
 import { EventStartForm } from "@/src/components/admin/event-start-form";
 import { NewEventTemplatePicker } from "@/src/components/admin/new-event-template-picker";
 import { EventHelperPanel } from "@/src/components/admin/event-helper-panel";
+import { EVENT_HELPER_ROLES } from "@/src/constants/admin/event-helper";
 import { EVENT_STARTERS, isEventStarterKey } from "@/src/constants/admin/event-starters";
 
 // Roles that get the AI helper (pilot decision, 2026-11-03). Mirrors
 // HELPER_ROLES in app/api/admin/event-helper/route.ts.
-const HELPER_ROLES = new Set(["super_admin", "admin", "property_manager"]);
+const HELPER_ROLES = EVENT_HELPER_ROLES;
 
 export const dynamic = "force-dynamic";
 

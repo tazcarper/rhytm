@@ -6,7 +6,10 @@ import { AdminBreadcrumb } from "@/src/components/admin/admin-breadcrumb";
 import { getEvent, getEventRoster } from "@/src/services/admin/events";
 import { getAdminPropertiesList } from "@/src/services/admin/properties";
 import { getAdminInstructors, getAssignableDisciplines } from "@/src/services/admin/instructors";
-import { EventEditorForm } from "@/src/components/admin/event-editor-form";
+import { EventEditorWorkspace } from "@/src/components/admin/event-editor-workspace";
+import { EVENT_HELPER_ROLES } from "@/src/constants/admin/event-helper";
+import { createDraftSessionStore } from "@/src/services/ai/draft-session-store";
+import { helperTranscript } from "@/src/services/ai/event-helper";
 import { EventRoster } from "@/src/components/admin/event-roster";
 import { getEventExtras } from "@/src/services/admin/event-extras";
 import { getGearPresets } from "@/src/services/admin/gear-presets";
@@ -21,10 +24,10 @@ export default async function EditEventPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ started?: string; step?: string }>;
+  searchParams: Promise<{ started?: string; step?: string; helper?: string }>;
 }) {
   const { id } = await params;
-  const { started, step } = await searchParams;
+  const { started, step, helper } = await searchParams;
   const supabase = await createServerSupabaseClient();
 
   const [event, properties, roster, extras, gearPresets, featureRequests] = await Promise.all([
@@ -39,6 +42,18 @@ export default async function EditEventPage({
   if (!event) {
     notFound();
   }
+
+  // The helper's conversation about this event (the caller's own, by RLS),
+  // shown in the AI helper tab beside the builder.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const canUseHelper = EVENT_HELPER_ROLES.has((user?.app_metadata?.role as string | undefined) ?? "");
+  const helperSession = canUseHelper
+    ? await createDraftSessionStore(supabase)
+        .latestForEvent(id)
+        .catch(() => null)
+    : null;
 
   const [disciplineOptions, instructorOptions] = await Promise.all([
     getAssignableDisciplines(supabase, properties.map((property) => property.id)),
@@ -73,7 +88,17 @@ export default async function EditEventPage({
       {roster.length > 0 && registrations}
 
       <div className="mt-6">
-        <EventEditorForm
+        <EventEditorWorkspace
+          helper={
+            canUseHelper
+              ? {
+                  propertyId: event.propertyId,
+                  sessionId: helperSession?.id ?? null,
+                  transcript: helperSession ? helperTranscript(helperSession.messages) : [],
+                }
+              : null
+          }
+          initialSideTab={helper === "1" ? "helper" : "preview"}
           event={event}
           properties={properties.map((property) => ({ id: property.id, name: property.name }))}
           disciplineOptions={disciplineOptions}

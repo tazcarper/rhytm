@@ -6,18 +6,20 @@ import { Alert } from "@/lib/ui";
 import { FlowButton as Button } from "./event-flow-button";
 import s from "./event-flow.module.css";
 
-// "Describe your event" — the AI helper's panel on the new-event screen.
-// Framed as a form helper, not a chat window: one description in, maybe a
-// follow-up question or two, then the staff member lands in the normal
-// editor with a saved draft. Talks to /api/admin/event-helper.
+// The AI helper's chat. Two places use it:
+//   - the New event screen: describe the event, answer a question or two,
+//     and land on the saved draft's page (with this chat open beside it)
+//   - beside a saved event's builder (pass eventId): the same conversation
+//     carries on there, and each message can change that event
+// Talks to /api/admin/event-helper.
 
 type HelperResponse =
   | { kind: "question" | "message"; sessionId: string; text: string; featureRequest?: string }
   | { kind: "capability"; sessionId: string; text: string }
-  | { kind: "draft"; sessionId: string; eventId: string; eventCount: number; featureRequest?: string }
+  | { kind: "draft"; sessionId: string; eventId: string; eventCount: number; updated?: boolean; featureRequest?: string }
   | { kind: "error"; sessionId?: string | null; text: string };
 
-interface TranscriptLine {
+export interface TranscriptLine {
   who: "you" | "helper";
   text: string;
   // A link under the text (the saved draft, when it isn't opened right away).
@@ -32,10 +34,29 @@ const featureRequestLine = (summary: string): TranscriptLine => ({
 const PLACEHOLDER =
   "e.g. Halloween party on Oct 31, 8 a.m. to 4 p.m. $50 adults, $10 kids. Hayride, pumpkin carving and a costume contest.";
 
-export function EventHelperPanel({ propertyId }: { propertyId: string | null }) {
+const EDIT_PLACEHOLDER = 'e.g. "Make it 60 spots" or "Add a $10 ammo add-on"';
+
+export function EventHelperPanel({
+  propertyId,
+  eventId = null,
+  initialSessionId = null,
+  initialTranscript = [],
+  onEventUpdated,
+}: {
+  propertyId: string | null;
+  // Set beside a saved event: messages change that event.
+  eventId?: string | null;
+  // The event's earlier conversation, to carry on from.
+  initialSessionId?: string | null;
+  initialTranscript?: ReadonlyArray<TranscriptLine>;
+  // Called after the helper saved changes to the event, so the builder and
+  // preview can reload.
+  onEventUpdated?: () => void;
+}) {
   const router = useRouter();
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [transcript, setTranscript] = useState<TranscriptLine[]>([]);
+  const editing = Boolean(eventId);
+  const [sessionId, setSessionId] = useState<string | null>(initialSessionId);
+  const [transcript, setTranscript] = useState<TranscriptLine[]>(() => [...initialTranscript]);
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +75,7 @@ export function EventHelperPanel({ propertyId }: { propertyId: string | null }) 
       const response = await fetch("/api/admin/event-helper", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, message: text, propertyId }),
+        body: JSON.stringify({ sessionId, message: text, propertyId, eventId }),
       });
       const result = (await response.json()) as HelperResponse;
       if (result.sessionId) setSessionId(result.sessionId);
@@ -62,8 +83,14 @@ export function EventHelperPanel({ propertyId }: { propertyId: string | null }) 
 
       switch (result.kind) {
         case "draft": {
+          if (result.updated) {
+            setTranscript((lines) => [...lines, ...note, { who: "helper", text: "Done. I've updated the event." }]);
+            onEventUpdated?.();
+            break;
+          }
           const saved = result.eventCount > 1 ? `Saved ${result.eventCount} dates as drafts.` : "Draft saved.";
-          const href = `/admin/events/${result.eventId}`;
+          // ?helper=1 opens this chat beside the builder on the draft's page.
+          const href = `/admin/events/${result.eventId}?helper=1`;
           // The draft's page repeats any feature-request note at the top, so go straight there.
           setTranscript((lines) => [
             ...lines,
@@ -110,7 +137,7 @@ export function EventHelperPanel({ propertyId }: { propertyId: string | null }) 
   return (
     <div className={`${s.panel} ${s.flow} flex flex-col`}>
       <div className="flex items-center justify-between gap-4">
-        <h2 className={s.subhead}>Or just describe it</h2>
+        <h2 className={s.subhead}>{editing ? "Ask the helper" : "Or just describe it"}</h2>
         {transcript.length > 0 && (
           <button type="button" onClick={startOver} className="text-[15px] text-gray underline">
             Start over
@@ -118,8 +145,9 @@ export function EventHelperPanel({ propertyId }: { propertyId: string | null }) 
         )}
       </div>
       <p className="mt-1 text-[17px] leading-[1.5] text-gray">
-        Tell the helper about the event the way you'd tell a coworker. It fills in a draft for you and asks about
-        anything missing. Nothing goes live until you publish.
+        {editing
+          ? "Ask for changes in your own words and the helper updates this event. Nothing goes live until you publish."
+          : "Tell the helper about the event the way you'd tell a coworker. It fills in a draft for you and asks about anything missing. Nothing goes live until you publish."}
       </p>
 
       {transcript.length > 0 && (
@@ -164,9 +192,9 @@ export function EventHelperPanel({ propertyId }: { propertyId: string | null }) 
           value={message}
           onChange={(evt) => setMessage(evt.target.value)}
           className={s.input}
-          rows={transcript.length > 0 ? 2 : 5}
+          rows={editing ? 3 : transcript.length > 0 ? 2 : 5}
           maxLength={4000}
-          placeholder={transcript.length > 0 ? "Your answer" : PLACEHOLDER}
+          placeholder={editing ? EDIT_PLACEHOLDER : transcript.length > 0 ? "Your answer" : PLACEHOLDER}
           disabled={pending}
           onKeyDown={(evt) => {
             // Enter sends; Shift+Enter adds a new line.
@@ -178,7 +206,7 @@ export function EventHelperPanel({ propertyId }: { propertyId: string | null }) 
         />
         <div>
           <Button type="submit" variant="primary" disabled={pending || !message.trim()}>
-            {pending ? "Working…" : transcript.length > 0 ? "Send" : "Draft it"}
+            {pending ? "Working…" : editing || transcript.length > 0 ? "Send" : "Draft it"}
           </Button>
         </div>
       </form>

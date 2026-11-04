@@ -19,6 +19,8 @@ export interface DraftSessionStore {
   load(id: string): Promise<DraftSession | null>;
   create(propertyId: string | null): Promise<DraftSession>;
   save(session: DraftSession): Promise<void>;
+  // The caller's most recent conversation about a saved event, if any.
+  latestForEvent(eventId: string): Promise<DraftSession | null>;
 }
 
 type SessionRow = {
@@ -60,6 +62,17 @@ export function createDraftSessionStore(supabase: SupabaseClient): DraftSessionS
         .single();
       if (error || !data) throw new Error(`Couldn't start a helper conversation: ${error?.message ?? "no row"}`);
       return toSession(data as SessionRow);
+    },
+    async latestForEvent(eventId) {
+      const { data, error } = await supabase
+        .from("ai_draft_sessions")
+        .select(COLUMNS)
+        .eq("event_id", eventId)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw new Error(`Couldn't load the helper conversation: ${error.message}`);
+      return data ? toSession(data as SessionRow) : null;
     },
     async save(session) {
       const { error } = await supabase

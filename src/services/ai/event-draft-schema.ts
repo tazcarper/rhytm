@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { EVENT_TYPES } from "@/src/constants/admin/event-types";
 import { EVENT_STARTER_KEYS } from "@/src/constants/admin/event-starters";
-import { EventAudienceValues, type SaveEventRawInput } from "@/src/services/admin/events";
+import { EventAudienceValues, type AdminEventDetail, type SaveEventRawInput } from "@/src/services/admin/events";
 import {
   GearItemSchema,
   QuestionSchema,
@@ -182,4 +182,86 @@ function stripUnsupported(node: unknown): unknown {
 
 export function toStrictToolSchema(schema: z.ZodType): Record<string, unknown> {
   return stripUnsupported(z.toJSONSchema(schema)) as Record<string, unknown>;
+}
+
+// ---- Editing an existing event ------------------------------------------
+
+// "YYYY-MM-DDTHH:MM" wall-clock time in the given timezone, the format the
+// helper reads and writes dates in.
+export function utcToWallClock(iso: string | null, timezone: string): string | null {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    })
+      .formatToParts(date)
+      .map((part) => [part.type, part.value]),
+  );
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
+}
+
+// The saved event in the helper's own draft shape, so it can edit from what
+// is actually saved (staff may have changed it in the builder since).
+export function eventToDraftSnapshot(event: AdminEventDetail, extras: SaveEventExtrasInput, timezone: string): EventDraft {
+  return {
+    starterKey: null,
+    propertyId: event.propertyId,
+    title: event.title,
+    summary: event.summary,
+    description: event.description,
+    startAt: utcToWallClock(event.startAt, timezone),
+    endAt: utcToWallClock(event.endAt, timezone),
+    scheduleText: event.scheduleText,
+    repeat: null,
+    location: event.location,
+    type: (EVENT_TYPES as ReadonlyArray<string>).includes(event.type ?? "") ? (event.type as EventDraft["type"]) : null,
+    audience: event.audience,
+    maxCapacity: event.maxCapacity,
+    maxGuestsPerRegistration: event.maxGuestsPerRegistration,
+    memberPrice: event.memberPrice,
+    nonMemberPrice: event.nonMemberPrice,
+    tickets: extras.tickets,
+    gear: extras.gear,
+    questions: extras.questions,
+    infoBoxes: event.infoBoxes
+      .filter((box) => box.boxType === "list")
+      .map((box) => ({ heading: box.heading, items: box.items ?? [] })),
+  };
+}
+
+// An edit from the helper, applied to the saved event. The helper only
+// knows its draft fields, so everything else (status, image, featured,
+// template, instructors, description boxes) stays as it is.
+export function mergeDraftIntoEvent(current: AdminEventDetail, draftEvent: SaveEventRawInput): SaveEventRawInput {
+  const descriptionBoxes = current.infoBoxes.filter((box) => box.boxType === "description");
+  const listBoxes = draftEvent.infoBoxes ?? [];
+  return {
+    ...draftEvent,
+    id: current.id,
+    instructors: current.instructors,
+    discipline: current.discipline,
+    featured: current.featured,
+    includedWithMembership: current.includedWithMembership,
+    status: current.status,
+    isManuallySoldOut: current.isManuallySoldOut,
+    isTemplate: current.isTemplate,
+    imageUrl: current.imageUrl,
+    infoBoxes: [
+      ...descriptionBoxes.map((box) => ({
+        boxType: box.boxType,
+        heading: box.heading,
+        body: box.body,
+        items: box.items,
+      })),
+      ...listBoxes.map(({ id: _id, sortOrder: _sort, ...box }) => box),
+    ].map((box, index) => ({ ...box, sortOrder: index })),
+  };
 }

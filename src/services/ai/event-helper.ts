@@ -5,6 +5,7 @@ import {
   EventDraftSchema,
   draftToSaveInputs,
   type DraftSaveInputs,
+  type EventDraft,
 } from "@/src/services/ai/event-draft-schema";
 import type {
   EventHelperModel,
@@ -54,8 +55,11 @@ export interface EventHelperDeps {
   // Saves the draft (every date of a repeating one) and returns the first
   // event's id and how many events were created.
   // ids: every event saved (a repeating event saves one per date); id is the first.
+  // updateEventId: set when the conversation belongs to a saved event; the
+  // draft then replaces that event's details instead of creating a new one.
   saveDraft: (
     inputs: DraftSaveInputs,
+    target: { updateEventId: string | null },
   ) => Promise<{ ok: true; id: string; count: number; ids: string[] } | { ok: false; error: string }>;
   recordCapabilityRequest: (input: CapabilityRequestInput) => Promise<{ ok: true } | { ok: false; error: string }>;
   // Ties this conversation's feature requests to the draft event(s), so the
@@ -69,13 +73,15 @@ export interface EventHelperTurnInput {
   sessionId: string | null;
   message: string;
   propertyHint: HelperPropertyOption | null;
+  // Set when the helper runs beside an existing event's builder.
+  editing?: { eventId: string; snapshot: EventDraft } | null;
 }
 
 export type EventHelperResult =
   // featureRequest: set when this turn also sent the developer a request for
   // something the builder can't do yet; the rest of the event carries on.
   | { kind: "question"; sessionId: string; text: string; featureRequest?: string }
-  | { kind: "draft"; sessionId: string; eventId: string; eventCount: number; featureRequest?: string }
+  | { kind: "draft"; sessionId: string; eventId: string; eventCount: number; updated: boolean; featureRequest?: string }
   | { kind: "capability"; sessionId: string; text: string }
   | { kind: "message"; sessionId: string; text: string; featureRequest?: string }
   | { kind: "error"; sessionId: string | null; text: string };
@@ -109,11 +115,85 @@ function pendingQuestionId(messages: ReadonlyArray<HelperMessage>): string | nul
   return ask && isToolUse(ask) ? ask.id : null;
 }
 
+function editingNote(editing: EventHelperTurnInput["editing"]): string {
+  if (!editing) return "";
+  return `<context>The staff member is editing saved event ${editing.eventId}. Its current details (they may have changed it in the editor since your last draft): ${JSON.stringify(editing.snapshot)}</context>\n\n`;
+}
+
 function buildUserMessage(session: DraftSession, input: EventHelperTurnInput, today: string): HelperMessage {
+  const editing = editingNote(input.editing);
   const waitingOn = pendingQuestionId(session.messages);
-  if (waitingOn) return { role: "user", content: [toolResult(waitingOn, input.message)] };
+  if (waitingOn) {
+    return {
+      role: "user",
+      content: [toolResult(waitingOn, input.message), ...(editing ? [{ type: "text", text: editing.trim() }] : [])],
+    };
+  }
   const note = session.messages.length === 0 ? `${buildContextNote(today, input.propertyHint)}\n\n` : "";
-  return { role: "user", content: [{ type: "text", text: `${note}${input.message}` }] };
+  return { role: "user", content: [{ type: "text", text: `${note}${editing}${input.message}` }] };
+}
+
+// ---- The chat as staff saw it, rebuilt from the stored conversation -----
+
+export interface HelperTranscriptLine {
+  who: "you" | "helper";
+  text: string;
+}
+
+const CONTEXT_NOTE = /<context>[\s\S]*?<\/context>\s*/g;
+
+// Used to show an earlier conversation again (e.g. beside the builder after
+// the helper saved the draft). Context notes and tool plumbing are left out.
+export function helperTranscript(messages: ReadonlyArray<HelperMessage>): HelperTranscriptLine[] {
+  const lines: HelperTranscriptLine[] = [];
+  const questionIds = new Set<string>();
+  const draftIds = new Set<string>();
+  for (const message of messages) {
+    if (typeof message.content === "string") {
+      const text = message.content.replace(CONTEXT_NOTE, "").trim();
+      if (text) lines.push({ who: message.role === "user" ? "you" : "helper", text });
+      continue;
+    }
+    if (message.role === "assistant") {
+      const toolUses = message.content.filter(isToolUse);
+      if (toolUses.length === 0) {
+        const text = textOf(message.content);
+        if (text) lines.push({ who: "helper", text });
+      }
+      for (const use of toolUses) {
+        if (use.name === TOOL_ASK_QUESTION) {
+          questionIds.add(use.id);
+          const parsed = AskQuestionSchema.safeParse(use.input);
+          if (parsed.success) lines.push({ who: "helper", text: parsed.data.question });
+        } else if (use.name === TOOL_REQUEST_CAPABILITY) {
+          const parsed = RequestCapabilitySchema.safeParse(use.input);
+          if (parsed.success) {
+            lines.push({
+              who: "helper",
+              text: `The builder can't do that yet, so I've sent it to the developer as a feature request: "${parsed.data.summary}".`,
+            });
+          }
+        } else if (use.name === TOOL_PROPOSE_DRAFT) {
+          draftIds.add(use.id);
+        }
+      }
+      continue;
+    }
+    for (const block of message.content) {
+      if (block.type === "text" && typeof block.text === "string") {
+        const text = block.text.replace(CONTEXT_NOTE, "").trim();
+        if (text) lines.push({ who: "you", text });
+      } else if (block.type === "tool_result" && typeof block.tool_use_id === "string") {
+        const content = typeof block.content === "string" ? block.content : "";
+        if (questionIds.has(block.tool_use_id)) {
+          lines.push({ who: "you", text: content });
+        } else if (draftIds.has(block.tool_use_id) && !block.is_error) {
+          lines.push({ who: "helper", text: content.startsWith("Saved changes") ? "Changes saved." : "Draft saved." });
+        }
+      }
+    }
+  }
+  return lines;
 }
 
 type DraftCheck = { ok: true; inputs: DraftSaveInputs } | { ok: false; problems: string[] };
@@ -169,6 +249,8 @@ export async function runEventHelperTurn(
     ? await deps.sessions.load(input.sessionId)
     : await deps.sessions.create(input.propertyHint?.id ?? null);
   if (!session) return { kind: "error", sessionId: null, text: "That conversation has expired. Start a new one." };
+  // A conversation started beside a saved event belongs to that event.
+  if (input.editing && !session.eventId) session.eventId = input.editing.eventId;
   if (session.turnCount >= HELPER_LIMITS.maxTurnsPerSession) {
     return { kind: "error", sessionId: session.id, text: "This conversation is getting long. Start a fresh one." };
   }
@@ -261,14 +343,17 @@ export async function runEventHelperTurn(
         });
         continue;
       }
-      const saved = await deps.saveDraft(check.inputs);
+      const updating = session.eventId;
+      const saved = await deps.saveDraft(check.inputs, { updateEventId: updating });
       session.messages.push({
         role: "user",
         content: [
           toolResult(
             toolUse.id,
             saved.ok
-              ? saved.count > 1
+              ? updating
+                ? `Saved changes to event ${saved.id}.`
+                : saved.count > 1
                 ? `Saved ${saved.count} draft events; the first is ${saved.id}.`
                 : `Saved as draft event ${saved.id}.`
               : `Saving failed: ${saved.error}`,
@@ -279,7 +364,7 @@ export async function runEventHelperTurn(
       if (saved.ok) {
         session.eventId = saved.id;
         await deps.linkCapabilityRequests(session.id, saved.ids);
-        result = { kind: "draft", sessionId: session.id, eventId: saved.id, eventCount: saved.count };
+        result = { kind: "draft", sessionId: session.id, eventId: saved.id, eventCount: saved.count, updated: Boolean(updating) };
       } else {
         result = { kind: "error", sessionId: session.id, text: `The draft couldn't be saved: ${saved.error}` };
       }

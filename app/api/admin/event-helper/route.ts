@@ -4,11 +4,13 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAnthropicEventHelperModel } from "@/lib/ai/anthropic-event-helper-model";
 import { checkRateLimit } from "@/src/services/security/rate-limit";
 import { getAdminPropertiesList } from "@/src/services/admin/properties";
-import { saveEvent, saveRecurringEvents, SaveEventSchema } from "@/src/services/admin/events";
-import { saveEventExtras } from "@/src/services/admin/event-extras";
+import { getEvent, saveEvent, saveRecurringEvents, SaveEventSchema } from "@/src/services/admin/events";
+import { getEventExtras, saveEventExtras } from "@/src/services/admin/event-extras";
+import { eventToDraftSnapshot, mergeDraftIntoEvent } from "@/src/services/ai/event-draft-schema";
 import { createDraftSessionStore } from "@/src/services/ai/draft-session-store";
 import { createCapabilityRequest, linkCapabilityRequestsToEvents } from "@/src/services/ai/capability-requests";
 import { HELPER_LIMITS, runEventHelperTurn } from "@/src/services/ai/event-helper";
+import { EVENT_HELPER_ROLES } from "@/src/constants/admin/event-helper";
 
 // The AI event helper's endpoint. Thin by design: check who is asking and
 // how often, then hand off to the helper service with its dependencies.
@@ -18,7 +20,7 @@ export const maxDuration = 120;
 export const dynamic = "force-dynamic";
 
 // Pilot decision (2026-11-03): admins and property managers use the helper.
-const HELPER_ROLES = new Set(["super_admin", "admin", "property_manager"]);
+const HELPER_ROLES = EVENT_HELPER_ROLES;
 const DAILY_REQUESTS_PER_PERSON = 60;
 const BUSINESS_NAME = "Rhythm Outdoors";
 const TIMEZONE = "America/Chicago";
@@ -27,6 +29,8 @@ const BodySchema = z.object({
   sessionId: z.string().uuid().nullable(),
   message: z.string().max(HELPER_LIMITS.maxMessageChars + 1000),
   propertyId: z.string().max(100).nullable(),
+  // Set when the helper runs beside a saved event's builder.
+  eventId: z.string().uuid().nullable().optional(),
 });
 
 function todayIn(timezone: string): string {
@@ -63,14 +67,36 @@ export async function POST(request: Request) {
   const properties = (await getAdminPropertiesList(supabase))
     .filter((property) => !managedPropertyId || property.id === managedPropertyId)
     .map((property) => ({ id: property.id, name: property.name }));
-  const propertyHint = properties.find((property) => property.id === body.data.propertyId) ?? null;
+  // Beside a saved event, the helper edits that event, starting from what
+  // is saved now (RLS limits which events this person can load).
+  const editingEvent = body.data.eventId ? await getEvent(supabase, body.data.eventId) : null;
+  if (body.data.eventId && !editingEvent) {
+    return NextResponse.json({ kind: "error", text: "That event couldn't be found." }, { status: 404 });
+  }
+  const editing = editingEvent
+    ? {
+        eventId: editingEvent.id,
+        snapshot: eventToDraftSnapshot(editingEvent, await getEventExtras(supabase, editingEvent.id), TIMEZONE),
+      }
+    : null;
+  const propertyHint =
+    properties.find((property) => property.id === (editingEvent?.propertyId ?? body.data.propertyId)) ?? null;
 
   try {
     const result = await runEventHelperTurn(
       {
         model: createAnthropicEventHelperModel(),
         sessions: createDraftSessionStore(supabase),
-        saveDraft: async (inputs) => {
+        saveDraft: async (inputs, { updateEventId }) => {
+          if (updateEventId) {
+            const current = await getEvent(supabase, updateEventId);
+            if (!current) return { ok: false, error: "The event no longer exists." };
+            const updated = await saveEvent(supabase, SaveEventSchema.parse(mergeDraftIntoEvent(current, inputs.event)));
+            if (!updated.ok) return { ok: false, error: updated.error };
+            const extras = await saveEventExtras(supabase, updateEventId, inputs.extras);
+            if (!extras.ok) return { ok: false, error: extras.error };
+            return { ok: true, id: updateEventId, count: 1, ids: [updateEventId] };
+          }
           const event = SaveEventSchema.parse(inputs.event);
           const saved =
             inputs.repeatDates.length > 1
@@ -94,7 +120,7 @@ export async function POST(request: Request) {
         profile: { businessName: BUSINESS_NAME, timezone: TIMEZONE, properties },
         today: todayIn(TIMEZONE),
       },
-      { sessionId: body.data.sessionId, message: body.data.message, propertyHint },
+      { sessionId: body.data.sessionId, message: body.data.message, propertyHint, editing },
     );
     return NextResponse.json(result);
   } catch (error) {

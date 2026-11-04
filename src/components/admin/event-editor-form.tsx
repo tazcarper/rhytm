@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition, type FormEvent } from "react";
+import { useEffect, useMemo, useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Alert } from "@/lib/ui";
 import { FlowButton as Button } from "./event-flow-button";
@@ -58,7 +58,19 @@ interface EventEditorFormProps {
   justStarted?: boolean;
   // The step to open first, from the page address (?step=…).
   initialStep?: EventBuilderSection;
+  // The AI helper's chat for this event. When given, the side column has
+  // two tabs, the live preview and the helper; sideTab says which is open.
+  helperPanel?: ReactNode;
+  sideTab?: EventSideTab;
+  onSideTabChange?: (tab: EventSideTab) => void;
 }
+
+export type EventSideTab = "preview" | "helper";
+
+const SIDE_TABS: ReadonlyArray<{ value: EventSideTab; label: string }> = [
+  { value: "preview", label: "Preview" },
+  { value: "helper", label: "AI helper" },
+];
 
 const SECTION_COPY: Record<EventBuilderSection, { label: string; desc: string }> = {
   basics: {
@@ -225,6 +237,9 @@ export function EventEditorForm({
   gearPresets,
   justStarted = false,
   initialStep = "basics",
+  helperPanel,
+  sideTab = "preview",
+  onSideTabChange,
 }: EventEditorFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -1023,7 +1038,40 @@ export function EventEditorForm({
       </div>
 
       <div className="2xl:sticky 2xl:top-6 max-w-[40rem]">
-        <EventLivePreview event={previewData} />
+        {helperPanel ? (
+          <>
+            <div role="tablist" aria-label="Beside the builder" className="mb-4 flex gap-1 rounded-[12px] bg-paper-warm p-1">
+              {SIDE_TABS.map((tab) => {
+                const selected = sideTab === tab.value;
+                return (
+                  <button
+                    key={tab.value}
+                    type="button"
+                    role="tab"
+                    id={`side-tab-${tab.value}`}
+                    aria-selected={selected}
+                    aria-controls={`side-panel-${tab.value}`}
+                    onClick={() => onSideTabChange?.(tab.value)}
+                    className={`flex-1 rounded-[9px] px-4 py-2.5 text-[16px] font-semibold transition-colors ${
+                      selected ? "bg-white text-olive-darker shadow-sm" : "text-gray hover:text-olive-darker"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+            {/* Both stay mounted, so switching tabs keeps the chat and its draft text. */}
+            <div role="tabpanel" id="side-panel-preview" aria-labelledby="side-tab-preview" hidden={sideTab !== "preview"}>
+              <EventLivePreview event={previewData} />
+            </div>
+            <div role="tabpanel" id="side-panel-helper" aria-labelledby="side-tab-helper" hidden={sideTab !== "helper"}>
+              {helperPanel}
+            </div>
+          </>
+        ) : (
+          <EventLivePreview event={previewData} />
+        )}
       </div>
     </div>
   );

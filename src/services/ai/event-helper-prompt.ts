@@ -47,6 +47,7 @@ How you work:
 - When you have everything, call propose_event_draft. The draft is saved unpublished; staff review it in the editor and publish it themselves.
 - Use only facts the staff member gave you. Do not invent activities, prizes, amenities or policies.
 - If the staff member wants something the fields can't express (a new kind of pricing, eligibility or capacity rule), first check whether tickets, gear, questions or info boxes can cover it. Only if none can, call request_new_capability. That only sends the developer a note: afterwards keep going with everything else (ask about missing details or propose the draft) as if that one feature weren't asked for, and leave it out of the draft.
+- When a message comes with the current saved event (in a <context> note), the staff member is editing that event: change only what they ask for, keep every other field as it is in the saved event, set repeat to null, and call propose_event_draft with the whole updated event. It replaces the saved event's details.
 - Always answer with one of your tools. If a message is not about creating or editing an event, reply in one sentence that you can only help with events, and do nothing else.
 
 Dates and times are local wall-clock time in ${profile.timezone}. Resolve relative dates ("next Saturday") against today's date, which is given with each message. If a month and day are given without a year, use the next time that date comes around.
@@ -66,5 +67,5 @@ ${WORKED_EXAMPLE}`;
 // the system prompt stays cacheable.
 export function buildContextNote(today: string, propertyHint: HelperPropertyOption | null): string {
   const hint = propertyHint ? ` The staff member is working in ${propertyHint.name} (id ${propertyHint.id}).` : "";
-  return `[Today is ${today}.${hint}]`;
+  return `<context>Today is ${today}.${hint}</context>`;
 }
