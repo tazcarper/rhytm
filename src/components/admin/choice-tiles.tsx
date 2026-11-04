@@ -61,6 +61,9 @@ export function ChoiceTiles<T extends string>({
       <div className={`grid gap-3 sm:gap-4 ${grid}`}>
         {tiles.map((tile) => {
           const checked = tile.value === value;
+          // Once something is picked, the others fade back a little (still
+          // readable, and full strength again on hover or focus).
+          const dim = value !== "" && !checked ? "opacity-55 scale-[0.98] hover:opacity-100 hover:scale-100 has-[:focus-visible]:opacity-100" : "";
           const accent = tile.accent ?? DEFAULT_ACCENT;
           const example = tile.example && (
             <span className="text-[14px] leading-snug text-gray sm:text-[15px]">
@@ -73,7 +76,7 @@ export function ChoiceTiles<T extends string>({
             return (
               <label
                 key={tile.value}
-                className={`relative flex aspect-[16/9] cursor-pointer items-center justify-center rounded-[16px] border-2 bg-white px-5 py-6 transition-[border-color,box-shadow] sm:px-8 sm:py-8 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[rgba(63,74,33,0.35)] ${
+                className={`relative flex aspect-[16/9] cursor-pointer items-center justify-center rounded-[16px] border-2 bg-white px-5 py-6 transition-[border-color,box-shadow,opacity,transform] duration-200 ${dim} sm:px-8 sm:py-8 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[rgba(63,74,33,0.35)] ${
                   checked
                     ? "border-olive shadow-[0_4px_16px_rgba(63,74,33,0.16)]"
                     : "border-rule-strong hover:border-tan hover:shadow-[0_2px_10px_rgba(31,38,17,0.08)]"
@@ -109,7 +112,7 @@ export function ChoiceTiles<T extends string>({
           return (
             <label
               key={tile.value}
-              className={`relative flex cursor-pointer flex-col items-center gap-3 rounded-[20px] border-2 px-3 pb-5 pt-6 text-center sm:px-6 sm:pb-7 sm:pt-8 transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[rgba(63,74,33,0.35)] ${
+              className={`relative flex cursor-pointer flex-col items-center gap-3 rounded-[20px] border-2 px-3 pb-5 pt-6 text-center sm:px-6 sm:pb-7 sm:pt-8 transition-[background-color,border-color,opacity,transform] duration-200 ${dim} has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[rgba(63,74,33,0.35)] ${
                 checked
                   ? "border-olive bg-cream"
                   : "border-transparent bg-paper-warm hover:bg-cream"
