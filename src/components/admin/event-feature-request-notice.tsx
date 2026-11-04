@@ -1,0 +1,40 @@
+import { Alert } from "@/lib/ui";
+import type { EventFeatureRequest } from "@/src/services/ai/capability-requests";
+
+// Top of a draft's page when the AI helper couldn't build part of it: says
+// the rest is saved and which part is being built, or that it's now ready.
+export function EventFeatureRequestNotice({ requests }: { requests: ReadonlyArray<EventFeatureRequest> }) {
+  const waiting = requests.filter((request) => request.state === "waiting");
+  const ready = requests.filter((request) => request.state === "ready");
+
+  return (
+    <>
+      {waiting.length > 0 && (
+        <Alert variant="warn" title="Waiting on a new feature">
+          <p className="m-0">
+            The rest of this draft is saved. The part below isn&apos;t in the event builder yet, so it&apos;s been sent
+            to the developer to build:
+          </p>
+          <ul className="my-2 list-disc pl-5">
+            {waiting.map((request) => (
+              <li key={request.requestId}>{request.summary}</li>
+            ))}
+          </ul>
+          <p className="m-0">
+            You&apos;ll see it marked ready here when it&apos;s done. You can keep editing, or publish without it.
+          </p>
+        </Alert>
+      )}
+      {ready.length > 0 && (
+        <Alert variant="success" title="A feature you asked for is ready">
+          <ul className="my-1 list-disc pl-5">
+            {ready.map((request) => (
+              <li key={request.requestId}>{request.summary}</li>
+            ))}
+          </ul>
+          <p className="m-0">It&apos;s now in the builder below. Add it to this event, then publish.</p>
+        </Alert>
+      )}
+    </>
+  );
+}

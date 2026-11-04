@@ -53,8 +53,14 @@ export interface EventHelperDeps {
   sessions: DraftSessionStore;
   // Saves the draft (every date of a repeating one) and returns the first
   // event's id and how many events were created.
-  saveDraft: (inputs: DraftSaveInputs) => Promise<{ ok: true; id: string; count: number } | { ok: false; error: string }>;
+  // ids: every event saved (a repeating event saves one per date); id is the first.
+  saveDraft: (
+    inputs: DraftSaveInputs,
+  ) => Promise<{ ok: true; id: string; count: number; ids: string[] } | { ok: false; error: string }>;
   recordCapabilityRequest: (input: CapabilityRequestInput) => Promise<{ ok: true } | { ok: false; error: string }>;
+  // Ties this conversation's feature requests to the draft event(s), so the
+  // events pages can show "Waiting on a feature". Best effort.
+  linkCapabilityRequests: (sessionId: string, eventIds: ReadonlyArray<string>) => Promise<unknown>;
   profile: HelperBusinessProfile;
   today: string; // "YYYY-MM-DD" in the business timezone
 }
@@ -219,6 +225,7 @@ export async function runEventHelperTurn(
       const parsed = RequestCapabilitySchema.safeParse(toolUse.input);
       const summary = parsed.success ? parsed.data.summary : "A feature the event builder doesn't have yet";
       const recorded = await deps.recordCapabilityRequest({
+        sessionId: session.id,
         propertyId: input.propertyHint?.id ?? session.propertyId,
         summary,
         ownerWords: parsed.success ? parsed.data.ownerWords : message,
@@ -236,7 +243,11 @@ export async function runEventHelperTurn(
         ],
       });
       // Don't end the turn: the model goes on to draft the rest of the event.
-      if (recorded.ok) featureRequest = summary;
+      if (recorded.ok) {
+        featureRequest = summary;
+        // Asked for after the draft was already saved: link it now.
+        if (session.eventId) await deps.linkCapabilityRequests(session.id, [session.eventId]);
+      }
       continue;
     }
 
@@ -267,6 +278,7 @@ export async function runEventHelperTurn(
       });
       if (saved.ok) {
         session.eventId = saved.id;
+        await deps.linkCapabilityRequests(session.id, saved.ids);
         result = { kind: "draft", sessionId: session.id, eventId: saved.id, eventCount: saved.count };
       } else {
         result = { kind: "error", sessionId: session.id, text: `The draft couldn't be saved: ${saved.error}` };

@@ -11,6 +11,8 @@ import { EventRoster } from "@/src/components/admin/event-roster";
 import { getEventExtras } from "@/src/services/admin/event-extras";
 import { getGearPresets } from "@/src/services/admin/gear-presets";
 import { sectionFromStepSlug } from "@/src/services/admin/event-form-check";
+import { getFeatureRequestsForEvents } from "@/src/services/ai/capability-requests";
+import { EventFeatureRequestNotice } from "@/src/components/admin/event-feature-request-notice";
 
 export const dynamic = "force-dynamic";
 
@@ -25,12 +27,13 @@ export default async function EditEventPage({
   const { started, step } = await searchParams;
   const supabase = await createServerSupabaseClient();
 
-  const [event, properties, roster, extras, gearPresets] = await Promise.all([
+  const [event, properties, roster, extras, gearPresets, featureRequests] = await Promise.all([
     getEvent(supabase, id),
     getAdminPropertiesList(supabase),
     getEventRoster(supabase, id),
     getEventExtras(supabase, id),
     getGearPresets(supabase),
+    getFeatureRequestsForEvents(supabase, [id]),
   ]);
 
   if (!event) {
@@ -59,6 +62,12 @@ export default async function EditEventPage({
         ]}
       />
       <EventPageTitle>Edit event</EventPageTitle>
+
+      {featureRequests.has(id) && (
+        <div className="mt-6">
+          <EventFeatureRequestNotice requests={featureRequests.get(id) ?? []} />
+        </div>
+      )}
 
       {/* Sign-ups come first once there are any; a fresh draft goes straight to the builder. */}
       {roster.length > 0 && registrations}

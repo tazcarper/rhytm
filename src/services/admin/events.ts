@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getFeatureRequestsForEvents, type EventFeatureRequest } from "@/src/services/ai/capability-requests";
 
 // Admin CRUD for events (see the events migration). Pure data layer: takes
 // the caller's RLS-scoped client (admin/super_admin + the owning
@@ -158,6 +159,9 @@ export interface AdminEventListRow {
   memberPrice: number | null;
   nonMemberPrice: number | null;
   isTemplate: boolean;
+  // Parts the AI helper couldn't build, sent to the developer as feature
+  // requests (empty for most events).
+  featureRequests: ReadonlyArray<EventFeatureRequest>;
 }
 
 export interface AdminEventInfoBox {
@@ -272,6 +276,7 @@ function toListRow(row: ListRow, confirmedByEvent: Map<string, number>): AdminEv
     memberPrice: row.member_price === null ? null : Number(row.member_price),
     nonMemberPrice: row.non_member_price === null ? null : Number(row.non_member_price),
     isTemplate: row.is_template,
+    featureRequests: [],
   };
 }
 
@@ -291,7 +296,12 @@ export async function getEventsList(
     rows.map((row) => row.id),
   );
 
-  return rows.map((row) => toListRow(row, confirmedByEvent));
+  const featureRequests = await getFeatureRequestsForEvents(
+    supabase,
+    rows.filter((row) => row.status === "draft").map((row) => row.id),
+  );
+
+  return rows.map((row) => ({ ...toListRow(row, confirmedByEvent), featureRequests: featureRequests.get(row.id) ?? [] }));
 }
 
 // Upcoming events for one property's workspace "Events" tab — same row

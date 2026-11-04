@@ -7,7 +7,7 @@ import { getAdminPropertiesList } from "@/src/services/admin/properties";
 import { saveEvent, saveRecurringEvents, SaveEventSchema } from "@/src/services/admin/events";
 import { saveEventExtras } from "@/src/services/admin/event-extras";
 import { createDraftSessionStore } from "@/src/services/ai/draft-session-store";
-import { createCapabilityRequest } from "@/src/services/ai/capability-requests";
+import { createCapabilityRequest, linkCapabilityRequestsToEvents } from "@/src/services/ai/capability-requests";
 import { HELPER_LIMITS, runEventHelperTurn } from "@/src/services/ai/event-helper";
 
 // The AI event helper's endpoint. Thin by design: check who is asking and
@@ -84,9 +84,13 @@ export async function POST(request: Request) {
             const extras = await saveEventExtras(supabase, id, inputs.extras);
             if (!extras.ok) return { ok: false, error: extras.error };
           }
-          return { ok: true, id: saved.ids[0], count: saved.ids.length };
+          return { ok: true, id: saved.ids[0], count: saved.ids.length, ids: saved.ids };
         },
         recordCapabilityRequest: (input) => createCapabilityRequest(supabase, input),
+        linkCapabilityRequests: async (sessionId, eventIds) => {
+          const linked = await linkCapabilityRequestsToEvents(supabase, sessionId, eventIds);
+          if (!linked.ok) console.error("[event-helper] couldn't link feature requests", linked.error);
+        },
         profile: { businessName: BUSINESS_NAME, timezone: TIMEZONE, properties },
         today: todayIn(TIMEZONE),
       },
