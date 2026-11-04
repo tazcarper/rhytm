@@ -8,8 +8,8 @@ import { Check } from "lucide-react";
 // event screen for the club, the kind of event and the optional starter.
 //
 // Two looks (Taz's references, 2026-11-04):
-//   - with an image (a club's logo): a card with the image full width on
-//     top, the title and example, and a full-width Choose button
+//   - with an image (a club's logo): just the logo, filling the card; the
+//     label is the image's alt text. Selected shows an olive border and check
 //   - with an icon: a soft grey block with the icon in its own colour on a
 //     white circle, and a centred title and example; the block is the button
 
@@ -73,7 +73,7 @@ export function ChoiceTiles<T extends string>({
             return (
               <label
                 key={tile.value}
-                className={`flex cursor-pointer flex-col overflow-hidden rounded-[16px] border-2 bg-white transition-[border-color,box-shadow] has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[rgba(63,74,33,0.35)] ${
+                className={`relative flex aspect-[16/9] cursor-pointer items-center justify-center rounded-[16px] border-2 bg-white px-5 py-6 transition-[border-color,box-shadow] sm:px-8 sm:py-8 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[rgba(63,74,33,0.35)] ${
                   checked
                     ? "border-olive shadow-[0_4px_16px_rgba(63,74,33,0.16)]"
                     : "border-rule-strong hover:border-tan hover:shadow-[0_2px_10px_rgba(31,38,17,0.08)]"
@@ -90,25 +90,16 @@ export function ChoiceTiles<T extends string>({
                   }}
                   className="sr-only"
                 />
-                <span className="flex aspect-[16/7] items-center justify-center border-b border-rule bg-paper-warm px-3 py-3 sm:px-6 sm:py-5">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- admin-uploaded logos of any size and type */}
-                  <img src={tile.imageUrl} alt="" className="h-full w-full object-contain" />
-                </span>
-                <span className="flex flex-1 flex-col gap-1.5 px-3 pb-3 pt-3 sm:px-5 sm:pb-4 sm:pt-4">
-                  <span className="text-[17px] font-bold sm:text-[19px] leading-tight text-olive-darker">{tile.label}</span>
-                  {example}
-                </span>
-                <span className="border-t border-rule px-3 py-3 sm:px-4">
+                {checked && (
                   <span
                     aria-hidden="true"
-                    className={`flex min-h-[44px] items-center justify-center gap-2 rounded-[10px] text-[17px] font-semibold ${
-                      checked ? "bg-olive text-white" : "bg-paper-warm text-olive-darker"
-                    }`}
+                    className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-olive text-white"
                   >
-                    {checked && <Check size={18} strokeWidth={3} />}
-                    {checked ? "Selected" : "Choose"}
+                    <Check size={16} strokeWidth={3} />
                   </span>
-                </span>
+                )}
+                {/* eslint-disable-next-line @next/next/no-img-element -- admin-uploaded logos of any size and type */}
+                <img src={tile.imageUrl} alt={tile.label} className="h-full w-full object-contain" />
               </label>
             );
           }
