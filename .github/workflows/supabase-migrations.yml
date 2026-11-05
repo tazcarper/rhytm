@@ -1,0 +1,65 @@
+# Save this file in the repo as .github/workflows/supabase-migrations.yml
+#
+# Applies new files under supabase/migrations automatically:
+#   - pull request into main → the PREVIEW database, so the Vercel preview works
+#   - merge to main          → the PRODUCTION database
+# Your review and merge of the PR is the gate for production.
+#
+# Secrets (repo Settings → Secrets and variables → Actions):
+#   SUPABASE_PREVIEW_DB_URL  connection string of the preview project
+#   SUPABASE_PROD_DB_URL     connection string of the production project
+# Use the "Session pooler" string from Supabase → Connect (port 5432), with
+# the database password filled in. GitHub's runners can't reach the direct
+# connection on the free plan.
+
+name: Supabase migrations
+
+on:
+  pull_request:
+    branches: [main]
+    paths: ["supabase/migrations/**"]
+  push:
+    branches: [main]
+    paths: ["supabase/migrations/**"]
+  # Also started by claude-build.yml for Claude's PRs (PRs opened by a bot
+  # don't trigger pull_request workflows), or by hand from the Actions tab.
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Which database"
+        type: choice
+        options: [preview, production]
+        default: preview
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # One run at a time per database, never cancelled halfway.
+    concurrency:
+      group: supabase-migrations-${{ (github.event_name == 'push' || inputs.target == 'production') && 'production' || 'preview' }}
+      cancel-in-progress: false
+    env:
+      TARGET: ${{ (github.event_name == 'push' || inputs.target == 'production') && 'production' || 'preview' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Apply new migrations
+        env:
+          PREVIEW_DB_URL: ${{ secrets.SUPABASE_PREVIEW_DB_URL }}
+          PROD_DB_URL: ${{ secrets.SUPABASE_PROD_DB_URL }}
+        run: |
+          set -euo pipefail
+          if [ "$TARGET" = "production" ]; then DB_URL="$PROD_DB_URL"; else DB_URL="$PREVIEW_DB_URL"; fi
+          if [ -z "$DB_URL" ]; then
+            echo "::error::The $TARGET database URL secret isn't set."
+            exit 1
+          fi
+          echo "Applying new migrations to the $TARGET database"
+          supabase db push --db-url "$DB_URL" --include-all --yes
