@@ -294,6 +294,11 @@ export function EventEditorForm({
   const [maxGuestsPerRegistration, setMaxGuestsPerRegistration] = useState(String(event.maxGuestsPerRegistration));
   const [memberPrice, setMemberPrice] = useState(event.memberPrice != null ? String(event.memberPrice) : "");
   const [nonMemberPrice, setNonMemberPrice] = useState(event.nonMemberPrice != null ? String(event.nonMemberPrice) : "");
+  const [priceChangeOn, setPriceChangeOn] = useState(event.priceChangeOn ?? "");
+  const [memberPriceAfter, setMemberPriceAfter] = useState(event.memberPriceAfter != null ? String(event.memberPriceAfter) : "");
+  const [nonMemberPriceAfter, setNonMemberPriceAfter] = useState(
+    event.nonMemberPriceAfter != null ? String(event.nonMemberPriceAfter) : "",
+  );
   const [status, setStatus] = useState<EventStatus>(event.status);
   const [isManuallySoldOut, setIsManuallySoldOut] = useState(event.isManuallySoldOut);
   const [isTemplate, setIsTemplate] = useState(event.isTemplate);
@@ -430,6 +435,9 @@ export function EventEditorForm({
       maxGuestsPerRegistration: Number(maxGuestsPerRegistration) || 0,
       memberPrice: memberPrice.trim() === "" ? null : Number(memberPrice),
       nonMemberPrice: !showNonMemberPrice || nonMemberPrice.trim() === "" ? null : Number(nonMemberPrice),
+      priceChangeOn: priceChangeOn || null,
+      memberPriceAfter: memberPriceAfter.trim() === "" ? null : Number(memberPriceAfter),
+      nonMemberPriceAfter: !showNonMemberPrice || nonMemberPriceAfter.trim() === "" ? null : Number(nonMemberPriceAfter),
       status: statusOverride ?? status,
       isManuallySoldOut,
       isTemplate,
@@ -541,6 +549,9 @@ export function EventEditorForm({
       tickets.length > 0 ? plural(tickets.length, "ticket option", "ticket options") : "",
       memberPrice.trim() ? `members $${memberPrice}` : "",
       showNonMemberPrice && nonMemberPrice.trim() ? `others $${nonMemberPrice}` : "",
+      priceChangeOn && (nonMemberPriceAfter.trim() || memberPriceAfter.trim())
+        ? `price changes ${priceChangeOn}`
+        : "",
       audience === "members_only" ? "members only" : "",
     ]
       .filter(Boolean)
@@ -878,6 +889,53 @@ export function EventEditorForm({
                   Members sign up at no charge; everyone else pays the regular price. Ticking this sets the member
                   price to $0, and the event shows as included with membership.
                 </InfoTip>
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <span className={s.label}>Price changes later</span>
+                  <InfoTip label="How do price changes work?">
+                    Use this for early-bird pricing, e.g. $65 before December 1 and $85 from then on. Put the early
+                    price in the price boxes above; the new price takes over automatically on the date you pick.
+                    Leave blank for a price that stays the same.
+                  </InfoTip>
+                </div>
+                <div className={h.grid2}>
+                  <label className={s.field}>
+                    <span className={s.label}>New price starts on</span>
+                    <input
+                      type="date"
+                      value={priceChangeOn}
+                      onChange={(evt) => setPriceChangeOn(evt.target.value)}
+                      className={s.input}
+                    />
+                  </label>
+                  <label className={s.field}>
+                    <span className={s.label}>Member price from then</span>
+                    <input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={memberPriceAfter}
+                      onChange={(evt) => setMemberPriceAfter(evt.target.value)}
+                      className={s.input}
+                      placeholder="Leave blank if unchanged"
+                    />
+                  </label>
+                  {showNonMemberPrice && (
+                    <label className={s.field}>
+                      <span className={s.label}>Non-member price from then</span>
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={nonMemberPriceAfter}
+                        onChange={(evt) => setNonMemberPriceAfter(evt.target.value)}
+                        className={s.input}
+                        placeholder="Leave blank if unchanged"
+                      />
+                    </label>
+                  )}
+                </div>
               </div>
               </div>
               <div className="flex flex-col gap-2">
