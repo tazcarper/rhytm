@@ -25,7 +25,7 @@ jobs:
       pull-requests: write
       issues: write
       id-token: write
-      actions: read
+      actions: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -79,10 +79,25 @@ jobs:
           else
             CHECK="**Typecheck failed.** Last lines:"$'\n\n```\n'"$(tail -n 30 typecheck.log)"$'\n```'
           fi
-          BODY="Closes #${ISSUE}"$'\n\n'"Built by Claude from a feature request. Test it on the Vercel preview below, then merge when it's good. Merging marks the request Built and unlocks the drafts waiting on it."$'\n\n'"If this adds a file under supabase/migrations, run it in Supabase before merging."$'\n\n'"${CHECK}"
+          BODY="Closes #${ISSUE}"$'\n\n'"Built by Claude from a feature request. Test it on the Vercel preview below, then merge when it's good. Merging marks the request Built and unlocks the drafts waiting on it."$'\n\n'"Any new file under supabase/migrations is applied to the preview database now, and to production when this merges."$'\n\n'"${CHECK}"
           if [ "$CLAUDE_OUTCOME" = "success" ]; then
             gh pr create --base main --head "$BRANCH" --title "$TITLE" --body "$BODY"
           else
             BODY="**Claude stopped before finishing, so this is incomplete.** Press Build it again on the request, or close this."$'\n\n'"$BODY"
             gh pr create --draft --base main --head "$BRANCH" --title "[Incomplete] $TITLE" --body "$BODY"
           fi
+
+      - name: Apply its migrations to the preview database
+        # PRs opened by this workflow don't start other workflows on their
+        # own, so start supabase-migrations.yml for the new branch.
+        if: ${{ !cancelled() && steps.claude.outputs.branch_name != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.claude.outputs.branch_name }}
+        run: |
+          if [ -z "$(git ls-remote --heads origin "$BRANCH")" ]; then exit 0; fi
+          if git diff --quiet origin/main...origin/"$BRANCH" -- supabase/migrations; then
+            echo "No new migrations."
+            exit 0
+          fi
+          gh workflow run supabase-migrations.yml --ref "$BRANCH" -f target=preview
