@@ -136,7 +136,7 @@ function ApproveOrFix({ requestId }: { requestId: string }) {
   if (mode === "approved") {
     return (
       <p className="m-0 font-semibold text-olive-darker">
-        Approved. It&apos;ll be on the real site in a few minutes, and this card will change to &ldquo;Done&rdquo;.
+        Published. It&apos;ll be on the real site in a few minutes, and this card will change to &ldquo;Done&rdquo;.
       </p>
     );
   }
@@ -144,7 +144,7 @@ function ApproveOrFix({ requestId }: { requestId: string }) {
     return (
       <p className="m-0 text-olive-darker">
         Sent to Claude. It&apos;s fixing it now; the test site updates in about 10 to 30 minutes. Then try it again
-        with the same button above.
+        with the Preview it here button above.
       </p>
     );
   }
@@ -153,10 +153,10 @@ function ApproveOrFix({ requestId }: { requestId: string }) {
     <div className="flex flex-col gap-2">
       {mode === "choose" && (
         <>
-          <span>If it works the way you want, approve it to put it on the real site. If not, tell Claude what to change.</span>
+          <span>If it works the way you want, publish it to the real site. If not, tell Claude what to change.</span>
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="primary" size="sm" onClick={() => setMode("confirm")}>
-              Approve and go live
+              Publish to production
             </Button>
             <Button type="button" variant="secondary" size="sm" onClick={() => setMode("feedback")}>
               Something&apos;s not right
@@ -171,7 +171,7 @@ function ApproveOrFix({ requestId }: { requestId: string }) {
           </span>
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="primary" size="sm" loading={isPending} onClick={approve}>
-              Yes, go live
+              Yes, publish it
             </Button>
             <Button type="button" variant="ghost" size="sm" disabled={isPending} onClick={() => setMode("choose")}>
               Cancel
@@ -213,7 +213,7 @@ function TryItSteps({ requestId, build }: { requestId: string; build: FeatureBui
   const previewAdmin = build.previewUrl ? `${build.previewUrl}/admin/events` : null;
   return (
     <ol className="m-0 mt-3 flex list-none flex-col gap-4 rounded-[12px] bg-paper-warm p-4">
-      <StepBox number={1} title="Open the test site">
+      <StepBox number={1} title="Preview it">
         {previewAdmin ? (
           <>
             <a
@@ -222,7 +222,7 @@ function TryItSteps({ requestId, build }: { requestId: string; build: FeatureBui
               rel="noreferrer"
               className="inline-block rounded-[8px] bg-olive px-4 py-2 text-[15px] font-semibold text-white no-underline"
             >
-              Open the test site
+              Preview it here
             </a>
             <span className="mt-1 block">
               It&apos;s a copy of your site with the new feature added. It has its own test data, so nothing you do
@@ -244,7 +244,7 @@ function TryItSteps({ requestId, build }: { requestId: string; build: FeatureBui
           <>Do what you originally asked the helper for, and check it works the way you expect.</>
         )}
       </StepBox>
-      <StepBox number={3} title="Approve it, or tell Claude what to fix">
+      <StepBox number={3} title="Publish it, or tell Claude what to fix">
         <ApproveOrFix requestId={requestId} />
       </StepBox>
     </ol>
@@ -290,7 +290,11 @@ export function FeatureBuildControl({
     <div className="mt-3">
       {stage && (
         <p className="m-0 text-[14px] text-olive-darker">
-          {fixingFeedback ? "Claude is working on what you sent. The test site updates when it's done." : stageText[stage]}
+          {fixingFeedback
+            ? "Claude is working on what you sent. The test site updates when it's done."
+            : stage === "building" && progress && progress.state !== "working"
+              ? "Claude has finished. The preview is being set up; the Preview it here button appears in a few minutes."
+              : stageText[stage]}
         </p>
       )}
       {showProgress && progress && (
