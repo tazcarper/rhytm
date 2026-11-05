@@ -53,12 +53,15 @@ jobs:
             --allowedTools "Read,Edit,Write,Glob,Grep,Bash(npm run typecheck),Bash(npm run lint),Bash(npx tsc:*),Bash(git status),Bash(git diff:*),Bash(git log:*),Bash(npx supabase migration new:*)"
 
       - name: Open the pull request
-        if: always() && steps.claude.outputs.branch_name != ''
+        # Not when the run was cancelled. If Claude stopped early (an error
+        # or a usage limit), the PR opens as a draft marked incomplete.
+        if: ${{ !cancelled() && steps.claude.outputs.branch_name != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
           BRANCH: ${{ steps.claude.outputs.branch_name }}
           ISSUE: ${{ github.event.issue.number }}
           TITLE: ${{ github.event.issue.title }}
+          CLAUDE_OUTCOME: ${{ steps.claude.outcome }}
         run: |
           set -euo pipefail
           if [ -z "$(git ls-remote --heads origin "$BRANCH")" ]; then
@@ -77,4 +80,9 @@ jobs:
             CHECK="**Typecheck failed.** Last lines:"$'\n\n```\n'"$(tail -n 30 typecheck.log)"$'\n```'
           fi
           BODY="Closes #${ISSUE}"$'\n\n'"Built by Claude from a feature request. Test it on the Vercel preview below, then merge when it's good. Merging marks the request Built and unlocks the drafts waiting on it."$'\n\n'"If this adds a file under supabase/migrations, run it in Supabase before merging."$'\n\n'"${CHECK}"
-          gh pr create --base main --head "$BRANCH" --title "$TITLE" --body "$BODY"
+          if [ "$CLAUDE_OUTCOME" = "success" ]; then
+            gh pr create --base main --head "$BRANCH" --title "$TITLE" --body "$BODY"
+          else
+            BODY="**Claude stopped before finishing, so this is incomplete.** Press Build it again on the request, or close this."$'\n\n'"$BODY"
+            gh pr create --draft --base main --head "$BRANCH" --title "[Incomplete] $TITLE" --body "$BODY"
+          fi
