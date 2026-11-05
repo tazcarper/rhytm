@@ -25,7 +25,7 @@ export default async function EventFeatureRequestsPage() {
         Feature requests
       </Heading>
       <Text className="mb-6 mt-2">
-        Things staff asked the event helper for that the event builder can&apos;t do yet. Drafts that need one can&apos;t be published until it&apos;s built. Press Build it and Claude builds the feature and opens a preview to test. Merging it marks the request Built, and those drafts unlock.
+        Things staff asked the event helper for that the event builder can&apos;t do yet. Drafts that need one can&apos;t be published until it&apos;s built. Press Build it and Claude builds the feature. When it's ready, you'll get a link to try it on a test copy of the site. Once it's approved and live, the request shows as Built and those drafts can be published.
       </Text>
       <CapabilityRequestsList rows={rows} canBuild={canBuild} />
     </PageShell>

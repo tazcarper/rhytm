@@ -79,7 +79,12 @@ jobs:
           else
             CHECK="**Typecheck failed.** Last lines:"$'\n\n```\n'"$(tail -n 30 typecheck.log)"$'\n```'
           fi
-          BODY="Closes #${ISSUE}"$'\n\n'"Built by Claude from a feature request. Test it on the Vercel preview below, then merge when it's good. Merging marks the request Built and unlocks the drafts waiting on it."$'\n\n'"Any new file under supabase/migrations is applied to the preview database now, and to production when this merges."$'\n\n'"${CHECK}"
+          # Claude's "## How to test" steps from its summary on the issue, so
+          # the admin page can show them (the webhook reads them from here).
+          SUMMARY=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${ISSUE}/comments" \
+            --jq '[.[] | select(.user.login == "claude[bot]")] | last | .body // ""')
+          TESTING=$(printf '%s\n' "$SUMMARY" | awk 'tolower($0) ~ /^#+ *how to test/ {on=1; print; next} on && /^#+ / {exit} on')
+          BODY="Closes #${ISSUE}"$'\n\n'"Built by Claude from a feature request. Test it on the Vercel preview below, then merge when it's good. Merging marks the request Built and unlocks the drafts waiting on it."$'\n\n'"Any new file under supabase/migrations is applied to the preview database now, and to production when this merges."$'\n\n'"${CHECK}"$'\n\n'"${TESTING}"
           if [ "$CLAUDE_OUTCOME" = "success" ]; then
             gh pr create --base main --head "$BRANCH" --title "$TITLE" --body "$BODY"
           else
