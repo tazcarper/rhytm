@@ -90,3 +90,6 @@ $$;
 
 REVOKE ALL ON FUNCTION open_capability_requests() FROM public, anon;
 GRANT EXECUTE ON FUNCTION open_capability_requests() TO authenticated;
+
+-- Tell the API about the new column and functions right away.
+NOTIFY pgrst, 'reload schema';
