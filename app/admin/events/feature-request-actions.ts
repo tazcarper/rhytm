@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createGitHubIssuesClient } from "@/lib/github/issues-client";
-import { requestFeatureBuild } from "@/src/services/ai/feature-builds";
+import { approveFeatureBuild, requestFeatureBuild, sendFeatureBuildFeedback } from "@/src/services/ai/feature-builds";
 import {
   CAPABILITY_REQUEST_STATUSES,
   getCapabilityRequests,
@@ -74,5 +74,39 @@ export async function buildFeatureRequestAction(input: unknown): Promise<{ ok: t
 
   const result = await requestFeatureBuild(supabase, github, row);
   if (result.ok) revalidatePath("/admin/events/feature-requests");
+  return result;
+}
+
+// "Something's not right": staff's notes from the test site go back to
+// Claude, which fixes the same build.
+const FeedbackSchema = z.object({ id: z.string().uuid(), feedback: z.string().trim().min(3).max(4000) });
+
+export async function sendBuildFeedbackAction(input: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
+  const parsed = FeedbackSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Write a few words about what's wrong." };
+  const supabase = await createServerSupabaseClient();
+  if (!(await isAdmin(supabase))) return { ok: false, error: "Only admins can do this." };
+  const github = createGitHubIssuesClient();
+  if (!github) return { ok: false, error: "Automatic building isn't switched on yet." };
+
+  const row = (await getCapabilityRequests(supabase)).find((request) => request.id === parsed.data.id);
+  if (!row) return { ok: false, error: "That request is gone." };
+  return sendFeatureBuildFeedback(github, row.build, parsed.data.feedback);
+}
+
+// "Approve and go live" (Taz, 2026-11-05: any admin may). Merges the build;
+// the webhook marks the request Built.
+export async function approveBuildAction(input: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
+  const parsed = BuildSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Invalid request." };
+  const supabase = await createServerSupabaseClient();
+  if (!(await isAdmin(supabase))) return { ok: false, error: "Only admins can do this." };
+  const github = createGitHubIssuesClient();
+  if (!github) return { ok: false, error: "Automatic building isn't switched on yet." };
+
+  const row = (await getCapabilityRequests(supabase)).find((request) => request.id === parsed.data.id);
+  if (!row) return { ok: false, error: "That request is gone." };
+  const result = await approveFeatureBuild(github, row.build);
+  if (result.ok) revalidatePath("/admin/events", "layout");
   return result;
 }

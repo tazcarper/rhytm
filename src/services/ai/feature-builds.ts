@@ -77,6 +77,42 @@ export async function requestFeatureBuild(
   return { ok: true, issueUrl: created.issue.url };
 }
 
+// Sends staff's notes from testing a build back to Claude on its pull
+// request. The Claude GitHub Action picks up the @claude mention and
+// pushes fixes to the same branch, so the test site updates.
+export function featureBuildFeedbackComment(feedback: string): string {
+  const quoted = feedback.trim().slice(0, 4000).replace(/\n/g, "\n> ");
+  return [
+    "@claude Staff tried this on the test site and said:",
+    "",
+    `> ${quoted}`,
+    "",
+    "Please fix this on this branch. Keep to this feature, follow CLAUDE.md, run `npm run typecheck`, and finish with a short summary and a `## How to test` section in plain words for a non-technical admin.",
+  ].join("\n");
+}
+
+export async function sendFeatureBuildFeedback(
+  github: GitHubIssuesClient,
+  build: CapabilityRequestRow["build"],
+  feedback: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const prNumber = build?.pullRequest?.state === "open" ? build.pullRequest.number : null;
+  if (!prNumber) return { ok: false, error: "There's no build being tested for this request." };
+  return github.addComment(prNumber, featureBuildFeedbackComment(feedback));
+}
+
+// "Approve and go live": merges the build's pull request. The webhook then
+// marks the request Built, and its database changes reach the real site.
+export async function approveFeatureBuild(
+  github: GitHubIssuesClient,
+  build: CapabilityRequestRow["build"],
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const prNumber = build?.pullRequest?.state === "open" ? build.pullRequest.number : null;
+  const issue = build?.issueUrl.match(/\/issues\/(\d+)$/)?.[1];
+  if (!prNumber || !issue) return { ok: false, error: "There's no build waiting for approval." };
+  return github.mergePullRequest(prNumber, new RegExp(`^claude/issue-${issue}(?:-|$)`));
+}
+
 // A pull request event, reduced to what moves a request along.
 export interface FeatureBuildPullRequestEvent {
   issueNumber: number;
