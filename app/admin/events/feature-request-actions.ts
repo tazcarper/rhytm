@@ -3,8 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createGitHubIssuesClient } from "@/lib/github/issues-client";
+import { requestFeatureBuild } from "@/src/services/ai/feature-builds";
 import {
   CAPABILITY_REQUEST_STATUSES,
+  getCapabilityRequests,
   markCapabilityRequestDuplicate,
   updateCapabilityRequestStatus,
   type CapabilityRequestStatus,
@@ -50,5 +53,26 @@ export async function markFeatureRequestDuplicateAction(input: unknown): Promise
   if (!(await isAdmin(supabase))) return { ok: false, error: "Only admins can change this." };
   const result = await markCapabilityRequestDuplicate(supabase, parsed.data.id, parsed.data.originalId);
   if (result.ok) revalidatePath("/admin/events", "layout");
+  return result;
+}
+
+// "Build it": opens a GitHub issue that the Claude GitHub Action builds.
+// Not again while a build is running or its pull request is open.
+const BuildSchema = z.object({ id: z.string().uuid() });
+
+export async function buildFeatureRequestAction(input: unknown): Promise<{ ok: true; issueUrl: string } | { ok: false; error: string }> {
+  const parsed = BuildSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Invalid request." };
+  const supabase = await createServerSupabaseClient();
+  if (!(await isAdmin(supabase))) return { ok: false, error: "Only admins can do this." };
+  const github = createGitHubIssuesClient();
+  if (!github) return { ok: false, error: "Build it isn't set up yet (GitHub token missing in Vercel)." };
+
+  const row = (await getCapabilityRequests(supabase)).find((request) => request.id === parsed.data.id);
+  if (!row) return { ok: false, error: "That request is gone." };
+  if (row.build && row.build.pullRequest?.state !== "closed") return { ok: false, error: "It's already being built." };
+
+  const result = await requestFeatureBuild(supabase, github, row);
+  if (result.ok) revalidatePath("/admin/events/feature-requests");
   return result;
 }
