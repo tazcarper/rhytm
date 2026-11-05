@@ -37,11 +37,12 @@ export function ReportProblemForm({
       <Card padding="default" elevation="soft">
         <p className="m-0 text-[15px] font-semibold text-olive-darker">Sent to Claude. It&apos;s looking into it now.</p>
         <p className="mt-2 text-[14px] text-gray">
-          This usually takes 10 to 30 minutes. When the fix is ready, it shows under{" "}
+          You can watch what it&apos;s doing, step by step, under{" "}
           <Link href="/admin/events/feature-requests" className="text-olive underline">
             Feature requests
-          </Link>{" "}
-          with a link to try it and a button to put it live.
+          </Link>
+          . It usually takes 10 to 30 minutes. When the fix is ready, you&apos;ll find a link there to try it and a button to
+          put it live.
         </p>
       </Card>
     );

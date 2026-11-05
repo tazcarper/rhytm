@@ -7,6 +7,7 @@ import { markFeatureRequestDuplicateAction, setFeatureRequestStatusAction } from
 import type { CapabilityRequestRow, CapabilityRequestStatus } from "@/src/services/ai/capability-requests";
 import { EventStatusBadge } from "./event-status-badge";
 import { FeatureBuildControl } from "./feature-build-control";
+import type { BuildProgress } from "@/src/services/ai/feature-build-progress";
 import type { EventStatus } from "@/src/services/admin/events";
 
 // The feature requests the AI helper collected, for the developer: what
@@ -35,10 +36,12 @@ function RequestCard({
   row,
   others,
   canBuild,
+  progress,
 }: {
   row: CapabilityRequestRow;
   others: ReadonlyArray<CapabilityRequestRow>;
   canBuild: boolean;
+  progress: BuildProgress | null;
 }) {
   const [status, setStatus] = useState<CapabilityRequestStatus>(row.status);
   const [error, setError] = useState<string | null>(null);
@@ -124,7 +127,13 @@ function RequestCard({
         </div>
       )}
       {status !== "declined" && (status !== "built" || row.build) && (
-        <FeatureBuildControl requestId={row.id} build={row.build} canBuild={canBuild} />
+        <FeatureBuildControl
+          requestId={row.id}
+          build={row.build}
+          canBuild={canBuild}
+          isFix={row.fix !== null}
+          progress={progress}
+        />
       )}
       {others.length > 0 && (
         <label className="mt-3 flex flex-wrap items-center gap-2 text-[14px] text-gray">
@@ -152,7 +161,16 @@ function RequestCard({
   );
 }
 
-export function CapabilityRequestsList({ rows, canBuild }: { rows: ReadonlyArray<CapabilityRequestRow>; canBuild: boolean }) {
+export function CapabilityRequestsList({
+  rows,
+  canBuild,
+  progress = {},
+}: {
+  rows: ReadonlyArray<CapabilityRequestRow>;
+  canBuild: boolean;
+  // Claude's checklist for requests being built, keyed by request id.
+  progress?: Readonly<Record<string, BuildProgress>>;
+}) {
   if (rows.length === 0) {
     return (
       <Card padding="default" elevation="soft">
@@ -171,6 +189,7 @@ export function CapabilityRequestsList({ rows, canBuild }: { rows: ReadonlyArray
           row={row}
           others={rows.filter((other) => other.id !== row.id && other.status !== "declined" && !other.fix && !row.fix)}
           canBuild={canBuild}
+          progress={progress[row.id] ?? null}
         />
       ))}
     </div>

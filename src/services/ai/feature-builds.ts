@@ -36,6 +36,7 @@ export function featureBuildIssue(row: CapabilityRequestRow): NewIssue {
     "",
     "## How to build it",
     "",
+    "- Staff watch your progress checklist from the admin, so word every checklist item in plain English for a non-technical admin (e.g. \"Look at how the sign-up price is worked out\", \"Fix the total on the sign-up page\"). No file names, code or jargon in checklist items.",
     "- Read CLAUDE.md first and follow it (SOLID, project structure, RLS rules, client state rules). Read PRODUCT.md and DESIGN.md for anything visual.",
     "- The event builder lives in app/admin/events, src/components/admin/event-*, src/services/admin/events.ts and related services. The AI helper is src/services/ai/event-helper.ts and src/services/ai/event-helper-tools.ts: once the builder can do this, teach the helper to use it so it stops filing this request.",
     "- The helper's strict tool schemas (src/services/ai/event-draft-schema.ts and event-helper-tools.ts) may hold at most 16 nullable or union-typed fields in total, or every helper message fails with a 400. Before adding one, count them; prefer a plain string with \"\" for none, or a non-null field.",
@@ -54,6 +55,7 @@ export function featureBuildIssue(row: CapabilityRequestRow): NewIssue {
 
 // Shared rules for any build Claude does from the admin.
 const BUILD_RULES = [
+  "- Staff watch your progress checklist from the admin, so word every checklist item in plain English for a non-technical admin (e.g. \"Look at how the sign-up price is worked out\", \"Fix the total on the sign-up page\"). No file names, code or jargon in checklist items.",
   "- Read CLAUDE.md first and follow it (SOLID, project structure, RLS rules, client state rules). Read PRODUCT.md and DESIGN.md for anything visual.",
   "- The helper's strict tool schemas (src/services/ai/event-draft-schema.ts and event-helper-tools.ts) may hold at most 16 nullable or union-typed fields in total, or every helper message fails with a 400. Don't add one without counting them.",
   "- Database changes go in a new file under supabase/migrations (additive changes only: add columns or tables, don't drop or rename). Don't apply it yourself; it's applied to the preview database when the PR opens and to production when it merges.",
@@ -158,7 +160,7 @@ export function featureBuildFeedbackComment(feedback: string): string {
     "",
     `> ${quoted}`,
     "",
-    "Please fix this on this branch. Keep to this feature, follow CLAUDE.md, run `npm run typecheck`, and finish with a short summary and a `## How to test` section in plain words for a non-technical admin.",
+    "Please fix this on this branch. Staff watch your progress checklist from the admin, so word its items in plain English (no file names or code). Keep to this feature, follow CLAUDE.md, run `npm run typecheck`, and finish with a short summary and a `## How to test` section in plain words for a non-technical admin.",
   ].join("\n");
 }
 
