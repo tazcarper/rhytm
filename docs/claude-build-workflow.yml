@@ -1,0 +1,88 @@
+# Save this file in the repo as .github/workflows/claude-build.yml
+#
+# When the admin presses "Build it" on a feature request, the app opens a
+# GitHub issue with the "claude-build" label. This workflow hands that issue
+# to Claude, which builds the feature on a branch. A pull request is then
+# opened from that branch, so Vercel makes a preview. Merging stays manual.
+
+name: Claude builds a feature request
+
+on:
+  issues:
+    types: [labeled]
+
+concurrency:
+  group: claude-build-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event.label.name == 'claude-build'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Claude builds it
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          # Uses the Claude Pro plan (token from `claude setup-token`), not the API key.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          label_trigger: claude-build
+          claude_args: >-
+            --max-turns 250
+            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(npm run typecheck),Bash(npm run lint),Bash(npx tsc:*),Bash(git status),Bash(git diff:*),Bash(git log:*),Bash(npx supabase migration new:*)"
+
+      - name: Open the pull request
+        # Not when the run was cancelled. If Claude stopped early (an error
+        # or a usage limit), the PR opens as a draft marked incomplete.
+        if: ${{ !cancelled() && steps.claude.outputs.branch_name != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.claude.outputs.branch_name }}
+          ISSUE: ${{ github.event.issue.number }}
+          TITLE: ${{ github.event.issue.title }}
+          CLAUDE_OUTCOME: ${{ steps.claude.outcome }}
+        run: |
+          set -euo pipefail
+          if [ -z "$(git ls-remote --heads origin "$BRANCH")" ]; then
+            echo "Claude didn't push a branch, so there's nothing to open."
+            exit 0
+          fi
+          if gh pr view "$BRANCH" --json number >/dev/null 2>&1; then
+            echo "A pull request is already open for $BRANCH."
+            exit 0
+          fi
+          git fetch origin "$BRANCH"
+          git checkout "$BRANCH"
+          if npm run typecheck > typecheck.log 2>&1; then
+            CHECK="Typecheck passed."
+          else
+            CHECK="**Typecheck failed.** Last lines:"$'\n\n```\n'"$(tail -n 30 typecheck.log)"$'\n```'
+          fi
+          BODY="Closes #${ISSUE}"$'\n\n'"Built by Claude from a feature request. Test it on the Vercel preview below, then merge when it's good. Merging marks the request Built and unlocks the drafts waiting on it."$'\n\n'"If this adds a file under supabase/migrations, run it in Supabase before merging."$'\n\n'"${CHECK}"
+          if [ "$CLAUDE_OUTCOME" = "success" ]; then
+            gh pr create --base main --head "$BRANCH" --title "$TITLE" --body "$BODY"
+          else
+            BODY="**Claude stopped before finishing, so this is incomplete.** Press Build it again on the request, or close this."$'\n\n'"$BODY"
+            gh pr create --draft --base main --head "$BRANCH" --title "[Incomplete] $TITLE" --body "$BODY"
+          fi

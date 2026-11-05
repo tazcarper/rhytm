@@ -6,6 +6,7 @@ import { Card } from "@/lib/ui";
 import { markFeatureRequestDuplicateAction, setFeatureRequestStatusAction } from "@/app/admin/events/feature-request-actions";
 import type { CapabilityRequestRow, CapabilityRequestStatus } from "@/src/services/ai/capability-requests";
 import { EventStatusBadge } from "./event-status-badge";
+import { FeatureBuildControl } from "./feature-build-control";
 import type { EventStatus } from "@/src/services/admin/events";
 
 // The feature requests the AI helper collected, for the developer: what
@@ -30,7 +31,15 @@ const shortDate = (iso: string) =>
     timeZone: "America/Chicago",
   });
 
-function RequestCard({ row, others }: { row: CapabilityRequestRow; others: ReadonlyArray<CapabilityRequestRow> }) {
+function RequestCard({
+  row,
+  others,
+  canBuild,
+}: {
+  row: CapabilityRequestRow;
+  others: ReadonlyArray<CapabilityRequestRow>;
+  canBuild: boolean;
+}) {
   const [status, setStatus] = useState<CapabilityRequestStatus>(row.status);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -109,6 +118,9 @@ function RequestCard({ row, others }: { row: CapabilityRequestRow; others: Reado
           </ul>
         </div>
       )}
+      {status !== "declined" && (status !== "built" || row.build) && (
+        <FeatureBuildControl requestId={row.id} build={row.build} canBuild={canBuild} />
+      )}
       {others.length > 0 && (
         <label className="mt-3 flex flex-wrap items-center gap-2 text-[14px] text-gray">
           Same as another request?
@@ -135,7 +147,7 @@ function RequestCard({ row, others }: { row: CapabilityRequestRow; others: Reado
   );
 }
 
-export function CapabilityRequestsList({ rows }: { rows: ReadonlyArray<CapabilityRequestRow> }) {
+export function CapabilityRequestsList({ rows, canBuild }: { rows: ReadonlyArray<CapabilityRequestRow>; canBuild: boolean }) {
   if (rows.length === 0) {
     return (
       <Card padding="default" elevation="soft">
@@ -153,6 +165,7 @@ export function CapabilityRequestsList({ rows }: { rows: ReadonlyArray<Capabilit
           key={row.id}
           row={row}
           others={rows.filter((other) => other.id !== row.id && other.status !== "declined")}
+          canBuild={canBuild}
         />
       ))}
     </div>
