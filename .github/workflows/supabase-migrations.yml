@@ -48,6 +48,8 @@ jobs:
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@v1
         with:
+          # Same CLI as the repo's package-lock. The newest CLI rejects this
+          # repo's supabase/config.toml, so don't use "latest".
           version: 2.100.1
 
       - name: Apply new migrations
@@ -60,6 +62,19 @@ jobs:
           if [ -z "$DB_URL" ]; then
             echo "::error::The $TARGET database URL secret isn't set."
             exit 1
+          fi
+          if [ "$TARGET" = "preview" ]; then
+            # The preview database is shared by every open PR, so it can hold
+            # migrations from other branches that this checkout doesn't have.
+            # The CLI refuses to run then; give it empty stand-ins for those
+            # (they're already applied, so nothing runs for them).
+            command -v psql >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client; }
+            for version in $(psql "$DB_URL" -Atc "select version from supabase_migrations.schema_migrations"); do
+              if ! ls supabase/migrations/"${version}"_*.sql >/dev/null 2>&1; then
+                echo "Preview already has $version from another branch"
+                : > "supabase/migrations/${version}_from_another_branch.sql"
+              fi
+            done
           fi
           echo "Applying new migrations to the $TARGET database"
           supabase db push --db-url "$DB_URL" --include-all --yes
