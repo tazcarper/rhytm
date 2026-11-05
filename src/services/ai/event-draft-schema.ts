@@ -20,6 +20,10 @@ import { REPEAT_FREQUENCIES, repeatDates } from "@/src/services/events/repeat-da
 // (SaveEventSchema, SaveEventExtrasSchema). The model gets no special trust.
 
 const nullableText = (description: string) => z.string().nullable().describe(description);
+// The Claude API allows at most 16 nullable/union parameters across all
+// strict tools in a request, so a few optional texts use "" for "none"
+// instead of null. Keep the total under 16 (the tools' schemas together).
+const optionalText = (description: string) => z.string().describe(description);
 
 export const EventDraftSchema = z.object({
   starterKey: z
@@ -30,7 +34,7 @@ export const EventDraftSchema = z.object({
     .string()
     .describe("The id of the property (club) the event belongs to. Must be one of the property ids listed in the business profile."),
   title: z.string().describe('Event name as guests will see it, e.g. "Halloween Family Fun Day". Title case, no date in the title.'),
-  summary: nullableText("One short sentence for the listing card, under 200 characters. Null if nothing useful to add."),
+  summary: optionalText('One short sentence for the listing card, under 200 characters. An empty string "" if nothing useful to add.'),
   description: nullableText(
     "A few friendly sentences describing the event for guests, written from what the staff member said. Do not invent facts, prizes or amenities.",
   ),
@@ -57,7 +61,7 @@ export const EventDraftSchema = z.object({
     .describe(
       "Set when the same event runs on several dates; each date becomes its own event with its own sign-ups. Needs startAt. Null for a one-off event and for a Standing programme. If staff say it repeats with no end date, ask whether to schedule a set number of dates or make it a Standing programme.",
     ),
-  location: nullableText('Where at the property it happens, e.g. "Main clubhouse" or "Five-stand deck". Null if not given.'),
+  location: optionalText('Where at the property it happens, e.g. "Main clubhouse" or "Five-stand deck". An empty string "" if not given.'),
   type: z
     .enum(EVENT_TYPES)
     .nullable()
@@ -115,12 +119,12 @@ export function draftToSaveInputs(draft: EventDraft): DraftSaveInputs {
     event: {
       propertyId: draft.propertyId,
       title: draft.title,
-      summary: draft.summary,
+      summary: draft.summary.trim() || null,
       description: draft.description,
       startAt: draft.startAt,
       endAt: draft.endAt,
       scheduleText: draft.scheduleText,
-      location: draft.location,
+      location: draft.location.trim() || null,
       instructors: null,
       type: draft.type,
       discipline: null,
@@ -215,13 +219,13 @@ export function eventToDraftSnapshot(event: AdminEventDetail, extras: SaveEventE
     starterKey: null,
     propertyId: event.propertyId,
     title: event.title,
-    summary: event.summary,
+    summary: event.summary ?? "",
     description: event.description,
     startAt: utcToWallClock(event.startAt, timezone),
     endAt: utcToWallClock(event.endAt, timezone),
     scheduleText: event.scheduleText,
     repeat: null,
-    location: event.location,
+    location: event.location ?? "",
     type: (EVENT_TYPES as ReadonlyArray<string>).includes(event.type ?? "") ? (event.type as EventDraft["type"]) : null,
     audience: event.audience,
     maxCapacity: event.maxCapacity,
