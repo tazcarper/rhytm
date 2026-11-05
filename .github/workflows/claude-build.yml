@@ -10,6 +10,10 @@ name: Claude builds a feature request
 on:
   issues:
     types: [labeled]
+  # "Something's not right" on the admin card posts an @claude comment on
+  # the build's pull request; Claude then fixes the same branch.
+  issue_comment:
+    types: [created]
 
 concurrency:
   group: claude-build-${{ github.event.issue.number }}
@@ -17,7 +21,9 @@ concurrency:
 
 jobs:
   build:
-    if: github.event.label.name == 'claude-build'
+    if: >-
+      (github.event_name == 'issues' && github.event.label.name == 'claude-build') ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '@claude'))
     runs-on: ubuntu-latest
     timeout-minutes: 90
     permissions:
@@ -52,10 +58,26 @@ jobs:
             --max-turns 250
             --allowedTools "Read,Edit,Write,Glob,Grep,Bash(npm run typecheck),Bash(npm run lint),Bash(npx tsc:*),Bash(git status),Bash(git diff:*),Bash(git log:*),Bash(npx supabase migration new:*)"
 
+      - name: Refresh the test steps on the pull request
+        # After fixing staff feedback, swap in Claude's new "How to test"
+        # steps (the admin card reads them from the PR body).
+        if: ${{ !cancelled() && github.event_name == 'issue_comment' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.issue.number }}
+        run: |
+          SUMMARY=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
+            --jq '[.[] | select(.user.login == "claude[bot]")] | last | .body // ""')
+          TESTING=$(printf '%s\n' "$SUMMARY" | awk 'tolower($0) ~ /^#+ *how to test/ {on=1; print; next} on && /^#+ / {exit} on')
+          if [ -z "$TESTING" ]; then exit 0; fi
+          OLD=$(gh pr view "$PR" --json body -q .body)
+          KEPT=$(printf '%s\n' "$OLD" | awk 'tolower($0) ~ /^#+ *how to test/ {exit} {print}')
+          gh pr edit "$PR" --body "${KEPT}"$'\n'"${TESTING}"
+
       - name: Open the pull request
         # Not when the run was cancelled. If Claude stopped early (an error
         # or a usage limit), the PR opens as a draft marked incomplete.
-        if: ${{ !cancelled() && steps.claude.outputs.branch_name != '' }}
+        if: ${{ !cancelled() && github.event_name == 'issues' && steps.claude.outputs.branch_name != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
           BRANCH: ${{ steps.claude.outputs.branch_name }}
@@ -101,6 +123,7 @@ jobs:
           BRANCH: ${{ steps.claude.outputs.branch_name }}
         run: |
           if [ -z "$(git ls-remote --heads origin "$BRANCH")" ]; then exit 0; fi
+          git fetch -q origin "$BRANCH" main
           if git diff --quiet origin/main...origin/"$BRANCH" -- supabase/migrations; then
             echo "No new migrations."
             exit 0
