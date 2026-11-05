@@ -38,7 +38,8 @@ export async function createCapabilityRequest(
   const { error } = await supabase.from("capability_requests").insert({
     session_id: input.sessionId,
     property_id: input.propertyId,
-    duplicate_of: input.duplicateOf ?? null,
+    // Only sent when set, so inserts work before migration 20261105150000.
+    ...(input.duplicateOf ? { duplicate_of: input.duplicateOf } : {}),
     summary: input.summary.slice(0, 1000),
     owner_words: input.ownerWords.slice(0, 2000),
   });
@@ -117,7 +118,7 @@ export async function getFeatureRequestsForEvents(
   return byEvent;
 }
 
-const REQUEST_COLUMNS = "id, summary, owner_words, status, created_at, duplicate_of, properties ( name )";
+const REQUEST_COLUMNS = "id, summary, owner_words, status, created_at, properties ( name )";
 // The draft(s) each request holds up (migration 20261104193000).
 const LINKED_EVENTS = "capability_request_events ( events ( id, title, status ) )";
 
@@ -134,18 +135,23 @@ type RequestRow = {
 type LinkedEventRow = { id: string; title: string; status: string };
 
 export async function getCapabilityRequests(supabase: SupabaseClient): Promise<CapabilityRequestRow[]> {
-  let result: { data: unknown[] | null; error: { message: string } | null } = await supabase
-    .from("capability_requests")
-    .select(`${REQUEST_COLUMNS}, ${LINKED_EVENTS}`)
-    .order("created_at", { ascending: false })
-    .limit(200);
-  // Without the linking table (migration not applied yet), list the requests alone.
-  if (result.error) {
+  // Newest schema first, then older ones, so the page still loads before
+  // a migration is applied: duplicate_of (20261105150000), then the
+  // linking table (20261104193000).
+  const selections = [
+    `${REQUEST_COLUMNS}, duplicate_of, ${LINKED_EVENTS}`,
+    `${REQUEST_COLUMNS}, ${LINKED_EVENTS}`,
+    REQUEST_COLUMNS,
+  ];
+  let result: { data: unknown[] | null; error: { message: string } | null } = { data: null, error: null };
+  for (const selection of selections) {
     result = await supabase
       .from("capability_requests")
-      .select(REQUEST_COLUMNS)
+      .select(selection)
       .order("created_at", { ascending: false })
       .limit(200);
+    if (!result.error) break;
+    console.error("[feature-requests] list query failed, trying an older shape", result.error.message);
   }
   if (result.error) throw new Error(`Couldn't load feature requests: ${result.error.message}`);
 
