@@ -37,7 +37,7 @@ export interface FeatureBuild {
   issueUrl: string;
   requestedAt: string | null;
   // The pull request Claude opened, once there is one.
-  pullRequest: { url: string; state: "open" | "merged" | "closed" } | null;
+  pullRequest: { number: number | null; url: string; state: "open" | "merged" | "closed" } | null;
   // The Vercel preview of the build and Claude's steps for testing it
   // there (migration 20261105190000). Empty until they arrive.
   previewUrl: string | null;
@@ -135,7 +135,7 @@ const REQUEST_COLUMNS = "id, summary, owner_words, status, created_at, propertie
 // The draft(s) each request holds up (migration 20261104193000).
 const LINKED_EVENTS = "capability_request_events ( events ( id, title, status ) )";
 // Build it (migration 20261105170000).
-const BUILD_COLUMNS = "build_issue_url, build_requested_at, build_pr_url, build_pr_state";
+const BUILD_COLUMNS = "build_issue_url, build_requested_at, build_pr_number, build_pr_url, build_pr_state";
 const BUILD_PREVIEW_COLUMNS = "build_preview_url, build_test_steps";
 
 type RequestRow = {
@@ -147,6 +147,7 @@ type RequestRow = {
   duplicate_of?: string | null;
   build_issue_url?: string | null;
   build_requested_at?: string | null;
+  build_pr_number?: number | null;
   build_pr_url?: string | null;
   build_pr_state?: "open" | "merged" | "closed" | null;
   build_preview_url?: string | null;
@@ -209,7 +210,7 @@ export async function getCapabilityRequests(supabase: SupabaseClient): Promise<C
               issueUrl: row.build_issue_url,
               requestedAt: row.build_requested_at ?? null,
               pullRequest:
-                row.build_pr_url && row.build_pr_state ? { url: row.build_pr_url, state: row.build_pr_state } : null,
+                row.build_pr_url && row.build_pr_state ? { number: row.build_pr_number ?? null, url: row.build_pr_url, state: row.build_pr_state } : null,
               previewUrl: row.build_preview_url ?? null,
               testSteps: (row.build_test_steps ?? "").split("\n").filter((step) => step.trim() !== ""),
             }
