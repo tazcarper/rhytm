@@ -172,6 +172,9 @@ export default async function AdminEventsPage({
           </Text>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Button asChild variant="ghost">
+            <Link href="/admin/events/report-problem">Report a problem</Link>
+          </Button>
           <Button asChild variant="secondary">
             <Link href="/admin/events/feature-requests">Feature requests</Link>
           </Button>

@@ -36,6 +36,7 @@ export function featureBuildIssue(row: CapabilityRequestRow): NewIssue {
     "",
     "## How to build it",
     "",
+    "- Staff watch your progress checklist from the admin, so word every checklist item in plain English for a non-technical admin (e.g. \"Look at how the sign-up price is worked out\", \"Fix the total on the sign-up page\"). No file names, code or jargon in checklist items.",
     "- Read CLAUDE.md first and follow it (SOLID, project structure, RLS rules, client state rules). Read PRODUCT.md and DESIGN.md for anything visual.",
     "- The event builder lives in app/admin/events, src/components/admin/event-*, src/services/admin/events.ts and related services. The AI helper is src/services/ai/event-helper.ts and src/services/ai/event-helper-tools.ts: once the builder can do this, teach the helper to use it so it stops filing this request.",
     "- The helper's strict tool schemas (src/services/ai/event-draft-schema.ts and event-helper-tools.ts) may hold at most 16 nullable or union-typed fields in total, or every helper message fails with a 400. Before adding one, count them; prefer a plain string with \"\" for none, or a non-null field.",
@@ -52,12 +53,84 @@ export function featureBuildIssue(row: CapabilityRequestRow): NewIssue {
   };
 }
 
+// Shared rules for any build Claude does from the admin.
+const BUILD_RULES = [
+  "- Staff watch your progress checklist from the admin, so word every checklist item in plain English for a non-technical admin (e.g. \"Look at how the sign-up price is worked out\", \"Fix the total on the sign-up page\"). No file names, code or jargon in checklist items.",
+  "- Read CLAUDE.md first and follow it (SOLID, project structure, RLS rules, client state rules). Read PRODUCT.md and DESIGN.md for anything visual.",
+  "- The helper's strict tool schemas (src/services/ai/event-draft-schema.ts and event-helper-tools.ts) may hold at most 16 nullable or union-typed fields in total, or every helper message fails with a 400. Don't add one without counting them.",
+  "- Database changes go in a new file under supabase/migrations (additive changes only: add columns or tables, don't drop or rename). Don't apply it yourself; it's applied to the preview database when the PR opens and to production when it merges.",
+  "- Don't edit package.json, next.config.*, tsconfig.json, proxy.ts, lib/supabase/* or lib/auth/*. If the fix truly needs that, stop and explain why in a comment instead.",
+  "- Run `npm run typecheck` and fix what it finds before you finish.",
+  "- Finish with a short summary of what changed, then a section headed exactly `## How to test` with 3 to 6 numbered steps for a non-technical admin trying it on the preview site. Start from a page in the admin (e.g. Admin → Events), say what to click and type, and what they should see. No code, file names or jargon.",
+];
+
+// "Report a problem": staff say a feature that's already live is broken.
+// Claude traces the feature through the git history (its build branch,
+// merge and any later changes), finds the cause and fixes it.
+export function featureFixIssue(report: CapabilityRequestRow, feature: CapabilityRequestRow | null): NewIssue {
+  const featureIssue = feature?.build?.issueUrl.match(/\/issues\/(\d+)$/)?.[1] ?? null;
+  const featurePr = feature?.build?.pullRequest ?? null;
+
+  const where = feature
+    ? [
+        `Staff say this is about: **${feature.summary}**`,
+        "",
+        featureIssue ? `- It was built from issue #${featureIssue} on a branch named \`claude/issue-${featureIssue}-…\`.` : "- It wasn't built through the Build it button, so find it by what it does.",
+        featurePr?.number ? `- It went live in pull request #${featurePr.number} (${featurePr.url}).` : "",
+        `- What staff originally asked for: "${feature.ownerWords.replace(/\n/g, " ")}"`,
+      ].filter(Boolean)
+    : [
+        "Staff weren't sure which feature this is. Work it out from what they describe: look through recent merges (`git log --merges --since=\"60 days ago\"`, especially branches named `claude/issue-…`) and the code for the screens they mention.",
+      ];
+
+  const body = [
+    `<!-- rhythm-feature-request: ${report.id} -->`,
+    "## Something's broken",
+    "",
+    "A staff member reported a problem with a feature that's already on the live site. Find the cause and fix it.",
+    "",
+    "## What staff said",
+    "",
+    `> ${report.ownerWords.replace(/\n/g, "\n> ")}`,
+    "",
+    "## Which feature",
+    "",
+    ...where,
+    "",
+    "## How to investigate",
+    "",
+    "- Find the feature in the history: `git log --oneline --merges --grep \"issue-N\"` for its merge, then `git log -p <merge>^1..<merge>` (or `git diff <merge>^1 <merge>`) to see everything it changed.",
+    "- Check what changed in those files since it went live (`git log -p <merge>.. -- <files>`); a later change may have broken it.",
+    "- Read the code paths behind what staff describe, step by step, and find where it goes wrong. Don't guess: say in your summary what the cause was.",
+    "- Fix the cause with the smallest change that does it. Keep to this problem; don't redesign the feature.",
+    "",
+    "## Rules",
+    "",
+    ...BUILD_RULES,
+  ].join("\n");
+
+  return {
+    title: `Fix: ${(feature?.summary ?? report.ownerWords.split("\n")[0]).slice(0, 200)}`,
+    body,
+    labels: [FEATURE_BUILD_LABEL],
+  };
+}
+
+// The issue Claude works from for this request: a fix for a live feature,
+// or a new feature.
+export function buildIssueFor(row: CapabilityRequestRow, all: ReadonlyArray<CapabilityRequestRow>): NewIssue {
+  if (!row.fix) return featureBuildIssue(row);
+  const feature = row.fix.feature ? (all.find((other) => other.id === row.fix?.feature?.id) ?? null) : null;
+  return featureFixIssue(row, feature);
+}
+
 export async function requestFeatureBuild(
   supabase: SupabaseClient,
   github: GitHubIssuesClient,
   row: CapabilityRequestRow,
+  issue: NewIssue = featureBuildIssue(row),
 ): Promise<{ ok: true; issueUrl: string } | { ok: false; error: string }> {
-  const created = await github.createIssue(featureBuildIssue(row));
+  const created = await github.createIssue(issue);
   if (!created.ok) return created;
 
   const { error } = await supabase
@@ -87,7 +160,7 @@ export function featureBuildFeedbackComment(feedback: string): string {
     "",
     `> ${quoted}`,
     "",
-    "Please fix this on this branch. Keep to this feature, follow CLAUDE.md, run `npm run typecheck`, and finish with a short summary and a `## How to test` section in plain words for a non-technical admin.",
+    "Please fix this on this branch. Staff watch your progress checklist from the admin, so word its items in plain English (no file names or code). Keep to this feature, follow CLAUDE.md, run `npm run typecheck`, and finish with a short summary and a `## How to test` section in plain words for a non-technical admin.",
   ].join("\n");
 }
 

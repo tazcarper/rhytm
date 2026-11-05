@@ -31,6 +31,45 @@ export interface CapabilityRequestRow {
   alsoAsked: ReadonlyArray<{ id: string; ownerWords: string; createdAt: string }>;
   // Set once an admin pressed Build it (migration 20261105170000).
   build: FeatureBuild | null;
+  // Set when this is a "Report a problem" fix for a feature that's already
+  // live (migration 20261105200000). The feature is null when staff
+  // weren't sure which one it was.
+  fix: { feature: { id: string; summary: string } | null } | null;
+}
+
+export interface ProblemReportInput {
+  // The live feature that's broken, when staff picked one.
+  fixes: { id: string; summary: string } | null;
+  problem: string;
+}
+
+// Files staff's "Report a problem" as a fix request. Returns its id, so
+// the caller can start the fix right away.
+export async function createProblemReport(
+  supabase: SupabaseClient,
+  input: ProblemReportInput,
+): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+  const problem = input.problem.trim();
+  const firstLine = problem.split("\n")[0].slice(0, 150);
+  const { data, error } = await supabase
+    .from("capability_requests")
+    .insert({
+      is_fix: true,
+      fixes_request_id: input.fixes?.id ?? null,
+      summary: `Fix: ${input.fixes ? input.fixes.summary : firstLine}`.slice(0, 1000),
+      owner_words: problem.slice(0, 2000),
+      status: "reviewing",
+    })
+    .select("id")
+    .single();
+  if (error || !data) return { ok: false, error: error?.message ?? "It couldn't be saved." };
+  return { ok: true, id: (data as { id: string }).id };
+}
+
+// Features that went live through Build it, newest first, for "which
+// feature is broken?". Fixes are left out.
+export function liveFeatures(rows: ReadonlyArray<CapabilityRequestRow>): CapabilityRequestRow[] {
+  return rows.filter((row) => row.status === "built" && !row.fix);
 }
 
 export interface FeatureBuild {
@@ -137,6 +176,8 @@ const LINKED_EVENTS = "capability_request_events ( events ( id, title, status ) 
 // Build it (migration 20261105170000).
 const BUILD_COLUMNS = "build_issue_url, build_requested_at, build_pr_number, build_pr_url, build_pr_state";
 const BUILD_PREVIEW_COLUMNS = "build_preview_url, build_test_steps";
+// Report a problem (migration 20261105200000).
+const FIX_COLUMNS = "is_fix, fixes_request_id";
 
 type RequestRow = {
   id: string;
@@ -152,6 +193,8 @@ type RequestRow = {
   build_pr_state?: "open" | "merged" | "closed" | null;
   build_preview_url?: string | null;
   build_test_steps?: string | null;
+  is_fix?: boolean | null;
+  fixes_request_id?: string | null;
   properties: { name: string } | { name: string }[] | null;
   capability_request_events?: Array<{ events: LinkedEventRow | LinkedEventRow[] | null }>;
 };
@@ -159,10 +202,11 @@ type LinkedEventRow = { id: string; title: string; status: string };
 
 export async function getCapabilityRequests(supabase: SupabaseClient): Promise<CapabilityRequestRow[]> {
   // Newest schema first, then older ones, so the page still loads before
-  // a migration is applied: preview and test steps (20261105190000), the
+  // a migration is applied: fixes (20261105200000), preview and test steps (20261105190000), the
   // build columns (20261105170000),
   // duplicate_of (20261105150000), then the linking table (20261104193000).
   const selections = [
+    `${REQUEST_COLUMNS}, duplicate_of, ${BUILD_COLUMNS}, ${BUILD_PREVIEW_COLUMNS}, ${FIX_COLUMNS}, ${LINKED_EVENTS}`,
     `${REQUEST_COLUMNS}, duplicate_of, ${BUILD_COLUMNS}, ${BUILD_PREVIEW_COLUMNS}, ${LINKED_EVENTS}`,
     `${REQUEST_COLUMNS}, duplicate_of, ${BUILD_COLUMNS}, ${LINKED_EVENTS}`,
     `${REQUEST_COLUMNS}, duplicate_of, ${LINKED_EVENTS}`,
@@ -213,6 +257,14 @@ export async function getCapabilityRequests(supabase: SupabaseClient): Promise<C
                 row.build_pr_url && row.build_pr_state ? { number: row.build_pr_number ?? null, url: row.build_pr_url, state: row.build_pr_state } : null,
               previewUrl: row.build_preview_url ?? null,
               testSteps: (row.build_test_steps ?? "").split("\n").filter((step) => step.trim() !== ""),
+            }
+          : null,
+        fix: row.is_fix
+          ? {
+              feature: (() => {
+                const feature = rows.find((other) => other.id === row.fixes_request_id);
+                return feature ? { id: feature.id, summary: feature.summary } : null;
+              })(),
             }
           : null,
       };

@@ -14,10 +14,18 @@ export interface CreatedIssue {
   url: string;
 }
 
+export interface IssueComment {
+  author: string;
+  body: string;
+  updatedAt: string;
+}
+
 export interface GitHubIssuesClient {
   createIssue(issue: NewIssue): Promise<{ ok: true; issue: CreatedIssue } | { ok: false; error: string }>;
   // Comments on an issue or pull request (they share numbers).
   addComment(number: number, body: string): Promise<{ ok: true } | { ok: false; error: string }>;
+  // The latest comments on an issue or pull request (up to 100).
+  listComments(number: number): Promise<{ ok: true; comments: IssueComment[] } | { ok: false; error: string }>;
   // Merges a pull request only if its head branch is still `expectedBranch`
   // (so an id mix-up can't merge the wrong one).
   mergePullRequest(number: number, expectedBranch: RegExp): Promise<{ ok: true } | { ok: false; error: string }>;
@@ -70,6 +78,19 @@ export function createGitHubIssuesClient(): GitHubIssuesClient | null {
     async addComment(number, body) {
       const result = await post(`/issues/${number}/comments`, { body });
       return result.ok ? { ok: true } : result;
+    },
+    async listComments(number) {
+      const result = await send("GET", `/issues/${number}/comments?per_page=100`);
+      if (!result.ok) return result;
+      const data = result.data as Array<{ body?: string | null; updated_at: string; user?: { login?: string } | null }>;
+      return {
+        ok: true,
+        comments: data.map((comment) => ({
+          author: comment.user?.login ?? "",
+          body: comment.body ?? "",
+          updatedAt: comment.updated_at,
+        })),
+      };
     },
     async mergePullRequest(number, expectedBranch) {
       const pr = await send("GET", `/pulls/${number}`);
