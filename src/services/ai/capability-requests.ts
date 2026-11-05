@@ -11,6 +11,9 @@ export interface CapabilityRequestInput {
   // conversation is linked to it.
   sessionId: string;
   propertyId: string | null;
+  // Set when an open request already covers this ask: it's filed as a
+  // duplicate of that one, and follows its status.
+  duplicateOf?: string | null;
   summary: string;
   ownerWords: string;
 }
@@ -22,8 +25,10 @@ export interface CapabilityRequestRow {
   status: CapabilityRequestStatus;
   propertyName: string | null;
   createdAt: string;
-  // Events this request holds up.
+  // Events this request holds up, including through its duplicates.
   events: ReadonlyArray<{ id: string; title: string; status: string }>;
+  // Later asks for the same feature, filed as duplicates of this one.
+  alsoAsked: ReadonlyArray<{ id: string; ownerWords: string; createdAt: string }>;
 }
 
 export async function createCapabilityRequest(
@@ -33,11 +38,25 @@ export async function createCapabilityRequest(
   const { error } = await supabase.from("capability_requests").insert({
     session_id: input.sessionId,
     property_id: input.propertyId,
+    duplicate_of: input.duplicateOf ?? null,
     summary: input.summary.slice(0, 1000),
     owner_words: input.ownerWords.slice(0, 2000),
   });
   if (error) return { ok: false, error: error.message };
   return { ok: true };
+}
+
+export interface OpenCapabilityRequest {
+  id: string;
+  summary: string;
+}
+
+// The open requests (migration 20261105150000), so the helper can spot a
+// repeat ask. Empty if the lookup fails.
+export async function getOpenCapabilityRequests(supabase: SupabaseClient): Promise<OpenCapabilityRequest[]> {
+  const { data, error } = await supabase.rpc("open_capability_requests");
+  if (error) return [];
+  return ((data ?? []) as OpenCapabilityRequest[]).map((row) => ({ id: row.id, summary: row.summary }));
 }
 
 // Links this conversation's requests to the draft event(s) they hold up
@@ -98,7 +117,7 @@ export async function getFeatureRequestsForEvents(
   return byEvent;
 }
 
-const REQUEST_COLUMNS = "id, summary, owner_words, status, created_at, properties ( name )";
+const REQUEST_COLUMNS = "id, summary, owner_words, status, created_at, duplicate_of, properties ( name )";
 // The draft(s) each request holds up (migration 20261104193000).
 const LINKED_EVENTS = "capability_request_events ( events ( id, title, status ) )";
 
@@ -108,6 +127,7 @@ type RequestRow = {
   owner_words: string;
   status: string;
   created_at: string;
+  duplicate_of?: string | null;
   properties: { name: string } | { name: string }[] | null;
   capability_request_events?: Array<{ events: LinkedEventRow | LinkedEventRow[] | null }>;
 };
@@ -129,21 +149,32 @@ export async function getCapabilityRequests(supabase: SupabaseClient): Promise<C
   }
   if (result.error) throw new Error(`Couldn't load feature requests: ${result.error.message}`);
 
-  return ((result.data ?? []) as unknown as RequestRow[]).map((row) => {
-    const property = Array.isArray(row.properties) ? row.properties[0] : row.properties;
-    const events = (row.capability_request_events ?? [])
+  const rows = (result.data ?? []) as unknown as RequestRow[];
+  const linkedEvents = (row: RequestRow) =>
+    (row.capability_request_events ?? [])
       .flatMap((link) => (Array.isArray(link.events) ? link.events : link.events ? [link.events] : []))
       .map((event) => ({ id: event.id, title: event.title, status: event.status }));
-    return {
-      id: row.id,
-      summary: row.summary,
-      ownerWords: row.owner_words,
-      status: row.status as CapabilityRequestStatus,
-      propertyName: property?.name ?? null,
-      createdAt: row.created_at,
-      events,
-    };
-  });
+  const originalIds = new Set(rows.filter((row) => !row.duplicate_of).map((row) => row.id));
+  // A duplicate whose original is gone is shown as its own request.
+  const isDuplicate = (row: RequestRow) => Boolean(row.duplicate_of && originalIds.has(row.duplicate_of));
+
+  return rows
+    .filter((row) => !isDuplicate(row))
+    .map((row) => {
+      const property = Array.isArray(row.properties) ? row.properties[0] : row.properties;
+      const duplicates = rows.filter((other) => isDuplicate(other) && other.duplicate_of === row.id);
+      const events = [row, ...duplicates].flatMap(linkedEvents);
+      return {
+        id: row.id,
+        summary: row.summary,
+        ownerWords: row.owner_words,
+        status: row.status as CapabilityRequestStatus,
+        propertyName: property?.name ?? null,
+        createdAt: row.created_at,
+        events: events.filter((event, index) => events.findIndex((other) => other.id === event.id) === index),
+        alsoAsked: duplicates.map((other) => ({ id: other.id, ownerWords: other.owner_words, createdAt: other.created_at })),
+      };
+    });
 }
 
 export const CAPABILITY_REQUEST_STATUSES: ReadonlyArray<CapabilityRequestStatus> = [
@@ -173,4 +204,19 @@ export async function updateCapabilityRequestStatus(
 export async function getFeaturesInProgress(supabase: SupabaseClient, eventId: string): Promise<string[]> {
   const byEvent = await getFeatureRequestsForEvents(supabase, [eventId]);
   return (byEvent.get(eventId) ?? []).filter((request) => request.state === "waiting").map((request) => request.summary);
+}
+
+// Folds one request into another (the developer spotted two asks for the
+// same feature). Its own duplicates move along with it.
+export async function markCapabilityRequestDuplicate(
+  supabase: SupabaseClient,
+  id: string,
+  originalId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (id === originalId) return { ok: false, error: "A request can't be the same as itself." };
+  const moved = await supabase.from("capability_requests").update({ duplicate_of: originalId }).eq("duplicate_of", id);
+  if (moved.error) return { ok: false, error: moved.error.message };
+  const { error } = await supabase.from("capability_requests").update({ duplicate_of: originalId }).eq("id", id);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
 }

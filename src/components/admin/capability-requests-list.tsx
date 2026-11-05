@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { Card } from "@/lib/ui";
-import { setFeatureRequestStatusAction } from "@/app/admin/events/feature-request-actions";
+import { markFeatureRequestDuplicateAction, setFeatureRequestStatusAction } from "@/app/admin/events/feature-request-actions";
 import type { CapabilityRequestRow, CapabilityRequestStatus } from "@/src/services/ai/capability-requests";
 import { EventStatusBadge } from "./event-status-badge";
 import type { EventStatus } from "@/src/services/admin/events";
@@ -22,7 +22,15 @@ const STATUS_OPTIONS: ReadonlyArray<{ value: CapabilityRequestStatus; label: str
   { value: "declined", label: "Declined: won't be built" },
 ];
 
-function RequestCard({ row }: { row: CapabilityRequestRow }) {
+const shortDate = (iso: string) =>
+  new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "America/Chicago",
+  });
+
+function RequestCard({ row, others }: { row: CapabilityRequestRow; others: ReadonlyArray<CapabilityRequestRow> }) {
   const [status, setStatus] = useState<CapabilityRequestStatus>(row.status);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -40,12 +48,35 @@ function RequestCard({ row }: { row: CapabilityRequestRow }) {
     });
   };
 
+  const merge = (originalId: string) => {
+    if (!originalId) return;
+    setError(null);
+    startTransition(async () => {
+      const result = await markFeatureRequestDuplicateAction({ id: row.id, originalId });
+      if (!result.ok) setError(result.error);
+    });
+  };
+
+  const timesAsked = 1 + row.alsoAsked.length;
+
   return (
     <Card padding="default" elevation="soft">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-[15px] font-semibold text-olive">{row.summary}</p>
           <p className="mt-1 text-[14px] text-gray">&ldquo;{row.ownerWords}&rdquo;</p>
+          {timesAsked > 1 && (
+            <div className="mt-2">
+              <p className="text-micro uppercase tracking-label text-gray">Asked {timesAsked} times</p>
+              <ul className="mt-1 flex flex-col gap-1">
+                {row.alsoAsked.map((ask) => (
+                  <li key={ask.id} className="text-[14px] text-gray">
+                    &ldquo;{ask.ownerWords}&rdquo; <span className="text-micro">· {shortDate(ask.createdAt)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
         <label className="flex flex-col gap-1 text-micro uppercase tracking-label text-gray">
           Status
@@ -78,15 +109,27 @@ function RequestCard({ row }: { row: CapabilityRequestRow }) {
           </ul>
         </div>
       )}
+      {others.length > 0 && (
+        <label className="mt-3 flex flex-wrap items-center gap-2 text-[14px] text-gray">
+          Same as another request?
+          <select
+            value=""
+            onChange={(evt) => merge(evt.target.value)}
+            disabled={isPending}
+            className="h-9 max-w-full rounded-[6px] border border-rule-strong bg-white px-2 text-[14px] text-olive-darker"
+          >
+            <option value="">Choose one to merge into…</option>
+            {others.map((other) => (
+              <option key={other.id} value={other.id}>
+                {other.summary}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       {error && <p className="mt-2 text-[14px] font-semibold text-accent-error">Couldn&apos;t change it: {error}</p>}
       <p className="mt-2 text-micro text-gray">
-        {row.propertyName ?? "No property"} ·{" "}
-        {new Date(row.createdAt).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-          timeZone: "America/Chicago",
-        })}
+        {row.propertyName ?? "No property"} · {shortDate(row.createdAt)}
       </p>
     </Card>
   );
@@ -106,7 +149,11 @@ export function CapabilityRequestsList({ rows }: { rows: ReadonlyArray<Capabilit
   return (
     <div className="flex flex-col gap-3">
       {rows.map((row) => (
-        <RequestCard key={row.id} row={row} />
+        <RequestCard
+          key={row.id}
+          row={row}
+          others={rows.filter((other) => other.id !== row.id && other.status !== "declined")}
+        />
       ))}
     </div>
   );

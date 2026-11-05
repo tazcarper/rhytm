@@ -14,9 +14,17 @@ import s from "./event-flow.module.css";
 // Talks to /api/admin/event-helper.
 
 type HelperResponse =
-  | { kind: "question" | "message"; sessionId: string; text: string; featureRequest?: string }
-  | { kind: "capability"; sessionId: string; text: string }
-  | { kind: "draft"; sessionId: string; eventId: string; eventCount: number; updated?: boolean; featureRequest?: string }
+  | { kind: "question" | "message"; sessionId: string; text: string; featureRequest?: string; alreadyRequested?: boolean }
+  | { kind: "capability"; sessionId: string; text: string; alreadyRequested?: boolean }
+  | {
+      kind: "draft";
+      sessionId: string;
+      eventId: string;
+      eventCount: number;
+      updated?: boolean;
+      featureRequest?: string;
+      alreadyRequested?: boolean;
+    }
   | { kind: "error"; sessionId?: string | null; text: string; detail?: string };
 
 export interface TranscriptLine {
@@ -26,9 +34,11 @@ export interface TranscriptLine {
   link?: { href: string; label: string };
 }
 
-const featureRequestLine = (summary: string): TranscriptLine => ({
+const featureRequestLine = (summary: string, alreadyRequested = false): TranscriptLine => ({
   who: "helper",
-  text: `The builder can't do that yet, so I've sent it to the developer as a feature request: "${summary}". I've drafted the rest of the event without it.`,
+  text: alreadyRequested
+    ? `The builder can't do that yet, but it's already on the developer's list ("${summary}"), so I've added this event to that request. I've drafted the rest of the event without it.`
+    : `The builder can't do that yet, so I've sent it to the developer as a feature request: "${summary}". I've drafted the rest of the event without it.`,
 });
 
 const PLACEHOLDER =
@@ -90,7 +100,10 @@ export function EventHelperPanel({
         return;
       }
       if (result.sessionId) setSessionId(result.sessionId);
-      const note = "featureRequest" in result && result.featureRequest ? [featureRequestLine(result.featureRequest)] : [];
+      const note =
+        "featureRequest" in result && result.featureRequest
+          ? [featureRequestLine(result.featureRequest, "alreadyRequested" in result && Boolean(result.alreadyRequested))]
+          : [];
 
       switch (result.kind) {
         case "draft": {
@@ -119,7 +132,9 @@ export function EventHelperPanel({
             ...lines,
             {
               who: "helper",
-              text: `The builder can't do that yet, so I've sent it to the developer as a feature request: "${result.text}". Tell me anything else about the event and I'll draft it without that part.`,
+              text: result.alreadyRequested
+                ? `The builder can't do that yet, but it's already on the developer's list ("${result.text}"), so I've added this event to that request. Tell me anything else about the event and I'll draft it without that part.`
+                : `The builder can't do that yet, so I've sent it to the developer as a feature request: "${result.text}". Tell me anything else about the event and I'll draft it without that part.`,
             },
           ]);
           break;

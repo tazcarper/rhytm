@@ -65,6 +65,9 @@ export interface EventHelperDeps {
   // Ties this conversation's feature requests to the draft event(s), so the
   // events pages can show "Feature in progress". Best effort.
   linkCapabilityRequests: (sessionId: string, eventIds: ReadonlyArray<string>) => Promise<unknown>;
+  // Feature requests already on the developer's list, so a repeat ask is
+  // added to the existing one instead of filed again.
+  openCapabilityRequests: () => Promise<ReadonlyArray<{ id: string; summary: string }>>;
   profile: HelperBusinessProfile;
   today: string; // "YYYY-MM-DD" in the business timezone
 }
@@ -80,10 +83,10 @@ export interface EventHelperTurnInput {
 export type EventHelperResult =
   // featureRequest: set when this turn also sent the developer a request for
   // something the builder can't do yet; the rest of the event carries on.
-  | { kind: "question"; sessionId: string; text: string; featureRequest?: string }
-  | { kind: "draft"; sessionId: string; eventId: string; eventCount: number; updated: boolean; featureRequest?: string }
-  | { kind: "capability"; sessionId: string; text: string }
-  | { kind: "message"; sessionId: string; text: string; featureRequest?: string }
+  | { kind: "question"; sessionId: string; text: string; featureRequest?: string; alreadyRequested?: boolean }
+  | { kind: "draft"; sessionId: string; eventId: string; eventCount: number; updated: boolean; featureRequest?: string; alreadyRequested?: boolean }
+  | { kind: "capability"; sessionId: string; text: string; alreadyRequested?: boolean }
+  | { kind: "message"; sessionId: string; text: string; featureRequest?: string; alreadyRequested?: boolean }
   | { kind: "error"; sessionId: string | null; text: string };
 
 const WALL_CLOCK = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
@@ -120,8 +123,19 @@ function editingNote(editing: EventHelperTurnInput["editing"]): string {
   return `<context>The staff member is editing saved event ${editing.eventId}. Its current details (they may have changed it in the editor since your last draft): ${JSON.stringify(editing.snapshot)}</context>\n\n`;
 }
 
-function buildUserMessage(session: DraftSession, input: EventHelperTurnInput, today: string): HelperMessage {
-  const editing = editingNote(input.editing);
+function openRequestsNote(requests: ReadonlyArray<{ id: string; summary: string }>): string {
+  if (requests.length === 0) return "";
+  const list = requests.map((request) => `- ${request.id}: ${request.summary}`).join("\n");
+  return `<context>Open feature requests already on the developer's list (if one covers what's asked, pass its id as sameAsRequestId):\n${list}</context>\n\n`;
+}
+
+function buildUserMessage(
+  session: DraftSession,
+  input: EventHelperTurnInput,
+  today: string,
+  openRequests: ReadonlyArray<{ id: string; summary: string }>,
+): HelperMessage {
+  const editing = editingNote(input.editing) + openRequestsNote(openRequests);
   const waitingOn = pendingQuestionId(session.messages);
   if (waitingOn) {
     return {
@@ -257,11 +271,14 @@ export async function runEventHelperTurn(
 
   const allowedPropertyIds = new Set(deps.profile.properties.map((property) => property.id));
   const system = buildEventHelperSystemPrompt(deps.profile);
-  session.messages.push(buildUserMessage(session, { ...input, message }, deps.today));
+  const openRequests = await deps.openCapabilityRequests().catch(() => []);
+  session.messages.push(buildUserMessage(session, { ...input, message }, deps.today, openRequests));
   session.turnCount += 1;
 
   let result: EventHelperResult | null = null;
   let featureRequest: string | null = null;
+  // True when the request was already on the developer's list.
+  let alreadyRequested = false;
 
   for (let call = 0; call < HELPER_LIMITS.maxModelCallsPerTurn && !result; call += 1) {
     const reply = await deps.model.send({
@@ -305,12 +322,17 @@ export async function runEventHelperTurn(
 
     if (toolUse.name === TOOL_REQUEST_CAPABILITY) {
       const parsed = RequestCapabilitySchema.safeParse(toolUse.input);
-      const summary = parsed.success ? parsed.data.summary : "A feature the event builder doesn't have yet";
+      // Only an id from the list the model was given counts as a match.
+      const existing = parsed.success
+        ? openRequests.find((request) => request.id === parsed.data.sameAsRequestId) ?? null
+        : null;
+      const summary = existing?.summary ?? (parsed.success ? parsed.data.summary : "A feature the event builder doesn't have yet");
       const recorded = await deps.recordCapabilityRequest({
         sessionId: session.id,
         propertyId: input.propertyHint?.id ?? session.propertyId,
-        summary,
+        summary: parsed.success ? parsed.data.summary : summary,
         ownerWords: parsed.success ? parsed.data.ownerWords : message,
+        duplicateOf: existing?.id ?? null,
       });
       session.messages.push({
         role: "user",
@@ -327,6 +349,7 @@ export async function runEventHelperTurn(
       // Don't end the turn: the model goes on to draft the rest of the event.
       if (recorded.ok) {
         featureRequest = summary;
+        alreadyRequested = Boolean(existing);
         // Asked for after the draft was already saved: link it now.
         if (session.eventId) await deps.linkCapabilityRequests(session.id, [session.eventId]);
       }
@@ -378,9 +401,9 @@ export async function runEventHelperTurn(
 
   await deps.sessions.save(session);
   if (featureRequest) {
-    if (!result) return { kind: "capability", sessionId: session.id, text: featureRequest };
+    if (!result) return { kind: "capability", sessionId: session.id, text: featureRequest, alreadyRequested };
     if (result.kind === "question" || result.kind === "draft" || result.kind === "message") {
-      return { ...result, featureRequest };
+      return { ...result, featureRequest, alreadyRequested };
     }
   }
   return (

@@ -8,7 +8,11 @@ import { getEvent, saveEvent, saveRecurringEvents, SaveEventSchema } from "@/src
 import { getEventExtras, saveEventExtras } from "@/src/services/admin/event-extras";
 import { eventToDraftSnapshot, mergeDraftIntoEvent } from "@/src/services/ai/event-draft-schema";
 import { createDraftSessionStore } from "@/src/services/ai/draft-session-store";
-import { createCapabilityRequest, linkCapabilityRequestsToEvents } from "@/src/services/ai/capability-requests";
+import {
+  createCapabilityRequest,
+  getOpenCapabilityRequests,
+  linkCapabilityRequestsToEvents,
+} from "@/src/services/ai/capability-requests";
 import { HELPER_LIMITS, runEventHelperTurn } from "@/src/services/ai/event-helper";
 import { EVENT_HELPER_ROLES } from "@/src/constants/admin/event-helper";
 import { describeHelperError } from "@/src/services/ai/helper-errors";
@@ -114,6 +118,7 @@ export async function POST(request: Request) {
           return { ok: true, id: saved.ids[0], count: saved.ids.length, ids: saved.ids };
         },
         recordCapabilityRequest: (input) => createCapabilityRequest(supabase, input),
+        openCapabilityRequests: () => getOpenCapabilityRequests(supabase),
         linkCapabilityRequests: async (sessionId, eventIds) => {
           const linked = await linkCapabilityRequestsToEvents(supabase, sessionId, eventIds);
           if (!linked.ok) console.error("[event-helper] couldn't link feature requests", linked.error);

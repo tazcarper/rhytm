@@ -21,6 +21,12 @@ export const RequestCapabilitySchema = z.object({
     .string()
     .describe("One or two plain sentences describing what the event builder can't do yet, e.g. \"A free golf cart for groups of exactly four players\"."),
   ownerWords: z.string().describe("The staff member's own words that asked for it, quoted as closely as possible."),
+  sameAsRequestId: z
+    .string()
+    .nullable()
+    .describe(
+      "If one of the open feature requests listed in the context already covers this (the same feature, even if worded differently or with other numbers), that request's id; this event is then added to it instead of filing a new request. Null if none covers it.",
+    ),
 });
 
 export const EVENT_HELPER_TOOLS: ReadonlyArray<HelperToolDefinition> = [
