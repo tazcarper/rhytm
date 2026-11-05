@@ -24,10 +24,10 @@ export default async function EditEventPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ started?: string; step?: string; helper?: string }>;
+  searchParams: Promise<{ started?: string; step?: string; helper?: string; saved?: string }>;
 }) {
   const { id } = await params;
-  const { started, step, helper } = await searchParams;
+  const { started, step, helper, saved } = await searchParams;
   const supabase = await createServerSupabaseClient();
 
   const [event, properties, roster, extras, gearPresets, featureRequests, templates] = await Promise.all([
@@ -81,7 +81,8 @@ export default async function EditEventPage({
 
       {featureRequests.has(id) && (
         <div className="mt-6">
-          <EventFeatureRequestNotice requests={featureRequests.get(id) ?? []} />
+          {/* saved=1: the helper just saved this draft, so spotlight what's still being built. */}
+          <EventFeatureRequestNotice requests={featureRequests.get(id) ?? []} spotlight={saved === "1"} />
         </div>
       )}
 

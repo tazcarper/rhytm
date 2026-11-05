@@ -119,8 +119,9 @@ export function EventHelperPanel({
             break;
           }
           const saved = result.eventCount > 1 ? `Saved ${result.eventCount} dates as drafts.` : "Draft saved.";
-          // ?helper=1 opens this chat beside the builder on the draft's page.
-          const href = `/admin/events/${result.eventId}?helper=1`;
+          // ?helper=1 opens this chat beside the builder on the draft's page;
+          // saved=1 spotlights any feature still being built.
+          const href = `/admin/events/${result.eventId}?helper=1&saved=1`;
           // The draft's page repeats any feature-request note at the top, so go straight there.
           setTranscript((lines) => [
             ...lines,
