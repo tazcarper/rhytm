@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Alert } from "@/lib/ui";
 import { FlowButton as Button } from "./event-flow-button";
@@ -70,6 +70,12 @@ export function EventHelperPanel({
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<{ text: string; detail?: string } | null>(null);
+  // The conversation scrolls inside a capped height; keep the latest line in view.
+  const listRef = useRef<HTMLOListElement>(null);
+  useEffect(() => {
+    const list = listRef.current;
+    if (list) list.scrollTop = list.scrollHeight;
+  }, [transcript.length, pending]);
 
   const handleSubmit = async (formEvent: FormEvent<HTMLFormElement>) => {
     formEvent.preventDefault();
@@ -113,8 +119,9 @@ export function EventHelperPanel({
             break;
           }
           const saved = result.eventCount > 1 ? `Saved ${result.eventCount} dates as drafts.` : "Draft saved.";
-          // ?helper=1 opens this chat beside the builder on the draft's page.
-          const href = `/admin/events/${result.eventId}?helper=1`;
+          // ?helper=1 opens this chat beside the builder on the draft's page;
+          // saved=1 spotlights any feature still being built.
+          const href = `/admin/events/${result.eventId}?helper=1&saved=1`;
           // The draft's page repeats any feature-request note at the top, so go straight there.
           setTranscript((lines) => [
             ...lines,
@@ -180,7 +187,11 @@ export function EventHelperPanel({
       </p>
 
       {transcript.length > 0 && (
-        <ol className="m-0 mt-5 flex list-none flex-col gap-3 p-0" aria-live="polite">
+        <ol
+          ref={listRef}
+          className="m-0 mt-5 flex max-h-[min(60vh,32rem)] list-none flex-col gap-3 overflow-y-auto overscroll-contain p-0 pr-1"
+          aria-live="polite"
+        >
           {transcript.map((line, index) => (
             <li key={index} className={`flex ${line.who === "you" ? "justify-end" : "justify-start"}`}>
               <span
