@@ -48,7 +48,9 @@ jobs:
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # Same CLI as the repo's package-lock. The newest CLI rejects this
+          # repo's supabase/config.toml, so don't use "latest".
+          version: 2.100.1
 
       - name: Apply new migrations
         env:
