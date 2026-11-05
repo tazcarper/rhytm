@@ -49,7 +49,7 @@ export const EVENT_HELPER_TOOLS: ReadonlyArray<HelperToolDefinition> = [
   {
     name: TOOL_REQUEST_CAPABILITY,
     description:
-      "Record that the staff member wants something the event builder cannot express with the fields available (a new kind of pricing, eligibility or capacity rule). Use this rarely: only when no combination of tickets, gear, questions and info boxes covers it. A developer reviews these requests.",
+      "Record that the staff member wants something the event builder cannot express with the fields available (a new kind of eligibility or capacity rule, or pricing other than a price that changes on a date — that one is the draft's priceChange). Use this rarely: only when no combination of tickets, gear, questions and info boxes covers it. A developer reviews these requests.",
     input_schema: toStrictToolSchema(RequestCapabilitySchema),
     strict: true,
   },

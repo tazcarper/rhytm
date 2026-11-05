@@ -82,6 +82,21 @@ export const EventDraftSchema = z.object({
     .number()
     .nullable()
     .describe("Main public price in US dollars, shown on the event page today. Use the main adult ticket price. 0 means free. Null only if unknown."),
+  priceChange: z
+    .object({
+      date: z
+        .string()
+        .describe('The first day the new price applies, "YYYY-MM-DD". "Before December 1" means the new price starts on December 1.'),
+      nonMemberPrice: z.number().describe("Main public price in US dollars from that date on."),
+      memberPrice: z
+        .number()
+        .nullable()
+        .describe("Member price from that date on. Null if the member price does not change."),
+    })
+    .nullable()
+    .describe(
+      'Set when the price changes on a date, e.g. "$65 before December 1, $85 after". memberPrice / nonMemberPrice above (and the tickets) hold the EARLIER price; this holds the price from the change date on. Null when the price stays the same.',
+    ),
   tickets: z
     .array(TicketTypeSchema)
     .describe("Every ticket type a guest can choose, one entry per price, e.g. Adult $50 and Kids $10. A free event has one ticket with price 0."),
@@ -135,6 +150,9 @@ export function draftToSaveInputs(draft: EventDraft): DraftSaveInputs {
       maxGuestsPerRegistration: draft.maxGuestsPerRegistration,
       memberPrice: draft.memberPrice,
       nonMemberPrice: draft.nonMemberPrice,
+      priceChangeOn: draft.priceChange?.date ?? null,
+      memberPriceAfter: draft.priceChange?.memberPrice ?? null,
+      nonMemberPriceAfter: draft.priceChange?.nonMemberPrice ?? null,
       status: "draft",
       isManuallySoldOut: false,
       isTemplate: false,
@@ -232,6 +250,13 @@ export function eventToDraftSnapshot(event: AdminEventDetail, extras: SaveEventE
     maxGuestsPerRegistration: event.maxGuestsPerRegistration,
     memberPrice: event.memberPrice,
     nonMemberPrice: event.nonMemberPrice,
+    priceChange: event.priceChangeOn
+      ? {
+          date: event.priceChangeOn,
+          nonMemberPrice: event.nonMemberPriceAfter ?? event.nonMemberPrice ?? 0,
+          memberPrice: event.memberPriceAfter,
+        }
+      : null,
     tickets: extras.tickets,
     gear: extras.gear,
     questions: extras.questions,

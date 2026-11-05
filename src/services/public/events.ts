@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { effectivePrices, todayInTimezone } from "@/src/services/events/effective-price";
 
 // Public read path for events (see the events migration). RLS restricts
 // the base rows to published/sold_out; this adds property scoping and
@@ -62,6 +63,9 @@ type ListRow = {
   status: PublicEventStatus;
   member_price: string | number | null;
   non_member_price: string | number | null;
+  price_change_on: string | null;
+  member_price_after: string | number | null;
+  non_member_price_after: string | number | null;
   image_url: string | null;
 };
 
@@ -70,6 +74,17 @@ function toMoney(value: string | number | null): number | null {
 }
 
 function rowToListItem(row: ListRow): PublicEventListItem {
+  // Show the price in force today; a scheduled change flips on its date.
+  const prices = effectivePrices(
+    {
+      memberPrice: toMoney(row.member_price),
+      nonMemberPrice: toMoney(row.non_member_price),
+      priceChangeOn: row.price_change_on,
+      memberPriceAfter: toMoney(row.member_price_after),
+      nonMemberPriceAfter: toMoney(row.non_member_price_after),
+    },
+    todayInTimezone(),
+  );
   return {
     id: row.id,
     title: row.title,
@@ -84,15 +99,15 @@ function rowToListItem(row: ListRow): PublicEventListItem {
     includedWithMembership: row.included_with_membership,
     audience: row.audience,
     status: row.status,
-    memberPrice: toMoney(row.member_price),
-    nonMemberPrice: toMoney(row.non_member_price),
+    memberPrice: prices.memberPrice,
+    nonMemberPrice: prices.nonMemberPrice,
     imageUrl: row.image_url,
     isSoldOut: row.status === "sold_out",
   };
 }
 
 const LIST_COLUMNS =
-  "id, title, summary, start_at, schedule_text, end_at, location, type, discipline, featured, included_with_membership, audience, status, member_price, non_member_price, image_url";
+  "id, title, summary, start_at, schedule_text, end_at, location, type, discipline, featured, included_with_membership, audience, status, member_price, non_member_price, price_change_on, member_price_after, non_member_price_after, image_url";
 
 // Soonest-first, upcoming only (past events never show), capped at 6 —
 // keeps the calendar page short. Callers that want fewer (e.g. Club
@@ -135,7 +150,7 @@ export async function getPublicStandingPrograms(
 }
 
 const DETAIL_COLUMNS =
-  "id, title, summary, description, start_at, schedule_text, end_at, location, instructors, type, discipline, featured, included_with_membership, audience, status, member_price, non_member_price, image_url, max_capacity, max_guests_per_registration, event_info_boxes ( id, box_type, heading, body, items )";
+  "id, title, summary, description, start_at, schedule_text, end_at, location, instructors, type, discipline, featured, included_with_membership, audience, status, member_price, non_member_price, price_change_on, member_price_after, non_member_price_after, image_url, max_capacity, max_guests_per_registration, event_info_boxes ( id, box_type, heading, body, items )";
 
 type DetailRow = ListRow & {
   description: string | null;

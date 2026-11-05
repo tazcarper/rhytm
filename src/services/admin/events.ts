@@ -64,6 +64,15 @@ const optionalMoney = z
   .transform((value) => (value === "" || value === null || value === undefined ? null : value))
   .refine((value) => value === null || value >= 0, "Price can't be negative");
 
+const optionalDate = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Use a valid date")
+  .or(z.literal(""))
+  .optional()
+  .nullable()
+  .transform((value) => (value ? value : null));
+
 const InfoBoxSchema = z
   .object({
     id: z.string().uuid().optional(),
@@ -120,6 +129,11 @@ export const SaveEventSchema = z
     maxGuestsPerRegistration: z.number().int().positive("Must be at least 1"),
     memberPrice: optionalMoney,
     nonMemberPrice: optionalMoney,
+    // Date-based price change: from this day ("YYYY-MM-DD") the "after"
+    // prices apply. Mirrors the event_price_change_has_date constraint.
+    priceChangeOn: optionalDate,
+    memberPriceAfter: optionalMoney,
+    nonMemberPriceAfter: optionalMoney,
     status: z.enum(["draft", "published", "sold_out", "cancelled", "completed"]),
     isManuallySoldOut: z.boolean(),
     isTemplate: z.boolean(),
@@ -135,6 +149,10 @@ export const SaveEventSchema = z
   .refine(
     (value) => !value.endAt || !value.startAt || new Date(value.endAt) >= new Date(value.startAt),
     { message: "End must be on or after the start", path: ["endAt"] },
+  )
+  .refine(
+    (value) => value.priceChangeOn !== null || (value.memberPriceAfter === null && value.nonMemberPriceAfter === null),
+    { message: "Pick the date the new price starts", path: ["priceChangeOn"] },
   )
   .refine((value) => value.maxGuestsPerRegistration <= value.maxCapacity, {
     message: "Can't exceed the event's total capacity",
@@ -193,6 +211,9 @@ export interface AdminEventDetail {
   maxGuestsPerRegistration: number;
   memberPrice: number | null;
   nonMemberPrice: number | null;
+  priceChangeOn: string | null;
+  memberPriceAfter: number | null;
+  nonMemberPriceAfter: number | null;
   status: EventStatus;
   isManuallySoldOut: boolean;
   isTemplate: boolean;
@@ -364,7 +385,7 @@ export async function getEventTemplates(
 }
 
 const DETAIL_COLUMNS =
-  "id, property_id, title, summary, description, start_at, schedule_text, end_at, location, instructors, type, discipline, featured, included_with_membership, audience, max_capacity, max_guests_per_registration, member_price, non_member_price, status, is_manually_sold_out, is_template, image_url, event_info_boxes ( id, box_type, heading, body, items, sort_order )";
+  "id, property_id, title, summary, description, start_at, schedule_text, end_at, location, instructors, type, discipline, featured, included_with_membership, audience, max_capacity, max_guests_per_registration, member_price, non_member_price, price_change_on, member_price_after, non_member_price_after, status, is_manually_sold_out, is_template, image_url, event_info_boxes ( id, box_type, heading, body, items, sort_order )";
 
 type DetailRow = {
   id: string;
@@ -386,6 +407,9 @@ type DetailRow = {
   max_guests_per_registration: number;
   member_price: string | number | null;
   non_member_price: string | number | null;
+  price_change_on: string | null;
+  member_price_after: string | number | null;
+  non_member_price_after: string | number | null;
   status: EventStatus;
   is_manually_sold_out: boolean;
   is_template: boolean;
@@ -421,6 +445,9 @@ function rowToDetail(row: DetailRow): AdminEventDetail {
     maxGuestsPerRegistration: row.max_guests_per_registration,
     memberPrice: row.member_price === null ? null : Number(row.member_price),
     nonMemberPrice: row.non_member_price === null ? null : Number(row.non_member_price),
+    priceChangeOn: row.price_change_on,
+    memberPriceAfter: row.member_price_after === null ? null : Number(row.member_price_after),
+    nonMemberPriceAfter: row.non_member_price_after === null ? null : Number(row.non_member_price_after),
     status: row.status,
     isManuallySoldOut: row.is_manually_sold_out,
     isTemplate: row.is_template,
@@ -480,6 +507,9 @@ export async function saveEvent(
     max_guests_per_registration: input.maxGuestsPerRegistration,
     member_price: input.memberPrice,
     non_member_price: input.nonMemberPrice,
+    price_change_on: input.priceChangeOn,
+    member_price_after: input.memberPriceAfter,
+    non_member_price_after: input.nonMemberPriceAfter,
     status: input.status,
     is_manually_sold_out: input.isManuallySoldOut,
     is_template: input.isTemplate,
@@ -564,6 +594,9 @@ export async function duplicateEventFromTemplate(
     maxGuestsPerRegistration: template.maxGuestsPerRegistration,
     memberPrice: template.memberPrice,
     nonMemberPrice: template.nonMemberPrice,
+    priceChangeOn: template.priceChangeOn,
+    memberPriceAfter: template.memberPriceAfter,
+    nonMemberPriceAfter: template.nonMemberPriceAfter,
     status: "draft",
     isManuallySoldOut: false,
     isTemplate: false,

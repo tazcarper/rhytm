@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { effectivePrices, todayInTimezone } from "@/src/services/events/effective-price";
 
 const RegisterSchema = z.object({
   eventId: z.string().uuid(),
@@ -51,7 +52,9 @@ export async function registerForEventAction(
 
   const { data: event } = await supabase
     .from("events")
-    .select("property_id, member_price, non_member_price, properties ( slug )")
+    .select(
+      "property_id, member_price, non_member_price, price_change_on, member_price_after, non_member_price_after, properties ( slug )",
+    )
     .eq("id", parsed.data.eventId)
     .maybeSingle();
   if (!event) return { ok: false, error: "This event is no longer available." };
@@ -79,7 +82,18 @@ export async function registerForEventAction(
     }
   }
 
-  const priceQuoted = isMemberRate ? event.member_price : event.non_member_price;
+  const toMoney = (value: string | number | null) => (value === null ? null : Number(value));
+  const prices = effectivePrices(
+    {
+      memberPrice: toMoney(event.member_price),
+      nonMemberPrice: toMoney(event.non_member_price),
+      priceChangeOn: event.price_change_on,
+      memberPriceAfter: toMoney(event.member_price_after),
+      nonMemberPriceAfter: toMoney(event.non_member_price_after),
+    },
+    todayInTimezone(),
+  );
+  const priceQuoted = isMemberRate ? prices.memberPrice : prices.nonMemberPrice;
 
   const baseRow = {
     event_id: parsed.data.eventId,
