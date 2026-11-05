@@ -119,6 +119,12 @@ export const SaveEventSchema = z
     maxGuestsPerRegistration: z.number().int().positive("Must be at least 1"),
     memberPrice: optionalMoney,
     nonMemberPrice: optionalMoney,
+    // Optional early-bird tier (see src/services/events/event-pricing.ts).
+    // earlyBirdEndsAt is a club wall-clock datetime ("2026-11-01T00:00");
+    // sign-ups before it get the early prices.
+    earlyBirdEndsAt: optionalStartAt,
+    earlyBirdMemberPrice: optionalMoney,
+    earlyBirdNonMemberPrice: optionalMoney,
     status: z.enum(["draft", "published", "sold_out", "cancelled", "completed"]),
     isManuallySoldOut: z.boolean(),
     isTemplate: z.boolean(),
@@ -136,7 +142,17 @@ export const SaveEventSchema = z
   .refine((value) => value.maxGuestsPerRegistration <= value.maxCapacity, {
     message: "Can't exceed the event's total capacity",
     path: ["maxGuestsPerRegistration"],
-  });
+  })
+  .refine(
+    (value) =>
+      !value.earlyBirdEndsAt || value.earlyBirdMemberPrice !== null || value.earlyBirdNonMemberPrice !== null,
+    { message: "Give an early-bird price, or clear the early-bird end date", path: ["earlyBirdMemberPrice"] },
+  )
+  .refine(
+    (value) =>
+      Boolean(value.earlyBirdEndsAt) || (value.earlyBirdMemberPrice === null && value.earlyBirdNonMemberPrice === null),
+    { message: "Early-bird pricing needs a date it ends", path: ["earlyBirdEndsAt"] },
+  );
 
 export type SaveEventInput = z.infer<typeof SaveEventSchema>;
 export type SaveEventRawInput = z.input<typeof SaveEventSchema>;
@@ -187,6 +203,9 @@ export interface AdminEventDetail {
   maxGuestsPerRegistration: number;
   memberPrice: number | null;
   nonMemberPrice: number | null;
+  earlyBirdEndsAt: string | null;
+  earlyBirdMemberPrice: number | null;
+  earlyBirdNonMemberPrice: number | null;
   status: EventStatus;
   isManuallySoldOut: boolean;
   isTemplate: boolean;
@@ -352,7 +371,7 @@ export async function getEventTemplates(
 }
 
 const DETAIL_COLUMNS =
-  "id, property_id, title, summary, description, start_at, schedule_text, end_at, location, instructors, type, discipline, featured, included_with_membership, audience, max_capacity, max_guests_per_registration, member_price, non_member_price, status, is_manually_sold_out, is_template, image_url, event_info_boxes ( id, box_type, heading, body, items, sort_order )";
+  "id, property_id, title, summary, description, start_at, schedule_text, end_at, location, instructors, type, discipline, featured, included_with_membership, audience, max_capacity, max_guests_per_registration, member_price, non_member_price, early_bird_ends_at, early_bird_member_price, early_bird_non_member_price, status, is_manually_sold_out, is_template, image_url, event_info_boxes ( id, box_type, heading, body, items, sort_order )";
 
 type DetailRow = {
   id: string;
@@ -374,6 +393,9 @@ type DetailRow = {
   max_guests_per_registration: number;
   member_price: string | number | null;
   non_member_price: string | number | null;
+  early_bird_ends_at: string | null;
+  early_bird_member_price: string | number | null;
+  early_bird_non_member_price: string | number | null;
   status: EventStatus;
   is_manually_sold_out: boolean;
   is_template: boolean;
@@ -409,6 +431,10 @@ function rowToDetail(row: DetailRow): AdminEventDetail {
     maxGuestsPerRegistration: row.max_guests_per_registration,
     memberPrice: row.member_price === null ? null : Number(row.member_price),
     nonMemberPrice: row.non_member_price === null ? null : Number(row.non_member_price),
+    earlyBirdEndsAt: row.early_bird_ends_at,
+    earlyBirdMemberPrice: row.early_bird_member_price === null ? null : Number(row.early_bird_member_price),
+    earlyBirdNonMemberPrice:
+      row.early_bird_non_member_price === null ? null : Number(row.early_bird_non_member_price),
     status: row.status,
     isManuallySoldOut: row.is_manually_sold_out,
     isTemplate: row.is_template,
@@ -468,6 +494,9 @@ export async function saveEvent(
     max_guests_per_registration: input.maxGuestsPerRegistration,
     member_price: input.memberPrice,
     non_member_price: input.nonMemberPrice,
+    early_bird_ends_at: input.earlyBirdEndsAt ? chicagoWallClockToUtcIso(input.earlyBirdEndsAt) : null,
+    early_bird_member_price: input.earlyBirdMemberPrice,
+    early_bird_non_member_price: input.earlyBirdNonMemberPrice,
     status: input.status,
     is_manually_sold_out: input.isManuallySoldOut,
     is_template: input.isTemplate,
@@ -552,6 +581,12 @@ export async function duplicateEventFromTemplate(
     maxGuestsPerRegistration: template.maxGuestsPerRegistration,
     memberPrice: template.memberPrice,
     nonMemberPrice: template.nonMemberPrice,
+    // An early-bird cut-off belongs to one event's calendar date, so a copy
+    // starts without one rather than inheriting a deadline that's likely
+    // already past.
+    earlyBirdEndsAt: null,
+    earlyBirdMemberPrice: null,
+    earlyBirdNonMemberPrice: null,
     status: "draft",
     isManuallySoldOut: false,
     isTemplate: false,

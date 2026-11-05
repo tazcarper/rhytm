@@ -1,4 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  resolveEventPrices,
+  toEventPriceColumns,
+  type EarlyBirdOffer,
+  type EventPriceRow,
+} from "@/src/services/events/event-pricing";
 
 // Public read path for events (see the events migration). RLS restricts
 // the base rows to published/sold_out; this adds property scoping and
@@ -32,8 +38,13 @@ export interface PublicEventListItem {
   includedWithMembership: boolean;
   audience: PublicEventAudience;
   status: PublicEventStatus;
+  // The prices that apply right now — the early-bird price while one is
+  // running, otherwise the regular price.
   memberPrice: number | null;
   nonMemberPrice: number | null;
+  // Set while early-bird pricing is running: when it ends and the regular
+  // prices it goes up to.
+  earlyBird: EarlyBirdOffer | null;
   imageUrl: string | null;
   isSoldOut: boolean;
 }
@@ -46,7 +57,7 @@ export interface PublicEventDetail extends PublicEventListItem {
   infoBoxes: PublicEventInfoBox[];
 }
 
-type ListRow = {
+type ListRow = EventPriceRow & {
   id: string;
   title: string;
   summary: string | null;
@@ -60,16 +71,14 @@ type ListRow = {
   included_with_membership: boolean;
   audience: PublicEventAudience;
   status: PublicEventStatus;
-  member_price: string | number | null;
-  non_member_price: string | number | null;
   image_url: string | null;
 };
 
-function toMoney(value: string | number | null): number | null {
-  return value === null ? null : Number(value);
-}
+const PRICE_COLUMNS =
+  "member_price, non_member_price, early_bird_ends_at, early_bird_member_price, early_bird_non_member_price";
 
-function rowToListItem(row: ListRow): PublicEventListItem {
+function rowToListItem(row: ListRow, now: Date): PublicEventListItem {
+  const prices = resolveEventPrices(toEventPriceColumns(row), now);
   return {
     id: row.id,
     title: row.title,
@@ -84,15 +93,15 @@ function rowToListItem(row: ListRow): PublicEventListItem {
     includedWithMembership: row.included_with_membership,
     audience: row.audience,
     status: row.status,
-    memberPrice: toMoney(row.member_price),
-    nonMemberPrice: toMoney(row.non_member_price),
+    memberPrice: prices.memberPrice,
+    nonMemberPrice: prices.nonMemberPrice,
+    earlyBird: prices.earlyBird,
     imageUrl: row.image_url,
     isSoldOut: row.status === "sold_out",
   };
 }
 
-const LIST_COLUMNS =
-  "id, title, summary, start_at, schedule_text, end_at, location, type, discipline, featured, included_with_membership, audience, status, member_price, non_member_price, image_url";
+const LIST_COLUMNS = `id, title, summary, start_at, schedule_text, end_at, location, type, discipline, featured, included_with_membership, audience, status, ${PRICE_COLUMNS}, image_url`;
 
 // Soonest-first, upcoming only (past events never show), capped at 6 —
 // keeps the calendar page short. Callers that want fewer (e.g. Club
@@ -113,7 +122,8 @@ export async function getPublicEvents(
     .limit(UPCOMING_EVENTS_LIMIT);
 
   if (error || !data) return [];
-  return (data as ListRow[]).map(rowToListItem);
+  const now = new Date();
+  return (data as unknown as ListRow[]).map((row) => rowToListItem(row, now));
 }
 
 // Standing (indefinite, schedule-only) programmes for one property — no
@@ -131,11 +141,11 @@ export async function getPublicStandingPrograms(
     .order("title", { ascending: true });
 
   if (error || !data) return [];
-  return (data as ListRow[]).map(rowToListItem);
+  const now = new Date();
+  return (data as unknown as ListRow[]).map((row) => rowToListItem(row, now));
 }
 
-const DETAIL_COLUMNS =
-  "id, title, summary, description, start_at, schedule_text, end_at, location, instructors, type, discipline, featured, included_with_membership, audience, status, member_price, non_member_price, image_url, max_capacity, max_guests_per_registration, event_info_boxes ( id, box_type, heading, body, items )";
+const DETAIL_COLUMNS = `id, title, summary, description, start_at, schedule_text, end_at, location, instructors, type, discipline, featured, included_with_membership, audience, status, ${PRICE_COLUMNS}, image_url, max_capacity, max_guests_per_registration, event_info_boxes ( id, box_type, heading, body, items )`;
 
 type DetailRow = ListRow & {
   description: string | null;
@@ -165,7 +175,7 @@ export async function getPublicEvent(
 
   const row = data as unknown as DetailRow;
   return {
-    ...rowToListItem(row),
+    ...rowToListItem(row, new Date()),
     description: row.description,
     instructors: row.instructors,
     maxCapacity: row.max_capacity,

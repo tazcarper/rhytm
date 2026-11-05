@@ -11,6 +11,7 @@ import { EventInfoBoxEditor, type EditableInfoBox } from "./event-info-box-edito
 import { EventImageInput } from "./event-image-input";
 import { EventLivePreview, type EventPreviewData } from "./event-live-preview";
 import { RecurringDatesEditor } from "./recurring-dates-editor";
+import { EventEarlyBirdEditor, type EarlyBirdFields } from "./event-early-bird-editor";
 import s from "./bid-editor-form.module.css";
 import h from "./homepage-hero-form.module.css";
 
@@ -51,6 +52,29 @@ function toEditableBoxes(event: AdminEventDetail | null): EditableInfoBox[] {
     body: box.body ?? "",
     items: box.items && box.items.length > 0 ? box.items : [""],
   }));
+}
+
+function toEarlyBirdFields(event: AdminEventDetail | null): EarlyBirdFields {
+  const moneyText = (value: number | null | undefined) => (value != null ? String(value) : "");
+  return {
+    enabled: Boolean(event?.earlyBirdEndsAt),
+    endsAt: toLocalInput(event?.earlyBirdEndsAt),
+    memberPrice: moneyText(event?.earlyBirdMemberPrice),
+    nonMemberPrice: moneyText(event?.earlyBirdNonMemberPrice),
+  };
+}
+
+// Turning the early-bird box off clears the whole tier on save.
+function earlyBirdPayload(fields: EarlyBirdFields) {
+  const money = (text: string) => (text.trim() === "" ? null : Number(text));
+  if (!fields.enabled) {
+    return { earlyBirdEndsAt: null, earlyBirdMemberPrice: null, earlyBirdNonMemberPrice: null };
+  }
+  return {
+    earlyBirdEndsAt: fields.endsAt || null,
+    earlyBirdMemberPrice: money(fields.memberPrice),
+    earlyBirdNonMemberPrice: money(fields.nonMemberPrice),
+  };
 }
 
 // A <select> sourced from real domain options, with a "— Custom —" escape
@@ -170,6 +194,7 @@ export function EventEditorForm({
   const [nonMemberPrice, setNonMemberPrice] = useState(
     event?.nonMemberPrice != null ? String(event.nonMemberPrice) : "",
   );
+  const [earlyBird, setEarlyBird] = useState<EarlyBirdFields>(toEarlyBirdFields(event));
   const [status, setStatus] = useState<EventStatus>(event?.status ?? "draft");
   const [isManuallySoldOut, setIsManuallySoldOut] = useState(event?.isManuallySoldOut ?? false);
   const [isTemplate, setIsTemplate] = useState(event?.isTemplate ?? false);
@@ -261,6 +286,7 @@ export function EventEditorForm({
       maxGuestsPerRegistration: Number(maxGuestsPerRegistration) || 0,
       memberPrice: memberPrice.trim() === "" ? null : Number(memberPrice),
       nonMemberPrice: nonMemberPrice.trim() === "" ? null : Number(nonMemberPrice),
+      ...earlyBirdPayload(earlyBird),
       status,
       isManuallySoldOut,
       isTemplate,
@@ -568,6 +594,7 @@ export function EventEditorForm({
                 Included with membership (free to members — sets member price to $0)
               </span>
             </label>
+            <EventEarlyBirdEditor value={earlyBird} onChange={setEarlyBird} />
             <label className="flex items-center gap-2.5">
               <input
                 type="checkbox"

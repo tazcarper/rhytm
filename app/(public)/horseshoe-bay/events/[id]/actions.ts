@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { priceForRegistration, toEventPriceColumns } from "@/src/services/events/event-pricing";
 
 const RegisterSchema = z.object({
   eventId: z.string().uuid(),
@@ -51,7 +52,9 @@ export async function registerForEventAction(
 
   const { data: event } = await supabase
     .from("events")
-    .select("property_id, member_price, non_member_price, properties ( slug )")
+    .select(
+      "property_id, member_price, non_member_price, early_bird_ends_at, early_bird_member_price, early_bird_non_member_price, properties ( slug )",
+    )
     .eq("id", parsed.data.eventId)
     .maybeSingle();
   if (!event) return { ok: false, error: "This event is no longer available." };
@@ -79,7 +82,8 @@ export async function registerForEventAction(
     }
   }
 
-  const priceQuoted = isMemberRate ? event.member_price : event.non_member_price;
+  // Early-bird vs regular is decided by the moment of sign-up, server-side.
+  const priceQuoted = priceForRegistration(toEventPriceColumns(event), isMemberRate, new Date());
 
   const baseRow = {
     event_id: parsed.data.eventId,

@@ -8,6 +8,7 @@ import { getPublicInstructorsForProperty } from "@/src/services/public/instructo
 import { PropertyImage } from "@/src/components/public/property-template/property-image";
 import { EventContentBand } from "@/src/components/public/property-template/event-content-band";
 import { EventRegistrationForm } from "@/src/components/public/property-template/event-registration-form";
+import { EarlyBirdPriceNote } from "@/src/components/public/property-template/early-bird-price-note";
 import { InstructorRowValue } from "@/src/components/public/property-template/instructor-row-value";
 
 export const dynamic = "force-dynamic";
@@ -144,6 +145,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                   </p>
                 </div>
               </div>
+              {event.earlyBird && <EarlyBirdPriceNote offer={event.earlyBird} />}
               <EventRegistrationForm eventId={event.id} maxGuestsPerRegistration={event.maxGuestsPerRegistration} />
             </div>
           </div>
