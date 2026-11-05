@@ -42,7 +42,7 @@ export function featureBuildIssue(row: CapabilityRequestRow): NewIssue {
     "- Database changes go in a new file under supabase/migrations (additive changes only: add columns or tables, don't drop or rename). Don't apply it yourself; it's applied to the preview database when the PR opens and to production when it merges.",
     "- Don't edit package.json, next.config.*, tsconfig.json, proxy.ts, lib/supabase/* or lib/auth/*. If the feature truly needs that, stop and explain why in a comment instead.",
     "- Keep the change to this feature. Run `npm run typecheck` and fix what it finds before you finish.",
-    "- Finish with a short summary of what changed and how to test it on the preview.",
+    "- Finish with a short summary of what changed, then a section headed exactly `## How to test` with 3 to 6 numbered steps for a non-technical admin trying it on the preview site. Start from a page in the admin (e.g. Admin → Events), say what to click and type, and what they should see. No code, file names or jargon.",
   ].join("\n");
 
   return {
@@ -69,6 +69,8 @@ export async function requestFeatureBuild(
       build_pr_number: null,
       build_pr_url: null,
       build_pr_state: null,
+      build_preview_url: null,
+      build_test_steps: null,
     })
     .eq("id", row.id);
   if (error) return { ok: false, error: `The build started (${created.issue.url}) but couldn't be saved: ${error.message}` };
@@ -81,6 +83,14 @@ export interface FeatureBuildPullRequestEvent {
   prNumber: number;
   prUrl: string;
   state: "open" | "merged" | "closed";
+  // Claude's "How to test" steps from the PR body, when there are any.
+  testSteps: ReadonlyArray<string>;
+}
+
+// A finished Vercel preview of a feature build's branch.
+export interface FeatureBuildPreviewEvent {
+  issueNumber: number;
+  previewUrl: string;
 }
 
 // PR opened → Planned, with the link. Merged → Built, which unlocks the
@@ -100,8 +110,23 @@ export async function recordFeatureBuildPullRequest(
       build_pr_number: event.prNumber,
       build_pr_url: event.prUrl,
       build_pr_state: event.state,
+      ...(event.testSteps.length > 0 ? { build_test_steps: event.testSteps.join("\n") } : {}),
       ...(status ? { status } : {}),
     })
+    .eq("build_issue_number", event.issueNumber)
+    .select("id");
+  if (error) return { ok: false, error: error.message };
+  return { ok: true, matched: (data ?? []).length > 0 };
+}
+
+// Saves the preview link for the request whose build this branch is.
+export async function recordFeatureBuildPreview(
+  supabase: SupabaseClient,
+  event: FeatureBuildPreviewEvent,
+): Promise<{ ok: true; matched: boolean } | { ok: false; error: string }> {
+  const { data, error } = await supabase
+    .from("capability_requests")
+    .update({ build_preview_url: event.previewUrl })
     .eq("build_issue_number", event.issueNumber)
     .select("id");
   if (error) return { ok: false, error: error.message };
