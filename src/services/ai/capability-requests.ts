@@ -22,6 +22,8 @@ export interface CapabilityRequestRow {
   status: CapabilityRequestStatus;
   propertyName: string | null;
   createdAt: string;
+  // Events this request holds up.
+  events: ReadonlyArray<{ id: string; title: string; status: string }>;
 }
 
 export async function createCapabilityRequest(
@@ -96,25 +98,72 @@ export async function getFeatureRequestsForEvents(
   return byEvent;
 }
 
+const REQUEST_COLUMNS = "id, summary, owner_words, status, created_at, properties ( name )";
+// The draft(s) each request holds up (migration 20261104193000).
+const LINKED_EVENTS = "capability_request_events ( events ( id, title, status ) )";
+
+type RequestRow = {
+  id: string;
+  summary: string;
+  owner_words: string;
+  status: string;
+  created_at: string;
+  properties: { name: string } | { name: string }[] | null;
+  capability_request_events?: Array<{ events: LinkedEventRow | LinkedEventRow[] | null }>;
+};
+type LinkedEventRow = { id: string; title: string; status: string };
+
 export async function getCapabilityRequests(supabase: SupabaseClient): Promise<CapabilityRequestRow[]> {
-  const { data, error } = await supabase
+  let result: { data: unknown[] | null; error: { message: string } | null } = await supabase
     .from("capability_requests")
-    .select("id, summary, owner_words, status, created_at, properties ( name )")
+    .select(`${REQUEST_COLUMNS}, ${LINKED_EVENTS}`)
     .order("created_at", { ascending: false })
     .limit(200);
-  if (error) throw new Error(`Couldn't load feature requests: ${error.message}`);
+  // Without the linking table (migration not applied yet), list the requests alone.
+  if (result.error) {
+    result = await supabase
+      .from("capability_requests")
+      .select(REQUEST_COLUMNS)
+      .order("created_at", { ascending: false })
+      .limit(200);
+  }
+  if (result.error) throw new Error(`Couldn't load feature requests: ${result.error.message}`);
 
-  return (data ?? []).map((row) => {
+  return ((result.data ?? []) as unknown as RequestRow[]).map((row) => {
     const property = Array.isArray(row.properties) ? row.properties[0] : row.properties;
+    const events = (row.capability_request_events ?? [])
+      .flatMap((link) => (Array.isArray(link.events) ? link.events : link.events ? [link.events] : []))
+      .map((event) => ({ id: event.id, title: event.title, status: event.status }));
     return {
       id: row.id,
       summary: row.summary,
       ownerWords: row.owner_words,
       status: row.status as CapabilityRequestStatus,
-      propertyName: (property as { name: string } | null)?.name ?? null,
+      propertyName: property?.name ?? null,
       createdAt: row.created_at,
+      events,
     };
   });
+}
+
+export const CAPABILITY_REQUEST_STATUSES: ReadonlyArray<CapabilityRequestStatus> = [
+  "new",
+  "reviewing",
+  "planned",
+  "built",
+  "declined",
+];
+
+// The developer moves a request along. "built" marks its drafts Feature
+// ready and lets them be published; "declined" drops it from the drafts.
+export async function updateCapabilityRequestStatus(
+  supabase: SupabaseClient,
+  id: string,
+  status: CapabilityRequestStatus,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const { error } = await supabase.from("capability_requests").update({ status }).eq("id", id);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
 }
 
 // Summaries of the features still being built for an event. An event with

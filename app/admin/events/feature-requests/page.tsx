@@ -23,7 +23,7 @@ export default async function EventFeatureRequestsPage() {
         Feature requests
       </Heading>
       <Text className="mb-6 mt-2">
-        Things staff asked the event helper for that the event builder can&apos;t do yet. A developer reviews these.
+        Things staff asked the event helper for that the event builder can&apos;t do yet. Drafts that need one can&apos;t be published until it&apos;s built. Set a request to Built once the feature is live, and those drafts unlock.
       </Text>
       <CapabilityRequestsList rows={rows} />
     </PageShell>
