@@ -7,6 +7,7 @@ import { EventsSignupChart } from "@/src/components/admin/events-signup-chart";
 import { EventsCalendar } from "@/src/components/admin/events-calendar";
 import { EventsDaySchedule } from "@/src/components/admin/events-day-schedule";
 import { EventsDataTable } from "@/src/components/admin/events-data-table";
+import { RemoveAllEventsButton } from "@/src/components/admin/remove-all-events-button";
 import { getEventsList } from "@/src/services/admin/events";
 import { getAdminPropertiesList, type AdminProperty } from "@/src/services/admin/properties";
 import {
@@ -170,10 +171,22 @@ export default async function AdminEventsPage({
             each new event.
           </Text>
         </div>
-        <Button asChild variant="primary">
-          <Link href="/admin/events/new">New event</Link>
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button asChild variant="secondary">
+            <Link href="/admin/events/feature-requests">Feature requests</Link>
+          </Button>
+          <Button asChild variant="primary">
+            <Link href="/admin/events/new">New event</Link>
+          </Button>
+        </div>
       </div>
+
+      {/* TEMPORARY test cleanup; never on the live site. Remove before launch. */}
+      {process.env.VERCEL_ENV !== "production" && (
+        <div className="mb-4 flex justify-end">
+          <RemoveAllEventsButton />
+        </div>
+      )}
 
       {error && (
         <div className="mb-4">

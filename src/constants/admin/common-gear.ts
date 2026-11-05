@@ -1,0 +1,98 @@
+import type { GearItemInput } from "@/src/services/events/event-extras-contract";
+
+// Built-in gear suggestions for the builder's "Pick common gear" list.
+// Starting points only: ticking one adds it to the event, where the admin
+// can change prices and options. Each property can also save its own list
+// (property_gear_presets), which is shown above these.
+export const COMMON_GEAR: ReadonlyArray<GearItemInput> = [
+  {
+    name: "Ear protection",
+    isRequired: true,
+    included: false,
+    bringOwnAllowed: true,
+    rentPrice: null,
+    buyPrice: 2,
+    notes: null,
+  },
+  {
+    name: "Eye protection",
+    isRequired: true,
+    included: false,
+    bringOwnAllowed: true,
+    rentPrice: null,
+    buyPrice: 5,
+    notes: "Shooting glasses or safety glasses",
+  },
+  {
+    name: "Shotgun shells",
+    isRequired: true,
+    included: false,
+    bringOwnAllowed: true,
+    rentPrice: null,
+    buyPrice: 12,
+    notes: "Per box of 25. 12 or 20 gauge",
+  },
+  {
+    name: "Shotgun",
+    isRequired: true,
+    included: false,
+    bringOwnAllowed: true,
+    rentPrice: 25,
+    buyPrice: null,
+    notes: null,
+  },
+  {
+    name: "Shell pouch or vest",
+    isRequired: false,
+    included: false,
+    bringOwnAllowed: true,
+    rentPrice: 5,
+    buyPrice: null,
+    notes: null,
+  },
+  {
+    name: "Rifle ammunition",
+    isRequired: true,
+    included: false,
+    bringOwnAllowed: true,
+    rentPrice: null,
+    buyPrice: 30,
+    notes: "Per box. Ask staff for calibers in stock",
+  },
+  {
+    name: "Blaze orange",
+    isRequired: false,
+    included: false,
+    bringOwnAllowed: true,
+    rentPrice: null,
+    buyPrice: 10,
+    notes: "Hat or vest",
+  },
+  {
+    name: "Closed-toe shoes",
+    isRequired: true,
+    included: false,
+    bringOwnAllowed: true,
+    rentPrice: null,
+    buyPrice: null,
+    notes: null,
+  },
+  {
+    name: "Water and snacks",
+    isRequired: false,
+    included: true,
+    bringOwnAllowed: true,
+    rentPrice: null,
+    buyPrice: null,
+    notes: null,
+  },
+  {
+    name: "Golf cart",
+    isRequired: false,
+    included: false,
+    bringOwnAllowed: false,
+    rentPrice: 40,
+    buyPrice: null,
+    notes: "Shared by up to 2 shooters",
+  },
+];

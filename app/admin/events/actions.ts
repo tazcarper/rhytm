@@ -13,6 +13,8 @@ import {
   saveEvent,
   saveRecurringEvents,
   deleteEvent,
+  getEvent,
+  deleteAllNonTemplateEvents,
   duplicateEventFromTemplate,
   cancelEventRegistration,
   SaveEventSchema,
@@ -20,6 +22,10 @@ import {
   type SaveEventResult,
   type SaveRecurringEventsResult,
 } from "@/src/services/admin/events";
+import { getEventExtras, saveEventExtras, type SaveEventExtrasResult } from "@/src/services/admin/event-extras";
+import { copyEventToDates } from "@/src/services/admin/event-copies";
+import { SaveEventExtrasSchema } from "@/src/services/events/event-extras-contract";
+import { getFeaturesInProgress } from "@/src/services/ai/capability-requests";
 
 // Thin actions: validate → service → revalidate the surfaces an event can
 // appear on. RLS enforces that only admin / super_admin / the owning
@@ -39,6 +45,20 @@ export async function saveEventAction(input: SaveEventRawInput): Promise<SaveEve
   }
 
   const supabase = await createServerSupabaseClient();
+  // A draft waiting on a feature the developer is building stays a draft.
+  // (An event that's already live can still be edited.)
+  if (parsed.data.id && parsed.data.status !== "draft") {
+    const [current, inProgress] = await Promise.all([
+      getEvent(supabase, parsed.data.id),
+      getFeaturesInProgress(supabase, parsed.data.id),
+    ]);
+    if (current?.status === "draft" && inProgress.length > 0) {
+      return {
+        ok: false,
+        error: `This event can't be published until the feature it needs is built: ${inProgress.join("; ")}. It's saved as a draft until then.`,
+      };
+    }
+  }
   const result = await saveEvent(supabase, parsed.data);
   if (result.ok) revalidateEventSurfaces();
   return result;
@@ -69,6 +89,29 @@ export async function saveRecurringEventsAction(
   return result;
 }
 
+// Edit screen's "Copy to more dates": new events on the given dates, each
+// with the source event's tickets, gear and questions.
+export async function copyEventToDatesAction(
+  sourceEventId: string,
+  input: SaveEventRawInput,
+  dates: string[],
+): Promise<SaveRecurringEventsResult> {
+  const parsed = SaveEventSchema.safeParse(input);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    return {
+      ok: false,
+      error: issue ? `${issue.path.join(".")}: ${issue.message}` : "Invalid input",
+      createdIds: [],
+    };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const result = await copyEventToDates(supabase, sourceEventId, parsed.data, dates);
+  if (result.ok || result.createdIds.length > 0) revalidateEventSurfaces();
+  return result;
+}
+
 export async function deleteEventAction(id: string): Promise<{ ok: boolean; error?: string }> {
   const supabase = await createServerSupabaseClient();
   const result = await deleteEvent(supabase, id);
@@ -81,7 +124,11 @@ export async function duplicateEventFromTemplateAction(
 ): Promise<SaveEventResult> {
   const supabase = await createServerSupabaseClient();
   const result = await duplicateEventFromTemplate(supabase, templateId);
-  if (result.ok) revalidateEventSurfaces();
+  if (!result.ok) return result;
+  // The template's tickets, gear and questions come along too.
+  const extras = await saveEventExtras(supabase, result.id, await getEventExtras(supabase, templateId));
+  revalidateEventSurfaces();
+  if (!extras.ok) return { ok: false, error: `The copy was made, but not its tickets and gear: ${extras.error}` };
   return result;
 }
 
@@ -111,4 +158,42 @@ export async function cancelEventRegistrationAction(
 ): Promise<{ ok: boolean; error?: string }> {
   const supabase = await createServerSupabaseClient();
   return cancelEventRegistration(supabase, registrationId);
+}
+
+export async function saveEventExtrasAction(
+  eventId: string,
+  input: unknown,
+): Promise<SaveEventExtrasResult> {
+  const parsed = SaveEventExtrasSchema.safeParse(input);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    return {
+      ok: false,
+      error: issue ? `${issue.path.join(".")}: ${issue.message}` : "Invalid input",
+    };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const result = await saveEventExtras(supabase, eventId, parsed.data);
+  if (result.ok) revalidatePath(`/admin/events/${eventId}`);
+  return result;
+}
+
+// TEMPORARY (Taz, 2026-11-04): clears test events. Admins only, and never
+// on the live site: Vercel sets VERCEL_ENV=production there. Remove before
+// launch, with RemoveAllEventsButton.
+export async function removeAllEventsAction(
+  confirmation: string,
+): Promise<{ ok: true; count: number } | { ok: false; error: string }> {
+  if (process.env.VERCEL_ENV === "production") return { ok: false, error: "Not available on the live site." };
+  if (confirmation !== "DELETE") return { ok: false, error: 'Type DELETE to confirm.' };
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const role = user?.app_metadata?.role as string | undefined;
+  if (role !== "admin" && role !== "super_admin") return { ok: false, error: "Only admins can do this." };
+  const result = await deleteAllNonTemplateEvents(supabase);
+  if (result.ok) revalidateEventSurfaces();
+  return result;
 }

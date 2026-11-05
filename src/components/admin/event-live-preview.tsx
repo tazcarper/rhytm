@@ -23,8 +23,9 @@ export interface EventPreviewData {
   imageUrl: string;
   description: string;
   expectItems: ReadonlyArray<{ heading: string; items: string[] }>;
-  memberPrice: string;
-  nonMemberPrice: string;
+  // Every price a guest picks from: the ticket options when there are any,
+  // otherwise the member and non-member prices.
+  prices: ReadonlyArray<{ label: string; value: string; note: string }>;
 }
 
 function MetaRow({ label, value }: { label: string; value: string }) {
@@ -83,20 +84,15 @@ export function EventLivePreview({ event }: { event: EventPreviewData }) {
             </div>
           ))}
 
-          {(event.memberPrice || event.nonMemberPrice) && (
+          {event.prices.length > 0 && (
             <div className={s.price}>
-              {event.memberPrice && (
-                <div>
-                  <span className={s.priceValue}>{event.memberPrice}</span>
-                  <span className={s.priceLabel}>Member</span>
+              {event.prices.map((price, index) => (
+                <div key={index}>
+                  <span className={s.priceValue}>{price.value}</span>
+                  <span className={s.priceLabel}>{price.label}</span>
+                  {price.note && <span className={s.priceNote}>{price.note}</span>}
                 </div>
-              )}
-              {event.nonMemberPrice && (
-                <div>
-                  <span className={s.priceValue}>{event.nonMemberPrice}</span>
-                  <span className={s.priceLabel}>Non-member</span>
-                </div>
-              )}
+              ))}
             </div>
           )}
         </div>

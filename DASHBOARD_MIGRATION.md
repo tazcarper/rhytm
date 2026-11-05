@@ -98,6 +98,20 @@ it proves tables, dialogs, badges, and brand fidelity in one real view.
 - [ ] Instructors list; keep the custom schedule grid for now (Phase 4).
 
 ### Phase 3 — Forms & overlays sweep  ⬜
+- [ ] Form stack (Taz, 2026-11-04): shadcn form parts (`src/components/ui/field.tsx`
+      Field/FieldLabel/FieldDescription/FieldError, Input/Textarea/NativeSelect, plus
+      Label, Select, Checkbox, Radio group, Switch, Popover) + React Hook Form +
+      `@hookform/resolvers/zod` reusing each service's Zod schema. Event builder
+      migrates first (PR #19, `size="lg"` look).
+- [ ] **Every** dashboard page with form inputs moves to that stack (Taz,
+      2026-11-04) — not only the list below. Inventory first: grep `src/components/admin`
+      for `<input`, `<select`, `<textarea`, `lib/ui` Input/FormField and the CSS-module
+      form classes; one PR per area.
+- [ ] Consistency audit (Taz, 2026-11-04): check shadcn + Tailwind are used the
+      same way across the dashboard — tokens mapped (no stray shadcn grays or
+      hard-coded hex where a token exists), one `cn()`, shadcn primitives instead of
+      bespoke duplicates, consistent spacing, type scale and radius. Write findings
+      up before changing anything.
 - [ ] Property settings, instructor profile, adventures, homepage hero, team
       invite → shadcn form primitives (still Server-Action-backed).
 - [ ] Replace `admin-modal` / `nav-dropdown` with shadcn `Dialog` / `DropdownMenu`

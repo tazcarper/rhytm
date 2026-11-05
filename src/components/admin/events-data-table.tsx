@@ -7,7 +7,7 @@ import type { AdminEventListRow } from "@/src/services/admin/events";
 import { duplicateEventFromTemplateAction } from "@/app/admin/events/actions";
 import { Button } from "@/lib/ui";
 import { DataTable } from "@/src/components/ui/data-table";
-import { EventStatusBadge } from "./event-status-badge";
+import { EventFeatureBadge, EventStatusBadge } from "./event-status-badge";
 import s from "./bid-editor-form.module.css";
 
 function formatDate(iso: string): string {
@@ -81,7 +81,12 @@ function buildColumns(): ColumnDef<AdminEventListRow>[] {
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => <EventStatusBadge status={row.original.status} />,
+      cell: ({ row }) => (
+        <span className="flex flex-wrap items-center gap-1.5">
+          <EventStatusBadge status={row.original.status} />
+          <EventFeatureBadge requests={row.original.featureRequests} />
+        </span>
+      ),
     },
     {
       id: "capacity",
@@ -116,7 +121,21 @@ const STATUS_FILTER_OPTIONS = [
   { value: "", label: "Live & drafts" },
   { value: "draft", label: "Drafts only" },
   { value: "live", label: "Live only" },
+  { value: "feature", label: "Feature in progress or ready" },
 ];
+
+const matchesStatus = (row: AdminEventListRow, filter: string) => {
+  switch (filter) {
+    case "draft":
+      return row.status === "draft";
+    case "live":
+      return row.status !== "draft";
+    case "feature":
+      return row.featureRequests.length > 0;
+    default:
+      return true;
+  }
+};
 
 export function EventsDataTable({
   rows,
@@ -143,7 +162,7 @@ export function EventsDataTable({
         (row) =>
           (!typeFilter || row.type === typeFilter) &&
           (!propertyFilter || row.propertyName === propertyFilter) &&
-          (!statusFilter || (statusFilter === "draft" ? row.status === "draft" : row.status !== "draft")),
+          matchesStatus(row, statusFilter),
       ),
     [rows, typeFilter, propertyFilter, statusFilter],
   );

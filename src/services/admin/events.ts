@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getFeatureRequestsForEvents, type EventFeatureRequest } from "@/src/services/ai/capability-requests";
 
 // Admin CRUD for events (see the events migration). Pure data layer: takes
 // the caller's RLS-scoped client (admin/super_admin + the owning
@@ -125,7 +126,9 @@ export const SaveEventSchema = z
     imageUrl: optionalText(2000),
     infoBoxes: z.array(InfoBoxSchema).max(20),
   })
-  .refine((value) => Boolean(value.startAt) || Boolean(value.scheduleText), {
+  // A draft may have neither yet: the New event screen creates it from the
+  // club, kind and name, and the builder's Date step fills the date in.
+  .refine((value) => value.status === "draft" || Boolean(value.startAt) || Boolean(value.scheduleText), {
     message: "Give the event a date, or a schedule for a Standing programme",
     path: ["startAt"],
   })
@@ -156,6 +159,9 @@ export interface AdminEventListRow {
   memberPrice: number | null;
   nonMemberPrice: number | null;
   isTemplate: boolean;
+  // Parts the AI helper couldn't build, sent to the developer as feature
+  // requests (empty for most events).
+  featureRequests: ReadonlyArray<EventFeatureRequest>;
 }
 
 export interface AdminEventInfoBox {
@@ -270,6 +276,7 @@ function toListRow(row: ListRow, confirmedByEvent: Map<string, number>): AdminEv
     memberPrice: row.member_price === null ? null : Number(row.member_price),
     nonMemberPrice: row.non_member_price === null ? null : Number(row.non_member_price),
     isTemplate: row.is_template,
+    featureRequests: [],
   };
 }
 
@@ -289,7 +296,12 @@ export async function getEventsList(
     rows.map((row) => row.id),
   );
 
-  return rows.map((row) => toListRow(row, confirmedByEvent));
+  const featureRequests = await getFeatureRequestsForEvents(
+    supabase,
+    rows.filter((row) => row.status === "draft").map((row) => row.id),
+  );
+
+  return rows.map((row) => ({ ...toListRow(row, confirmedByEvent), featureRequests: featureRequests.get(row.id) ?? [] }));
 }
 
 // Upcoming events for one property's workspace "Events" tab — same row
@@ -643,4 +655,26 @@ export async function cancelEventRegistration(
     .eq("id", registrationId);
   if (error) return { ok: false, error: error.message };
   return { ok: true };
+}
+
+// TEMPORARY test cleanup (Taz, 2026-11-04): deletes every event that isn't
+// a template, with its sign-ups. Only reachable on previews and local dev
+// (see removeAllEventsAction); remove before launch.
+export async function deleteAllNonTemplateEvents(
+  supabase: SupabaseClient,
+): Promise<{ ok: true; count: number } | { ok: false; error: string }> {
+  const { data, error } = await supabase.from("events").select("id").eq("is_template", false);
+  if (error) return { ok: false, error: error.message };
+  const ids = (data ?? []).map((row) => row.id as string);
+  if (ids.length === 0) return { ok: true, count: 0 };
+
+  // Sign-ups don't cascade (see deleteEvent), so they go first.
+  for (let start = 0; start < ids.length; start += 200) {
+    const batch = ids.slice(start, start + 200);
+    const registrations = await supabase.from("event_registrations").delete().in("event_id", batch);
+    if (registrations.error) return { ok: false, error: registrations.error.message };
+    const events = await supabase.from("events").delete().in("id", batch);
+    if (events.error) return { ok: false, error: events.error.message };
+  }
+  return { ok: true, count: ids.length };
 }
