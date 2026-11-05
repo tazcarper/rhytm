@@ -4,10 +4,12 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createGitHubIssuesClient } from "@/lib/github/issues-client";
-import { approveFeatureBuild, requestFeatureBuild, sendFeatureBuildFeedback } from "@/src/services/ai/feature-builds";
+import { approveFeatureBuild, buildIssueFor, requestFeatureBuild, sendFeatureBuildFeedback } from "@/src/services/ai/feature-builds";
 import {
   CAPABILITY_REQUEST_STATUSES,
+  createProblemReport,
   getCapabilityRequests,
+  liveFeatures,
   markCapabilityRequestDuplicate,
   updateCapabilityRequestStatus,
   type CapabilityRequestStatus,
@@ -68,11 +70,12 @@ export async function buildFeatureRequestAction(input: unknown): Promise<{ ok: t
   const github = createGitHubIssuesClient();
   if (!github) return { ok: false, error: "Build it isn't set up yet (GitHub token missing in Vercel)." };
 
-  const row = (await getCapabilityRequests(supabase)).find((request) => request.id === parsed.data.id);
+  const rows = await getCapabilityRequests(supabase);
+  const row = rows.find((request) => request.id === parsed.data.id);
   if (!row) return { ok: false, error: "That request is gone." };
   if (row.build && row.build.pullRequest?.state !== "closed") return { ok: false, error: "It's already being built." };
 
-  const result = await requestFeatureBuild(supabase, github, row);
+  const result = await requestFeatureBuild(supabase, github, row, buildIssueFor(row, rows));
   if (result.ok) revalidatePath("/admin/events/feature-requests");
   return result;
 }
@@ -109,4 +112,37 @@ export async function approveBuildAction(input: unknown): Promise<{ ok: true } |
   const result = await approveFeatureBuild(github, row.build);
   if (result.ok) revalidatePath("/admin/events", "layout");
   return result;
+}
+
+// "Report a problem": staff describe what's broken in a live feature. It's
+// saved as a fix request and Claude starts on it straight away.
+const ProblemSchema = z.object({
+  featureId: z.string().uuid().nullable(),
+  problem: z.string().trim().min(10).max(2000),
+});
+
+export async function reportProblemAction(input: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
+  const parsed = ProblemSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Describe the problem in a sentence or two." };
+  const supabase = await createServerSupabaseClient();
+  if (!(await isAdmin(supabase))) return { ok: false, error: "Only admins can do this." };
+  const github = createGitHubIssuesClient();
+  if (!github) return { ok: false, error: "Automatic fixing isn't switched on yet. Ask your developer." };
+
+  const before = await getCapabilityRequests(supabase);
+  const feature = parsed.data.featureId ? liveFeatures(before).find((row) => row.id === parsed.data.featureId) : null;
+  if (parsed.data.featureId && !feature) return { ok: false, error: "That feature is gone. Pick another, or choose Not sure." };
+
+  const saved = await createProblemReport(supabase, {
+    fixes: feature ? { id: feature.id, summary: feature.summary } : null,
+    problem: parsed.data.problem,
+  });
+  if (!saved.ok) return saved;
+
+  const rows = await getCapabilityRequests(supabase);
+  const report = rows.find((row) => row.id === saved.id);
+  if (!report) return { ok: false, error: "It was saved but couldn't be found. Press Build it on it under Feature requests." };
+  const result = await requestFeatureBuild(supabase, github, report, buildIssueFor(report, rows));
+  revalidatePath("/admin/events/feature-requests");
+  return result.ok ? { ok: true } : { ok: false, error: `It was saved, but Claude couldn't start: ${result.error}` };
 }

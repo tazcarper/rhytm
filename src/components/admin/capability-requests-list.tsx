@@ -72,6 +72,11 @@ function RequestCard({
     <Card padding="default" elevation="soft">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
+          {row.fix && (
+            <p className="mb-1 text-micro uppercase tracking-label text-accent-error">
+              Problem report{row.fix.feature ? ` · fixes “${row.fix.feature.summary}”` : ""}
+            </p>
+          )}
           <p className="text-[15px] font-semibold text-olive">{row.summary}</p>
           <p className="mt-1 text-[14px] text-gray">&ldquo;{row.ownerWords}&rdquo;</p>
           {timesAsked > 1 && (
@@ -164,7 +169,7 @@ export function CapabilityRequestsList({ rows, canBuild }: { rows: ReadonlyArray
         <RequestCard
           key={row.id}
           row={row}
-          others={rows.filter((other) => other.id !== row.id && other.status !== "declined")}
+          others={rows.filter((other) => other.id !== row.id && other.status !== "declined" && !other.fix && !row.fix)}
           canBuild={canBuild}
         />
       ))}
