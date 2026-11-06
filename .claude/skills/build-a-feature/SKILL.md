@@ -5,6 +5,9 @@ description: Use when a client (or anyone in client-contributor mode) asks for s
 
 # Build a feature (client-contributor mode)
 
+> Building an admin screen? Its form follows the **`dashboard-forms`** skill
+> (`.claude/skills/dashboard-forms/SKILL.md`) so it matches every other dashboard form.
+
 This skill helps turn a **non-technical client's plain-language request** for a real
 feature into a clean, reviewable pull request — when the request is bigger than a
 restyle or copy edit, but still safe for a client to drive because the risky parts

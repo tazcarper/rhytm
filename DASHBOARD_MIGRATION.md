@@ -97,7 +97,13 @@ it proves tables, dialogs, badges, and brand fidelity in one real view.
 - [ ] Estimates list + Bookings list → `<DataTable>`.
 - [ ] Instructors list; keep the custom schedule grid for now (Phase 4).
 
-### Phase 3 — Forms & overlays sweep  ⬜
+### Phase 3 — Forms & overlays sweep  🟨
+- [x] Shared form look (2026-11-06, PR #35): `src/components/admin/form-styles.module.css`
+      is the single source for labels, inputs, help, headings, widths and add-row buttons;
+      admin CSS modules compose it and Tailwind-only forms import it. Rules in
+      `.claude/skills/dashboard-forms/SKILL.md`. Left: catalog serif panel titles + small
+      help, uppercase `lib/ui` buttons on dashboard forms, short number/price boxes
+      outside the event builder.
 - [ ] Form stack (Taz, 2026-11-04): shadcn form parts (`src/components/ui/field.tsx`
       Field/FieldLabel/FieldDescription/FieldError, Input/Textarea/NativeSelect, plus
       Label, Select, Checkbox, Radio group, Switch, Popover) + React Hook Form +
