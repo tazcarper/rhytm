@@ -9,7 +9,7 @@ import { cn } from "./utils";
 // error layout for every form. Two sizes:
 //   - "default": the dashboard's compact look
 //   - "lg": the event pages' larger look (see event-flow.module.css and the
-//     event-pages-look decision): sentence-case 18px labels, 17px hints
+//     event-pages-look decision): 20px group legends, 17px labels, 17px hints
 // The size is set once on <FieldGroup> (or a lone <Field>) and read by the
 // parts through context, so a form can't mix sizes by accident.
 
@@ -74,7 +74,7 @@ const labelVariants = cva("font-sans leading-snug text-olive-darker group-data-[
   variants: {
     size: {
       default: "text-sm font-medium",
-      lg: "text-[18px] font-semibold",
+      lg: "text-[17px] font-semibold text-olive",
     },
   },
   defaultVariants: { size: "default" },
@@ -131,8 +131,10 @@ function FieldSet({ className, ...props }: React.ComponentProps<"fieldset">) {
   return <fieldset data-slot="field-set" className={cn("m-0 flex min-w-0 flex-col gap-3 border-0 p-0", className)} {...props} />;
 }
 
+// A legend heads a group of fields, so it sits a clear step above their
+// labels (bigger and bolder), matching .groupTitle on the event pages.
 const legendVariants = cva("mb-1 p-0 font-sans text-olive-darker", {
-  variants: { size: { default: "text-sm font-semibold", lg: "text-[18px] font-bold" } },
+  variants: { size: { default: "text-base font-bold", lg: "text-[20px] font-bold" } },
   defaultVariants: { size: "default" },
 });
 

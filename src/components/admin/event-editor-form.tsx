@@ -35,6 +35,7 @@ import { EventImageInput } from "./event-image-input";
 import { EventLivePreview, type EventPreviewData } from "./event-live-preview";
 import { InProgressIndicator } from "./in-progress-indicator";
 import { InfoTip } from "@/src/components/ui/info-tip";
+import { EventOptionPanel } from "./event-option-panel";
 import { RecurringDatesEditor } from "./recurring-dates-editor";
 import s from "./event-flow.module.css";
 import h from "./event-flow.module.css";
@@ -295,10 +296,21 @@ export function EventEditorForm({
   const [memberPrice, setMemberPrice] = useState(event.memberPrice != null ? String(event.memberPrice) : "");
   const [nonMemberPrice, setNonMemberPrice] = useState(event.nonMemberPrice != null ? String(event.nonMemberPrice) : "");
   const [priceChangeOn, setPriceChangeOn] = useState(event.priceChangeOn ?? "");
+  // Early-bird pricing is an option panel: open when the event has a price
+  // change. Switching it off clears the fields so nothing hidden is saved.
+  const [earlyBirdOn, setEarlyBirdOn] = useState(Boolean(event.priceChangeOn));
   const [memberPriceAfter, setMemberPriceAfter] = useState(event.memberPriceAfter != null ? String(event.memberPriceAfter) : "");
   const [nonMemberPriceAfter, setNonMemberPriceAfter] = useState(
     event.nonMemberPriceAfter != null ? String(event.nonMemberPriceAfter) : "",
   );
+  const toggleEarlyBird = (on: boolean) => {
+    setEarlyBirdOn(on);
+    if (!on) {
+      setPriceChangeOn("");
+      setMemberPriceAfter("");
+      setNonMemberPriceAfter("");
+    }
+  };
   const [status, setStatus] = useState<EventStatus>(event.status);
   const [isManuallySoldOut, setIsManuallySoldOut] = useState(event.isManuallySoldOut);
   const [isTemplate, setIsTemplate] = useState(event.isTemplate);
@@ -823,7 +835,9 @@ export function EventEditorForm({
               )}
             </div>
 
-            <div hidden={active !== "spots"} className="flex flex-col gap-10">
+            <div hidden={active !== "spots"} className="flex flex-col gap-14">
+              <section className={s.section}>
+                <h3 className={s.subhead}>Spots</h3>
               <div className={h.grid2}>
                 <label className={s.field}>
                   <span className={s.label}>Total spots</span>
@@ -846,8 +860,24 @@ export function EventEditorForm({
                   />
                 </label>
               </div>
+              <div className="flex flex-col gap-2">
+              <label className={s.field}>
+                <span className={s.label}>Who it's for</span>
+                <select
+                  value={audience}
+                  onChange={(evt) => setAudience(evt.target.value as EventAudience)}
+                  className={s.input}
+                >
+                  <option value="members_and_public">Members and the public</option>
+                  <option value="members_only">Members only</option>
+                </select>
+              </label>
+              <p className="text-[15px] text-gray">“Who it's for” only labels the event. Anyone can still sign up.</p>
+              </div>
+              </section>
               <EventExtrasFields value={extrasState} onChange={setExtrasState} parts={["tickets"]} />
-              <div className="flex flex-col gap-4">
+              <section className={s.section}>
+                <h3 className={s.subhead}>Price</h3>
               <div className={h.grid2}>
                 <label className={s.field}>
                   <span className={s.label}>Member price</span>
@@ -890,15 +920,21 @@ export function EventEditorForm({
                   price to $0, and the event shows as included with membership.
                 </InfoTip>
               </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <span className={s.label}>Price changes later</span>
-                  <InfoTip label="How do price changes work?">
-                    Use this for early-bird pricing, e.g. $65 before December 1 and $85 from then on. Put the early
-                    price in the price boxes above; the new price takes over automatically on the date you pick.
-                    Leave blank for a price that stays the same.
-                  </InfoTip>
+              </section>
+              <section className={s.section}>
+                <div className={s.sectionHead}>
+                  <h3 className={s.subhead}>Pricing options</h3>
+                  <p className={s.sectionDesc}>Extras most events don&apos;t need. Switch one on to set it up.</p>
                 </div>
+                <EventOptionPanel
+                  title="Early-bird pricing"
+                  summary="The price goes up on a date you pick, e.g. $65 before December 1 and $85 from then on."
+                  on={earlyBirdOn}
+                  onToggle={toggleEarlyBird}
+                >
+                  <p className={s.sectionDesc}>
+                    Put the early price in the price boxes above. The new price takes over automatically on this date.
+                  </p>
                 <div className={h.grid2}>
                   <label className={s.field}>
                     <span className={s.label}>New price starts on</span>
@@ -936,22 +972,8 @@ export function EventEditorForm({
                     </label>
                   )}
                 </div>
-              </div>
-              </div>
-              <div className="flex flex-col gap-2">
-              <label className={s.field}>
-                <span className={s.label}>Who it's for</span>
-                <select
-                  value={audience}
-                  onChange={(evt) => setAudience(evt.target.value as EventAudience)}
-                  className={s.input}
-                >
-                  <option value="members_and_public">Members and the public</option>
-                  <option value="members_only">Members only</option>
-                </select>
-              </label>
-              <p className="text-[15px] text-gray">“Who it's for” only labels the event. Anyone can still sign up.</p>
-              </div>
+                </EventOptionPanel>
+              </section>
             </div>
 
             <div hidden={active !== "guests"}>
@@ -981,8 +1003,7 @@ export function EventEditorForm({
                 <div className="flex gap-2 mb-3">
                   <Button
                     type="button"
-                    variant="ghost"
-                    size="sm"
+                    variant="add"
                     onClick={() =>
                       setInfoBoxes([
                         ...infoBoxes,
@@ -990,7 +1011,7 @@ export function EventEditorForm({
                       ])
                     }
                   >
-                    + What to expect
+                    What to expect
                   </Button>
                 </div>
                 <EventInfoBoxEditor boxes={infoBoxes} onChange={setInfoBoxes} />

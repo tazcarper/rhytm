@@ -199,7 +199,7 @@ export function EventExtrasFields({
         ))}
         <Button
           type="button"
-          variant="secondary"
+          variant="add"
           className="mt-5"
           onClick={() => setTickets([...tickets, { key: nextKey(), name: "", price: "0", description: "" }])}
         >
@@ -291,7 +291,7 @@ export function EventExtrasFields({
         ))}
         <Button
           type="button"
-          variant="secondary"
+          variant="add"
           className="mt-5"
           onClick={() =>
             setGear([
@@ -373,7 +373,7 @@ export function EventExtrasFields({
         ))}
         <Button
           type="button"
-          variant="secondary"
+          variant="add"
           className="mt-5"
           onClick={() =>
             setQuestions([

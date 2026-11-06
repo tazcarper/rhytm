@@ -156,7 +156,7 @@ export function EventInfoBoxEditor({ boxes, onChange }: EventInfoBoxEditorProps)
                     </Button>
                   </div>
                 ))}
-                <Button type="button" variant="secondary" size="sm" onClick={() => addItem(box.key)}>
+                <Button type="button" variant="add" onClick={() => addItem(box.key)}>
                   Add a bullet point
                 </Button>
               </div>
@@ -166,11 +166,11 @@ export function EventInfoBoxEditor({ boxes, onChange }: EventInfoBoxEditorProps)
       ))}
 
       <div className="flex gap-2">
-        <Button type="button" variant="secondary" onClick={() => addBox("description")}>
-          + Text box
+        <Button type="button" variant="add" onClick={() => addBox("description")}>
+          Text box
         </Button>
-        <Button type="button" variant="secondary" onClick={() => addBox("list")}>
-          + List of items
+        <Button type="button" variant="add" onClick={() => addBox("list")}>
+          List of items
         </Button>
       </div>
     </div>

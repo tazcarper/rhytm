@@ -11,12 +11,18 @@
   gap: 8px;
 }
 
+/* Type hierarchy for the event pages (largest to smallest):
+   step title 30/700 → section heading (.subhead) 24/700 → group heading
+   (.groupTitle) 20/700 → field label (.label) 17/600 in olive. Input text
+   stays 18px so what staff type reads larger than its label, and helper
+   text is 17px regular gray. Each level differs by size AND weight or
+   colour, so a group heading never looks like the labels under it. */
 .label {
   font-family: var(--sans);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
   line-height: 1.3;
-  color: var(--olive-darker);
+  color: var(--olive);
 }
 
 .input {
@@ -95,12 +101,42 @@ textarea.input {
 
 .subhead {
   font-family: var(--sans);
-  font-size: 21px;
-  line-height: 1.3;
+  font-size: 24px;
+  line-height: 1.25;
   font-weight: 700;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.01em;
   color: var(--olive-darker);
   margin: 0 0 4px;
+}
+
+.groupTitle {
+  font-family: var(--sans);
+  font-size: 20px;
+  line-height: 1.3;
+  font-weight: 700;
+  color: var(--olive-darker);
+  margin: 0;
+}
+
+.sectionDesc {
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--gray);
+  margin: 0;
+  max-width: 62ch;
+}
+
+/* A step's sections: heading, optional description, then the fields. */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sectionHead {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .eyebrow {
@@ -316,12 +352,13 @@ textarea.input {
   cursor: default;
 }
 
+/* Not white with a grey border: that's what a text box looks like. */
 .secondary {
   min-height: 56px;
   padding: 0 24px;
   border-radius: 10px;
-  border: 2px solid var(--gray-light);
-  background: #ffffff;
+  border: 2px solid var(--olive);
+  background: var(--paper-warm);
   color: var(--olive-darker);
   font-family: var(--sans);
   font-size: 18px;
@@ -330,7 +367,57 @@ textarea.input {
 }
 
 .secondary:hover {
+  background: var(--cream);
+}
+
+.add {
+  min-height: 52px;
+  padding: 0 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  border-radius: 10px;
+  border: 2px dashed var(--tan);
+  background: transparent;
+  color: var(--olive);
+  font-family: var(--sans);
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.add:hover {
   border-color: var(--olive);
+  background: var(--paper-warm);
+}
+
+/* An optional feature on a step (e.g. early-bird pricing): a card with a
+   switch; its fields only show when it's on. */
+.option {
+  border: 2px solid var(--gray-light);
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.optionOn {
+  border-color: var(--olive);
+}
+
+.optionHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 20px;
+  cursor: pointer;
+}
+
+.optionBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border-top: 1px solid var(--gray-light);
 }
 
 .quiet {
