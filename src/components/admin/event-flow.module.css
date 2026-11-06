@@ -456,3 +456,112 @@ textarea.input {
   background: var(--cream);
   font-weight: 700;
 }
+
+/* Field widths follow what goes in them (Baymard, GOV.UK "input width"):
+   a short box tells staff a short answer is expected, and short fields sit
+   side by side in a .row instead of stretching across the card. Text
+   fields like the name and description stay full width. */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 20px 32px;
+}
+
+/* The field is as wide as its label or its box, whichever is wider. */
+.fit {
+  width: max-content;
+  max-width: 100%;
+}
+
+.wCount {
+  width: 8rem;
+}
+
+.wMoney {
+  width: 10rem;
+}
+
+.wDate {
+  width: 13rem;
+}
+
+/* "$" sits inside the box so labels don't need "($)". */
+.money {
+  position: relative;
+  display: block;
+}
+
+.money::before {
+  content: "$";
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--sans);
+  font-size: 18px;
+  color: var(--gray);
+  pointer-events: none;
+}
+
+.money > .input {
+  padding-left: 32px;
+}
+
+.hint {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--gray);
+}
+
+/* Two or three choices: show them all as a segmented toggle, not a
+   dropdown that hides them. */
+.segmented {
+  display: inline-flex;
+  align-self: flex-start;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 4px;
+  gap: 4px;
+  border: 2px solid var(--gray-light);
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.segment {
+  position: relative;
+}
+
+.segment input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.segment span {
+  display: block;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--olive);
+}
+
+.segment input:checked + span {
+  background: var(--olive);
+  color: #ffffff;
+}
+
+.segment input:focus-visible + span {
+  outline: 3px solid rgba(63, 74, 33, 0.35);
+  outline-offset: 1px;
+}
+
+.segment input:not(:checked):hover + span {
+  background: var(--paper-warm);
+}

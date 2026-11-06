@@ -38,6 +38,7 @@ import { InfoTip } from "@/src/components/ui/info-tip";
 import { EventOptionPanel } from "./event-option-panel";
 import { RecurringDatesEditor } from "./recurring-dates-editor";
 import s from "./event-flow.module.css";
+import { CountField, DateField, MoneyField, SegmentedChoice } from "./event-flow-fields";
 import h from "./event-flow.module.css";
 
 interface PropertyOption {
@@ -838,74 +839,40 @@ export function EventEditorForm({
             <div hidden={active !== "spots"} className="flex flex-col gap-14">
               <section className={s.section}>
                 <h3 className={s.subhead}>Spots</h3>
-              <div className={h.grid2}>
-                <label className={s.field}>
-                  <span className={s.label}>Total spots</span>
-                  <input
-                    type="number"
-                    min={1}
-                    value={maxCapacity}
-                    onChange={(evt) => setMaxCapacity(evt.target.value)}
-                    className={s.input}
-                  />
-                </label>
-                <label className={s.field}>
-                  <span className={s.label}>Most people one person can sign up</span>
-                  <input
-                    type="number"
-                    min={1}
+                <div className={s.row}>
+                  <CountField label="Total spots" value={maxCapacity} onChange={setMaxCapacity} />
+                  <CountField
+                    label="Most one person can book"
                     value={maxGuestsPerRegistration}
-                    onChange={(evt) => setMaxGuestsPerRegistration(evt.target.value)}
-                    className={s.input}
+                    onChange={setMaxGuestsPerRegistration}
                   />
-                </label>
-              </div>
-              <div className="flex flex-col gap-2">
-              <label className={s.field}>
-                <span className={s.label}>Who it's for</span>
-                <select
-                  value={audience}
-                  onChange={(evt) => setAudience(evt.target.value as EventAudience)}
-                  className={s.input}
-                >
-                  <option value="members_and_public">Members and the public</option>
-                  <option value="members_only">Members only</option>
-                </select>
-              </label>
-              <p className="text-[15px] text-gray">“Who it's for” only labels the event. Anyone can still sign up.</p>
-              </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <SegmentedChoice<EventAudience>
+                    label="Who it's for"
+                    name="audience"
+                    value={audience}
+                    onChange={setAudience}
+                    options={[
+                      { value: "members_and_public", label: "Members and the public" },
+                      { value: "members_only", label: "Members only" },
+                    ]}
+                  />
+                  <p className={s.hint}>This only labels the event. Anyone can still sign up.</p>
+                </div>
               </section>
               <EventExtrasFields value={extrasState} onChange={setExtrasState} parts={["tickets"]} />
               <section className={s.section}>
                 <h3 className={s.subhead}>Price</h3>
-              <div className={h.grid2}>
-                <label className={s.field}>
-                  <span className={s.label}>Member price</span>
-                  <input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    value={memberPrice}
-                    onChange={(evt) => handleMemberPriceChange(evt.target.value)}
-                    className={s.input}
-                    placeholder="Leave blank if free"
-                  />
-                </label>
-                {showNonMemberPrice && (
-                  <label className={s.field}>
-                    <span className={s.label}>Non-member price</span>
-                    <input
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      value={nonMemberPrice}
-                      onChange={(evt) => setNonMemberPrice(evt.target.value)}
-                      className={s.input}
-                      placeholder="Leave blank if free"
-                    />
-                  </label>
-                )}
-              </div>
+                <div className="flex flex-col gap-2">
+                  <div className={s.row}>
+                    <MoneyField label="Member price" value={memberPrice} onChange={handleMemberPriceChange} />
+                    {showNonMemberPrice && (
+                      <MoneyField label="Non-member price" value={nonMemberPrice} onChange={setNonMemberPrice} />
+                    )}
+                  </div>
+                  <p className={s.hint}>Leave a price blank if it&apos;s free.</p>
+                </div>
               <div className="flex items-center gap-2">
                 <label className="flex items-center gap-2.5">
                   <input
@@ -933,45 +900,22 @@ export function EventEditorForm({
                   onToggle={toggleEarlyBird}
                 >
                   <p className={s.sectionDesc}>
-                    Put the early price in the price boxes above. The new price takes over automatically on this date.
+                    The prices above are the early prices. On this date they change to the new ones.
                   </p>
-                <div className={h.grid2}>
-                  <label className={s.field}>
-                    <span className={s.label}>New price starts on</span>
-                    <input
-                      type="date"
-                      value={priceChangeOn}
-                      onChange={(evt) => setPriceChangeOn(evt.target.value)}
-                      className={s.input}
-                    />
-                  </label>
-                  <label className={s.field}>
-                    <span className={s.label}>Member price from then</span>
-                    <input
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      value={memberPriceAfter}
-                      onChange={(evt) => setMemberPriceAfter(evt.target.value)}
-                      className={s.input}
-                      placeholder="Leave blank if unchanged"
-                    />
-                  </label>
-                  {showNonMemberPrice && (
-                    <label className={s.field}>
-                      <span className={s.label}>Non-member price from then</span>
-                      <input
-                        type="number"
-                        min={0}
-                        step="0.01"
-                        value={nonMemberPriceAfter}
-                        onChange={(evt) => setNonMemberPriceAfter(evt.target.value)}
-                        className={s.input}
-                        placeholder="Leave blank if unchanged"
-                      />
-                    </label>
-                  )}
-                </div>
+                  <div className="flex flex-col gap-2">
+                    <div className={s.row}>
+                      <DateField label="New price starts on" value={priceChangeOn} onChange={setPriceChangeOn} />
+                      <MoneyField label="New member price" value={memberPriceAfter} onChange={setMemberPriceAfter} />
+                      {showNonMemberPrice && (
+                        <MoneyField
+                          label="New non-member price"
+                          value={nonMemberPriceAfter}
+                          onChange={setNonMemberPriceAfter}
+                        />
+                      )}
+                    </div>
+                    <p className={s.hint}>Leave a new price blank to keep it the same.</p>
+                  </div>
                 </EventOptionPanel>
               </section>
             </div>

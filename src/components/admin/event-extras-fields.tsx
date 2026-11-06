@@ -162,7 +162,7 @@ export function EventExtrasFields({
       <section>
         <h3 className={s.subhead}>Ticket options</h3>
         {tickets.map((ticket) => (
-          <div key={ticket.key} className="mt-6 grid gap-4 sm:grid-cols-[minmax(0,2.2fr)_minmax(6rem,1fr)_minmax(0,2.6fr)_auto] items-end">
+          <div key={ticket.key} className="mt-6 grid gap-4 sm:grid-cols-[minmax(0,1fr)_9rem_minmax(0,1.3fr)_auto] items-end">
             <label className={s.field}>
               <span className={s.label}>Name</span>
               <input
@@ -173,15 +173,17 @@ export function EventExtrasFields({
               />
             </label>
             <label className={s.field}>
-              <span className={s.label}>Price ($)</span>
-              <input
-                className={s.input}
-                type="number"
-                min="0"
-                step="0.01"
-                value={ticket.price}
-                onChange={(evt) => setTickets(update(tickets, ticket.key, { price: evt.target.value }))}
-              />
+              <span className={s.label}>Price</span>
+              <span className={s.money}>
+                <input
+                  className={s.input}
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={ticket.price}
+                  onChange={(evt) => setTickets(update(tickets, ticket.key, { price: evt.target.value }))}
+                />
+              </span>
             </label>
             <label className={s.field}>
               <span className={s.label}>Details</span>
@@ -214,7 +216,7 @@ export function EventExtrasFields({
         {gearPicker}
         {gear.map((item) => (
           <div key={item.key} className="mt-6 rounded-[12px] border border-rule-strong p-5">
-            <div className="grid gap-4 sm:grid-cols-[minmax(0,2fr)_minmax(6rem,1fr)_minmax(6rem,1fr)_auto] items-end">
+            <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_10rem_10rem_auto] items-end">
               <label className={s.field}>
                 <span className={s.label}>Item</span>
                 <input
@@ -225,28 +227,32 @@ export function EventExtrasFields({
                 />
               </label>
               <label className={s.field}>
-                <span className={s.label}>Rental price ($)</span>
-                <input
-                  className={s.input}
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={item.rentPrice}
-                  placeholder="Leave blank if not offered"
-                  onChange={(evt) => setGear(update(gear, item.key, { rentPrice: evt.target.value }))}
-                />
+                <span className={s.label}>Rental price</span>
+                <span className={s.money}>
+                  <input
+                    className={s.input}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={item.rentPrice}
+                    placeholder="None"
+                    onChange={(evt) => setGear(update(gear, item.key, { rentPrice: evt.target.value }))}
+                  />
+                </span>
               </label>
               <label className={s.field}>
-                <span className={s.label}>Price to buy ($)</span>
-                <input
-                  className={s.input}
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={item.buyPrice}
-                  placeholder="Leave blank if not offered"
-                  onChange={(evt) => setGear(update(gear, item.key, { buyPrice: evt.target.value }))}
-                />
+                <span className={s.label}>Price to buy</span>
+                <span className={s.money}>
+                  <input
+                    className={s.input}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={item.buyPrice}
+                    placeholder="None"
+                    onChange={(evt) => setGear(update(gear, item.key, { buyPrice: evt.target.value }))}
+                  />
+                </span>
               </label>
               <Button type="button" variant="ghost" onClick={() => setGear(gear.filter((g) => g.key !== item.key))}>
                 Remove
