@@ -24,11 +24,13 @@ export default async function ReportProblemPage() {
       <Heading level={1} size="h2" underline>
         Report a problem
       </Heading>
-      <Text className="mb-6 mt-2">
-        Something Claude added to the site isn&apos;t working right? Tell it what&apos;s happening. Claude looks back at
-        how that feature was built and what&apos;s changed since, finds the cause, and fixes it. You&apos;ll try the fix
-        on a test copy of the site before it goes live, the same way as a new feature.
-      </Text>
+      <div className="mb-8 mt-4 max-w-[70ch]">
+        <Text>
+          Something Claude added to the site isn&apos;t working right? Tell it what&apos;s happening. Claude looks back at
+          how that feature was built and what&apos;s changed since, finds the cause, and fixes it. You&apos;ll preview
+          the fix on a test copy of the site before it goes live, the same way as a new feature.
+        </Text>
+      </div>
       <ReportProblemForm features={features.map((row) => ({ id: row.id, summary: row.summary }))} canFix={canFix} />
     </PageShell>
   );

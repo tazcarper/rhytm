@@ -73,35 +73,35 @@ function RequestCard({
 
   return (
     <Card padding="default" elevation="soft">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-4">
         <div className="min-w-0 flex-1">
           {row.fix && (
-            <p className="mb-1 text-micro uppercase tracking-label text-accent-error">
+            <p className="mb-2 text-eyebrow font-semibold uppercase tracking-eyebrow text-accent-error">
               Problem report{row.fix.feature ? ` · fixes “${row.fix.feature.summary}”` : ""}
             </p>
           )}
-          <p className="text-[15px] font-semibold text-olive">{row.summary}</p>
-          <p className="mt-1 text-[14px] text-gray">&ldquo;{row.ownerWords}&rdquo;</p>
+          <h2 className="max-w-[60ch] font-serif text-h3 font-semibold leading-tight text-olive-darker">{row.summary}</h2>
+          <p className="mt-2 max-w-[70ch] text-body italic leading-body text-olive">&ldquo;{row.ownerWords}&rdquo;</p>
           {timesAsked > 1 && (
-            <div className="mt-2">
-              <p className="text-micro uppercase tracking-label text-gray">Asked {timesAsked} times</p>
-              <ul className="mt-1 flex flex-col gap-1">
+            <div className="mt-5">
+              <p className="text-eyebrow font-semibold uppercase tracking-eyebrow text-tan">Asked {timesAsked} times</p>
+              <ul className="mt-2 flex flex-col gap-1.5">
                 {row.alsoAsked.map((ask) => (
-                  <li key={ask.id} className="text-[14px] text-gray">
-                    &ldquo;{ask.ownerWords}&rdquo; <span className="text-micro">· {shortDate(ask.createdAt)}</span>
+                  <li key={ask.id} className="max-w-[70ch] text-body leading-body text-olive">
+                    &ldquo;{ask.ownerWords}&rdquo; <span className="text-micro text-gray">· {shortDate(ask.createdAt)}</span>
                   </li>
                 ))}
               </ul>
             </div>
           )}
         </div>
-        <label className="flex flex-col gap-1 text-micro uppercase tracking-label text-gray">
+        <label className="flex w-full flex-col gap-2 sm:w-64 text-eyebrow font-semibold uppercase tracking-eyebrow text-tan">
           Status
           <select
             value={status}
             onChange={(evt) => change(evt.target.value as CapabilityRequestStatus)}
             disabled={isPending}
-            className="h-9 rounded-[6px] border border-rule-strong bg-white px-2 text-[14px] normal-case tracking-normal text-olive-darker"
+            className="h-10 w-full rounded-[2px] border border-rule-strong bg-white px-3 text-body font-normal normal-case tracking-normal text-olive-darker"
           >
             {STATUS_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -112,13 +112,13 @@ function RequestCard({
         </label>
       </div>
       {row.events.length > 0 && (
-        <div className="mt-3">
-          <p className="text-micro uppercase tracking-label text-gray">Holding up</p>
-          <ul className="mt-1 flex flex-col gap-1">
+        <div className="mt-6">
+          <p className="text-eyebrow font-semibold uppercase tracking-eyebrow text-tan">Holding up</p>
+          <ul className="mt-2 flex flex-col gap-2">
             {row.events.map((event) => (
-              <li key={event.id} className="flex items-center gap-2 text-[14px]">
+              <li key={event.id} className="flex items-center gap-3 text-body leading-snug">
                 <EventStatusBadge status={event.status as EventStatus} />
-                <Link href={`/admin/events/${event.id}`} className="text-olive underline">
+                <Link href={`/admin/events/${event.id}`} className="text-olive underline decoration-tan underline-offset-4 hover:text-olive-darker">
                   {event.title}
                 </Link>
               </li>
@@ -136,13 +136,13 @@ function RequestCard({
         />
       )}
       {others.length > 0 && (
-        <label className="mt-3 flex flex-wrap items-center gap-2 text-[14px] text-gray">
+        <label className="mt-6 flex flex-wrap items-center gap-3 text-body text-olive">
           Same as another request?
           <select
             value=""
             onChange={(evt) => merge(evt.target.value)}
             disabled={isPending}
-            className="h-9 max-w-full rounded-[6px] border border-rule-strong bg-white px-2 text-[14px] text-olive-darker"
+            className="h-10 max-w-full rounded-[2px] border border-rule-strong bg-white px-3 text-body text-olive-darker"
           >
             <option value="">Choose one to merge into…</option>
             {others.map((other) => (
@@ -153,8 +153,8 @@ function RequestCard({
           </select>
         </label>
       )}
-      {error && <p className="mt-2 text-[14px] font-semibold text-accent-error">Couldn&apos;t change it: {error}</p>}
-      <p className="mt-2 text-micro text-gray">
+      {error && <p className="mt-4 text-body font-semibold text-accent-error">Couldn&apos;t change it: {error}</p>}
+      <p className="mt-6 border-t border-rule pt-4 text-micro text-gray">
         {row.propertyName ?? "No property"} · {shortDate(row.createdAt)}
       </p>
     </Card>
@@ -174,7 +174,7 @@ export function CapabilityRequestsList({
   if (rows.length === 0) {
     return (
       <Card padding="default" elevation="soft">
-        <p className="text-[14px] text-gray">
+        <p className="text-body leading-body text-olive">
           No feature requests yet. When the helper can&apos;t express something staff ask for, it shows up here.
         </p>
       </Card>
@@ -182,7 +182,7 @@ export function CapabilityRequestsList({
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-5">
       {rows.map((row) => (
         <RequestCard
           key={row.id}

@@ -43,25 +43,25 @@ const REFRESH_MS = 20_000;
 function ProgressList({ progress, title }: { progress: BuildProgress; title: string }) {
   const firstOpen = progress.steps.findIndex((step) => !step.done);
   return (
-    <div className="mt-3 rounded-[12px] border border-rule bg-white p-4">
-      <p className="m-0 text-micro uppercase tracking-label text-gray">{title}</p>
+    <div className="mt-4 rounded-[4px] border border-rule bg-white px-5 py-4">
+      <p className="m-0 text-eyebrow font-semibold uppercase tracking-eyebrow text-tan">{title}</p>
       {progress.steps.length === 0 ? (
-        <p className="m-0 mt-2 text-[14px] text-gray">Claude is getting started and will list its steps here.</p>
+        <p className="m-0 mt-3 text-body leading-body text-olive">Claude is getting started and will list its steps here.</p>
       ) : (
-        <ul className="m-0 mt-2 flex list-none flex-col gap-1.5 p-0">
+        <ul className="m-0 mt-3 flex list-none flex-col gap-2 p-0">
           {progress.steps.map((step, index) => {
             const current = progress.state === "working" && index === firstOpen;
             return (
-              <li key={index} className="flex items-start gap-2 text-[14px]">
+              <li key={index} className="flex items-start gap-3 text-body leading-body">
                 <span
                   aria-hidden
-                  className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[10px] ${
+                  className={`mt-[3px] flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border text-[11px] leading-none ${
                     step.done ? "border-olive bg-olive text-white" : current ? "border-olive" : "border-rule-strong"
                   }`}
                 >
                   {step.done ? "✓" : current ? <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-olive" /> : null}
                 </span>
-                <span className={step.done ? "text-gray" : current ? "font-semibold text-olive-darker" : "text-olive-darker"}>
+                <span className={`min-w-0 break-words ${step.done ? "text-gray" : current ? "font-semibold text-olive-darker" : "text-olive"}`}>
                   {step.text}
                   {current && <span className="sr-only"> (working on this now)</span>}
                 </span>
@@ -71,7 +71,7 @@ function ProgressList({ progress, title }: { progress: BuildProgress; title: str
         </ul>
       )}
       {progress.state === "error" && (
-        <p className="m-0 mt-2 text-[14px] font-semibold text-accent-error">
+        <p className="m-0 mt-3 text-body font-semibold text-accent-error">
           Claude ran into a problem and stopped. Ask your developer to take a look.
         </p>
       )}
@@ -96,13 +96,13 @@ function stageOf(build: FeatureBuild): BuildStage {
 
 function StepBox({ number, title, children }: { number: number; title: string; children: React.ReactNode }) {
   return (
-    <li className="flex gap-3">
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-olive text-[14px] font-semibold text-white">
+    <li className="flex gap-4">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-olive text-micro font-semibold text-white">
         {number}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="m-0 text-[15px] font-semibold text-olive-darker">{title}</p>
-        <div className="mt-1 text-[14px] text-gray">{children}</div>
+        <p className="m-0 text-body font-semibold leading-[28px] text-olive-darker">{title}</p>
+        <div className="mt-1 max-w-[70ch] text-body leading-body text-olive">{children}</div>
       </div>
     </li>
   );
@@ -150,7 +150,7 @@ function ApproveOrFix({ requestId }: { requestId: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       {mode === "choose" && (
         <>
           <span>If it works the way you want, publish it to the real site. If not, tell Claude what to change.</span>
@@ -188,7 +188,7 @@ function ApproveOrFix({ requestId }: { requestId: string }) {
               onChange={(evt) => setFeedback(evt.target.value)}
               rows={4}
               maxLength={4000}
-              className="rounded-[8px] border border-rule-strong bg-white p-2 text-[15px] text-olive-darker"
+              className="rounded-[2px] border border-rule-strong bg-white px-3 py-2.5 text-body leading-body text-olive-darker"
               placeholder="e.g. The new price shows on the event page, but the sign-up total still uses the old one."
             />
           </label>
@@ -212,7 +212,7 @@ function ApproveOrFix({ requestId }: { requestId: string }) {
 function TryItSteps({ requestId, build }: { requestId: string; build: FeatureBuild }) {
   const previewAdmin = build.previewUrl ? `${build.previewUrl}/admin/events` : null;
   return (
-    <ol className="m-0 mt-3 flex list-none flex-col gap-4 rounded-[12px] bg-paper-warm p-4">
+    <ol className="m-0 mt-4 flex list-none flex-col gap-6 rounded-[4px] bg-paper-warm px-5 py-5">
       <StepBox number={1} title="Preview it">
         {previewAdmin ? (
           <>
@@ -220,11 +220,11 @@ function TryItSteps({ requestId, build }: { requestId: string; build: FeatureBui
               href={previewAdmin}
               target="_blank"
               rel="noreferrer"
-              className="inline-block rounded-[8px] bg-olive px-4 py-2 text-[15px] font-semibold text-white no-underline"
+              className="mt-1 inline-block rounded-[2px] bg-olive px-5 py-3 text-eyebrow font-semibold uppercase tracking-button text-white no-underline hover:bg-olive-darker"
             >
               Preview it here
             </a>
-            <span className="mt-1 block">
+            <span className="mt-3 block">
               It&apos;s a copy of your site with the new feature added. It has its own test data, so nothing you do
               there changes the real site or reaches guests.
             </span>
@@ -235,7 +235,7 @@ function TryItSteps({ requestId, build }: { requestId: string; build: FeatureBui
       </StepBox>
       <StepBox number={2} title="Try it out">
         {build.testSteps.length > 0 ? (
-          <ol className="m-0 list-decimal pl-5">
+          <ol className="m-0 flex list-decimal flex-col gap-1 pl-5 marker:text-gray">
             {build.testSteps.map((step, index) => (
               <li key={index}>{step}</li>
             ))}
@@ -287,9 +287,9 @@ export function FeatureBuildControl({
   };
 
   return (
-    <div className="mt-3">
+    <div className="mt-6">
       {stage && (
-        <p className="m-0 text-[14px] text-olive-darker">
+        <p className="m-0 max-w-[70ch] text-body leading-body text-olive">
           {fixingFeedback
             ? "Claude is working on what you sent. The test site updates when it's done."
             : stage === "building" && progress && progress.state !== "working"
@@ -304,7 +304,7 @@ export function FeatureBuildControl({
         <ProgressList progress={STARTING} title="What Claude is doing" />
       )}
       {stage === "open" && build && !fixingFeedback && <TryItSteps requestId={requestId} build={build} />}
-      <div className="mt-2 flex flex-wrap items-center gap-3">
+      <div className="mt-4 flex flex-wrap items-center gap-3 empty:hidden">
         {showButton &&
           (canBuild ? (
             <Button type="button" variant="secondary" size="sm" loading={isPending} onClick={start}>
@@ -313,7 +313,7 @@ export function FeatureBuildControl({
           ) : (
             <p className="m-0 text-micro text-gray">Automatic building isn&apos;t switched on yet. Ask your developer.</p>
           ))}
-        {error && <p className="m-0 text-[14px] font-semibold text-accent-error">Couldn&apos;t start it: {error}</p>}
+        {error && <p className="m-0 text-body font-semibold text-accent-error">Couldn&apos;t start it: {error}</p>}
       </div>
     </div>
   );
