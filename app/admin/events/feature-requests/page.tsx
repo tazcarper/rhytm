@@ -13,6 +13,16 @@ export const dynamic = "force-dynamic";
 
 const BASE_PATH = "/admin/events/feature-requests";
 
+// A button's name in running text, drawn like the button itself so staff
+// can spot it on the card. Not clickable.
+function ButtonLabel({ variant, children }: { variant: "primary" | "secondary"; children: string }) {
+  return (
+    <Button asChild variant={variant} size="sm">
+      <span className="pointer-events-none mx-0.5 whitespace-nowrap !inline-flex !min-h-0 !px-2 !py-0.5 align-baseline">{children}</span>
+    </Button>
+  );
+}
+
 export default async function EventFeatureRequestsPage({
   searchParams,
 }: {
@@ -49,9 +59,12 @@ export default async function EventFeatureRequestsPage({
           Things staff asked the event helper for that the event builder can&apos;t do yet, and problems reported with
           features already live. Drafts that need a feature can&apos;t be published until it&apos;s built.
         </Text>
-        <Text>
-          Press Build it and Claude gets to work; you can follow its checklist on the card. When it&apos;s done,
-          you&apos;ll get a link to preview it on a test copy of the site, then a button to publish it.
+        {/* Taller lines so the inline button names don't crowd the rows. */}
+        <Text className="!leading-[2.1]">
+          Press <ButtonLabel variant="secondary">Build it</ButtonLabel> and Claude gets to work; you can follow its
+          checklist on the card. When it&apos;s done, use <ButtonLabel variant="primary">Preview it here</ButtonLabel> to
+          try it on a test copy of the site, then <ButtonLabel variant="primary">Publish to production</ButtonLabel> to
+          put it live.
         </Text>
       </div>
       <FeatureRequestTabs
