@@ -20,12 +20,22 @@ export interface IssueComment {
   updatedAt: string;
 }
 
+export interface PullRequestSummary {
+  number: number;
+  url: string;
+  state: "open" | "merged" | "closed";
+  body: string;
+  headRef: string;
+}
+
 export interface GitHubIssuesClient {
   createIssue(issue: NewIssue): Promise<{ ok: true; issue: CreatedIssue } | { ok: false; error: string }>;
   // Comments on an issue or pull request (they share numbers).
   addComment(number: number, body: string): Promise<{ ok: true } | { ok: false; error: string }>;
   // The latest comments on an issue or pull request (up to 100).
   listComments(number: number): Promise<{ ok: true; comments: IssueComment[] } | { ok: false; error: string }>;
+  // The most recently updated pull request whose head branch matches.
+  findPullRequest(branch: RegExp): Promise<{ ok: true; pullRequest: PullRequestSummary | null } | { ok: false; error: string }>;
   // Merges a pull request only if its head branch is still `expectedBranch`
   // (so an id mix-up can't merge the wrong one).
   mergePullRequest(number: number, expectedBranch: RegExp): Promise<{ ok: true } | { ok: false; error: string }>;
@@ -90,6 +100,31 @@ export function createGitHubIssuesClient(): GitHubIssuesClient | null {
           body: comment.body ?? "",
           updatedAt: comment.updated_at,
         })),
+      };
+    },
+    async findPullRequest(branch) {
+      const result = await send("GET", "/pulls?state=all&sort=updated&direction=desc&per_page=100");
+      if (!result.ok) return result;
+      const data = result.data as Array<{
+        number: number;
+        html_url: string;
+        state: string;
+        merged_at: string | null;
+        body: string | null;
+        head: { ref: string };
+      }>;
+      const match = data.find((pr) => branch.test(pr.head.ref));
+      return {
+        ok: true,
+        pullRequest: match
+          ? {
+              number: match.number,
+              url: match.html_url,
+              state: match.merged_at ? "merged" : match.state === "open" ? "open" : "closed",
+              body: match.body ?? "",
+              headRef: match.head.ref,
+            }
+          : null,
       };
     },
     async mergePullRequest(number, expectedBranch) {

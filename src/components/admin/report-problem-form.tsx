@@ -35,10 +35,10 @@ export function ReportProblemForm({
   if (sent) {
     return (
       <Card padding="default" elevation="soft">
-        <p className="m-0 text-[15px] font-semibold text-olive-darker">Sent to Claude. It&apos;s looking into it now.</p>
-        <p className="mt-2 text-[14px] text-gray">
+        <p className="m-0 font-serif text-h4 font-semibold leading-snug text-olive-darker">Sent to Claude. It&apos;s looking into it now.</p>
+        <p className="mt-2 max-w-[70ch] text-body leading-body text-olive">
           You can watch what it&apos;s doing, step by step, under{" "}
-          <Link href="/admin/events/feature-requests" className="text-olive underline">
+          <Link href="/admin/events/feature-requests" className="text-olive underline decoration-tan underline-offset-4">
             Feature requests
           </Link>
           . It usually takes 10 to 30 minutes. When the fix is ready, you&apos;ll find a link there to try it and a button to
@@ -50,35 +50,35 @@ export function ReportProblemForm({
 
   return (
     <Card padding="default" elevation="soft">
-      <div className="flex flex-col gap-5">
-        <fieldset className="m-0 flex flex-col gap-2 border-0 p-0">
-          <legend className="mb-2 text-[15px] font-semibold text-olive-darker">Which feature is it?</legend>
+      <div className="flex flex-col gap-8">
+        <fieldset className="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
+          <legend className="mb-3 text-eyebrow font-semibold uppercase tracking-eyebrow text-tan">Which feature is it?</legend>
           {features.map((feature) => (
-            <label key={feature.id} className="flex items-start gap-2 text-[15px] text-olive-darker">
+            <label key={feature.id} className="flex cursor-pointer items-start gap-3 text-body leading-snug text-olive-darker">
               <input
                 type="radio"
                 name="feature"
-                className="mt-1"
+                className="mt-[3px] h-4 w-4 shrink-0 accent-olive"
                 checked={featureId === feature.id}
                 onChange={() => setFeatureId(feature.id)}
               />
               {feature.summary}
             </label>
           ))}
-          <label className="flex items-start gap-2 text-[15px] text-olive-darker">
+          <label className="flex cursor-pointer items-start gap-3 text-body leading-snug text-olive-darker">
             <input
               type="radio"
               name="feature"
-              className="mt-1"
+              className="mt-[3px] h-4 w-4 shrink-0 accent-olive"
               checked={featureId === NOT_SURE}
               onChange={() => setFeatureId(NOT_SURE)}
             />
             Not sure, or something else
           </label>
         </fieldset>
-        <label className="flex flex-col gap-1">
-          <span className="text-[15px] font-semibold text-olive-darker">What&apos;s going wrong?</span>
-          <span className="text-[14px] text-gray">
+        <label className="flex flex-col gap-2">
+          <span className="text-eyebrow font-semibold uppercase tracking-eyebrow text-tan">What&apos;s going wrong?</span>
+          <span className="max-w-[70ch] text-body leading-body text-olive">
             Say what you or the guest did, what you expected, and what happened instead. Write it the way you&apos;d tell a
             coworker.
           </span>
@@ -87,7 +87,7 @@ export function ReportProblemForm({
             onChange={(evt) => setProblem(evt.target.value)}
             rows={6}
             maxLength={2000}
-            className="mt-1 rounded-[8px] border border-rule-strong bg-white p-2 text-[15px] text-olive-darker"
+            className="mt-1 rounded-[2px] border border-rule-strong bg-white px-3 py-2.5 text-body leading-body text-olive-darker"
             placeholder="e.g. The early-bird price shows on the event page, but when a guest signs up after December 1 they're still charged $65."
           />
         </label>
@@ -99,7 +99,7 @@ export function ReportProblemForm({
           ) : (
             <p className="m-0 text-micro text-gray">Automatic fixing isn&apos;t switched on yet. Ask your developer.</p>
           )}
-          {error && <p className="m-0 text-[14px] font-semibold text-accent-error">{error}</p>}
+          {error && <p className="m-0 text-body font-semibold text-accent-error">{error}</p>}
         </div>
       </div>
     </Card>
