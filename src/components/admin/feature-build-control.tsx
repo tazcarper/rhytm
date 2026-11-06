@@ -10,6 +10,7 @@ import {
 } from "@/app/admin/events/feature-request-actions";
 import type { FeatureBuild } from "@/src/services/ai/capability-requests";
 import type { BuildProgress } from "@/src/services/ai/feature-build-progress";
+import { BUILD_ACTIONS, BuildActionIcon } from "./build-actions";
 
 // The Build it control on a feature request card: the button, then where
 // Claude's build has got to, written for staff who never open GitHub:
@@ -155,8 +156,14 @@ function ApproveOrFix({ requestId }: { requestId: string }) {
         <>
           <span>If it works the way you want, publish it to the real site. If not, tell Claude what to change.</span>
           <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="primary" size="sm" onClick={() => setMode("confirm")}>
-              Publish to production
+            <Button
+              type="button"
+              variant={BUILD_ACTIONS.publish.variant}
+              size="sm"
+              leading={<BuildActionIcon action="publish" />}
+              onClick={() => setMode("confirm")}
+            >
+              {BUILD_ACTIONS.publish.label}
             </Button>
             <Button type="button" variant="secondary" size="sm" onClick={() => setMode("feedback")}>
               Something&apos;s not right
@@ -216,14 +223,12 @@ function TryItSteps({ requestId, build }: { requestId: string; build: FeatureBui
       <StepBox number={1} title="Preview it">
         {previewAdmin ? (
           <>
-            <a
-              href={previewAdmin}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-1 inline-block rounded-[2px] bg-olive px-5 py-3 text-eyebrow font-semibold uppercase tracking-button text-white no-underline hover:bg-olive-darker"
-            >
-              Preview it here
-            </a>
+            <Button asChild variant={BUILD_ACTIONS.preview.variant} size="sm">
+              <a href={previewAdmin} target="_blank" rel="noreferrer" className="mt-1 !inline-flex items-center gap-2 no-underline">
+                <BuildActionIcon action="preview" />
+                {BUILD_ACTIONS.preview.label}
+              </a>
+            </Button>
             <span className="mt-3 block">
               It&apos;s a copy of your site with the new feature added. It has its own test data, so nothing you do
               there changes the real site or reaches guests.
@@ -307,8 +312,15 @@ export function FeatureBuildControl({
       <div className="mt-4 flex flex-wrap items-center gap-3 empty:hidden">
         {showButton &&
           (canBuild ? (
-            <Button type="button" variant="secondary" size="sm" loading={isPending} onClick={start}>
-              {stage ? "Build it again" : "Build it"}
+            <Button
+              type="button"
+              variant={BUILD_ACTIONS.build.variant}
+              size="sm"
+              loading={isPending}
+              leading={<BuildActionIcon action="build" />}
+              onClick={start}
+            >
+              {stage ? "Build it again" : BUILD_ACTIONS.build.label}
             </Button>
           ) : (
             <p className="m-0 text-micro text-gray">Automatic building isn&apos;t switched on yet. Ask your developer.</p>

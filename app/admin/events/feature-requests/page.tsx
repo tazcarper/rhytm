@@ -13,6 +13,7 @@ export const dynamic = "force-dynamic";
 
 const BASE_PATH = "/admin/events/feature-requests";
 
+
 export default async function EventFeatureRequestsPage({
   searchParams,
 }: {
@@ -44,14 +45,10 @@ export default async function EventFeatureRequestsPage({
         Feature requests
       </Heading>
       {/* Text sets margin: 0 in its own CSS, so spacing lives on a wrapper. */}
-      <div className="mb-8 mt-4 flex max-w-[70ch] flex-col gap-3">
+      <div className="mb-8 mt-4 max-w-[70ch]">
         <Text>
           Things staff asked the event helper for that the event builder can&apos;t do yet, and problems reported with
           features already live. Drafts that need a feature can&apos;t be published until it&apos;s built.
-        </Text>
-        <Text>
-          Press Build it and Claude gets to work; you can follow its checklist on the card. When it&apos;s done,
-          you&apos;ll get a link to preview it on a test copy of the site, then a button to publish it.
         </Text>
       </div>
       <FeatureRequestTabs

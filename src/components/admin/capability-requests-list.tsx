@@ -20,8 +20,8 @@ const STATUS_OPTIONS: ReadonlyArray<{ value: CapabilityRequestStatus; label: str
   { value: "new", label: "New" },
   { value: "reviewing", label: "Reviewing" },
   { value: "planned", label: "Planned" },
-  { value: "built", label: "Built: drafts can use it and publish" },
-  { value: "declined", label: "Declined: won't be built" },
+  { value: "built", label: "Built" },
+  { value: "declined", label: "Declined" },
 ];
 
 const shortDate = (iso: string) =>
