@@ -66,6 +66,12 @@ export async function createProblemReport(
   return { ok: true, id: (data as { id: string }).id };
 }
 
+// Not done yet: still new, being reviewed or being built. Built and
+// declined requests are done.
+export function isOpenRequest(row: CapabilityRequestRow): boolean {
+  return row.status !== "built" && row.status !== "declined";
+}
+
 // Features that went live through Build it, newest first, for "which
 // feature is broken?". Fixes are left out.
 export function liveFeatures(rows: ReadonlyArray<CapabilityRequestRow>): CapabilityRequestRow[] {

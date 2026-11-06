@@ -165,17 +165,19 @@ export function CapabilityRequestsList({
   rows,
   canBuild,
   progress = {},
+  emptyText = "No feature requests yet. When the helper can't do something staff ask for, it shows up here.",
 }: {
   rows: ReadonlyArray<CapabilityRequestRow>;
   canBuild: boolean;
   // Claude's checklist for requests being built, keyed by request id.
   progress?: Readonly<Record<string, BuildProgress>>;
+  emptyText?: string;
 }) {
   if (rows.length === 0) {
     return (
       <Card padding="default" elevation="soft">
         <p className="text-body leading-body text-olive">
-          No feature requests yet. When the helper can&apos;t express something staff ask for, it shows up here.
+          {emptyText}
         </p>
       </Card>
     );

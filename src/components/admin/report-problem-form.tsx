@@ -38,7 +38,7 @@ export function ReportProblemForm({
         <p className="m-0 font-serif text-h4 font-semibold leading-snug text-olive-darker">Sent to Claude. It&apos;s looking into it now.</p>
         <p className="mt-2 max-w-[70ch] text-body leading-body text-olive">
           You can watch what it&apos;s doing, step by step, under{" "}
-          <Link href="/admin/events/feature-requests" className="text-olive underline decoration-tan underline-offset-4">
+          <Link href="/admin/events/feature-requests?tab=fixes" className="text-olive underline decoration-tan underline-offset-4">
             Feature requests
           </Link>
           . It usually takes 10 to 30 minutes. When the fix is ready, you&apos;ll find a link there to try it and a button to
