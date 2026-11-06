@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { PublicEventListItem } from "@/src/services/public/events";
 import { PropertyImage } from "./property-image";
 import { SectionHeading } from "./section-heading";
+import { StaffOnlyBadge, STAFF_ONLY_OUTLINE } from "@/src/components/public/property-template/staff-only-badge";
 
 interface UpcomingEventsStripProps {
   events: ReadonlyArray<PublicEventListItem>;
@@ -61,10 +62,13 @@ export function UpcomingEventsStrip({
             <Link
               key={event.id}
               href={`${basePath}/events/${event.id}`}
-              className="group block border border-property-ink/10 bg-property-surface-lowest"
+              className={`group block border border-property-ink/10 bg-property-surface-lowest ${event.staffOnlyStatus ? STAFF_ONLY_OUTLINE : ""}`}
             >
               <div className="relative aspect-[4/3] overflow-hidden">
                 <PropertyImage src={event.imageUrl} alt="" filename="events.jpg" />
+                {event.staffOnlyStatus && (
+                  <StaffOnlyBadge status={event.staffOnlyStatus} className="absolute left-4 top-4" />
+                )}
               </div>
               <div className="p-6">
                 <h3 className="property-headline mb-2 font-property-display text-xl uppercase text-property-ink">

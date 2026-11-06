@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { PublicEventListItem } from "@/src/services/public/events";
 import { PropertyImage } from "./property-image";
 import { PropertyButton } from "./property-button";
+import { StaffOnlyBadge, STAFF_ONLY_OUTLINE } from "@/src/components/public/property-template/staff-only-badge";
 
 interface EventsListingProps {
   events: ReadonlyArray<PublicEventListItem>;
@@ -128,12 +129,15 @@ export function EventsListing({ events, standingPrograms = [], basePath }: Event
       <div className="mx-auto max-w-property-max px-property-gutter py-property-section-mobile md:py-property-section-desktop">
         {featured && (
           <div className="mb-24">
-            <div className="flex flex-col overflow-hidden border border-property-ink/10 bg-property-surface-lowest lg:flex-row">
+            <div className={`flex flex-col overflow-hidden border border-property-ink/10 bg-property-surface-lowest lg:flex-row ${featured.staffOnlyStatus ? STAFF_ONLY_OUTLINE : ""}`}>
               <div className="relative h-96 overflow-hidden lg:h-auto lg:min-h-[360px] lg:w-7/12">
                 <PropertyImage src={featured.imageUrl} alt="" filename="events.jpg" />
                 <div className="absolute left-8 top-8 bg-property-ink px-4 py-1 font-property-sans text-property-label uppercase tracking-widest text-property-bg">
                   Featured Event
                 </div>
+                {featured.staffOnlyStatus && (
+                  <StaffOnlyBadge status={featured.staffOnlyStatus} className="absolute right-8 top-8" />
+                )}
               </div>
               <div className="flex flex-col justify-start p-8 lg:w-5/12 lg:p-12">
                 <span className="mb-4 font-property-sans text-property-label uppercase text-property-ink">
@@ -175,7 +179,10 @@ export function EventsListing({ events, standingPrograms = [], basePath }: Event
         ) : (
           <div className="flex flex-col gap-12">
             {rest.map((event) => (
-              <div key={event.id} className="grid grid-cols-1 items-center gap-8 border-b border-property-ink/10 pb-12 md:grid-cols-12">
+              <div
+                key={event.id}
+                className={`grid grid-cols-1 items-center gap-8 border-b border-property-ink/10 pb-12 md:grid-cols-12 ${event.staffOnlyStatus ? `${STAFF_ONLY_OUTLINE} pt-6` : ""}`}
+              >
                 <div className="md:col-span-2">
                   <div className="flex flex-col text-center">
                     <span className="font-property-sans text-property-label uppercase text-property-accent-dark">
@@ -192,6 +199,7 @@ export function EventsListing({ events, standingPrograms = [], basePath }: Event
                   </div>
                 </div>
                 <div className="md:col-span-5">
+                  {event.staffOnlyStatus && <StaffOnlyBadge status={event.staffOnlyStatus} className="mb-3" />}
                   {catLine(event) && (
                     <span className="mb-2 block font-property-sans text-[11px] uppercase tracking-[0.2em] text-property-accent-dark">
                       {catLine(event)}
@@ -235,9 +243,10 @@ export function EventsListing({ events, standingPrograms = [], basePath }: Event
               {standingPrograms.map((program) => (
                 <div
                   key={program.id}
-                  className="grid grid-cols-1 items-center gap-6 border-b border-property-ink/10 pb-8 md:grid-cols-12"
+                  className={`grid grid-cols-1 items-center gap-6 border-b border-property-ink/10 pb-8 md:grid-cols-12 ${program.staffOnlyStatus ? `${STAFF_ONLY_OUTLINE} pt-6` : ""}`}
                 >
                   <div className="md:col-span-8">
+                    {program.staffOnlyStatus && <StaffOnlyBadge status={program.staffOnlyStatus} className="mb-3" />}
                     {catLine(program) && (
                       <span className="mb-2 block font-property-sans text-[11px] uppercase tracking-[0.2em] text-property-accent-dark">
                         {catLine(program)}
