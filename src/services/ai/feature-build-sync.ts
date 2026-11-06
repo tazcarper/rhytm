@@ -17,8 +17,10 @@ function issueNumberOf(build: FeatureBuild): number | null {
   return issue ? Number(issue) : null;
 }
 
-// The preview link in Vercel's "Deployment | Preview" table comment.
+// The preview link in Vercel's "Deployment | Preview" table comment, once
+// the deployment is Ready (Vercel posts the link while it's still building).
 export function previewUrlFromVercelComment(body: string): string | null {
+  if (!/status\/ready\.svg|\[Ready\]/i.test(body)) return null;
   const url = body.match(/\[(?:Visit )?Preview\]\((https:\/\/[a-z0-9.-]+\.vercel\.app)\/?\)/i)?.[1];
   return url ?? null;
 }
