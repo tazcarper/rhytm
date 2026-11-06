@@ -15,22 +15,16 @@
 }
 
 .group {
-  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 2.5rem;
 }
 
-.groupEyebrow {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--tan-deep);
-  margin: 0 0 0.25rem;
-}
-
-.groupDesc {
-  font-size: 0.875rem;
-  color: var(--ink-soft, #555);
-  margin: 0 0 1rem;
+/* The description belongs to the heading above it, not to the fields:
+   pull it up so heading + description read as one block. */
+.groupEyebrow + .groupDesc {
+  margin-top: -16px;
 }
 
 .grid2 {
@@ -90,4 +84,13 @@
   align-items: center;
   gap: 1rem;
   margin-top: 1.5rem;
+}
+
+/* Shared with every dashboard form: see form-styles.module.css. */
+.groupEyebrow {
+  composes: groupTitle from "./form-styles.module.css";
+}
+
+.groupDesc {
+  composes: sectionDesc from "./form-styles.module.css";
 }

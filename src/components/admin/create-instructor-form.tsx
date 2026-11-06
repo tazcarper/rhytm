@@ -7,11 +7,10 @@ import {
   createInstructor,
   inviteInstructorToPortal,
 } from "@/app/admin/instructors/actions";
+import formStyles from "@/src/components/admin/form-styles.module.css";
 
-const labelCls =
-  "block font-sans text-[12px] tracking-[0.5px] uppercase text-gray mb-1";
-const inputCls =
-  "w-full border border-rule rounded px-3 py-2 font-serif text-[15px] text-olive focus:border-olive focus:outline-none bg-paper";
+const labelCls = `${formStyles.label} block mb-2`;
+const inputCls = formStyles.input;
 
 // Create a new instructor record (name, required email, optional phone, and the
 // properties they're available for). On success the instructor shows up in the

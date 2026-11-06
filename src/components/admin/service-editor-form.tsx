@@ -18,6 +18,7 @@ import { formatMoney } from "@/src/services/public/format";
 import { DeleteCatalogItemConfirm } from "./delete-catalog-item-confirm";
 import { downscaleImage } from "./downscale-image";
 import s from "./catalog.module.css";
+import { AddRowButton } from "@/src/components/admin/add-row-button";
 
 // The discipline card photo renders edge-to-edge in the booking funnel at
 // roughly half the page width; a 2000px max edge keeps it crisp on retina
@@ -684,9 +685,7 @@ export function ServiceEditorForm({
             <span className={s.fieldLabel}>
               New add-ons (will be created and linked to this service on save)
             </span>
-            <Button variant="secondary" size="sm" onClick={addDraft} type="button">
-              + Add new add-on
-            </Button>
+            <AddRowButton onClick={addDraft}>Add a new add-on</AddRowButton>
           </div>
 
           {newAddOns.map((draft, index) => (

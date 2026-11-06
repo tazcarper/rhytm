@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import "@uiw/react-md-editor/markdown-editor.css";
+import formStyles from "@/src/components/admin/form-styles.module.css";
 
 // Markdown editor field for the admin (@uiw/react-md-editor). Toolbar
 // (bold/italic/lists/links/…) over a markdown textarea — stores plain
@@ -10,7 +11,7 @@ import "@uiw/react-md-editor/markdown-editor.css";
 // here because this is a Client Component.
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
 
-const labelCls = "block font-sans text-[12px] tracking-[0.5px] uppercase text-gray mb-1";
+const labelCls = `${formStyles.label} block mb-2`;
 
 export function MarkdownField({
   label,
@@ -37,7 +38,7 @@ export function MarkdownField({
         />
       </div>
       {hint && (
-        <span className="block font-serif italic text-[13px] text-gray mt-1">{hint}</span>
+        <span className={`${formStyles.help} block mt-2`}>{hint}</span>
       )}
     </div>
   );

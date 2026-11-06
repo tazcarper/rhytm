@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { uploadAdventureImageAction } from "@/app/admin/adventures/actions";
 import { downscaleImage } from "./downscale-image";
+import formStyles from "@/src/components/admin/form-styles.module.css";
 
 // Image upload widgets for the adventure editor. They downscale + re-encode
 // the file to web-ready WebP in the browser (downscale-image.ts), upload it
@@ -16,9 +17,8 @@ import { downscaleImage } from "./downscale-image";
 const HERO_MAX_EDGE = 2400;
 const GALLERY_MAX_EDGE = 2000;
 
-const labelCls = "block font-sans text-[12px] tracking-[0.5px] uppercase text-gray mb-1";
-const inputCls =
-  "w-full border border-rule rounded px-3 py-2 font-serif text-[15px] text-olive focus:border-olive focus:outline-none bg-paper";
+const labelCls = `${formStyles.label} block mb-2`;
+const inputCls = formStyles.input;
 const uploadBtnCls =
   "self-start font-sans text-[12px] uppercase tracking-[0.5px] text-olive border border-rule rounded-pill px-4 py-1.5 hover:bg-cream disabled:opacity-40";
 const removeBtnCls =
@@ -105,7 +105,7 @@ export function AdventureImageInput({
           />
         </div>
       </div>
-      {hint && <p className="font-serif italic text-[13px] text-gray m-0">{hint}</p>}
+      {hint && <p className={formStyles.help}>{hint}</p>}
       {error && <p className="font-sans text-[13px] text-[color:var(--error)] m-0">{error}</p>}
     </div>
   );
@@ -148,7 +148,7 @@ export function AdventureGalleryInput({
   return (
     <div className="flex flex-col gap-2">
       {label && <span className={labelCls}>{label}</span>}
-      {hint && <p className="font-serif italic text-[13px] text-gray m-0">{hint}</p>}
+      {hint && <p className={formStyles.help}>{hint}</p>}
       {items.length > 0 && (
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
           {items.map((url, i) => (

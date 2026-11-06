@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { uploadPropertyContentImageAction } from "@/app/admin/properties/[slug]/content/actions";
 import { downscaleImage } from "./downscale-image";
+import formStyles from "@/src/components/admin/form-styles.module.css";
 
 // Single-image upload widget for property_page_content editors (marketing
 // page cards, intro/hero images, gallery tiles). Same shape as
@@ -12,9 +13,8 @@ import { downscaleImage } from "./downscale-image";
 
 const MAX_EDGE = 2200;
 
-const labelCls = "block font-sans text-[12px] tracking-[0.5px] uppercase text-gray mb-1";
-const inputCls =
-  "w-full border border-rule rounded px-3 py-2 font-serif text-[15px] text-olive focus:border-olive focus:outline-none bg-paper";
+const labelCls = `${formStyles.label} block mb-2`;
+const inputCls = formStyles.input;
 const uploadBtnCls =
   "self-start font-sans text-[12px] uppercase tracking-[0.5px] text-olive border border-rule rounded-pill px-4 py-1.5 hover:bg-cream disabled:opacity-40";
 const removeBtnCls =

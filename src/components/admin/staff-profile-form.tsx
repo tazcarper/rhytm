@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button } from "@/lib/ui";
 import { completeStaffProfile } from "@/app/admin/welcome/actions";
+import formStyles from "@/src/components/admin/form-styles.module.css";
 
 // Lets a staff member update their own display name from /admin/profile.
 // Reuses the onboarding action (an upsert), so it works whether or not a
@@ -37,11 +38,11 @@ export function StaffProfileForm({ initialName }: { initialName: string }) {
         </Alert>
       )}
       <label className="block">
-        <span className="block font-sans text-[12px] tracking-[0.5px] uppercase text-gray mb-1">
+        <span className={`${formStyles.label} block mb-2`}>
           Full name
         </span>
         <input
-          className="w-full border border-rule rounded px-3 py-2 font-serif text-[16px] text-olive focus:border-olive focus:outline-none bg-paper"
+          className={formStyles.input}
           value={name}
           placeholder="Jane Doe"
           onChange={(e) => {

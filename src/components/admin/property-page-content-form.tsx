@@ -11,6 +11,7 @@ import { ALL_SINGLE_FIELDS } from "@/src/constants/admin/property-page-sections"
 import { PropertyContentImageInput } from "./property-content-image-input";
 import s from "./bid-editor-form.module.css";
 import h from "./homepage-hero-form.module.css";
+import formStyles from "@/src/components/admin/form-styles.module.css";
 
 interface EditableGalleryItem {
   key: string; // client-side stable key, not persisted
@@ -191,7 +192,7 @@ export function PropertyPageContentForm({
               {galleryItems.map((item, index) => (
                 <div key={item.key} className="rounded-card border border-rule p-4">
                   <div className="mb-3 flex items-center justify-between gap-2">
-                    <span className="text-micro uppercase tracking-label text-gray">Photo {index + 1}</span>
+                    <span className={formStyles.groupTitle}>Photo {index + 1}</span>
                     <Button type="button" variant="ghost" size="sm" onClick={() => removeGalleryItem(item.key)}>
                       Remove
                     </Button>

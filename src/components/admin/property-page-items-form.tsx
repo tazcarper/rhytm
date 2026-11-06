@@ -15,6 +15,7 @@ import { PropertyContentImageInput } from "./property-content-image-input";
 import s from "./bid-editor-form.module.css";
 import h from "./homepage-hero-form.module.css";
 import p from "./property-page-items-form.module.css";
+import formStyles from "@/src/components/admin/form-styles.module.css";
 
 interface EditableItem extends PropertyContentItem {
   key: string; // client-side stable key, not persisted
@@ -170,7 +171,7 @@ export function PropertyPageItemsForm({
           {items.map((item, index) => (
             <div key={item.key} className="rounded-card border border-rule p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
-                <span className="text-micro uppercase tracking-label text-gray">
+                <span className={formStyles.groupTitle}>
                   Card {index + 1}
                 </span>
                 <div className="flex gap-1">

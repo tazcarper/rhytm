@@ -4,6 +4,7 @@ import { FlowButton as Button } from "./event-flow-button";
 import type { EventInfoBoxType } from "@/src/services/admin/events";
 import s from "./event-flow.module.css";
 import h from "./event-flow.module.css";
+import formStyles from "@/src/components/admin/form-styles.module.css";
 
 export interface EditableInfoBox {
   key: string; // client-side stable key, not persisted
@@ -69,7 +70,7 @@ export function EventInfoBoxEditor({ boxes, onChange }: EventInfoBoxEditorProps)
       {boxes.map((box, index) => (
         <div key={box.key} className="rounded-card border border-rule p-4">
           <div className="mb-3 flex items-center justify-between gap-2">
-            <span className="text-[15px] uppercase tracking-label text-gray">
+            <span className={formStyles.groupTitle}>
               Box {index + 1}
             </span>
             <div className="flex gap-1">

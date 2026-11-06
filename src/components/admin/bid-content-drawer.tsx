@@ -10,6 +10,7 @@ import {
 import type { BidLibraryContent } from "@/src/services/admin/resolve-bid-library";
 import form from "./bid-editor-form.module.css";
 import s from "./bid-content-drawer.module.css";
+import { AddRowButton } from "@/src/components/admin/add-row-button";
 
 interface GearDraft {
   name: string;
@@ -340,9 +341,7 @@ export function BidContentDrawer({
                   ))}
                 </div>
                 {gearDraft.length < 20 && (
-                  <button type="button" onClick={addGear} className={form.addBtn}>
-                    + Add gear item
-                  </button>
+                  <AddRowButton onClick={addGear}>Add a gear item</AddRowButton>
                 )}
                 {!showGearLibrary ? (
                   <button
@@ -420,9 +419,7 @@ export function BidContentDrawer({
                   ))}
                 </div>
                 {faqDraft.length < 20 && (
-                  <button type="button" onClick={addFaq} className={form.addBtn}>
-                    + Add FAQ item
-                  </button>
+                  <AddRowButton onClick={addFaq}>Add a question</AddRowButton>
                 )}
                 {!showFaqLibrary ? (
                   <button
