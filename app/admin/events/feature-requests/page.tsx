@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Button, Heading, PageShell, Text } from "@/lib/ui";
 import { AdminBreadcrumb } from "@/src/components/admin/admin-breadcrumb";
 import { CapabilityRequestsList } from "@/src/components/admin/capability-requests-list";
-import { BuildActionsGuide } from "@/src/components/admin/build-actions";
 import { FeatureRequestTabs, isFeatureRequestTab } from "@/src/components/admin/feature-request-tabs";
 import { getCapabilityRequests, isOpenRequest } from "@/src/services/ai/capability-requests";
 import { getBuildProgressFor } from "@/src/services/ai/feature-build-progress";
@@ -46,12 +45,11 @@ export default async function EventFeatureRequestsPage({
         Feature requests
       </Heading>
       {/* Text sets margin: 0 in its own CSS, so spacing lives on a wrapper. */}
-      <div className="mb-8 mt-4 flex max-w-[80ch] flex-col gap-5">
+      <div className="mb-8 mt-4 max-w-[70ch]">
         <Text>
           Things staff asked the event helper for that the event builder can&apos;t do yet, and problems reported with
           features already live. Drafts that need a feature can&apos;t be published until it&apos;s built.
         </Text>
-        <BuildActionsGuide />
       </div>
       <FeatureRequestTabs
         active={activeTab}
