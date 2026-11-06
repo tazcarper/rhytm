@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import type { UploadPublicImageResult } from "@/src/services/admin/upload-public-image";
 import { downscaleImage } from "./downscale-image";
+import formStyles from "@/src/components/admin/form-styles.module.css";
 
 // Single-photo upload for the instructor profile editor. Downscales +
 // re-encodes the file to web-ready WebP in the browser (downscale-image.ts),
@@ -16,9 +17,8 @@ import { downscaleImage } from "./downscale-image";
 // longest edge is plenty and keeps objects light.
 const PHOTO_MAX_EDGE = 1600;
 
-const labelCls = "block font-sans text-[12px] tracking-[0.5px] uppercase text-gray mb-1";
-const inputCls =
-  "w-full border border-rule rounded px-3 py-2 font-serif text-[15px] text-olive focus:border-olive focus:outline-none bg-paper";
+const labelCls = `${formStyles.label} block mb-2`;
+const inputCls = formStyles.input;
 const uploadBtnCls =
   "self-start font-sans text-[12px] uppercase tracking-[0.5px] text-olive border border-rule rounded-pill px-4 py-1.5 hover:bg-cream disabled:opacity-40";
 const removeBtnCls =
@@ -108,7 +108,7 @@ export function InstructorPhotoInput({
           />
         </div>
       </div>
-      {hint && <p className="font-serif italic text-[13px] text-gray m-0">{hint}</p>}
+      {hint && <p className={formStyles.help}>{hint}</p>}
       {error && <p className="font-sans text-[13px] text-[color:var(--error)] m-0">{error}</p>}
     </div>
   );

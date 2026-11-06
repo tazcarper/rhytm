@@ -18,6 +18,8 @@ import type {
   ExceptionKind,
   ScheduleException,
 } from "@/src/services/admin/instructor-schedule";
+import formStyles from "@/src/components/admin/form-styles.module.css";
+import { AddRowButton } from "@/src/components/admin/add-row-button";
 
 // Two editors for one instructor's schedule:
 //   1. Recurring weekly windows per property (replace-all save).
@@ -26,10 +28,9 @@ import type {
 // saved as a whole; exceptions mutate one row at a time and re-read from the
 // server (router.refresh), so the list always reflects the DB.
 
-const labelCls = "block font-sans text-[12px] tracking-[0.5px] uppercase text-gray mb-1";
-const inputCls =
-  "border border-rule rounded px-3 py-2 font-serif text-[15px] text-olive focus:border-olive focus:outline-none bg-paper";
-const sectionTitleCls = "font-serif font-semibold text-[22px] text-olive mt-8 mb-3";
+const labelCls = `${formStyles.label} block mb-2`;
+const inputCls = formStyles.input;
+const sectionTitleCls = `${formStyles.subhead} !mt-8 !mb-3`;
 
 const DAY_LABELS = [
   "Sunday",
@@ -335,13 +336,7 @@ export function InstructorScheduleEditor({
                               </div>
                             ))
                           )}
-                          <button
-                            type="button"
-                            className="self-start font-sans text-[12px] uppercase tracking-[0.5px] text-olive underline underline-offset-2"
-                            onClick={() => addWindow(property.id, dayOfWeek)}
-                          >
-                            + Add hours
-                          </button>
+                          <AddRowButton onClick={() => addWindow(property.id, dayOfWeek)}>Add hours</AddRowButton>
                         </div>
                       </div>
                     );

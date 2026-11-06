@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Alert, Button, Card } from "@/lib/ui";
 import { STAFF_ROLES } from "@/lib/auth/portal";
 import { inviteTeamMember } from "@/app/admin/team/actions";
+import formStyles from "@/src/components/admin/form-styles.module.css";
 
 export const ROLE_LABELS: Record<string, string> = {
   super_admin: "Super admin",
@@ -14,9 +15,8 @@ export const ROLE_LABELS: Record<string, string> = {
   membership_coordinator: "Membership coordinator",
 };
 
-const labelCls = "block font-sans text-[12px] tracking-[0.5px] uppercase text-gray mb-1";
-const inputCls =
-  "w-full border border-rule rounded px-3 py-2 font-serif text-[15px] text-olive focus:border-olive focus:outline-none bg-paper";
+const labelCls = `${formStyles.label} block mb-2`;
+const inputCls = formStyles.input;
 
 export function InviteTeamForm({
   properties,

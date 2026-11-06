@@ -14,6 +14,7 @@ import type {
   AdminInstructorEditable,
   SaveInstructorProfileInput,
 } from "@/src/services/admin/instructors";
+import formStyles from "@/src/components/admin/form-styles.module.css";
 
 // Admin profile editor for one instructor: name, bio, photo, active toggle,
 // display order, the availability property set, and the disciplines they can
@@ -22,10 +23,9 @@ import type {
 // portal access are shown read-only — those are managed from the roster invite
 // flow, not here.
 
-const labelCls = "block font-sans text-[12px] tracking-[0.5px] uppercase text-gray mb-1";
-const inputCls =
-  "w-full border border-rule rounded px-3 py-2 font-serif text-[15px] text-olive focus:border-olive focus:outline-none bg-paper";
-const sectionTitleCls = "font-serif font-semibold text-[22px] text-olive mt-7 mb-3";
+const labelCls = `${formStyles.label} block mb-2`;
+const inputCls = formStyles.input;
+const sectionTitleCls = `${formStyles.subhead} !mt-8 !mb-3`;
 
 export function InstructorProfileEditorForm({
   properties,
@@ -161,7 +161,7 @@ export function InstructorProfileEditorForm({
           </div>
         )}
       </fieldset>
-      <p className="font-serif italic text-[13px] text-gray m-0">
+      <p className={formStyles.help}>
         The properties this instructor teaches at. Guests booking a private lesson at a
         selected property can choose them; their slots reflect this instructor&rsquo;s real
         availability.
@@ -207,7 +207,7 @@ export function InstructorProfileEditorForm({
           })}
         </div>
       )}
-      <p className="font-serif italic text-[13px] text-gray m-0">
+      <p className={formStyles.help}>
         The disciplines this instructor is qualified to teach. Guests booking a private
         lesson see only instructors qualified for the discipline they pick. Options follow
         the properties selected above.
@@ -233,7 +233,7 @@ export function InstructorProfileEditorForm({
           />
         </label>
       </div>
-      <p className="font-serif italic text-[13px] text-gray m-0">
+      <p className={formStyles.help}>
         Inactive instructors are hidden from the public page and the booking picker, and
         are never auto-assigned. Lower display order sorts first.
       </p>

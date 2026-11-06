@@ -12,6 +12,8 @@ import {
 import { deleteAdventureAction, saveAdventureAction } from "@/app/admin/adventures/actions";
 import type { SaveAdventureInput } from "@/src/services/admin/save-adventure";
 import type { AdminAdventureEditable } from "@/src/services/admin/adventures";
+import formStyles from "@/src/components/admin/form-styles.module.css";
+import { AddRowButton } from "@/src/components/admin/add-row-button";
 
 // Admin create/edit form for a member adventure. Columns + the details
 // jsonb (category/location/labels, images, attributes, highlights,
@@ -24,10 +26,9 @@ interface Section {
   image: string;
 }
 
-const labelCls = "block font-sans text-[12px] tracking-[0.5px] uppercase text-gray mb-1";
-const inputCls =
-  "w-full border border-rule rounded px-3 py-2 font-serif text-[15px] text-olive focus:border-olive focus:outline-none bg-paper";
-const sectionTitleCls = "font-serif font-semibold text-[22px] text-olive mt-7 mb-3";
+const labelCls = `${formStyles.label} block mb-2`;
+const inputCls = formStyles.input;
+const sectionTitleCls = `${formStyles.subhead} !mt-8 !mb-3`;
 
 export function AdventureEditorForm({
   properties,
@@ -183,7 +184,7 @@ export function AdventureEditorForm({
         value={form.freeCancellationDays}
         onChange={(v) => set("freeCancellationDays", v)}
       />
-      <p className="font-serif italic text-[13px] text-gray m-0">
+      <p className={formStyles.help}>
         Members who cancel at least this many days before the start get a full refund; inside the
         window the payment is forfeited.
       </p>
@@ -211,7 +212,7 @@ export function AdventureEditorForm({
           <span className="font-serif text-[14px] text-olive">Mark as sold out</span>
         </label>
       </div>
-      <p className="font-serif italic text-[13px] text-gray m-0">
+      <p className={formStyles.help}>
         Draft pages are visible only to staff via the &ldquo;View public page&rdquo; link. Published is
         live for members.
       </p>
@@ -260,7 +261,7 @@ export function AdventureEditorForm({
       </div>
 
       <div className={sectionTitleCls}>What&rsquo;s included (highlights)</div>
-      <StringList label="" items={highlights} setItems={setHighlights} placeholder="5 nights at a Córdoba estancia" addLabel="Add highlight" />
+      <StringList label="" items={highlights} setItems={setHighlights} placeholder="5 nights at a Córdoba estancia" addLabel="Add a highlight" />
 
       <div className={sectionTitleCls}>Chapters</div>
       {sections.map((sec, i) => (
@@ -294,11 +295,9 @@ export function AdventureEditorForm({
           </button>
         </div>
       ))}
-      <button type="button" className="self-start font-sans text-[12px] uppercase tracking-[0.5px] text-tan-deep" onClick={() =>
-        setSections((prev) => [...prev, { heading: "", body: "", image: "" }])
-      }>
-        + Add chapter
-      </button>
+      <AddRowButton onClick={() => setSections((prev) => [...prev, { heading: "", body: "", image: "" }])}>
+        Add a chapter
+      </AddRowButton>
 
       <div className="flex gap-3 mt-6 sticky bottom-3 items-center flex-wrap bg-paper border border-rule rounded-card px-4 py-3 shadow-[0_4px_24px_rgba(40,47,21,0.15)]">
         <Button type="button" variant="primary" loading={isPending} onClick={submit}>
@@ -394,13 +393,7 @@ function StringList({
           </button>
         </div>
       ))}
-      <button
-        type="button"
-        className="self-start font-sans text-[12px] uppercase tracking-[0.5px] text-tan-deep"
-        onClick={() => setItems([...items, ""])}
-      >
-        + {addLabel}
-      </button>
+      <AddRowButton onClick={() => setItems([...items, ""])}>{addLabel}</AddRowButton>
     </div>
   );
 }

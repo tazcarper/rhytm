@@ -224,6 +224,7 @@ The vocabulary is consistent edge to edge: near-square corners, sans uppercase m
 - **Focus:** Border shifts to Tan and fill brightens to Paper — a calm two-property shift, no glow.
 - **Invalid:** Claret border + faint claret wash; error text is Inter italic micro in Claret.
 - **Field frame:** Uppercase Stone-Gray label (tan required-marker), micro helper text, italic error line.
+- **Dashboard forms differ (product register):** the admin and instructor forms use `src/components/admin/form-styles.module.css` instead — white 54px fields with a 2px border and 10px radius, sentence-case 17px olive labels, 15px gray help text, dashed "Add a …" row buttons. See `.claude/skills/dashboard-forms/SKILL.md`. The values above apply to the public site and member portal (`lib/ui`).
 
 ### Badges / Status
 - **Style:** Uppercase micro (9.5px), `2px` radius (or `pill`), tinted background at low alpha with a matching darker text — booking/adventure states (open/filling/waitlist/full/past/draft) and membership tiers (founder/charter/member/legacy) each get a named tint.

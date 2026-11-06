@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { uploadEventImageAction } from "@/app/admin/events/actions";
 import { cropImageToAspectRatio } from "./crop-image-to-aspect-ratio";
 import { downscaleImage } from "./downscale-image";
+import formStyles from "@/src/components/admin/form-styles.module.css";
 
 // Event hero image upload. Crops to 16:9 (the calendar thumbnail and event
 // hero both expect that ratio) then downscales/re-encodes, same two-step
@@ -15,9 +16,8 @@ import { downscaleImage } from "./downscale-image";
 const EVENT_IMAGE_RATIO = 16 / 9;
 const EVENT_IMAGE_MAX_EDGE = 1600;
 
-const labelCls = "block font-sans text-[18px] font-semibold text-olive-darker mb-2";
-const inputCls =
-  "w-full border-2 border-gray-light rounded-[10px] px-4 py-3 font-sans text-[18px] text-olive focus:border-olive focus:outline-none bg-paper";
+const labelCls = `${formStyles.label} block mb-2`;
+const inputCls = formStyles.input;
 const uploadBtnCls =
   "self-start font-sans text-[17px] font-semibold text-olive-darker border-2 border-gray-light rounded-[10px] px-5 py-3 hover:bg-cream disabled:opacity-40";
 const removeBtnCls =

@@ -5,10 +5,10 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button } from "@/lib/ui";
 import { signBidInPersonAction } from "@/app/admin/bids/[id]/sign/actions";
+import formStyles from "@/src/components/admin/form-styles.module.css";
 
-const labelCls = "block font-sans text-[12px] tracking-[0.5px] uppercase text-gray mb-1";
-const inputCls =
-  "w-full border border-rule rounded px-3 py-2.5 font-serif text-[17px] text-olive focus:border-olive focus:outline-none bg-paper";
+const labelCls = `${formStyles.label} block mb-2`;
+const inputCls = formStyles.input;
 
 // On-site signing form for a booking's waiver — staff prefill the guest's
 // name, the guest confirms it + consent, and signs on the iPad.

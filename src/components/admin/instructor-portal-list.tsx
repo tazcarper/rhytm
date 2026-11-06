@@ -11,13 +11,12 @@ import {
   resendInstructorInvite,
   revokeInstructorPortalAccess,
 } from "@/app/admin/instructors/actions";
+import formStyles from "@/src/components/admin/form-styles.module.css";
 
 type ActionResult = { ok: boolean; error?: string; link?: string };
 
-const labelCls =
-  "block font-sans text-[12px] tracking-[0.5px] uppercase text-gray mb-1";
-const inputCls =
-  "w-full border border-rule rounded px-3 py-2 font-serif text-[15px] text-olive focus:border-olive focus:outline-none bg-paper";
+const labelCls = `${formStyles.label} block mb-2`;
+const inputCls = formStyles.input;
 
 // The roster + invite controls for the instructor gameplan portal. Each row is
 // self-contained: uninvited instructors get an email field + Send invite;

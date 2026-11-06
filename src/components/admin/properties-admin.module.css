@@ -118,22 +118,7 @@
   margin-top: 0;
   padding-top: var(--space-2);
 }
-.groupEyebrow {
-  font-family: var(--sans);
-  font-size: 11px;
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-  font-weight: 600;
-  color: var(--tan-deep);
-  margin-bottom: var(--space-1);
-}
-.groupDesc {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 13px;
-  color: var(--gray);
-  margin: 0 0 var(--space-4);
-}
+
 .groupBody {
   display: flex;
   flex-direction: column;
@@ -170,4 +155,13 @@
   font-style: italic;
   font-size: 14px;
   color: var(--olive);
+}
+
+/* Shared with every dashboard form: see form-styles.module.css. */
+.groupEyebrow {
+  composes: groupTitle from "./form-styles.module.css";
+}
+
+.groupDesc {
+  composes: sectionDesc from "./form-styles.module.css";
 }

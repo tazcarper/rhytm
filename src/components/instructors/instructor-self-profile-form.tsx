@@ -9,14 +9,14 @@ import {
   uploadInstructorSelfPhotoAction,
 } from "@/app/instructor/profile/actions";
 import type { InstructorSelfProfile } from "@/src/services/instructors/self-profile";
+import formStyles from "@/src/components/admin/form-styles.module.css";
 
 // The instructor's own editable presentation: name, bio, photo, phone. Submits
 // to saveInstructorSelfProfileAction, which resolves the current instructor and
 // updates only these fields (roster controls stay admin-only).
 
-const labelCls = "block font-sans text-[12px] tracking-[0.5px] uppercase text-gray mb-1";
-const inputCls =
-  "w-full border border-rule rounded px-3 py-2 font-serif text-[15px] text-olive focus:border-olive focus:outline-none bg-paper";
+const labelCls = `${formStyles.label} block mb-2`;
+const inputCls = formStyles.input;
 
 export function InstructorSelfProfileForm({
   initial,

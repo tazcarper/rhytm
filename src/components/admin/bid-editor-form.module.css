@@ -8,71 +8,19 @@
 .section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-}
-
-.sectionTitle {
-  font-family: var(--sans);
-  font-size: var(--text-eyebrow);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--gray);
-  margin: 0;
+  gap: 20px;
 }
 
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-3);
+  gap: 20px;
 }
 
 @media (max-width: 600px) {
   .row {
     grid-template-columns: 1fr;
   }
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.label {
-  font-family: var(--sans);
-  font-size: var(--text-eyebrow);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--gray);
-}
-
-.input,
-.textarea {
-  padding: var(--space-2) var(--space-3);
-  background: var(--paper);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  font-family: var(--sans);
-  font-size: var(--text-body);
-  color: var(--olive);
-  width: 100%;
-}
-
-.textarea {
-  min-height: 120px;
-  resize: vertical;
-}
-
-.input:focus,
-.textarea:focus {
-  outline: 2px solid var(--olive);
-  outline-offset: 1px;
-}
-
-.help {
-  font-family: var(--sans);
-  font-size: var(--text-micro);
-  color: var(--gray);
 }
 
 .repeaterList {
@@ -115,23 +63,6 @@
   border-color: var(--accent-error);
 }
 
-.addBtn {
-  align-self: flex-start;
-  background: transparent;
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--radius-card);
-  padding: var(--space-2) var(--space-3);
-  font-family: var(--sans);
-  font-size: var(--text-micro);
-  color: var(--olive);
-  cursor: pointer;
-}
-
-.addBtn:hover {
-  background: var(--paper-warm);
-  border-style: solid;
-}
-
 .emptyRepeater {
   font-family: var(--sans);
   font-size: var(--text-micro);
@@ -157,4 +88,33 @@
   font-family: var(--sans);
   font-size: var(--text-micro);
   font-style: italic;
+}
+
+/* Shared with every dashboard form: see form-styles.module.css. */
+.field {
+  composes: field from "./form-styles.module.css";
+}
+
+.label {
+  composes: label from "./form-styles.module.css";
+}
+
+.input {
+  composes: input from "./form-styles.module.css";
+}
+
+.textarea {
+  composes: textarea from "./form-styles.module.css";
+}
+
+.help {
+  composes: help from "./form-styles.module.css";
+}
+
+.sectionTitle {
+  composes: groupTitle from "./form-styles.module.css";
+}
+
+.addBtn {
+  composes: add from "./form-styles.module.css";
 }

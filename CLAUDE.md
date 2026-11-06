@@ -306,6 +306,10 @@ disabled only by the `.claude/.developer-mode` marker:
 Don't try to route around either — if a hook blocks something, that action belongs in
 the dashboard or with the developer, as its message explains.
 
+## Dashboard Form Rules
+
+Every admin/instructor form shares one look from `src/components/admin/form-styles.module.css`. Before building or changing any dashboard form, follow the **`dashboard-forms` skill** (`.claude/skills/dashboard-forms/SKILL.md`): compose or import those classes (never restyle labels/inputs locally), use the type hierarchy (24 section → 20 group → 17 sentence-case label → 18 input → 15 help), size fields to the answer (short boxes for counts/prices/dates), use `AddRowButton` for "Add a …" rows, and put optional event features in an `EventOptionPanel`. Public site and member portal forms are out of scope (they use `lib/ui`).
+
 ## Design Context
 
 Design/UX work is grounded in two root files, written and maintained by the
