@@ -9,6 +9,7 @@ import { PropertyImage } from "@/src/components/public/property-template/propert
 import { EventContentBand } from "@/src/components/public/property-template/event-content-band";
 import { EventRegistrationForm } from "@/src/components/public/property-template/event-registration-form";
 import { InstructorRowValue } from "@/src/components/public/property-template/instructor-row-value";
+import { StaffOnlyBanner } from "@/src/components/public/property-template/staff-only-badge";
 
 export const dynamic = "force-dynamic";
 
@@ -69,6 +70,9 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
   return (
     <main>
+      {event.staffOnlyStatus && (
+        <StaffOnlyBanner status={event.staffOnlyStatus} editHref={`/admin/events/${event.id}`} />
+      )}
       <div className="mx-auto max-w-property-max px-property-gutter pt-10">
         <p className="font-property-sans text-[13px] uppercase tracking-[0.15em] text-property-ink">
           <Link href="/horseshoe-bay/events" className="transition-colors hover:text-property-accent">

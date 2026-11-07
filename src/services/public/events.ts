@@ -6,7 +6,12 @@ import { effectivePrices, todayInTimezone } from "@/src/services/events/effectiv
 // shapes the row into a clean domain type. No payment fields — v1
 // registration is capacity-tracking signup only.
 
-export type PublicEventStatus = "published" | "sold_out";
+// Guests only ever get published/sold_out rows (RLS). Staff browsing the
+// public site are also served draft/cancelled/completed rows by their
+// broader RLS scope, so the type covers every status and staffOnlyStatus
+// flags the ones guests can't see.
+export type PublicEventStatus = "draft" | "published" | "sold_out" | "cancelled" | "completed";
+export type StaffOnlyEventStatus = Exclude<PublicEventStatus, "published" | "sold_out">;
 export type PublicEventInfoBoxType = "description" | "list";
 
 export interface PublicEventInfoBox {
@@ -37,6 +42,8 @@ export interface PublicEventListItem {
   nonMemberPrice: number | null;
   imageUrl: string | null;
   isSoldOut: boolean;
+  /** Set when guests can't see this event (only staff are served it). */
+  staffOnlyStatus: StaffOnlyEventStatus | null;
 }
 
 export interface PublicEventDetail extends PublicEventListItem {
@@ -103,6 +110,7 @@ function rowToListItem(row: ListRow): PublicEventListItem {
     nonMemberPrice: prices.nonMemberPrice,
     imageUrl: row.image_url,
     isSoldOut: row.status === "sold_out",
+    staffOnlyStatus: row.status === "published" || row.status === "sold_out" ? null : row.status,
   };
 }
 
