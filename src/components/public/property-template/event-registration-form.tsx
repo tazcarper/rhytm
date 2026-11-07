@@ -4,7 +4,7 @@ import { useState, useTransition, type FormEvent } from "react";
 import { registerForEventAction } from "@/app/(public)/horseshoe-bay/events/[id]/actions";
 import { PropertyButton } from "./property-button";
 
-const FIELD_LABEL = "font-property-sans text-[12px] uppercase tracking-widest text-property-accent-dark";
+const FIELD_LABEL = "font-property-label text-[12px] uppercase tracking-widest text-property-ink";
 const FIELD_INPUT =
   "bg-property-surface-lowest border border-property-ink/10 p-3 font-property-sans text-property-ink focus:border-property-accent focus:outline-none focus:ring-1 focus:ring-property-accent";
 

@@ -37,3 +37,28 @@ export function effectivePrices(tiers: EventPriceTiers, today: string): Effectiv
     nonMemberPrice: tiers.nonMemberPriceAfter ?? tiers.nonMemberPrice,
   };
 }
+
+export interface RunningEarlyBird {
+  /** Last day ("YYYY-MM-DD") the early prices apply. */
+  lastDay: string;
+  /** The prices from the change day on (null = no price for that group). */
+  memberPriceAfter: number | null;
+  nonMemberPriceAfter: number | null;
+}
+
+// The early-bird offer running today, or null when there's no price change
+// ahead or it doesn't raise either price.
+export function runningEarlyBird(tiers: EventPriceTiers, today: string): RunningEarlyBird | null {
+  if (tiers.priceChangeOn === null || today >= tiers.priceChangeOn) return null;
+  const memberPriceAfter = tiers.memberPriceAfter ?? tiers.memberPrice;
+  const nonMemberPriceAfter = tiers.nonMemberPriceAfter ?? tiers.nonMemberPrice;
+  const rises = (now: number | null, later: number | null) => later !== null && (now ?? 0) < later;
+  if (!rises(tiers.memberPrice, memberPriceAfter) && !rises(tiers.nonMemberPrice, nonMemberPriceAfter)) return null;
+  return { lastDay: dayBefore(tiers.priceChangeOn), memberPriceAfter, nonMemberPriceAfter };
+}
+
+function dayBefore(isoDate: string): string {
+  const date = new Date(`${isoDate}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() - 1);
+  return date.toISOString().slice(0, 10);
+}
