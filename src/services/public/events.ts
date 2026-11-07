@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { effectivePrices, todayInTimezone } from "@/src/services/events/effective-price";
+import { effectivePrices, runningEarlyBird, todayInTimezone } from "@/src/services/events/effective-price";
 
 // Public read path for events (see the events migration). RLS restricts
 // the base rows to published/sold_out; this adds property scoping and
@@ -42,8 +42,19 @@ export interface PublicEventListItem {
   nonMemberPrice: number | null;
   imageUrl: string | null;
   isSoldOut: boolean;
+  /** Set while an early-bird price is running; null otherwise. */
+  earlyBird: PublicEventEarlyBird | null;
   /** Set when guests can't see this event (only staff are served it). */
   staffOnlyStatus: StaffOnlyEventStatus | null;
+}
+
+// An early-bird price that is running today: the prices shown now are the
+// early ones, and these take over on the day after lastDay.
+export interface PublicEventEarlyBird {
+  /** Last day ("YYYY-MM-DD", club timezone) the early prices apply. */
+  lastDay: string;
+  memberPriceAfter: number | null;
+  nonMemberPriceAfter: number | null;
 }
 
 export interface PublicEventDetail extends PublicEventListItem {
@@ -82,16 +93,15 @@ function toMoney(value: string | number | null): number | null {
 
 function rowToListItem(row: ListRow): PublicEventListItem {
   // Show the price in force today; a scheduled change flips on its date.
-  const prices = effectivePrices(
-    {
-      memberPrice: toMoney(row.member_price),
-      nonMemberPrice: toMoney(row.non_member_price),
-      priceChangeOn: row.price_change_on,
-      memberPriceAfter: toMoney(row.member_price_after),
-      nonMemberPriceAfter: toMoney(row.non_member_price_after),
-    },
-    todayInTimezone(),
-  );
+  const tiers = {
+    memberPrice: toMoney(row.member_price),
+    nonMemberPrice: toMoney(row.non_member_price),
+    priceChangeOn: row.price_change_on,
+    memberPriceAfter: toMoney(row.member_price_after),
+    nonMemberPriceAfter: toMoney(row.non_member_price_after),
+  };
+  const today = todayInTimezone();
+  const prices = effectivePrices(tiers, today);
   return {
     id: row.id,
     title: row.title,
@@ -110,6 +120,7 @@ function rowToListItem(row: ListRow): PublicEventListItem {
     nonMemberPrice: prices.nonMemberPrice,
     imageUrl: row.image_url,
     isSoldOut: row.status === "sold_out",
+    earlyBird: runningEarlyBird(tiers, today),
     staffOnlyStatus: row.status === "published" || row.status === "sold_out" ? null : row.status,
   };
 }
