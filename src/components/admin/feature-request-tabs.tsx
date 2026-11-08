@@ -55,3 +55,50 @@ export function FeatureRequestTabs({
     </nav>
   );
 }
+
+// Within each list: what's still being worked on, and what's finished
+// (built, or declined). Pills under the main tabs, also links (?view=…).
+
+export type FeatureRequestView = "active" | "done";
+
+export const FEATURE_REQUEST_VIEWS: ReadonlyArray<{ key: FeatureRequestView; label: string }> = [
+  { key: "active", label: "Active" },
+  { key: "done", label: "Done" },
+];
+
+export function isFeatureRequestView(value: string | undefined): value is FeatureRequestView {
+  return FEATURE_REQUEST_VIEWS.some((view) => view.key === value);
+}
+
+export function FeatureRequestViewTabs({
+  tab,
+  active,
+  counts,
+  basePath,
+}: {
+  tab: FeatureRequestTab;
+  active: FeatureRequestView;
+  counts: Readonly<Record<FeatureRequestView, number>>;
+  basePath: string;
+}) {
+  return (
+    <nav aria-label="Show active or done" className="mb-6 inline-flex gap-1 rounded-full border border-rule bg-white p-1">
+      {FEATURE_REQUEST_VIEWS.map((view) => {
+        const current = view.key === active;
+        return (
+          <Link
+            key={view.key}
+            href={`${basePath}?tab=${tab}&view=${view.key}`}
+            aria-current={current ? "page" : undefined}
+            className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[14px] font-semibold no-underline transition-colors ${
+              current ? "bg-olive text-white" : "text-gray hover:bg-paper-warm hover:text-olive"
+            }`}
+          >
+            {view.label}
+            <span className={`tabular-nums text-[12px] ${current ? "text-white/80" : "text-gray"}`}>{counts[view.key]}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
