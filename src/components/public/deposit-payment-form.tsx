@@ -20,6 +20,8 @@ import { getPublishableKey } from "@/lib/stripe/publishable-key";
 import { createDepositSessionAction } from "@/app/(public)/bids/[slug]/[code]/deposit-actions";
 import { buildBidUrl } from "@/src/services/bids/bid-url";
 import { formatMoney } from "@/src/services/public/format";
+import { REWARDS_PROGRAM } from "@/src/constants/rewards/program";
+import { dollarsForPoints, maxRedeemablePoints } from "@/src/services/rewards/points";
 import s from "./deposit-payment-form.module.css";
 
 // Inline deposit collection: Stripe <PaymentElement> backed by a
@@ -56,6 +58,9 @@ interface DepositPaymentFormProps {
   bidAccessCode: string;
   depositAmount: number; // minimum payable (dollars)
   quotedAmount: number | null; // maximum payable (dollars); null → fixed at deposit
+  // Present only when the viewer is signed in to the membership this
+  // booking earns for — they can apply points as a discount.
+  rewards?: { balance: number; isExpired: boolean } | null;
 }
 
 export function DepositPaymentForm({
@@ -63,6 +68,7 @@ export function DepositPaymentForm({
   bidAccessCode,
   depositAmount,
   quotedAmount,
+  rewards = null,
 }: DepositPaymentFormProps) {
   const router = useRouter();
 
@@ -79,6 +85,16 @@ export function DepositPaymentForm({
     depositAmount.toFixed(2),
   );
   const [amountError, setAmountError] = useState<string | null>(null);
+  // Points applied as a discount. Committed separately from the amount;
+  // a change re-issues the PaymentIntent just like an amount change.
+  const [committedPoints, setCommittedPoints] = useState(0);
+  const maxPoints =
+    rewards && !rewards.isExpired
+      ? maxRedeemablePoints(REWARDS_PROGRAM, rewards.balance, committedAmount)
+      : 0;
+  const appliedPoints = Math.min(committedPoints, maxPoints);
+  const discountUsd = dollarsForPoints(REWARDS_PROGRAM, appliedPoints);
+  const chargeAmount = Math.round((committedAmount - discountUsd) * 100) / 100;
   // Flattened state model (no union). Splitting these out lets us
   // overlay-on-top-of-the-existing-Elements during a refetch instead of
   // tearing the iframe down to a skeleton. Without this, the whole
@@ -121,6 +137,7 @@ export function DepositPaymentForm({
         bidSlug,
         bidAccessCode,
         committedAmount,
+        appliedPoints,
       );
       if (cancelled) return;
       if (result.ok) {
@@ -133,7 +150,7 @@ export function DepositPaymentForm({
     return () => {
       cancelled = true;
     };
-  }, [bidSlug, bidAccessCode, fetchToken, committedAmount]);
+  }, [bidSlug, bidAccessCode, fetchToken, committedAmount, appliedPoints]);
 
   // Reset the iframe-ready flag whenever clientSecret changes so the
   // overlay stays up during the new iframe's load.
@@ -212,12 +229,39 @@ export function DepositPaymentForm({
         />
       )}
 
+      {rewards && (
+        <PointsPicker
+          balance={rewards.balance}
+          isExpired={rewards.isExpired}
+          maxPoints={maxPoints}
+          appliedPoints={appliedPoints}
+          onApply={setCommittedPoints}
+          locked={isFetching || cardInteracted}
+        />
+      )}
+
       {/* Stable amount header — lives OUTSIDE <Elements> so it doesn't
           flicker on remount. Always reflects the currently committed
           amount, even while the underlying PI is being re-issued. */}
+      {appliedPoints > 0 && (
+        <>
+          <div className={s.amountLine}>
+            <span className={s.amountLabel}>Deposit</span>
+            <span className={s.amountLabel}>${formatMoney(committedAmount)}</span>
+          </div>
+          <div className={s.amountLine}>
+            <span className={s.amountLabel}>
+              {appliedPoints.toLocaleString()} reward points
+            </span>
+            <span className={s.amountLabel}>&minus;${formatMoney(discountUsd)}</span>
+          </div>
+        </>
+      )}
       <div className={s.amountLine}>
-        <span className={s.amountLabel}>Deposit</span>
-        <span className={s.amount}>${formatMoney(committedAmount)}</span>
+        <span className={s.amountLabel}>
+          {appliedPoints > 0 ? "You pay" : "Deposit"}
+        </span>
+        <span className={s.amount}>${formatMoney(chargeAmount)}</span>
       </div>
 
       {sessionError && (
@@ -249,7 +293,7 @@ export function DepositPaymentForm({
               options={{ clientSecret }}
             >
               <PaymentFormBody
-                amount={committedAmount}
+                amount={chargeAmount}
                 bidSlug={bidSlug}
                 bidAccessCode={bidAccessCode}
                 paused={isFetching || !isElementReady}
@@ -264,11 +308,92 @@ export function DepositPaymentForm({
             <div className={s.paymentOverlay} aria-busy="true">
               <div className={s.paymentOverlaySpinner} aria-hidden="true" />
               <p className={s.paymentOverlayText}>
-                Updating to ${formatMoney(committedAmount)}…
+                Updating to ${formatMoney(chargeAmount)}…
               </p>
             </div>
           )}
         </div>
+      )}
+    </div>
+  );
+}
+
+interface PointsPickerProps {
+  balance: number;
+  isExpired: boolean;
+  maxPoints: number;
+  appliedPoints: number;
+  onApply: (points: number) => void;
+  locked: boolean;
+}
+
+// Member-only: apply reward points as a discount, in steps of 100 points
+// ($5). Options run up to what the balance and the charge allow.
+function PointsPicker({
+  balance,
+  isExpired,
+  maxPoints,
+  appliedPoints,
+  onApply,
+  locked,
+}: PointsPickerProps) {
+  const step = REWARDS_PROGRAM.redemptionStep;
+  const options: number[] = [];
+  for (let points = step; points <= maxPoints; points += step) options.push(points);
+
+  const balanceLine = `You have ${balance.toLocaleString()} points ($${formatMoney(
+    dollarsForPoints(REWARDS_PROGRAM, balance),
+  )}).`;
+
+  return (
+    <div className={s.amountPicker}>
+      <label className={s.amountPickerLabel} htmlFor="reward-points">
+        Use your reward points
+      </label>
+      {isExpired ? (
+        <p className={s.amountPickerHint}>
+          {balanceLine} They&rsquo;re past their expiration date &mdash; contact the
+          property to have them reinstated.
+        </p>
+      ) : options.length === 0 ? (
+        <p className={s.amountPickerHint}>
+          {balanceLine} You need at least {step} points to take $
+          {formatMoney(dollarsForPoints(REWARDS_PROGRAM, step))} off.
+        </p>
+      ) : (
+        <>
+          <div className={s.amountPickerRow}>
+            <select
+              id="reward-points"
+              className={s.amountPickerInput}
+              value={appliedPoints}
+              onChange={(e) => onApply(Number.parseInt(e.target.value, 10) || 0)}
+              disabled={locked}
+            >
+              <option value={0}>Don&rsquo;t use points</option>
+              {options.map((points) => (
+                <option key={points} value={points}>
+                  {points.toLocaleString()} points (&minus;$
+                  {formatMoney(dollarsForPoints(REWARDS_PROGRAM, points))})
+                </option>
+              ))}
+            </select>
+            <Button
+              type="button"
+              size="sm"
+              variant={appliedPoints === maxPoints ? "primary" : "secondary"}
+              onClick={() => onApply(maxPoints)}
+              disabled={locked}
+            >
+              Use max
+            </Button>
+          </div>
+          <p className={s.amountPickerHint}>
+            {balanceLine} Every {step} points takes $
+            {formatMoney(dollarsForPoints(REWARDS_PROGRAM, step))} off. You earn points on
+            the amount you pay by card.
+          </p>
+        </>
       )}
     </div>
   );

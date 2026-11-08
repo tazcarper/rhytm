@@ -9,6 +9,8 @@ import {
 import { AdventureRsvpReceipt } from "@/src/components/email/templates/adventure-rsvp-receipt";
 import { formatDateRange, formatMoney } from "@/src/services/public/format";
 import { adventureTotal } from "@/src/services/adventures/display";
+import { REWARDS_PROGRAM } from "@/src/constants/rewards/program";
+import { settleAdventurePaymentRewards } from "@/src/services/rewards/settle-payment-rewards";
 
 // Webhook handler for payment_intent.succeeded on an ADVENTURE RSVP
 // (metadata.kind === 'adventure_rsvp'). Flips the held RSVP
@@ -49,7 +51,7 @@ export async function handleAdventureRsvpSucceeded(
     })
     .eq("id", rsvpId)
     .eq("status", "pending_payment")
-    .select("id, guest_count, adventure_id, created_by_person_id")
+    .select("id, guest_count, adventure_id, created_by_person_id, membership_id")
     .maybeSingle();
 
   if (error) {
@@ -66,6 +68,15 @@ export async function handleAdventureRsvpSucceeded(
     );
     return;
   }
+
+  // Rewards: credit the household for what was paid. Idempotent; never throws.
+  await settleAdventurePaymentRewards(supabase, {
+    program: REWARDS_PROGRAM,
+    rsvpId,
+    membershipId: (updated.membership_id as string | null) ?? null,
+    paymentIntentId: pi.id,
+    amountChargedUsd: pi.amount / 100,
+  });
 
   // Receipt — best-effort, post-response.
   after(async () => {

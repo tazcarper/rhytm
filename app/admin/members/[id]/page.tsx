@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { Card, Heading, PageShell } from "@/lib/ui";
@@ -90,6 +91,7 @@ export default async function AdminMemberDetail({
                     <th>Role</th>
                     <th>Household</th>
                     <th>Joined</th>
+                    <th>Rewards</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -114,6 +116,14 @@ export default async function AdminMemberDetail({
                       </td>
                       <td className={s.joinedCell}>
                         {formatDateOnly(membership.joinedAt)}
+                      </td>
+                      <td>
+                        <Link
+                          className="underline"
+                          href={`/admin/rewards/${membership.membershipId}`}
+                        >
+                          Points
+                        </Link>
                       </td>
                     </tr>
                   ))}

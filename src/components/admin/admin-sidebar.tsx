@@ -24,6 +24,7 @@ import {
   UserRound,
   X,
   type LucideIcon,
+  Gift,
 } from "lucide-react";
 import { signOut } from "@/lib/auth/actions";
 import { canManageTeam } from "@/lib/auth/portal";
@@ -158,6 +159,7 @@ function buildNavGroups(
           icon: GraduationCap,
         },
         { label: "Members", href: "/admin/members", icon: Users },
+        { label: "Rewards", href: "/admin/rewards", icon: Gift },
         ...(canManageTeam(role)
           ? [{ label: "Team", href: "/admin/team", icon: UserRound }]
           : []),

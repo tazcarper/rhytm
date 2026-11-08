@@ -30,6 +30,12 @@ import {
   type WaiverTemplate,
 } from "@/src/services/waiver/get-active-waiver-template";
 import { createServiceRoleClient } from "@/lib/supabase/service";
+import { BidMemberRewards } from "@/src/components/public/bid-member-rewards";
+import { REWARDS_PROGRAM } from "@/src/constants/rewards/program";
+import {
+  getBidRewardsContext,
+  type BidRewardsContext,
+} from "@/src/services/rewards/bid-rewards";
 import s from "./bid-page.module.css";
 
 const ADMIN_ROLES = new Set([
@@ -107,6 +113,18 @@ export default async function BidPage({
         )
       : null;
 
+  // Member rewards: which membership this booking earns for, and — when
+  // the viewer is signed in to it — the points they can apply.
+  const rewardsContext =
+    detail.booking.requiresDeposit && isActiveBid(detail.bid.status)
+      ? await getBidRewardsContext({
+          program: REWARDS_PROGRAM,
+          viewerSupabase: await createServerSupabaseClient(),
+          serviceSupabase: createServiceRoleClient(),
+          bookingId: detail.booking.id,
+        })
+      : null;
+
   return (
     <main className={s.wrap}>
       {adminViewer && <BidPreviewToolbar />}
@@ -149,6 +167,7 @@ export default async function BidPage({
               status={detail.bid.status}
               detail={detail}
               accessCode={parsed.code}
+              rewards={rewardsContext}
             />
           )}
         </>
@@ -596,10 +615,12 @@ function DepositSlot({
   status,
   detail,
   accessCode,
+  rewards,
 }: {
   status: BidStatus;
   detail: BidDetail;
   accessCode: string;
+  rewards: BidRewardsContext | null;
 }) {
   const done = status === "paid";
   const deposit = detail.booking.depositAmount;
@@ -667,8 +688,19 @@ function DepositSlot({
           bidAccessCode={accessCode}
           depositAmount={deposit}
           quotedAmount={quoted}
+          rewards={rewards?.redeemable ?? null}
         />
       </div>
+      {rewards && (
+        <div style={{ marginTop: "var(--space-3)" }}>
+          <BidMemberRewards
+            bidSlug={detail.bid.slug}
+            bidAccessCode={accessCode}
+            linkedMemberNumber={rewards.linkedMemberNumber}
+            viewerIsLinkedMember={rewards.redeemable !== null}
+          />
+        </div>
+      )}
     </section>
   );
 }

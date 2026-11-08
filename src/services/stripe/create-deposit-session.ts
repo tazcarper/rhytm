@@ -1,5 +1,11 @@
 import type Stripe from "stripe";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  redeemedPointsOnMetadata,
+  redemptionToMetadata,
+  type RedemptionQuoter,
+  type RewardRedemption,
+} from "@/src/services/rewards/redemption";
 
 // Idempotent deposit "payment session" — domain-neutral term covering
 // the Stripe PaymentIntent we open for one bid's deposit. The customer
@@ -35,6 +41,11 @@ export interface CreateDepositSessionContext {
   // against [deposit_amount, confirmed_price]. If undefined, defaults
   // to deposit_amount — the minimum.
   amount?: number;
+  // Optional points discount. When present, called once the booking and
+  // the pre-discount amount are known; the card is charged the amount
+  // minus the quoted discount. Built by the Server Action, which knows
+  // who is signed in.
+  quoteRedemption?: RedemptionQuoter;
 }
 
 export type CreateDepositSessionResult =
@@ -42,8 +53,10 @@ export type CreateDepositSessionResult =
       ok: true;
       clientSecret: string;
       paymentIntentId: string;
-      amount: number; // dollars, display-ready
+      amount: number; // dollars charged to the card, display-ready
       currency: "usd";
+      pointsApplied: number;
+      discountUsd: number;
     }
   | {
       ok: false;
@@ -53,6 +66,7 @@ export type CreateDepositSessionResult =
         | "already_paid"
         | "no_deposit_amount"
         | "amount_invalid"
+        | "rewards_invalid"
         | "stripe_error"
         | "db_error";
       message: string;
@@ -93,7 +107,14 @@ type BookingRow = {
 export async function createDepositSession(
   ctx: CreateDepositSessionContext,
 ): Promise<CreateDepositSessionResult> {
-  const { supabase, stripe, bidSlug, bidAccessCode, amount: requestedAmount } = ctx;
+  const {
+    supabase,
+    stripe,
+    bidSlug,
+    bidAccessCode,
+    amount: requestedAmount,
+    quoteRedemption,
+  } = ctx;
 
   if (!bidSlug.trim() || !bidAccessCode.trim()) {
     return {
@@ -216,7 +237,21 @@ export async function createDepositSession(
     };
   }
 
-  const expectedCents = Math.round(chosenAmount * 100);
+  // 3b. Points discount (optional). Quoted here, debited by the webhook
+  //     once the payment succeeds.
+  let redemption: RewardRedemption | null = null;
+  if (quoteRedemption) {
+    const quote = await quoteRedemption({ bookingId: bookingData.id, chargeUsd: chosenAmount });
+    if (!quote.ok) {
+      return { ok: false, reason: "rewards_invalid", message: quote.message };
+    }
+    redemption = quote.redemption;
+  }
+
+  const expectedCents = Math.round(
+    (chosenAmount - (redemption?.discountUsd ?? 0)) * 100,
+  );
+  const expectedPoints = redemption?.points ?? 0;
 
   // 4. Reuse the existing PI if it still matches the current amount
   //    and is in a customer-confirmable state. If the amount drifted
@@ -231,9 +266,10 @@ export async function createDepositSession(
     if (
       existing &&
       existing.amount === expectedCents &&
+      redeemedPointsOnMetadata(existing.metadata) === expectedPoints &&
       REUSABLE_PI_STATES.has(existing.status)
     ) {
-      return resultFromPaymentIntent(existing);
+      return resultFromPaymentIntent(existing, redemption);
     }
   }
 
@@ -258,6 +294,7 @@ export async function createDepositSession(
       metadata: {
         bid_id: bid.id,
         booking_id: bookingData.id,
+        ...redemptionToMetadata(redemption),
       },
       description: `Rhythm Outdoors — deposit for bid ${bid.slug}`,
     });
@@ -295,11 +332,12 @@ export async function createDepositSession(
     };
   }
 
-  return resultFromPaymentIntent(pi);
+  return resultFromPaymentIntent(pi, redemption);
 }
 
 function resultFromPaymentIntent(
   pi: Stripe.PaymentIntent,
+  redemption: RewardRedemption | null,
 ): CreateDepositSessionResult {
   if (!pi.client_secret) {
     return {
@@ -314,6 +352,8 @@ function resultFromPaymentIntent(
     paymentIntentId: pi.id,
     amount: pi.amount / 100,
     currency: "usd",
+    pointsApplied: redemption?.points ?? 0,
+    discountUsd: redemption?.discountUsd ?? 0,
   };
 }
 

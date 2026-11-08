@@ -14,6 +14,9 @@ import {
   formatMoney,
   formatSlotLabelTz,
 } from "@/src/services/public/format";
+import { REWARDS_PROGRAM } from "@/src/constants/rewards/program";
+import { redemptionFromMetadata } from "@/src/services/rewards/redemption";
+import { settleBookingPaymentRewards } from "@/src/services/rewards/settle-payment-rewards";
 
 // Webhook handler for payment_intent.succeeded — the moment a deposit
 // clears Stripe. Flips bids.status='paid' (the trigger fans out to
@@ -122,7 +125,12 @@ export async function handlePaymentIntentSucceeded(
   //       - amount_paid: Stripe's pi.amount is the source of truth
   //         for what they paid. Always reflect it.
   //     Single UPDATE keeps the writes atomic relative to each other.
-  const amountPaidDollars = pi.amount / 100;
+  //       Points applied at checkout count as paid: the card was charged
+  //       pi.amount, and the points covered the rest.
+  const redemption = redemptionFromMetadata(pi.metadata);
+  const amountChargedDollars = pi.amount / 100;
+  const amountPaidDollars =
+    Math.round((amountChargedDollars + (redemption?.discountUsd ?? 0)) * 100) / 100;
   await supabase
     .from("bookings")
     .update({
@@ -130,6 +138,16 @@ export async function handlePaymentIntentSucceeded(
       amount_paid: amountPaidDollars,
     })
     .eq("id", bookingId);
+
+  // 1c. Rewards: debit any points applied, credit points on the cash
+  //     charged. Idempotent per PaymentIntent; never throws.
+  await settleBookingPaymentRewards(supabase, {
+    program: REWARDS_PROGRAM,
+    bookingId,
+    paymentIntentId: pi.id,
+    amountChargedUsd: amountChargedDollars,
+    redemption,
+  });
 
   // 2. Fetch receipt data. Single query — we only need a few columns
   //    and the property name for the body copy.
