@@ -1,0 +1,155 @@
+/* Amazon-style "use your points" callout under the payment total, its
+   applied state, and the confirm dialog's breakdown. */
+
+.callout {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-3);
+  background: var(--color-paper-warm, var(--color-paper-soft));
+  border: 1px dashed var(--color-tan, var(--color-border));
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-small);
+  text-align: left;
+  cursor: pointer;
+}
+
+.callout:hover:not(:disabled) {
+  border-style: solid;
+  border-color: var(--color-olive);
+}
+
+.callout:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 1px;
+}
+
+.callout:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.icon {
+  flex: none;
+  color: var(--color-olive);
+}
+
+.calloutText {
+  flex: 1 1 auto;
+  line-height: var(--leading-relaxed, 1.5);
+}
+
+.calloutAction {
+  flex: none;
+  color: var(--color-olive);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.applied {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: color-mix(in srgb, var(--color-olive) 10%, var(--color-paper));
+  border: 1px solid var(--color-olive);
+  border-radius: var(--radius-card);
+  font-size: var(--text-small);
+  color: var(--color-ink);
+}
+
+.appliedText {
+  flex: 1 1 auto;
+  text-align: left;
+}
+
+.removeButton {
+  flex: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--color-ink-soft);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.removeButton:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.note {
+  margin: 0;
+  text-align: left;
+  font-size: var(--text-micro, var(--text-small));
+  color: var(--color-ink-soft);
+  line-height: var(--leading-relaxed, 1.5);
+}
+
+.dialogBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.dialogLead {
+  margin: 0;
+  font-size: var(--text-body);
+  color: var(--color-ink);
+}
+
+.select {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  color: var(--color-ink);
+}
+
+.fieldLabel {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: var(--text-small);
+  color: var(--color-ink-soft);
+}
+
+.breakdown {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-rule, var(--color-border));
+}
+
+.breakdown li {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-rule, var(--color-border));
+  font-size: var(--text-small);
+  color: var(--color-ink-soft);
+}
+
+.breakdown li.total {
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.saving {
+  color: var(--color-olive);
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}

@@ -21,6 +21,7 @@ import { createDepositSessionAction } from "@/app/(public)/bids/[slug]/[code]/de
 import { buildBidUrl } from "@/src/services/bids/bid-url";
 import { formatMoney } from "@/src/services/public/format";
 import { REWARDS_PROGRAM } from "@/src/constants/rewards/program";
+import { RewardPointsCallout } from "@/src/components/public/reward-points-callout";
 import { dollarsForPoints, maxRedeemablePoints } from "@/src/services/rewards/points";
 import s from "./deposit-payment-form.module.css";
 
@@ -229,17 +230,6 @@ export function DepositPaymentForm({
         />
       )}
 
-      {rewards && (
-        <PointsPicker
-          balance={rewards.balance}
-          isExpired={rewards.isExpired}
-          maxPoints={maxPoints}
-          appliedPoints={appliedPoints}
-          onApply={setCommittedPoints}
-          locked={isFetching || cardInteracted}
-        />
-      )}
-
       {/* Stable amount header — lives OUTSIDE <Elements> so it doesn't
           flicker on remount. Always reflects the currently committed
           amount, even while the underlying PI is being re-issued. */}
@@ -263,6 +253,19 @@ export function DepositPaymentForm({
         </span>
         <span className={s.amount}>${formatMoney(chargeAmount)}</span>
       </div>
+
+      {rewards && (
+        <RewardPointsCallout
+          balance={rewards.balance}
+          isExpired={rewards.isExpired}
+          maxPoints={maxPoints}
+          appliedPoints={appliedPoints}
+          chargeBeforePoints={committedAmount}
+          onApply={setCommittedPoints}
+          busy={isFetching}
+          lockedByCard={cardInteracted}
+        />
+      )}
 
       {sessionError && (
         <div className={s.errorBlock}>
@@ -313,88 +316,6 @@ export function DepositPaymentForm({
             </div>
           )}
         </div>
-      )}
-    </div>
-  );
-}
-
-interface PointsPickerProps {
-  balance: number;
-  isExpired: boolean;
-  maxPoints: number;
-  appliedPoints: number;
-  onApply: (points: number) => void;
-  locked: boolean;
-}
-
-// Member-only: apply reward points as a discount, in steps of 100 points
-// ($5). Options run up to what the balance and the charge allow.
-function PointsPicker({
-  balance,
-  isExpired,
-  maxPoints,
-  appliedPoints,
-  onApply,
-  locked,
-}: PointsPickerProps) {
-  const step = REWARDS_PROGRAM.redemptionStep;
-  const options: number[] = [];
-  for (let points = step; points <= maxPoints; points += step) options.push(points);
-
-  const balanceLine = `You have ${balance.toLocaleString()} points ($${formatMoney(
-    dollarsForPoints(REWARDS_PROGRAM, balance),
-  )}).`;
-
-  return (
-    <div className={s.amountPicker}>
-      <label className={s.amountPickerLabel} htmlFor="reward-points">
-        Use your reward points
-      </label>
-      {isExpired ? (
-        <p className={s.amountPickerHint}>
-          {balanceLine} They&rsquo;re past their expiration date &mdash; contact the
-          property to have them reinstated.
-        </p>
-      ) : options.length === 0 ? (
-        <p className={s.amountPickerHint}>
-          {balanceLine} You need at least {step} points to take $
-          {formatMoney(dollarsForPoints(REWARDS_PROGRAM, step))} off.
-        </p>
-      ) : (
-        <>
-          <div className={s.amountPickerRow}>
-            <select
-              id="reward-points"
-              className={s.amountPickerInput}
-              value={appliedPoints}
-              onChange={(e) => onApply(Number.parseInt(e.target.value, 10) || 0)}
-              disabled={locked}
-            >
-              <option value={0}>Don&rsquo;t use points</option>
-              {options.map((points) => (
-                <option key={points} value={points}>
-                  {`${points.toLocaleString()} points (−$${formatMoney(
-                    dollarsForPoints(REWARDS_PROGRAM, points),
-                  )})`}
-                </option>
-              ))}
-            </select>
-            <Button
-              type="button"
-              size="sm"
-              variant={appliedPoints === maxPoints ? "primary" : "secondary"}
-              onClick={() => onApply(maxPoints)}
-              disabled={locked}
-            >
-              Use max
-            </Button>
-          </div>
-          <p className={s.amountPickerHint}>
-            {balanceLine} Every {step} points takes $
-            {formatMoney(dollarsForPoints(REWARDS_PROGRAM, step))} off. You earn points on
-            the amount you pay by card.
-          </p>
-        </>
       )}
     </div>
   );
