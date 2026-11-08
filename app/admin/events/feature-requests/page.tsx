@@ -4,7 +4,12 @@ import Link from "next/link";
 import { Button, Heading, PageShell, Text } from "@/lib/ui";
 import { AdminBreadcrumb } from "@/src/components/admin/admin-breadcrumb";
 import { CapabilityRequestsList } from "@/src/components/admin/capability-requests-list";
-import { FeatureRequestTabs, isFeatureRequestTab } from "@/src/components/admin/feature-request-tabs";
+import {
+  FeatureRequestTabs,
+  FeatureRequestViewTabs,
+  isFeatureRequestTab,
+  isFeatureRequestView,
+} from "@/src/components/admin/feature-request-tabs";
 import { getCapabilityRequests, isOpenRequest } from "@/src/services/ai/capability-requests";
 import { getBuildProgressFor } from "@/src/services/ai/feature-build-progress";
 import { syncFeatureBuilds } from "@/src/services/ai/feature-build-sync";
@@ -17,10 +22,11 @@ const BASE_PATH = "/admin/events/feature-requests";
 export default async function EventFeatureRequestsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; view?: string }>;
 }) {
-  const { tab } = await searchParams;
+  const { tab, view } = await searchParams;
   const activeTab = isFeatureRequestTab(tab) ? tab : "features";
+  const activeView = isFeatureRequestView(view) ? view : "active";
   const supabase = await createServerSupabaseClient();
   const github = createGitHubIssuesClient();
   const firstRows = await getCapabilityRequests(supabase);
@@ -29,7 +35,10 @@ export default async function EventFeatureRequestsPage({
   const canBuild = github !== null;
   const features = rows.filter((row) => !row.fix);
   const fixes = rows.filter((row) => row.fix);
-  const shown = activeTab === "fixes" ? fixes : features;
+  const list = activeTab === "fixes" ? fixes : features;
+  const openInList = list.filter(isOpenRequest);
+  const doneInList = list.filter((row) => !isOpenRequest(row));
+  const shown = activeView === "done" ? doneInList : openInList;
   const progress = github ? await getBuildProgressFor(github, shown) : {};
 
   return (
@@ -56,7 +65,13 @@ export default async function EventFeatureRequestsPage({
         basePath={BASE_PATH}
         openCounts={{ features: features.filter(isOpenRequest).length, fixes: fixes.filter(isOpenRequest).length }}
       />
-      {activeTab === "fixes" && (
+      <FeatureRequestViewTabs
+        tab={activeTab}
+        active={activeView}
+        counts={{ active: openInList.length, done: doneInList.length }}
+        basePath={BASE_PATH}
+      />
+      {activeTab === "fixes" && activeView === "active" && (
         <div className="mb-5">
           <Button asChild variant="secondary" size="sm">
             <Link href="/admin/events/report-problem">Report a problem</Link>
@@ -68,9 +83,13 @@ export default async function EventFeatureRequestsPage({
         canBuild={canBuild}
         progress={progress}
         emptyText={
-          activeTab === "fixes"
-            ? "No problems reported. If something Claude built isn't working right, use Report a problem."
-            : "No feature requests yet. When the helper can't do something staff ask for, it shows up here."
+          activeView === "done"
+            ? activeTab === "fixes"
+              ? "No fixes finished yet."
+              : "No features built yet."
+            : activeTab === "fixes"
+              ? "No open problems. If something Claude built isn't working right, use Report a problem."
+              : "Nothing waiting. When the helper can't do something staff ask for, it shows up here."
         }
       />
     </PageShell>
