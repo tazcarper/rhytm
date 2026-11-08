@@ -3,6 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createStripeClient } from "@/lib/stripe/server";
+import { createServiceRoleClient } from "@/lib/supabase/service";
+import { REWARDS_PROGRAM } from "@/src/constants/rewards/program";
+import { reverseBookingRefundRewards } from "@/src/services/rewards/settle-payment-rewards";
 import {
   refundDeposit,
   type RefundDepositResult,
@@ -58,6 +61,12 @@ export async function refundDepositAction(
     bidId,
     amount,
     reason: trimmedReason || undefined,
+    // Take back points the payment earned; return points used on it.
+    onRefunded: (info) =>
+      reverseBookingRefundRewards(createServiceRoleClient(), {
+        program: REWARDS_PROGRAM,
+        ...info,
+      }),
   });
 
   if (result.ok) {

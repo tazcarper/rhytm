@@ -1,4 +1,6 @@
 import { createElement } from "react";
+import { REWARDS_PROGRAM } from "@/src/constants/rewards/program";
+import { dollarsForPoints } from "@/src/services/rewards/points";
 import { after } from "next/server";
 import type Stripe from "stripe";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -39,6 +41,14 @@ export interface RefundDepositContext {
   amount?: number;
   // Optional staff note appended to bids.staff_notes (markdown).
   reason?: string;
+  // Optional follow-up once the refund is recorded (e.g. reverse reward
+  // points). Must not throw; the refund has already happened.
+  onRefunded?: (info: {
+    bookingId: string;
+    refundId: string;
+    refundedCardUsd: number;
+    isFullRefund: boolean;
+  }) => Promise<void>;
 }
 
 export type RefundDepositResult =
@@ -74,6 +84,7 @@ type RefundDepositRow = {
     start_time: string;
     deposit_amount: string | number | null;
     amount_paid: string | number | null;
+    reward_points_redeemed: number | null;
     deposit_payment_intent_id: string | null;
     properties: { name: string; timezone: string } | null;
   } | null;
@@ -93,6 +104,7 @@ export async function refundDeposit(
       bookings (
         id, guest_name, guest_email, start_time,
         deposit_amount, amount_paid, deposit_payment_intent_id,
+        reward_points_redeemed,
         properties ( name, timezone )
       )
     `,
@@ -150,7 +162,16 @@ export async function refundDeposit(
   // 3. Amount validation. Defaults to the full amount paid (Path A:
   //    customer may have paid more than the deposit; max refund is
   //    whatever they actually paid, not whatever the deposit was).
-  const amountPaidDollars = toNumber(booking.amount_paid) ?? 0;
+  //    amount_paid includes any reward points applied; only the card
+  //    portion can go back through Stripe (points are returned as points).
+  const pointsDiscountDollars = dollarsForPoints(
+    REWARDS_PROGRAM,
+    booking.reward_points_redeemed ?? 0,
+  );
+  const amountPaidDollars = Math.max(
+    0,
+    (toNumber(booking.amount_paid) ?? 0) - pointsDiscountDollars,
+  );
   const amountPaidCents = Math.round(amountPaidDollars * 100);
 
   if (amountPaidCents <= 0) {
@@ -260,6 +281,16 @@ export async function refundDeposit(
       "[admin/refund-deposit] UPDATE matched 0 rows; assuming concurrent refund",
       { bidId, refundId: refund.id },
     );
+  }
+
+  // 5b. Follow-up hooks (reward points reversal). Best-effort.
+  if (ctx.onRefunded) {
+    await ctx.onRefunded({
+      bookingId: booking.id,
+      refundId: refund.id,
+      refundedCardUsd: refundedAmountDollars,
+      isFullRefund: refund.amount >= amountPaidCents,
+    });
   }
 
   // 6. Queue a refund-notice email to the guest (best-effort, post-response).
