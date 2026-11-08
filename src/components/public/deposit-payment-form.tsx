@@ -373,8 +373,9 @@ function PointsPicker({
               <option value={0}>Don&rsquo;t use points</option>
               {options.map((points) => (
                 <option key={points} value={points}>
-                  {points.toLocaleString()} points (&minus;$
-                  {formatMoney(dollarsForPoints(REWARDS_PROGRAM, points))})
+                  {`${points.toLocaleString()} points (−$${formatMoney(
+                    dollarsForPoints(REWARDS_PROGRAM, points),
+                  )})`}
                 </option>
               ))}
             </select>
