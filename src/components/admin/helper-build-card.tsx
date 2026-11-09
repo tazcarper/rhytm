@@ -139,8 +139,10 @@ export function HelperBuildCard({ requestId }: { requestId: string }) {
                           step === "building" && status.previewUrl !== null,
                       })}
                 </p>
+              </BuildOrbit>
+              <div className="mt-8">
                 {step === "ready" && (
-                  <p className="m-0 mt-2 text-[15px] leading-[1.5] text-olive">
+                  <p className="m-0 text-[15px] leading-[1.5] text-olive">
                     Open the test site, try what you asked for, then publish it
                     or send Claude notes from the Feature requests page.
                   </p>
@@ -156,10 +158,10 @@ export function HelperBuildCard({ requestId }: { requestId: string }) {
                   />
                 )}
                 {actions}
-              </BuildOrbit>
+              </div>
             </>
           )}
-          {status.declined && { actions }}
+          {status.declined && actions}
           {error && (
             <p className="m-0 mt-2 text-[15px] font-semibold text-accent-error">
               Couldn&apos;t start it: {error}
