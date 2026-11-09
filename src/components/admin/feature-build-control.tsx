@@ -197,7 +197,7 @@ function ApproveOrFix({ requestId }: { requestId: string }) {
             </Button>
             <Button
               type="button"
-              variant="secondary"
+              variant="primary"
               size="sm"
               onClick={() => setMode("feedback")}
             >
@@ -278,6 +278,23 @@ function ApproveOrFix({ requestId }: { requestId: string }) {
   );
 }
 
+// Claude writes test steps in Markdown; show **bold** as bold and drop
+// the asterisks.
+function withBold(text: string): React.ReactNode[] {
+  return text
+    .split(/(\*\*[^*]+\*\*)/g)
+    .filter((part) => part !== "")
+    .map((part, index) =>
+      part.startsWith("**") && part.endsWith("**") ? (
+        <strong key={index} className="font-semibold text-olive-darker">
+          {part.slice(2, -2)}
+        </strong>
+      ) : (
+        part
+      ),
+    );
+}
+
 // What to do while the build's pull request is open: open the preview,
 // follow Claude's steps, then approve it.
 function TryItSteps({
@@ -291,7 +308,7 @@ function TryItSteps({
     ? `${build.previewUrl}/admin/events`
     : null;
   return (
-    <ol className="m-0 mt-4 flex list-none flex-col gap-6 rounded-[4px] bg-paper-warm px-5 py-5">
+    <ol className="m-0 mt-4 flex list-none flex-col gap-6 p-0">
       <StepBox number={1} title="Preview it">
         {previewAdmin ? (
           <>
@@ -323,7 +340,7 @@ function TryItSteps({
         {build.testSteps.length > 0 ? (
           <ol className="m-0 flex list-decimal flex-col gap-1 pl-5 marker:text-gray">
             {build.testSteps.map((step, index) => (
-              <li key={index}>{step}</li>
+              <li key={index}>{withBold(step)}</li>
             ))}
           </ol>
         ) : (
@@ -378,47 +395,50 @@ export function FeatureBuildControl({
   };
 
   return (
-    <div className="mt-6 max-w-[760px]">
+    <div className="mt-6 max-w-[900px]">
+      {/* Everything about the current step, including what to do next,
+          sits beside the animation (Taz, 2026-11-09). */}
       <BuildOrbit step={step}>
         <p className="m-0 max-w-[70ch] text-body leading-body text-olive">
           {buildStepText(step, { isFix, setAside, fixingFeedback })}
         </p>
-      </BuildOrbit>
-      {step === "building" && (
-        <ProgressList
-          progress={progress?.state === "working" ? progress : STARTING}
-          title={
-            fixingFeedback ? "What Claude is fixing" : "What Claude is doing"
-          }
-        />
-      )}
-      {step === "ready" && build && (
-        <TryItSteps requestId={requestId} build={build} />
-      )}
-      <div className="mt-4 flex flex-wrap items-center gap-3 empty:hidden">
-        {step === "requested" &&
-          (canBuild ? (
-            <Button
-              type="button"
-              variant={BUILD_ACTIONS.build.variant}
-              size="sm"
-              loading={isPending}
-              leading={<BuildActionIcon action="build" />}
-              onClick={start}
-            >
-              {setAside ? "Build it again" : BUILD_ACTIONS.build.label}
-            </Button>
-          ) : (
-            <p className="m-0 text-micro text-gray">
-              Automatic building isn&apos;t switched on yet. Ask your developer.
-            </p>
-          ))}
-        {error && (
-          <p className="m-0 text-body font-semibold text-accent-error">
-            Couldn&apos;t start it: {error}
-          </p>
+        {step === "building" && (
+          <ProgressList
+            progress={progress?.state === "working" ? progress : STARTING}
+            title={
+              fixingFeedback ? "What Claude is fixing" : "What Claude is doing"
+            }
+          />
         )}
-      </div>
+        {step === "ready" && build && (
+          <TryItSteps requestId={requestId} build={build} />
+        )}
+        <div className="mt-4 flex flex-wrap items-center gap-3 empty:hidden">
+          {step === "requested" &&
+            (canBuild ? (
+              <Button
+                type="button"
+                variant={BUILD_ACTIONS.build.variant}
+                size="sm"
+                loading={isPending}
+                leading={<BuildActionIcon action="build" />}
+                onClick={start}
+              >
+                {setAside ? "Build it again" : BUILD_ACTIONS.build.label}
+              </Button>
+            ) : (
+              <p className="m-0 text-micro text-gray">
+                Automatic building isn&apos;t switched on yet. Ask your
+                developer.
+              </p>
+            ))}
+          {error && (
+            <p className="m-0 text-body font-semibold text-accent-error">
+              Couldn&apos;t start it: {error}
+            </p>
+          )}
+        </div>
+      </BuildOrbit>
     </div>
   );
 }

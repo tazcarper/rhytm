@@ -70,6 +70,41 @@ export function HelperBuildCard({ requestId }: { requestId: string }) {
     });
   };
 
+  const actions = status && step && (
+    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+      {step === "requested" && !status.declined && status.canBuild && (
+        <Button
+          type="button"
+          variant={BUILD_ACTIONS.build.variant}
+          size="sm"
+          loading={isPending}
+          leading={<BuildActionIcon action="build" />}
+          onClick={start}
+        >
+          {status.setAside ? "Build it again" : BUILD_ACTIONS.build.label}
+        </Button>
+      )}
+      {step === "ready" && status.previewUrl && (
+        <a
+          href={`${status.previewUrl}/admin/events`}
+          target="_blank"
+          rel="noreferrer"
+          className="text-[15px] font-semibold text-olive underline"
+        >
+          Try it on the test site
+        </a>
+      )}
+      <Link
+        href={requestPageHref(status)}
+        className="text-[15px] font-semibold text-olive underline"
+      >
+        {step === "ready"
+          ? "Publish or send notes"
+          : "Open in Feature requests"}
+      </Link>
+    </div>
+  );
+
   // Someone who can't read the request (e.g. it was filed by another club).
   if (missing) return null;
 
@@ -104,51 +139,27 @@ export function HelperBuildCard({ requestId }: { requestId: string }) {
                           step === "building" && status.previewUrl !== null,
                       })}
                 </p>
+                {step === "ready" && (
+                  <p className="m-0 mt-2 text-[15px] leading-[1.5] text-olive">
+                    Open the test site, try what you asked for, then publish it
+                    or send Claude notes from the Feature requests page.
+                  </p>
+                )}
+                {step === "building" && (
+                  <ProgressList
+                    progress={
+                      status.progress?.state === "working"
+                        ? status.progress
+                        : { state: "working", steps: [], updatedAt: "" }
+                    }
+                    title="What Claude is doing"
+                  />
+                )}
+                {actions}
               </BuildOrbit>
-              {step === "building" && (
-                <ProgressList
-                  progress={
-                    status.progress?.state === "working"
-                      ? status.progress
-                      : { state: "working", steps: [], updatedAt: "" }
-                  }
-                  title="What Claude is doing"
-                />
-              )}
             </>
           )}
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-            {step === "requested" && !status.declined && status.canBuild && (
-              <Button
-                type="button"
-                variant={BUILD_ACTIONS.build.variant}
-                size="sm"
-                loading={isPending}
-                leading={<BuildActionIcon action="build" />}
-                onClick={start}
-              >
-                {status.setAside ? "Build it again" : BUILD_ACTIONS.build.label}
-              </Button>
-            )}
-            {step === "ready" && status.previewUrl && (
-              <a
-                href={`${status.previewUrl}/admin/events`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-[15px] font-semibold text-olive underline"
-              >
-                Try it on the test site
-              </a>
-            )}
-            <Link
-              href={requestPageHref(status)}
-              className="text-[15px] font-semibold text-olive underline"
-            >
-              {step === "ready"
-                ? "Publish or send notes"
-                : "Open in Feature requests"}
-            </Link>
-          </div>
+          {status.declined && { actions }}
           {error && (
             <p className="m-0 mt-2 text-[15px] font-semibold text-accent-error">
               Couldn&apos;t start it: {error}

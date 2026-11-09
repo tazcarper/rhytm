@@ -122,7 +122,7 @@ export function BuildOrbit({
           {flipTo && <Face step={flipTo} back />}
         </span>
       </div>
-      <div className="min-w-0" aria-live="polite">
+      <div className={s.body} aria-live="polite">
         <p key={`label-${step}`} className={s.label}>
           {LABEL[step]}
         </p>
