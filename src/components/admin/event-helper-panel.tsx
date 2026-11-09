@@ -38,14 +38,13 @@ export interface TranscriptLine {
 }
 
 const featureRequestLine = (
-  summary: string,
   featureRequestId: string | undefined,
   alreadyRequested = false,
 ): TranscriptLine => ({
   who: "helper",
   text: alreadyRequested
-    ? `The builder can't do that yet, but it's already a feature request ("${summary}"), so I've added this event to it. I've drafted the rest of the event without it.`
-    : `The builder can't do that yet, so I've filed a feature request: "${summary}". I've drafted the rest of the event without it.`,
+    ? "That's already a feature request, so I've added this event to it. I've drafted the rest without it."
+    : "The builder can't do that yet, so I've filed it as a feature request. I've drafted the rest without it.",
   featureRequestId,
 });
 
@@ -116,7 +115,7 @@ export function EventHelperPanel({
       if (result.sessionId) setSessionId(result.sessionId);
       const note =
         "featureRequest" in result && result.featureRequest
-          ? [featureRequestLine(result.featureRequest, result.featureRequestId, Boolean(result.alreadyRequested))]
+          ? [featureRequestLine(result.featureRequestId, Boolean(result.alreadyRequested))]
           : [];
 
       switch (result.kind) {
@@ -148,8 +147,8 @@ export function EventHelperPanel({
             {
               who: "helper",
               text: result.alreadyRequested
-                ? `The builder can't do that yet, but it's already a feature request ("${result.text}"), so I've added this event to it. Tell me anything else about the event and I'll draft it without that part.`
-                : `The builder can't do that yet, so I've filed a feature request: "${result.text}". Tell me anything else about the event and I'll draft it without that part.`,
+                ? "That's already a feature request, so I've added this event to it."
+                : "The builder can't do that yet, so I've filed it as a feature request.",
               featureRequestId: result.featureRequestId,
             },
           ]);
