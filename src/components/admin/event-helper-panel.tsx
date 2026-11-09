@@ -37,14 +37,21 @@ export interface TranscriptLine {
   featureRequestId?: string;
 }
 
+// What the helper says when it files a request. The card under it shows
+// the request and its build, so this only says what happened and what
+// staff can do next.
+export function featureRequestText(alreadyRequested: boolean): string {
+  return alreadyRequested
+    ? "Good news: there's already a request for this, shown below. You can start the build (or check on it), tell me more to add to the request, or carry on with something else."
+    : "The builder can't do that yet, so I've made a request for it, shown below. You can start the build, tell me more to add to the request, or carry on with something else.";
+}
+
 const featureRequestLine = (
   featureRequestId: string | undefined,
   alreadyRequested = false,
 ): TranscriptLine => ({
   who: "helper",
-  text: alreadyRequested
-    ? "That's already a feature request, so I've added this event to it. I've drafted the rest without it."
-    : "The builder can't do that yet, so I've filed it as a feature request. I've drafted the rest without it.",
+  text: `${featureRequestText(alreadyRequested)} I've drafted the rest of the event without it.`,
   featureRequestId,
 });
 
@@ -146,9 +153,7 @@ export function EventHelperPanel({
             ...lines,
             {
               who: "helper",
-              text: result.alreadyRequested
-                ? "That's already a feature request, so I've added this event to it."
-                : "The builder can't do that yet, so I've filed it as a feature request.",
+              text: featureRequestText(Boolean(result.alreadyRequested)),
               featureRequestId: result.featureRequestId,
             },
           ]);
