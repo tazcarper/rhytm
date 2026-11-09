@@ -1,8 +1,9 @@
 /* The build status "planet": one step's icon at a time, with little moons
    circling it while Claude or the test site is working. When the step
-   changes, the old planet shrinks and fades away and the new one pops in
-   with a bounce. Everything holds still for people who ask for reduced
-   motion (they get a plain cross-fade). */
+   changes, the green bubble flips over on its side and shows the next
+   step's icon. Each icon has its own small animation (the hammer hits, the
+   rocket fires, sparkles pop, the eye blinks). Everything holds still for
+   people who ask for reduced motion. */
 
 .wrap {
   display: flex;
@@ -15,41 +16,17 @@
   height: 104px;
   width: 104px;
   flex-shrink: 0;
+  perspective: 500px;
 }
 
-.planet {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+/* ---- Moons ---------------------------------------------------------- */
 
-.core {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  height: 56px;
-  width: 56px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: radial-gradient(circle at 32% 28%, color-mix(in srgb, var(--olive) 70%, white) 0%, var(--olive) 55%, var(--olive-darker) 100%);
-  color: white;
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--olive) 35%, transparent);
-}
-.idle .core {
-  background: white;
-  color: var(--gray);
-  border: 2px dashed var(--border-strong);
-  box-shadow: none;
-}
-
-/* An orbit: a faint ring that turns, carrying one moon on its edge. */
 .orbit {
   position: absolute;
   border-radius: 999px;
   border: 1px dashed color-mix(in srgb, var(--olive) 22%, transparent);
+  opacity: 1;
+  transition: opacity 400ms ease;
 }
 .orbit::after {
   content: "";
@@ -85,6 +62,113 @@
   width: 7px;
   background: color-mix(in srgb, var(--tan) 60%, var(--olive));
 }
+.noMoons .orbit {
+  opacity: 0;
+}
+
+/* ---- The bubble, which flips between steps --------------------------- */
+
+.card {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  z-index: 1;
+  height: 56px;
+  width: 56px;
+  transform-style: preserve-3d;
+}
+.face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  backface-visibility: hidden;
+  background: radial-gradient(circle at 32% 28%, color-mix(in srgb, var(--olive) 70%, white) 0%, var(--olive) 55%, var(--olive-darker) 100%);
+  color: white;
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--olive) 35%, transparent);
+}
+.back {
+  transform: rotateX(180deg);
+}
+.idleFace {
+  background: white;
+  color: var(--gray);
+  border: 2px dashed var(--border-strong);
+  box-shadow: none;
+}
+
+/* ---- Icons ---------------------------------------------------------- */
+
+.icon {
+  position: relative;
+  display: block;
+  height: 24px;
+  width: 24px;
+}
+.icon svg {
+  display: block;
+}
+
+/* Hammer: sparks at the moment it strikes. */
+.spark {
+  position: absolute;
+  height: 3px;
+  width: 7px;
+  border-radius: 2px;
+  background: #f5c518;
+  opacity: 0;
+}
+.spark1 {
+  top: 15px;
+  right: -6px;
+  transform: rotate(20deg);
+}
+.spark2 {
+  top: 20px;
+  right: -3px;
+  transform: rotate(60deg);
+}
+
+/* Sparkles: small stars that pop up around the big one. */
+.star {
+  position: absolute;
+  height: 6px;
+  width: 6px;
+  background: #f5c518;
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  transform: scale(0);
+}
+.star1 {
+  top: -7px;
+  left: -5px;
+}
+.star2 {
+  top: -4px;
+  right: -8px;
+  height: 8px;
+  width: 8px;
+}
+.star3 {
+  bottom: -7px;
+  right: -2px;
+}
+
+/* Rocket: flames out of the nozzle (bottom left of the icon). */
+.flame {
+  position: absolute;
+  left: 1px;
+  bottom: 1px;
+  height: 11px;
+  width: 6px;
+  border-radius: 50% 50% 50% 50% / 30% 30% 70% 70%;
+  background: linear-gradient(to bottom, #fff3b0, #f5c518 40%, #e8742a);
+  transform-origin: 50% 0;
+  transform: rotate(45deg) scaleY(0);
+}
+
+/* ---- Text ---------------------------------------------------------- */
 
 .label {
   margin: 0;
@@ -105,13 +189,7 @@
   margin: 6px 0 0;
 }
 
-.entering {
-  opacity: 1;
-}
-.leaving {
-  opacity: 0;
-  transition: opacity 300ms ease;
-}
+/* ---- Motion -------------------------------------------------------- */
 
 @media (prefers-reduced-motion: no-preference) {
   .working .orbit1 {
@@ -133,16 +211,45 @@
   .calm .orbit3 {
     animation: spin 12s linear infinite;
   }
-  .working .core {
-    animation: breathe 2.4s ease-in-out infinite;
-  }
-  .entering {
+
+  /* Bounces in once when the card first shows. */
+  .stage {
     animation: pop-in 650ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
-  .leaving {
-    transition: none;
-    animation: shrink-out 380ms cubic-bezier(0.5, 0, 0.75, 0) both;
+  .flipping {
+    animation: flip 700ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
   }
+
+  .hammer svg {
+    transform-origin: 18% 82%;
+    animation: hit 1.3s cubic-bezier(0.5, 0, 0.2, 1) infinite;
+  }
+  .hammer .spark {
+    animation: spark 1.3s ease-out infinite;
+  }
+  .sparkles svg {
+    animation: twinkle 1.8s ease-in-out infinite;
+  }
+  .sparkles .star1 {
+    animation: star 1.8s ease-out infinite;
+  }
+  .sparkles .star2 {
+    animation: star 1.8s 0.6s ease-out infinite;
+  }
+  .sparkles .star3 {
+    animation: star 1.8s 1.2s ease-out infinite;
+  }
+  .eye svg {
+    transform-origin: 50% 50%;
+    animation: blink 3.2s ease-in-out infinite;
+  }
+  .rocket svg {
+    animation: hover 1.6s ease-in-out infinite;
+  }
+  .rocket .flame {
+    animation: flame 0.18s ease-in-out infinite alternate, flame-in 500ms ease-out both;
+  }
+
   .label,
   .count {
     animation: rise 500ms 120ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
@@ -154,32 +261,110 @@
     transform: rotate(360deg);
   }
 }
-@keyframes breathe {
-  0%,
-  100% {
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  to {
+    opacity: 1;
     transform: scale(1);
   }
-  50% {
-    transform: scale(1.06);
-  }
 }
-@keyframes pop-in {
-  0% {
-    opacity: 0;
-    transform: scale(0.3) translateY(14px);
+@keyframes flip {
+  from {
+    transform: rotateX(0deg);
   }
-  60% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-@keyframes shrink-out {
   to {
+    transform: rotateX(180deg);
+  }
+}
+@keyframes hit {
+  0%,
+  45% {
+    transform: rotate(0deg);
+  }
+  65% {
+    transform: rotate(-38deg);
+  }
+  78% {
+    transform: rotate(12deg);
+  }
+  86%,
+  100% {
+    transform: rotate(0deg);
+  }
+}
+@keyframes spark {
+  0%,
+  76% {
     opacity: 0;
-    transform: scale(0.2) rotate(-25deg);
+    translate: 0 0;
+  }
+  80% {
+    opacity: 1;
+  }
+  95%,
+  100% {
+    opacity: 0;
+    translate: 4px 1px;
+  }
+}
+@keyframes twinkle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.12) rotate(8deg);
+  }
+}
+@keyframes star {
+  0% {
+    transform: scale(0) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.3) rotate(45deg);
+  }
+  50%,
+  100% {
+    transform: scale(0) rotate(90deg);
+  }
+}
+@keyframes blink {
+  0%,
+  44%,
+  52%,
+  100% {
+    transform: scaleY(1);
+  }
+  48% {
+    transform: scaleY(0.1);
+  }
+}
+@keyframes hover {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(1px, -2px);
+  }
+}
+@keyframes flame {
+  from {
+    transform: rotate(45deg) scaleY(0.75);
+  }
+  to {
+    transform: rotate(45deg) scaleY(1.15);
+  }
+}
+@keyframes flame-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 @keyframes rise {

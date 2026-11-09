@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Eye, Hammer, Rocket, Sparkles } from "lucide-react";
 import {
   BUILD_STEPS,
@@ -10,9 +10,11 @@ import {
 import s from "./build-orbit.module.css";
 
 // Where a Claude build is, one step at a time (Taz, 2026-11-09): the step's
-// icon as a planet with moons circling it while Claude or the test site is
-// working. When the step moves on, the old planet shrinks away and the next
-// one pops in. Used on feature request cards and in the AI helper's chat.
+// icon in a green bubble, with moons circling it while Claude or the test
+// site is working. When the step moves on, the bubble flips over to show
+// the next icon. Each icon has its own little animation: the hammer hits,
+// sparkles pop, the eye blinks, the rocket fires. Used on feature request
+// cards and in the AI helper's chat.
 // children: one plain sentence about what's happening (see buildStepText).
 
 const LABEL: Record<BuildStep, string> = {
@@ -23,46 +25,57 @@ const LABEL: Record<BuildStep, string> = {
   live: "Live",
 };
 
-const ICON: Record<BuildStep, React.ReactNode> = {
-  requested: <Hammer aria-hidden size={24} strokeWidth={2.2} />,
-  building: <Hammer aria-hidden size={24} strokeWidth={2.2} />,
-  preview: <Sparkles aria-hidden size={24} strokeWidth={2.2} />,
-  ready: <Eye aria-hidden size={24} strokeWidth={2.2} />,
-  live: <Rocket aria-hidden size={24} strokeWidth={2.2} />,
-};
+// How long the flip takes (matches the CSS).
+const FLIP_MS = 700;
 
-// How long the old planet takes to shrink away (matches the CSS).
-const LEAVE_MS = 400;
+function StepIcon({ step }: { step: BuildStep }) {
+  switch (step) {
+    case "requested":
+      return (
+        <span className={s.icon}>
+          <Hammer aria-hidden size={24} strokeWidth={2.2} />
+        </span>
+      );
+    case "building":
+      return (
+        <span className={`${s.icon} ${s.hammer}`}>
+          <Hammer aria-hidden size={24} strokeWidth={2.2} />
+          <span className={`${s.spark} ${s.spark1}`} />
+          <span className={`${s.spark} ${s.spark2}`} />
+        </span>
+      );
+    case "preview":
+      return (
+        <span className={`${s.icon} ${s.sparkles}`}>
+          <Sparkles aria-hidden size={24} strokeWidth={2.2} />
+          <span className={`${s.star} ${s.star1}`} />
+          <span className={`${s.star} ${s.star2}`} />
+          <span className={`${s.star} ${s.star3}`} />
+        </span>
+      );
+    case "ready":
+      return (
+        <span className={`${s.icon} ${s.eye}`}>
+          <Eye aria-hidden size={24} strokeWidth={2.2} />
+        </span>
+      );
+    case "live":
+      return (
+        <span className={`${s.icon} ${s.rocket}`}>
+          <span className={s.flame} />
+          <Rocket aria-hidden size={24} strokeWidth={2.2} />
+        </span>
+      );
+  }
+}
 
-function Planet({
-  step,
-  leaving = false,
-}: {
-  step: BuildStep;
-  leaving?: boolean;
-}) {
-  const motion = isWorkingStep(step)
-    ? s.working
-    : step === "ready"
-      ? s.calm
-      : step === "requested"
-        ? s.idle
-        : "";
-  const hasMoons = step !== "requested" && step !== "live";
+function Face({ step, back = false }: { step: BuildStep; back?: boolean }) {
   return (
-    <div
-      className={`${s.planet} ${motion} ${leaving ? s.leaving : s.entering}`}
-      aria-hidden
+    <span
+      className={`${s.face} ${back ? s.back : ""} ${step === "requested" ? s.idleFace : ""}`}
     >
-      {hasMoons && (
-        <>
-          <span className={`${s.orbit} ${s.orbit1}`} />
-          <span className={`${s.orbit} ${s.orbit2}`} />
-          <span className={`${s.orbit} ${s.orbit3}`} />
-        </>
-      )}
-      <span className={s.core}>{ICON[step]}</span>
-    </div>
+      <StepIcon step={step} />
+    </span>
   );
 }
 
@@ -75,29 +88,39 @@ export function BuildOrbit({
   className?: string;
   children?: React.ReactNode;
 }) {
-  // Keep the previous step on screen while it shrinks away.
-  const previous = useRef(step);
-  const [leaving, setLeaving] = useState<{
-    step: BuildStep;
-    id: number;
-  } | null>(null);
+  // The bubble shows `shown`. When the step changes it flips over to the
+  // new step on its back face, then settles with the new step in front.
+  const [shown, setShown] = useState(step);
+  const [flipTo, setFlipTo] = useState<BuildStep | null>(null);
   useEffect(() => {
-    if (previous.current === step) return;
-    const old = previous.current;
-    previous.current = step;
-    setLeaving({ step: old, id: Date.now() });
-    const timer = setTimeout(() => setLeaving(null), LEAVE_MS);
+    if (step === shown) return;
+    setFlipTo(step);
+    const timer = setTimeout(() => {
+      setShown(step);
+      setFlipTo(null);
+    }, FLIP_MS);
     return () => clearTimeout(timer);
-  }, [step]);
+  }, [step, shown]);
 
+  // Moons follow the step being shown, so they change as the flip lands.
+  const current = flipTo ?? shown;
+  const motion = isWorkingStep(current)
+    ? s.working
+    : current === "ready"
+      ? s.calm
+      : s.noMoons;
   const number = BUILD_STEPS.findIndex((item) => item.key === step) + 1;
   return (
     <div className={`${s.wrap} ${className}`}>
-      <div className={s.stage}>
-        {leaving && (
-          <Planet key={`leaving-${leaving.id}`} step={leaving.step} leaving />
-        )}
-        <Planet key={step} step={step} />
+      <div className={`${s.stage} ${motion}`} aria-hidden>
+        <span className={`${s.orbit} ${s.orbit1}`} />
+        <span className={`${s.orbit} ${s.orbit2}`} />
+        <span className={`${s.orbit} ${s.orbit3}`} />
+        {/* A new key on settling restarts the card with no rotation. */}
+        <span key={shown} className={`${s.card} ${flipTo ? s.flipping : ""}`}>
+          <Face step={shown} />
+          {flipTo && <Face step={flipTo} back />}
+        </span>
       </div>
       <div className="min-w-0" aria-live="polite">
         <p key={`label-${step}`} className={s.label}>
