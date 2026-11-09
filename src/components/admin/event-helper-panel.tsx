@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Alert } from "@/lib/ui";
 import { FlowButton as Button } from "./event-flow-button";
+import { HelperBuildCard } from "./helper-build-card";
 import s from "./event-flow.module.css";
 
 // The AI helper's chat. Two places use it:
@@ -13,18 +14,18 @@ import s from "./event-flow.module.css";
 //     carries on there, and each message can change that event
 // Talks to /api/admin/event-helper.
 
+type FeatureRequestNote = { featureRequest?: string; featureRequestId?: string; alreadyRequested?: boolean };
+
 type HelperResponse =
-  | { kind: "question" | "message"; sessionId: string; text: string; featureRequest?: string; alreadyRequested?: boolean }
-  | { kind: "capability"; sessionId: string; text: string; alreadyRequested?: boolean }
-  | {
+  | ({ kind: "question" | "message"; sessionId: string; text: string } & FeatureRequestNote)
+  | { kind: "capability"; sessionId: string; text: string; featureRequestId: string; alreadyRequested?: boolean }
+  | ({
       kind: "draft";
       sessionId: string;
       eventId: string;
       eventCount: number;
       updated?: boolean;
-      featureRequest?: string;
-      alreadyRequested?: boolean;
-    }
+    } & FeatureRequestNote)
   | { kind: "error"; sessionId?: string | null; text: string; detail?: string };
 
 export interface TranscriptLine {
@@ -32,13 +33,20 @@ export interface TranscriptLine {
   text: string;
   // A link under the text (the saved draft, when it isn't opened right away).
   link?: { href: string; label: string };
+  // A feature request the helper filed: its build status shows under the line.
+  featureRequestId?: string;
 }
 
-const featureRequestLine = (summary: string, alreadyRequested = false): TranscriptLine => ({
+const featureRequestLine = (
+  summary: string,
+  featureRequestId: string | undefined,
+  alreadyRequested = false,
+): TranscriptLine => ({
   who: "helper",
   text: alreadyRequested
-    ? `The builder can't do that yet, but it's already on the developer's list ("${summary}"), so I've added this event to that request. I've drafted the rest of the event without it.`
-    : `The builder can't do that yet, so I've sent it to the developer as a feature request: "${summary}". I've drafted the rest of the event without it.`,
+    ? `The builder can't do that yet, but it's already a feature request ("${summary}"), so I've added this event to it. I've drafted the rest of the event without it.`
+    : `The builder can't do that yet, so I've filed a feature request: "${summary}". I've drafted the rest of the event without it.`,
+  featureRequestId,
 });
 
 const PLACEHOLDER =
@@ -108,7 +116,7 @@ export function EventHelperPanel({
       if (result.sessionId) setSessionId(result.sessionId);
       const note =
         "featureRequest" in result && result.featureRequest
-          ? [featureRequestLine(result.featureRequest, "alreadyRequested" in result && Boolean(result.alreadyRequested))]
+          ? [featureRequestLine(result.featureRequest, result.featureRequestId, Boolean(result.alreadyRequested))]
           : [];
 
       switch (result.kind) {
@@ -140,8 +148,9 @@ export function EventHelperPanel({
             {
               who: "helper",
               text: result.alreadyRequested
-                ? `The builder can't do that yet, but it's already on the developer's list ("${result.text}"), so I've added this event to that request. Tell me anything else about the event and I'll draft it without that part.`
-                : `The builder can't do that yet, so I've sent it to the developer as a feature request: "${result.text}". Tell me anything else about the event and I'll draft it without that part.`,
+                ? `The builder can't do that yet, but it's already a feature request ("${result.text}"), so I've added this event to it. Tell me anything else about the event and I'll draft it without that part.`
+                : `The builder can't do that yet, so I've filed a feature request: "${result.text}". Tell me anything else about the event and I'll draft it without that part.`,
+              featureRequestId: result.featureRequestId,
             },
           ]);
           break;
@@ -193,7 +202,10 @@ export function EventHelperPanel({
           aria-live="polite"
         >
           {transcript.map((line, index) => (
-            <li key={index} className={`flex ${line.who === "you" ? "justify-end" : "justify-start"}`}>
+            <li
+              key={index}
+              className={`flex flex-col gap-2 ${line.who === "you" ? "items-end" : "items-start"}`}
+            >
               <span
                 className={`max-w-[90%] rounded-[16px] px-4 py-3 text-[17px] leading-[1.45] ${
                   line.who === "you"
@@ -209,6 +221,7 @@ export function EventHelperPanel({
                   </a>
                 )}
               </span>
+              {line.featureRequestId && <HelperBuildCard requestId={line.featureRequestId} />}
             </li>
           ))}
           {pending && (

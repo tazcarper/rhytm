@@ -61,7 +61,7 @@ export interface EventHelperDeps {
     inputs: DraftSaveInputs,
     target: { updateEventId: string | null },
   ) => Promise<{ ok: true; id: string; count: number; ids: string[] } | { ok: false; error: string }>;
-  recordCapabilityRequest: (input: CapabilityRequestInput) => Promise<{ ok: true } | { ok: false; error: string }>;
+  recordCapabilityRequest: (input: CapabilityRequestInput) => Promise<{ ok: true; id: string } | { ok: false; error: string }>;
   // Ties this conversation's feature requests to the draft event(s), so the
   // events pages can show "Feature in progress". Best effort.
   linkCapabilityRequests: (sessionId: string, eventIds: ReadonlyArray<string>) => Promise<unknown>;
@@ -80,13 +80,21 @@ export interface EventHelperTurnInput {
   editing?: { eventId: string; snapshot: EventDraft } | null;
 }
 
+interface FeatureRequestNote {
+  featureRequest?: string;
+  featureRequestId?: string;
+  alreadyRequested?: boolean;
+}
+
 export type EventHelperResult =
   // featureRequest: set when this turn also sent the developer a request for
   // something the builder can't do yet; the rest of the event carries on.
-  | { kind: "question"; sessionId: string; text: string; featureRequest?: string; alreadyRequested?: boolean }
-  | { kind: "draft"; sessionId: string; eventId: string; eventCount: number; updated: boolean; featureRequest?: string; alreadyRequested?: boolean }
-  | { kind: "capability"; sessionId: string; text: string; alreadyRequested?: boolean }
-  | { kind: "message"; sessionId: string; text: string; featureRequest?: string; alreadyRequested?: boolean }
+  // featureRequestId is the request staff follow (the original, when this
+  // was a repeat ask), so the chat can show its build and a Build it button.
+  | ({ kind: "question"; sessionId: string; text: string } & FeatureRequestNote)
+  | ({ kind: "draft"; sessionId: string; eventId: string; eventCount: number; updated: boolean } & FeatureRequestNote)
+  | { kind: "capability"; sessionId: string; text: string; featureRequestId: string; alreadyRequested?: boolean }
+  | ({ kind: "message"; sessionId: string; text: string } & FeatureRequestNote)
   | { kind: "error"; sessionId: string | null; text: string };
 
 const WALL_CLOCK = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
@@ -152,7 +160,12 @@ function buildUserMessage(
 export interface HelperTranscriptLine {
   who: "you" | "helper";
   text: string;
+  // A feature request the helper filed: the chat shows its build status.
+  featureRequestId?: string;
 }
+
+// The tool result names the request, so a reopened chat can find it again.
+const REQUEST_ID_IN_RESULT = /feature request ([0-9a-f-]{36})/;
 
 const CONTEXT_NOTE = /<context>[\s\S]*?<\/context>\s*/g;
 
@@ -162,6 +175,8 @@ export function helperTranscript(messages: ReadonlyArray<HelperMessage>): Helper
   const lines: HelperTranscriptLine[] = [];
   const questionIds = new Set<string>();
   const draftIds = new Set<string>();
+  // The transcript line of each filed request, to attach its id to.
+  const requestLines = new Map<string, HelperTranscriptLine>();
   for (const message of messages) {
     if (typeof message.content === "string") {
       const text = message.content.replace(CONTEXT_NOTE, "").trim();
@@ -182,10 +197,12 @@ export function helperTranscript(messages: ReadonlyArray<HelperMessage>): Helper
         } else if (use.name === TOOL_REQUEST_CAPABILITY) {
           const parsed = RequestCapabilitySchema.safeParse(use.input);
           if (parsed.success) {
-            lines.push({
+            const line: HelperTranscriptLine = {
               who: "helper",
-              text: `The builder can't do that yet, so I've sent it to the developer as a feature request: "${parsed.data.summary}".`,
-            });
+              text: `The builder can't do that yet, so I've filed a feature request: "${parsed.data.summary}".`,
+            };
+            requestLines.set(use.id, line);
+            lines.push(line);
           }
         } else if (use.name === TOOL_PROPOSE_DRAFT) {
           draftIds.add(use.id);
@@ -201,6 +218,10 @@ export function helperTranscript(messages: ReadonlyArray<HelperMessage>): Helper
         const content = typeof block.content === "string" ? block.content : "";
         if (questionIds.has(block.tool_use_id)) {
           lines.push({ who: "you", text: content });
+        } else if (requestLines.has(block.tool_use_id)) {
+          const id = content.match(REQUEST_ID_IN_RESULT)?.[1];
+          const line = requestLines.get(block.tool_use_id);
+          if (id && line) line.featureRequestId = id;
         } else if (draftIds.has(block.tool_use_id) && !block.is_error) {
           lines.push({ who: "helper", text: content.startsWith("Saved changes") ? "Changes saved." : "Draft saved." });
         }
@@ -277,6 +298,7 @@ export async function runEventHelperTurn(
 
   let result: EventHelperResult | null = null;
   let featureRequest: string | null = null;
+  let featureRequestId: string | null = null;
   // True when the request was already on the developer's list.
   let alreadyRequested = false;
 
@@ -340,7 +362,7 @@ export async function runEventHelperTurn(
           toolResult(
             toolUse.id,
             recorded.ok
-              ? "Recorded for the developer to review. Now carry on without it: ask about anything else that's missing, or propose the draft."
+              ? `Recorded as feature request ${existing?.id ?? recorded.id}. It isn't built automatically: the chat shows staff a card with a Build it button that starts it. Now carry on without it: ask about anything else that's missing, or propose the draft.`
               : `Couldn't record it: ${recorded.error}. Carry on with the rest of the event anyway.`,
             !recorded.ok,
           ),
@@ -349,6 +371,7 @@ export async function runEventHelperTurn(
       // Don't end the turn: the model goes on to draft the rest of the event.
       if (recorded.ok) {
         featureRequest = summary;
+        featureRequestId = existing?.id ?? recorded.id;
         alreadyRequested = Boolean(existing);
         // Asked for after the draft was already saved: link it now.
         if (session.eventId) await deps.linkCapabilityRequests(session.id, [session.eventId]);
@@ -400,10 +423,10 @@ export async function runEventHelperTurn(
   }
 
   await deps.sessions.save(session);
-  if (featureRequest) {
-    if (!result) return { kind: "capability", sessionId: session.id, text: featureRequest, alreadyRequested };
+  if (featureRequest && featureRequestId) {
+    if (!result) return { kind: "capability", sessionId: session.id, text: featureRequest, featureRequestId, alreadyRequested };
     if (result.kind === "question" || result.kind === "draft" || result.kind === "message") {
-      return { ...result, featureRequest, alreadyRequested };
+      return { ...result, featureRequest, featureRequestId, alreadyRequested };
     }
   }
   return (
