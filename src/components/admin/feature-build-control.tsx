@@ -41,7 +41,7 @@ const STARTING: BuildProgress = { state: "working", steps: [], updatedAt: "" };
 const REFRESH_MS = 20_000;
 
 // Claude's checklist from GitHub, ticked off as it goes.
-function ProgressList({ progress, title }: { progress: BuildProgress; title: string }) {
+export function ProgressList({ progress, title }: { progress: BuildProgress; title: string }) {
   const firstOpen = progress.steps.findIndex((step) => !step.done);
   return (
     <div className="mt-4 rounded-[4px] border border-rule bg-white px-5 py-4">

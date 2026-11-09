@@ -92,17 +92,21 @@ export interface FeatureBuild {
 export async function createCapabilityRequest(
   supabase: SupabaseClient,
   input: CapabilityRequestInput,
-): Promise<{ ok: true } | { ok: false; error: string }> {
-  const { error } = await supabase.from("capability_requests").insert({
-    session_id: input.sessionId,
-    property_id: input.propertyId,
-    // Only sent when set, so inserts work before migration 20261105150000.
-    ...(input.duplicateOf ? { duplicate_of: input.duplicateOf } : {}),
-    summary: input.summary.slice(0, 1000),
-    owner_words: input.ownerWords.slice(0, 2000),
-  });
-  if (error) return { ok: false, error: error.message };
-  return { ok: true };
+): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+  const { data, error } = await supabase
+    .from("capability_requests")
+    .insert({
+      session_id: input.sessionId,
+      property_id: input.propertyId,
+      // Only sent when set, so inserts work before migration 20261105150000.
+      ...(input.duplicateOf ? { duplicate_of: input.duplicateOf } : {}),
+      summary: input.summary.slice(0, 1000),
+      owner_words: input.ownerWords.slice(0, 2000),
+    })
+    .select("id")
+    .single();
+  if (error || !data) return { ok: false, error: error?.message ?? "It couldn't be saved." };
+  return { ok: true, id: (data as { id: string }).id };
 }
 
 export interface OpenCapabilityRequest {

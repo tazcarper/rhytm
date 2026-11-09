@@ -72,6 +72,8 @@ function RequestCard({
   const timesAsked = 1 + row.alsoAsked.length;
 
   return (
+    // The AI helper's chat links here by id.
+    <div id={`request-${row.id}`} className="scroll-mt-24">
     <Card padding="default" elevation="soft">
       <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-4">
         <div className="min-w-0 flex-1">
@@ -158,6 +160,7 @@ function RequestCard({
         {row.propertyName ?? "No property"} · {shortDate(row.createdAt)}
       </p>
     </Card>
+    </div>
   );
 }
 
