@@ -131,6 +131,7 @@ function RequestCard({
       {status !== "declined" && (status !== "built" || row.build) && (
         <FeatureBuildControl
           requestId={row.id}
+          status={row.status}
           build={row.build}
           canBuild={canBuild}
           isFix={row.fix !== null}
