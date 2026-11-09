@@ -11,7 +11,7 @@ import s from "./build-orbit.module.css";
 
 // Where a Claude build is, one step at a time (Taz, 2026-11-09): the step's
 // icon in a green bubble, with moons circling it while Claude or the test
-// site is working. When the step moves on, the bubble flips over to show
+// site is working. When the step moves on, the bubble flips over (on its y axis) to show
 // the next icon. Each icon has its own little animation: the hammer hits,
 // sparkles pop, the eye blinks, the rocket fires. Used on feature request
 // cards and in the AI helper's chat.

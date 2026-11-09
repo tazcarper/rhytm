@@ -90,7 +90,7 @@
   box-shadow: 0 6px 18px color-mix(in srgb, var(--olive) 35%, transparent);
 }
 .back {
-  transform: rotateX(180deg);
+  transform: rotateY(180deg);
 }
 .idleFace {
   background: white;
@@ -117,7 +117,7 @@
   height: 3px;
   width: 7px;
   border-radius: 2px;
-  background: #f5c518;
+  background: currentColor;
   opacity: 0;
 }
 .spark1 {
@@ -136,7 +136,7 @@
   position: absolute;
   height: 6px;
   width: 6px;
-  background: #f5c518;
+  background: currentColor;
   clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
   transform: scale(0);
 }
@@ -155,15 +155,17 @@
   right: -2px;
 }
 
-/* Rocket: flames out of the nozzle (bottom left of the icon). */
+/* Rocket: a flame out of the nozzle (bottom left of the icon), in the
+   icon's own colour like the sparks and stars. */
 .flame {
   position: absolute;
-  left: 1px;
-  bottom: 1px;
-  height: 11px;
-  width: 6px;
+  top: 17px;
+  left: 4px;
+  height: 9px;
+  width: 5px;
+  margin-left: -2.5px;
   border-radius: 50% 50% 50% 50% / 30% 30% 70% 70%;
-  background: linear-gradient(to bottom, #fff3b0, #f5c518 40%, #e8742a);
+  background: linear-gradient(to bottom, currentColor 30%, transparent);
   transform-origin: 50% 0;
   transform: rotate(45deg) scaleY(0);
 }
@@ -273,10 +275,10 @@
 }
 @keyframes flip {
   from {
-    transform: rotateX(0deg);
+    transform: rotateY(0deg);
   }
   to {
-    transform: rotateX(180deg);
+    transform: rotateY(180deg);
   }
 }
 @keyframes hit {
