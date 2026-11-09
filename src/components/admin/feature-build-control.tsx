@@ -117,14 +117,14 @@ function StepBox({
 }) {
   return (
     <li className="flex gap-4">
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-olive text-micro font-semibold text-white">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-olive text-[15px] font-semibold text-white">
         {number}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="m-0 text-body font-semibold leading-[28px] text-olive-darker">
+        <p className="m-0 text-[20px] font-semibold leading-[32px] text-olive-darker">
           {title}
         </p>
-        <div className="mt-1 max-w-[70ch] text-body leading-body text-olive">
+        <div className="mt-2 max-w-[70ch] text-[17px] leading-[1.6] text-olive">
           {children}
         </div>
       </div>
@@ -398,46 +398,54 @@ export function FeatureBuildControl({
     <div className="mt-6 max-w-[900px]">
       {/* Everything about the current step, including what to do next,
           sits beside the animation (Taz, 2026-11-09). */}
-      <BuildOrbit step={step}>
-        <p className="m-0 max-w-[70ch] text-body leading-body text-olive">
+      <BuildOrbit
+        step={step}
+        details={
+          <>
+            {step === "building" && (
+              <ProgressList
+                progress={progress?.state === "working" ? progress : STARTING}
+                title={
+                  fixingFeedback
+                    ? "What Claude is fixing"
+                    : "What Claude is doing"
+                }
+              />
+            )}
+            {step === "ready" && build && (
+              <TryItSteps requestId={requestId} build={build} />
+            )}
+            <div className="mt-4 flex flex-wrap items-center gap-3 empty:hidden">
+              {step === "requested" &&
+                (canBuild ? (
+                  <Button
+                    type="button"
+                    variant={BUILD_ACTIONS.build.variant}
+                    size="sm"
+                    loading={isPending}
+                    leading={<BuildActionIcon action="build" />}
+                    onClick={start}
+                  >
+                    {setAside ? "Build it again" : BUILD_ACTIONS.build.label}
+                  </Button>
+                ) : (
+                  <p className="m-0 text-micro text-gray">
+                    Automatic building isn&apos;t switched on yet. Ask your
+                    developer.
+                  </p>
+                ))}
+              {error && (
+                <p className="m-0 text-body font-semibold text-accent-error">
+                  Couldn&apos;t start it: {error}
+                </p>
+              )}
+            </div>
+          </>
+        }
+      >
+        <p className="m-0 max-w-[70ch] text-olive">
           {buildStepText(step, { isFix, setAside, fixingFeedback })}
         </p>
-        {step === "building" && (
-          <ProgressList
-            progress={progress?.state === "working" ? progress : STARTING}
-            title={
-              fixingFeedback ? "What Claude is fixing" : "What Claude is doing"
-            }
-          />
-        )}
-        {step === "ready" && build && (
-          <TryItSteps requestId={requestId} build={build} />
-        )}
-        <div className="mt-4 flex flex-wrap items-center gap-3 empty:hidden">
-          {step === "requested" &&
-            (canBuild ? (
-              <Button
-                type="button"
-                variant={BUILD_ACTIONS.build.variant}
-                size="sm"
-                loading={isPending}
-                leading={<BuildActionIcon action="build" />}
-                onClick={start}
-              >
-                {setAside ? "Build it again" : BUILD_ACTIONS.build.label}
-              </Button>
-            ) : (
-              <p className="m-0 text-micro text-gray">
-                Automatic building isn&apos;t switched on yet. Ask your
-                developer.
-              </p>
-            ))}
-          {error && (
-            <p className="m-0 text-body font-semibold text-accent-error">
-              Couldn&apos;t start it: {error}
-            </p>
-          )}
-        </div>
       </BuildOrbit>
     </div>
   );

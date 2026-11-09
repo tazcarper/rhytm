@@ -5,15 +5,19 @@
    rocket fires, sparkles pop, the eye blinks). Everything holds still for
    people who ask for reduced motion. */
 
+/* Icon and heading side by side, centred on each other. */
 .wrap {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 24px;
 }
 .body {
   min-width: 0;
   flex: 1;
-  padding-top: 40px;
+}
+/* What to do next sits under both, from the left edge. */
+.details {
+  margin-top: 16px;
 }
 
 .stage {
@@ -181,21 +185,23 @@
 
 .label {
   margin: 0;
-  font-size: 20px;
+  font-size: 26px;
   font-weight: 700;
   line-height: 1.3;
   color: var(--olive-darker);
 }
 .count {
-  margin: 2px 0 0;
-  font-size: 12px;
+  margin: 4px 0 0;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--tan);
 }
 .text {
-  margin: 6px 0 0;
+  margin: 8px 0 0;
+  font-size: 18px;
+  line-height: 1.5;
 }
 
 /* ---- Motion -------------------------------------------------------- */

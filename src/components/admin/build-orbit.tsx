@@ -15,7 +15,6 @@ import s from "./build-orbit.module.css";
 // the next icon. Each icon has its own little animation: the hammer hits,
 // sparkles pop, the eye blinks, the rocket fires. Used on feature request
 // cards and in the AI helper's chat.
-// children: one plain sentence about what's happening (see buildStepText).
 
 const LABEL: Record<BuildStep, string> = {
   requested: "Not started yet",
@@ -83,10 +82,15 @@ export function BuildOrbit({
   step,
   className = "",
   children,
+  details,
 }: {
   step: BuildStep;
   className?: string;
+  // One plain sentence beside the icon (see buildStepText).
   children?: React.ReactNode;
+  // What to do next (checklist, try-it steps, buttons), full width under
+  // the icon and heading.
+  details?: React.ReactNode;
 }) {
   // The bubble shows `shown`. When the step changes it flips over to the
   // new step on its back face, then settles with the new step in front.
@@ -111,28 +115,31 @@ export function BuildOrbit({
       : s.noMoons;
   const number = BUILD_STEPS.findIndex((item) => item.key === step) + 1;
   return (
-    <div className={`${s.wrap} ${className}`}>
-      <div className={`${s.stage} ${motion}`} aria-hidden>
-        <span className={`${s.orbit} ${s.orbit1}`} />
-        <span className={`${s.orbit} ${s.orbit2}`} />
-        <span className={`${s.orbit} ${s.orbit3}`} />
-        {/* A new key on settling restarts the card with no rotation. */}
-        <span key={shown} className={`${s.card} ${flipTo ? s.flipping : ""}`}>
-          <Face step={shown} />
-          {flipTo && <Face step={flipTo} back />}
-        </span>
-      </div>
-      <div className={s.body} aria-live="polite">
-        <p key={`label-${step}`} className={s.label}>
-          {LABEL[step]}
-        </p>
-        {number > 0 && step !== "live" && (
-          <p key={`count-${step}`} className={s.count}>
-            Step {number} of {BUILD_STEPS.length}
+    <div className={className}>
+      <div className={s.wrap}>
+        <div className={`${s.stage} ${motion}`} aria-hidden>
+          <span className={`${s.orbit} ${s.orbit1}`} />
+          <span className={`${s.orbit} ${s.orbit2}`} />
+          <span className={`${s.orbit} ${s.orbit3}`} />
+          {/* A new key on settling restarts the card with no rotation. */}
+          <span key={shown} className={`${s.card} ${flipTo ? s.flipping : ""}`}>
+            <Face step={shown} />
+            {flipTo && <Face step={flipTo} back />}
+          </span>
+        </div>
+        <div className={s.body} aria-live="polite">
+          <p key={`label-${step}`} className={s.label}>
+            {LABEL[step]}
           </p>
-        )}
-        {children && <div className={s.text}>{children}</div>}
+          {number > 0 && step !== "live" && (
+            <p key={`count-${step}`} className={s.count}>
+              Step {number} of {BUILD_STEPS.length}
+            </p>
+          )}
+          {children && <div className={s.text}>{children}</div>}
+        </div>
       </div>
+      {details && <div className={s.details}>{details}</div>}
     </div>
   );
 }
