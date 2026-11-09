@@ -197,7 +197,7 @@ function ApproveOrFix({ requestId }: { requestId: string }) {
             </Button>
             <Button
               type="button"
-              variant="secondary"
+              variant="primary"
               size="sm"
               onClick={() => setMode("feedback")}
             >
@@ -308,7 +308,7 @@ function TryItSteps({
     ? `${build.previewUrl}/admin/events`
     : null;
   return (
-    <ol className="m-0 mt-4 flex list-none flex-col gap-6 rounded-[4px] bg-paper-warm px-5 py-5">
+    <ol className="m-0 mt-4 flex list-none flex-col gap-6 p-0">
       <StepBox number={1} title="Preview it">
         {previewAdmin ? (
           <>
