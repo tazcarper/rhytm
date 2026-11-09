@@ -1,17 +1,18 @@
 import type { CapabilityRequestRow } from "@/src/services/ai/capability-requests";
 import type { BuildProgress } from "@/src/services/ai/feature-build-progress";
+import { buildStepOf, type BuildStep } from "@/src/services/ai/build-steps";
 
-// Where a feature request stands, in the terms the AI helper's chat shows
-// staff: waiting for someone to press Build it, being built, ready to try
-// on the preview, live, or stopped.
-
-export type FeatureRequestStage = "waiting" | "building" | "ready" | "live" | "declined" | "set-aside";
+// Where a feature request stands, for the card in the AI helper's chat: the
+// build step (see build-steps.ts), or that it was declined or set aside.
 
 export interface FeatureRequestStatus {
   id: string;
   summary: string;
   isFix: boolean;
-  stage: FeatureRequestStage;
+  step: BuildStep;
+  declined: boolean;
+  // Built once and set aside without going live; it can be built again.
+  setAside: boolean;
   // The test copy of the site with the build on it, once Vercel has made it.
   previewUrl: string | null;
   // Claude's checklist while it works. Null before it posts one.
@@ -20,16 +21,10 @@ export interface FeatureRequestStatus {
   canBuild: boolean;
 }
 
-export function featureRequestStage(row: CapabilityRequestRow): FeatureRequestStage {
-  if (row.status === "built") return "live";
-  if (row.status === "declined") return "declined";
-  const pullRequest = row.build?.pullRequest ?? null;
-  if (!row.build) return "waiting";
-  if (!pullRequest) return "building";
-  if (pullRequest.state === "merged") return "live";
-  if (pullRequest.state === "closed") return "set-aside";
-  // The pull request is open: ready once its preview exists.
-  return row.build.previewUrl ? "ready" : "building";
+// Builds whose GitHub progress is worth reading: started and not finished.
+export function needsBuildProgress(row: CapabilityRequestRow): boolean {
+  const state = row.build?.pullRequest?.state;
+  return row.build !== null && row.status !== "built" && state !== "merged" && state !== "closed";
 }
 
 export function featureRequestStatus(
@@ -41,7 +36,9 @@ export function featureRequestStatus(
     id: row.id,
     summary: row.summary,
     isFix: row.fix !== null,
-    stage: featureRequestStage(row),
+    step: buildStepOf({ status: row.status, build: row.build, progress }),
+    declined: row.status === "declined",
+    setAside: row.build?.pullRequest?.state === "closed",
     previewUrl: row.build?.previewUrl ?? null,
     progress,
     canBuild,

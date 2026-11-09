@@ -4,7 +4,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createGitHubIssuesClient } from "@/lib/github/issues-client";
 import { getCapabilityRequests } from "@/src/services/ai/capability-requests";
 import { getBuildProgress } from "@/src/services/ai/feature-build-progress";
-import { featureRequestStage, featureRequestStatus } from "@/src/services/ai/feature-request-status";
+import { featureRequestStatus, needsBuildProgress } from "@/src/services/ai/feature-request-status";
 import { EVENT_HELPER_ROLES } from "@/src/constants/admin/event-helper";
 
 // One feature request's build status, for the card in the AI helper's chat.
@@ -32,6 +32,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
   const github = createGitHubIssuesClient();
   const progress =
-    github && row.build && featureRequestStage(row) === "building" ? await getBuildProgress(github, row.build) : null;
+    github && row.build && needsBuildProgress(row) ? await getBuildProgress(github, row.build) : null;
   return NextResponse.json(featureRequestStatus(row, progress, ADMIN_ROLES.has(role) && github !== null));
 }
