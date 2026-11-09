@@ -140,7 +140,7 @@ export function HelperBuildCard({ requestId }: { requestId: string }) {
                       })}
                 </p>
               </BuildOrbit>
-              <div className="mt-3">
+              <div className="mt-8">
                 {step === "ready" && (
                   <p className="m-0 text-[15px] leading-[1.5] text-olive">
                     Open the test site, try what you asked for, then publish it
