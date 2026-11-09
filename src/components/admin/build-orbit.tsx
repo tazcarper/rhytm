@@ -26,7 +26,7 @@ const LABEL: Record<BuildStep, string> = {
 };
 
 // How long the flip takes (matches the CSS).
-const FLIP_MS = 700;
+const FLIP_MS = 1100;
 
 function StepIcon({ step }: { step: BuildStep }) {
   switch (step) {

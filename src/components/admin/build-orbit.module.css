@@ -218,8 +218,10 @@
   .stage {
     animation: pop-in 650ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
+  /* A spring: a small wind-up, a fast turn that overshoots, then a few
+     damped wobbles back and forth before it settles. */
   .flipping {
-    animation: flip 700ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+    animation: flip 1100ms both;
   }
 
   .hammer svg {
@@ -274,10 +276,35 @@
   }
 }
 @keyframes flip {
-  from {
+  0% {
     transform: rotateY(0deg);
+    animation-timing-function: ease-in-out;
   }
-  to {
+  10% {
+    transform: rotateY(-12deg);
+    animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1);
+  }
+  42% {
+    transform: rotateY(208deg);
+    animation-timing-function: ease-in-out;
+  }
+  58% {
+    transform: rotateY(166deg);
+    animation-timing-function: ease-in-out;
+  }
+  72% {
+    transform: rotateY(188deg);
+    animation-timing-function: ease-in-out;
+  }
+  84% {
+    transform: rotateY(176deg);
+    animation-timing-function: ease-in-out;
+  }
+  93% {
+    transform: rotateY(182deg);
+    animation-timing-function: ease-out;
+  }
+  100% {
     transform: rotateY(180deg);
   }
 }
