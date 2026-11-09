@@ -199,7 +199,7 @@ export function helperTranscript(messages: ReadonlyArray<HelperMessage>): Helper
           if (parsed.success) {
             const line: HelperTranscriptLine = {
               who: "helper",
-              text: `The builder can't do that yet, so I've filed a feature request: "${parsed.data.summary}".`,
+              text: "The builder can't do that yet, so I've filed it as a feature request.",
             };
             requestLines.set(use.id, line);
             lines.push(line);
@@ -362,7 +362,7 @@ export async function runEventHelperTurn(
           toolResult(
             toolUse.id,
             recorded.ok
-              ? `Recorded as feature request ${existing?.id ?? recorded.id}. It isn't built automatically: the chat shows staff a card with a Build it button that starts it. Now carry on without it: ask about anything else that's missing, or propose the draft.`
+              ? `Recorded. [feature request ${existing?.id ?? recorded.id}] The chat already shows staff a card with this request and how to build it, so don't mention the request, its id or the card in your reply. Now carry on without it: ask about anything else that's missing, or propose the draft.`
               : `Couldn't record it: ${recorded.error}. Carry on with the rest of the event anyway.`,
             !recorded.ok,
           ),

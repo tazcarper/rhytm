@@ -37,15 +37,21 @@ export interface TranscriptLine {
   featureRequestId?: string;
 }
 
+// What the helper says when it files a request. The card under it shows
+// the request and its build, so this only says what happened and what
+// staff can do next.
+export function featureRequestText(alreadyRequested: boolean): string {
+  return alreadyRequested
+    ? "Good news: there's already a request for this, shown below. You can start the build (or check on it), tell me more to add to the request, or carry on with something else."
+    : "The builder can't do that yet, so I've made a request for it, shown below. You can start the build, tell me more to add to the request, or carry on with something else.";
+}
+
 const featureRequestLine = (
-  summary: string,
   featureRequestId: string | undefined,
   alreadyRequested = false,
 ): TranscriptLine => ({
   who: "helper",
-  text: alreadyRequested
-    ? `The builder can't do that yet, but it's already a feature request ("${summary}"), so I've added this event to it. I've drafted the rest of the event without it.`
-    : `The builder can't do that yet, so I've filed a feature request: "${summary}". I've drafted the rest of the event without it.`,
+  text: `${featureRequestText(alreadyRequested)} I've drafted the rest of the event without it.`,
   featureRequestId,
 });
 
@@ -116,7 +122,7 @@ export function EventHelperPanel({
       if (result.sessionId) setSessionId(result.sessionId);
       const note =
         "featureRequest" in result && result.featureRequest
-          ? [featureRequestLine(result.featureRequest, result.featureRequestId, Boolean(result.alreadyRequested))]
+          ? [featureRequestLine(result.featureRequestId, Boolean(result.alreadyRequested))]
           : [];
 
       switch (result.kind) {
@@ -147,9 +153,7 @@ export function EventHelperPanel({
             ...lines,
             {
               who: "helper",
-              text: result.alreadyRequested
-                ? `The builder can't do that yet, but it's already a feature request ("${result.text}"), so I've added this event to it. Tell me anything else about the event and I'll draft it without that part.`
-                : `The builder can't do that yet, so I've filed a feature request: "${result.text}". Tell me anything else about the event and I'll draft it without that part.`,
+              text: featureRequestText(Boolean(result.alreadyRequested)),
               featureRequestId: result.featureRequestId,
             },
           ]);
