@@ -7,7 +7,7 @@ import { buildFeatureRequestAction } from "@/app/admin/events/feature-request-ac
 import { isWorkingStep } from "@/src/services/ai/build-steps";
 import type { FeatureRequestStatus } from "@/src/services/ai/feature-request-status";
 import { BUILD_ACTIONS, BuildActionIcon } from "./build-actions";
-import { BuildStepper, buildStepText } from "./build-stepper";
+import { BuildOrbit, buildStepText } from "./build-orbit";
 import { ProgressList } from "./feature-build-control";
 
 // Under a helper reply that filed a feature request: the same
@@ -93,17 +93,18 @@ export function HelperBuildCard({ requestId }: { requestId: string }) {
             </p>
           ) : (
             <>
-              <BuildStepper step={step} className="mt-4" />
-              <p className="m-0 mt-4 text-[15px] leading-[1.5] text-gray">
-                {step === "requested" && !status.canBuild && !status.setAside
-                  ? "Nothing is being built yet. An admin needs to press Build it on the Feature requests page."
-                  : buildStepText(step, {
-                      isFix: status.isFix,
-                      setAside: status.setAside,
-                      fixingFeedback:
-                        step === "building" && status.previewUrl !== null,
-                    })}
-              </p>
+              <BuildOrbit step={step} className="mt-3">
+                <p className="m-0 text-[15px] leading-[1.5] text-gray">
+                  {step === "requested" && !status.canBuild && !status.setAside
+                    ? "Nothing is being built yet. An admin needs to press Build it on the Feature requests page."
+                    : buildStepText(step, {
+                        isFix: status.isFix,
+                        setAside: status.setAside,
+                        fixingFeedback:
+                          step === "building" && status.previewUrl !== null,
+                      })}
+                </p>
+              </BuildOrbit>
               {step === "building" && (
                 <ProgressList
                   progress={

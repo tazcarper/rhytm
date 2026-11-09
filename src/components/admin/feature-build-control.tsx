@@ -16,10 +16,10 @@ import {
   type BuildStep,
 } from "@/src/services/ai/build-steps";
 import { BUILD_ACTIONS, BuildActionIcon } from "./build-actions";
-import { BuildStepper, buildStepText } from "./build-stepper";
+import { BuildOrbit, buildStepText } from "./build-orbit";
 
 // The Build it control on a feature request card: the step tracker
-// (see BuildStepper), the Build it button, Claude's checklist while it
+// (see BuildOrbit), the Build it button, Claude's checklist while it
 // works, and how to try and publish the build once it's on the test site.
 
 // Shown until Claude posts its first checklist (it takes a minute or two
@@ -379,10 +379,11 @@ export function FeatureBuildControl({
 
   return (
     <div className="mt-6 max-w-[760px]">
-      <BuildStepper step={step} />
-      <p className="m-0 mt-5 max-w-[70ch] text-body leading-body text-olive">
-        {buildStepText(step, { isFix, setAside, fixingFeedback })}
-      </p>
+      <BuildOrbit step={step}>
+        <p className="m-0 max-w-[70ch] text-body leading-body text-olive">
+          {buildStepText(step, { isFix, setAside, fixingFeedback })}
+        </p>
+      </BuildOrbit>
       {step === "building" && (
         <ProgressList
           progress={progress?.state === "working" ? progress : STARTING}
