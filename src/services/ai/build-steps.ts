@@ -1,14 +1,15 @@
 import type { FeatureBuild } from "@/src/services/ai/capability-requests";
 import type { BuildProgress } from "@/src/services/ai/feature-build-progress";
 
-// The five steps every Claude build goes through, as staff see them on the
+// The steps every Claude build goes through, as staff see them on the
 // feature request card and in the AI helper's chat. One place decides which
 // step a build is on, so both always agree.
 
 export type BuildStep = "requested" | "building" | "preview" | "ready" | "live";
 
+// "requested" (nothing started yet) has no dot of its own: the tracker
+// shows every step still ahead (Taz, 2026-11-09).
 export const BUILD_STEPS: ReadonlyArray<{ key: BuildStep; label: string }> = [
-  { key: "requested", label: "Ready to start" },
   { key: "building", label: "Building" },
   { key: "preview", label: "Setting up preview" },
   { key: "ready", label: "Ready to try" },

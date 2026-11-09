@@ -6,8 +6,9 @@ import {
 } from "@/src/services/ai/build-steps";
 import s from "./build-stepper.module.css";
 
-// Where a Claude build is, as five steps: Ready to start → Building →
-// Setting up preview → Ready to try → Live. Used on feature request cards
+// Where a Claude build is, as four steps: Building →
+// Setting up preview → Ready to try → Live. Before Build it is pressed,
+// every step shows as still ahead. Used on feature request cards
 // and in the AI helper's chat. The current step is animated while Claude
 // or Vercel is working on it.
 

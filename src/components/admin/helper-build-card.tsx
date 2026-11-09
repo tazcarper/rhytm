@@ -10,7 +10,7 @@ import { BUILD_ACTIONS, BuildActionIcon } from "./build-actions";
 import { BuildStepper, buildStepText } from "./build-stepper";
 import { ProgressList } from "./feature-build-control";
 
-// Under a helper reply that filed a feature request: the same five-step
+// Under a helper reply that filed a feature request: the same
 // tracker as the Feature requests page, so staff can see whether anything
 // is happening. Ready to start → Build it button; building → Claude's
 // checklist, kept up to date; ready → try it on the test site; live → done.

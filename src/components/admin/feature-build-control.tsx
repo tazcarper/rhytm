@@ -18,7 +18,7 @@ import {
 import { BUILD_ACTIONS, BuildActionIcon } from "./build-actions";
 import { BuildStepper, buildStepText } from "./build-stepper";
 
-// The Build it control on a feature request card: the five-step tracker
+// The Build it control on a feature request card: the step tracker
 // (see BuildStepper), the Build it button, Claude's checklist while it
 // works, and how to try and publish the build once it's on the test site.
 

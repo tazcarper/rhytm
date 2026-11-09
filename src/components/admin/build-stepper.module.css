@@ -1,10 +1,10 @@
-/* The build step tracker: five dots joined by a line. The step Claude or
+/* The build step tracker: four dots joined by a line. The step Claude or
    Vercel is working on spins, and the line into it shimmers. Both hold
    still for people who ask for reduced motion. */
 
 .steps {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin: 0;
   padding: 0;
   list-style: none;
