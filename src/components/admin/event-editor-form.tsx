@@ -310,6 +310,10 @@ export function EventEditorForm({
       setPriceChangeOn("");
       setMemberPriceAfter("");
       setNonMemberPriceAfter("");
+      setExtrasState((current) => ({
+        ...current,
+        tickets: current.tickets.map((ticket) => ({ ...ticket, priceAfter: "" })),
+      }));
     }
   };
   const [status, setStatus] = useState<EventStatus>(event.status);
@@ -861,7 +865,7 @@ export function EventEditorForm({
                   <p className={s.hint}>This only labels the event. Anyone can still sign up.</p>
                 </div>
               </section>
-              <EventExtrasFields value={extrasState} onChange={setExtrasState} parts={["tickets"]} />
+              <EventExtrasFields value={extrasState} onChange={setExtrasState} parts={["tickets"]} showLaterPrice={earlyBirdOn} />
               <section className={s.section}>
                 <h3 className={s.subhead}>Price</h3>
                 <div className="flex flex-col gap-2">
@@ -914,7 +918,10 @@ export function EventEditorForm({
                         />
                       )}
                     </div>
-                    <p className={s.hint}>Leave a new price blank to keep it the same.</p>
+                    <p className={s.hint}>
+                      Leave a new price blank to keep it the same. Each ticket option has its own New price box under
+                      Ticket options.
+                    </p>
                   </div>
                 </EventOptionPanel>
               </section>

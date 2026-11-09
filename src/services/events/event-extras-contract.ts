@@ -22,7 +22,12 @@ export const TicketTypeSchema = z.object({
     .min(1, "Ticket name is required")
     .max(80)
     .describe('Short ticket name a guest picks, e.g. "Adult", "Kids (12 and under)", "Member", "General admission".'),
-  price: money.describe("Price in US dollars for one ticket. Use 0 for a free ticket."),
+  price: money.describe(
+    "Price in US dollars for one ticket. Use 0 for a free ticket. When the event has a priceChange, this is the EARLIER price.",
+  ),
+  priceAfter: money.describe(
+    "Price in US dollars for this ticket from the event's price change date on (e.g. General 65 then 85, VIP and Kids each their own). Set equal to price when this ticket's price does not change or the event has no priceChange.",
+  ),
   description: z
     .string()
     .trim()
