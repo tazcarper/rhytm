@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { copyEventsToPreview } from "@/src/services/admin/copy-events-to-preview";
+import { writeSkippingMissingColumns } from "@/src/services/admin/write-skipping-missing-columns";
 
 // Nightly copy of the live site's content and settings into the test
 // (preview) database, so test sites look like the real one (Taz,
@@ -104,6 +105,11 @@ export interface TableSyncReport {
   updated: number;
   added: number;
   skipped: number;
+  // Rows left as they are on the test site on purpose (events being
+  // tested with a build that's still open).
+  kept?: number;
+  // Live columns the test database doesn't have yet, so they were left out.
+  missingColumns?: string[];
   error?: string;
 }
 
@@ -136,6 +142,7 @@ async function syncTable(
   const [liveRows, testRows] = await Promise.all([readAll(source, spec.table), readAll(target, spec.table)]);
   const testById = new Map(testRows.map((row) => [String(row.id), row]));
   const testByKey = new Map(testRows.map((row) => [keyOf(row, spec.key), row]));
+  const missing = new Set<string>();
 
   for (const live of liveRows) {
     const row: Row = { ...live };
@@ -159,24 +166,57 @@ async function syncTable(
     if (match) {
       if (hasId) {
         const { id: _liveId, ...changes } = row;
-        const { error } = await target.from(spec.table).update(changes).eq("id", match.id);
-        if (error) throw new Error(error.message);
+        const { error } = await writeSkippingMissingColumns(
+          [changes],
+          ([only]) => target.from(spec.table).update(only).eq("id", match.id),
+          missing,
+        );
+        if (error) throw new Error(error);
         idMap.set(String(live.id), String(match.id));
       } else {
-        let query = target.from(spec.table).update(row);
-        for (const column of spec.key) query = query.eq(column, row[column]);
-        const { error } = await query;
-        if (error) throw new Error(error.message);
+        const { error } = await writeSkippingMissingColumns(
+          [row],
+          ([only]) => {
+            let query = target.from(spec.table).update(only);
+            for (const column of spec.key) query = query.eq(column, row[column]);
+            return query;
+          },
+          missing,
+        );
+        if (error) throw new Error(error);
       }
       report.updated += 1;
     } else {
-      const { error } = await target.from(spec.table).insert(row);
-      if (error) throw new Error(error.message);
+      const { error } = await writeSkippingMissingColumns([row], (batch) => target.from(spec.table).insert(batch), missing);
+      if (error) throw new Error(error);
       if (hasId) idMap.set(String(live.id), String(live.id));
       report.added += 1;
     }
   }
+  if (missing.size) report.missingColumns = [...missing];
   return report;
+}
+
+// Drafts that a build is being made or tested on right now: linked to a
+// feature request whose build has started and whose pull request isn't
+// merged or closed. Staff may be trying the new feature on them on the test
+// site, so the nightly copy leaves them alone until the build is done.
+// (Build it already copied them once when it started.)
+export async function eventsWithOpenBuilds(source: SupabaseClient): Promise<Set<string>> {
+  const { data, error } = await source
+    .from("capability_requests")
+    .select("build_pr_state, capability_request_events ( event_id )")
+    .not("build_issue_number", "is", null);
+  if (error) throw new Error(`Couldn't read which builds are open: ${error.message}`);
+  const ids = new Set<string>();
+  for (const request of (data ?? []) as Array<{
+    build_pr_state: string | null;
+    capability_request_events: Array<{ event_id: string }> | null;
+  }>) {
+    if (request.build_pr_state === "merged" || request.build_pr_state === "closed") continue;
+    for (const link of request.capability_request_events ?? []) ids.add(link.event_id);
+  }
+  return ids;
 }
 
 // Copies every content table, then every event (with its info boxes,
@@ -202,11 +242,25 @@ export async function syncTestSite({
   // In batches, so each request's list of ids stays short.
   const eventReport: TableSyncReport = { table: "events", updated: 0, added: 0, skipped: 0 };
   try {
-    const eventIds = (await readAll(source, "events")).map((event) => String(event.id));
+    // Only left alone once they're on the test site; a draft that isn't
+    // there yet is copied so it can be tested.
+    const openBuildIds = [...(await eventsWithOpenBuilds(source))];
+    const { data: alreadyThere, error: thereError } = openBuildIds.length
+      ? await target.from("events").select("id").in("id", openBuildIds)
+      : { data: [], error: null };
+    if (thereError) throw new Error(thereError.message);
+    const protectedIds = new Set((alreadyThere ?? []).map((row) => String(row.id)));
+    eventReport.kept = protectedIds.size;
+    const eventIds = (await readAll(source, "events"))
+      .map((event) => String(event.id))
+      .filter((id) => !protectedIds.has(id));
     for (let start = 0; start < eventIds.length; start += 100) {
       const copied = await copyEventsToPreview(eventIds.slice(start, start + 100), { source, target });
       if (!copied.ok) throw new Error(copied.error);
       eventReport.updated += copied.copied;
+      if (copied.skippedColumns.length) {
+        eventReport.missingColumns = [...new Set([...(eventReport.missingColumns ?? []), ...copied.skippedColumns])];
+      }
     }
   } catch (error) {
     eventReport.error = (error as Error).message;

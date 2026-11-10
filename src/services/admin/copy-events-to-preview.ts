@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { writeSkippingMissingColumns } from "@/src/services/admin/write-skipping-missing-columns";
 
 // Copies events from the live database into the preview (test) database
 // (Taz, 2026-11-10). Previews run on their own database, so a build asked
@@ -26,21 +27,24 @@ export function createPreviewDatabaseClient(
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
-export type CopyEventsResult = { ok: true; copied: number } | { ok: false; error: string };
+// skippedColumns: live columns the test database doesn't have yet (left out).
+export type CopyEventsResult =
+  | { ok: true; copied: number; skippedColumns: string[] }
+  | { ok: false; error: string };
 
 export async function copyEventsToPreview(
   eventIds: ReadonlyArray<string>,
   { source, target }: { source: SupabaseClient; target: SupabaseClient },
 ): Promise<CopyEventsResult> {
   const ids = [...new Set(eventIds)];
-  if (ids.length === 0) return { ok: true, copied: 0 };
+  if (ids.length === 0) return { ok: true, copied: 0, skippedColumns: [] };
 
   const { data: events, error: eventsError } = await source
     .from("events")
     .select("*, properties ( slug )")
     .in("id", ids);
   if (eventsError) return { ok: false, error: `Couldn't read the events: ${eventsError.message}` };
-  if (!events?.length) return { ok: true, copied: 0 };
+  if (!events?.length) return { ok: true, copied: 0, skippedColumns: [] };
 
   const { data: targetProperties, error: propertiesError } = await target.from("properties").select("id, slug");
   if (propertiesError) return { ok: false, error: `Couldn't read the test site's clubs: ${propertiesError.message}` };
@@ -53,8 +57,13 @@ export async function copyEventsToPreview(
     rows.push({ ...event, id: event.id as string, property_id: propertyId });
   }
 
-  const { error: upsertError } = await target.from("events").upsert(rows, { onConflict: "id" });
-  if (upsertError) return { ok: false, error: `Couldn't save the events on the test site: ${upsertError.message}` };
+  const skipped = new Set<string>();
+  const saved = await writeSkippingMissingColumns(
+    rows,
+    (batch) => target.from("events").upsert(batch, { onConflict: "id" }),
+    skipped,
+  );
+  if (saved.error) return { ok: false, error: `Couldn't save the events on the test site: ${saved.error}` };
 
   const copiedIds = rows.map((row) => row.id);
   for (const table of CHILD_TABLES) {
@@ -63,9 +72,11 @@ export async function copyEventsToPreview(
     const { error: clearError } = await target.from(table).delete().in("event_id", copiedIds);
     if (clearError) return { ok: false, error: `Couldn't clear ${table} on the test site: ${clearError.message}` };
     if (children?.length) {
-      const { error: insertError } = await target.from(table).insert(children);
-      if (insertError) return { ok: false, error: `Couldn't copy ${table}: ${insertError.message}` };
+      const childSkipped = new Set<string>();
+      const inserted = await writeSkippingMissingColumns(children, (batch) => target.from(table).insert(batch), childSkipped);
+      if (inserted.error) return { ok: false, error: `Couldn't copy ${table}: ${inserted.error}` };
+      childSkipped.forEach((column) => skipped.add(`${table}.${column}`));
     }
   }
-  return { ok: true, copied: rows.length };
+  return { ok: true, copied: rows.length, skippedColumns: [...skipped] };
 }
