@@ -11,7 +11,7 @@ import {
   setDevAuthCookie,
 } from "@/lib/dev/auth";
 import { createPreviewDatabaseClient } from "@/src/services/admin/copy-events-to-preview";
-import { syncTestSite } from "@/src/services/admin/test-site-sync";
+import { syncTestSite, type TableSyncReport } from "@/src/services/admin/test-site-sync";
 
 // FormData.get returns string | File | null. Casting to `string` lies
 // to the type system and would crash at `.trim()` if a File were ever
@@ -589,23 +589,27 @@ export async function createTestAdventure(formData: FormData) {
 // Test site data: run the nightly live → test copy now
 // ─────────────────────────────────────────────────────────────
 
-export async function copyToTestSiteNow() {
+export type CopyToTestSiteState =
+  | { status: "idle" }
+  | { status: "done"; tables: TableSyncReport[] }
+  | { status: "error"; error: string };
+
+// Returns the result (no redirect) so the section can show it in place.
+export async function copyToTestSiteNow(): Promise<CopyToTestSiteState> {
   await requireDevAuth();
 
   const target = createPreviewDatabaseClient();
   if (!target) {
-    redirect(
-      `/dev?error=${encodeURIComponent("Only runs on the live site, with PREVIEW_SUPABASE_URL and PREVIEW_SUPABASE_SECRET_KEY set (Production).")}`,
-    );
+    return {
+      status: "error",
+      error:
+        "Only runs on the live site, with PREVIEW_SUPABASE_URL and PREVIEW_SUPABASE_SECRET_KEY set (Production).",
+    };
   }
-
-  const tables = await syncTestSite({ source: createServiceRoleClient(), target });
-  const total = (pick: "updated" | "added" | "skipped") => tables.reduce((sum, table) => sum + table[pick], 0);
-  const summary = `Test site updated: ${total("updated")} rows updated, ${total("added")} added, ${total("skipped")} skipped.`;
-  const failed = tables.filter((table) => table.error);
-  if (failed.length) {
-    const details = failed.map((table) => `${table.table}: ${table.error}`).join(" | ");
-    redirect(`/dev?ok=${encodeURIComponent(summary)}&error=${encodeURIComponent(`Some tables failed. ${details}`)}`);
+  try {
+    const tables = await syncTestSite({ source: createServiceRoleClient(), target });
+    return { status: "done", tables };
+  } catch (error) {
+    return { status: "error", error: (error as Error).message };
   }
-  redirect(`/dev?ok=${encodeURIComponent(summary)}`);
 }
