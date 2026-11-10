@@ -95,7 +95,7 @@ export const EventDraftSchema = z.object({
     })
     .nullable()
     .describe(
-      'Set when the price changes on a date, e.g. "$65 before December 1, $85 after". memberPrice / nonMemberPrice above (and the tickets) hold the EARLIER price; this holds the price from the change date on. Null when the price stays the same.',
+      'Set when the price changes on a date, e.g. "$65 before December 1, $85 after". memberPrice / nonMemberPrice above (and the price of each ticket) hold the EARLIER price; this holds the price from the change date on. The later price of each ticket goes in that ticket priceAfter. Null when the price stays the same.',
     ),
   tickets: z
     .array(TicketTypeSchema)

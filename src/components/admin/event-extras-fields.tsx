@@ -22,6 +22,8 @@ interface EditableTicket {
   key: string;
   name: string;
   price: string;
+  // Blank = the price does not change.
+  priceAfter: string;
   description: string;
 }
 
@@ -87,6 +89,7 @@ export function toEditableExtras(extras: SaveEventExtrasInput): EditableExtras {
         key: nextKey(),
         name: ticket.name,
         price: String(ticket.price),
+        priceAfter: ticket.priceAfter === ticket.price ? "" : String(ticket.priceAfter),
         description: ticket.description ?? "",
       }),
     ),
@@ -109,6 +112,7 @@ export function toExtrasInput({ tickets, gear, questions }: EditableExtras): Sav
       (ticket): TicketTypeInput => ({
         name: ticket.name.trim(),
         price: Number(ticket.price) || 0,
+        priceAfter: ticket.priceAfter.trim() === "" ? Number(ticket.price) || 0 : Number(ticket.priceAfter) || 0,
         description: ticket.description.trim() || null,
       }),
     ),
@@ -140,6 +144,7 @@ export function EventExtrasFields({
   onChange,
   parts = ALL_PARTS,
   gearPicker,
+  showLaterPrice = false,
 }: {
   value: EditableExtras;
   onChange: (next: EditableExtras) => void;
@@ -147,6 +152,8 @@ export function EventExtrasFields({
   // Slot under the Gear heading: the quick-add checklist of saved and
   // common gear.
   gearPicker?: ReactNode;
+  // Early-bird pricing is on: each ticket option gets its own later price.
+  showLaterPrice?: boolean;
 }) {
   const { tickets, gear, questions } = value;
   const setTickets = (next: EditableTicket[]) => onChange({ ...value, tickets: next });
@@ -162,7 +169,14 @@ export function EventExtrasFields({
       <section>
         <h3 className={s.subhead}>Ticket options</h3>
         {tickets.map((ticket) => (
-          <div key={ticket.key} className="mt-6 grid gap-4 sm:grid-cols-[minmax(0,1fr)_9rem_minmax(0,1.3fr)_auto] items-end">
+          <div
+            key={ticket.key}
+            className={`mt-6 grid gap-4 items-end ${
+              showLaterPrice
+                ? "sm:grid-cols-[minmax(0,1fr)_9rem_9rem_minmax(0,1.3fr)_auto]"
+                : "sm:grid-cols-[minmax(0,1fr)_9rem_minmax(0,1.3fr)_auto]"
+            }`}
+          >
             <label className={s.field}>
               <span className={s.label}>Name</span>
               <input
@@ -185,6 +199,22 @@ export function EventExtrasFields({
                 />
               </span>
             </label>
+            {showLaterPrice && (
+              <label className={s.field}>
+                <span className={s.label}>New price</span>
+                <span className={s.money}>
+                  <input
+                    className={s.input}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={ticket.priceAfter}
+                    placeholder="Same"
+                    onChange={(evt) => setTickets(update(tickets, ticket.key, { priceAfter: evt.target.value }))}
+                  />
+                </span>
+              </label>
+            )}
             <label className={s.field}>
               <span className={s.label}>Details</span>
               <input
@@ -203,7 +233,7 @@ export function EventExtrasFields({
           type="button"
           variant="add"
           className="mt-5"
-          onClick={() => setTickets([...tickets, { key: nextKey(), name: "", price: "0", description: "" }])}
+          onClick={() => setTickets([...tickets, { key: nextKey(), name: "", price: "0", priceAfter: "", description: "" }])}
         >
           Add a ticket option
         </Button>

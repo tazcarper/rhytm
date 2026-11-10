@@ -14,7 +14,7 @@ export type EventExtras = SaveEventExtrasInput;
 
 export type SaveEventExtrasResult = { ok: true } | { ok: false; error: string };
 
-type TicketRow = { name: string; price: string | number; description: string | null; sort_order: number };
+type TicketRow = { name: string; price: string | number; price_after: string | number | null; description: string | null; sort_order: number };
 type GearRow = {
   name: string;
   is_required: boolean;
@@ -38,7 +38,7 @@ const bySortOrder = (a: { sort_order: number }, b: { sort_order: number }) => a.
 
 export async function getEventExtras(supabase: SupabaseClient, eventId: string): Promise<EventExtras> {
   const [tickets, gear, questions] = await Promise.all([
-    supabase.from("event_ticket_types").select("name, price, description, sort_order").eq("event_id", eventId),
+    supabase.from("event_ticket_types").select("name, price, price_after, description, sort_order").eq("event_id", eventId),
     supabase
       .from("event_gear_items")
       .select("name, is_required, included, bring_own_allowed, rent_price, buy_price, notes, sort_order")
@@ -53,6 +53,7 @@ export async function getEventExtras(supabase: SupabaseClient, eventId: string):
     tickets: ((tickets.data ?? []) as TicketRow[]).sort(bySortOrder).map((row) => ({
       name: row.name,
       price: Number(row.price),
+      priceAfter: row.price_after === null ? Number(row.price) : Number(row.price_after),
       description: row.description,
     })),
     gear: ((gear.data ?? []) as GearRow[]).sort(bySortOrder).map((row) => ({
@@ -94,6 +95,8 @@ export async function saveEventExtras(
             event_id: eventId,
             name: ticket.name,
             price: ticket.price,
+            // Same as price means "no change", stored as NULL.
+            price_after: ticket.priceAfter === ticket.price ? null : ticket.priceAfter,
             description: ticket.description,
             sort_order: index,
           })),

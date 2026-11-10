@@ -62,7 +62,7 @@ export const EVENT_STARTERS: Readonly<Record<EventStarterKey, EventStarter>> = {
       infoBoxes: [{ heading: "What to expect", items: ["Check in at the clubhouse when you arrive"] }],
     },
     extras: {
-      tickets: [{ name: "General admission", price: 0, description: null }],
+      tickets: [{ name: "General admission", price: 0, priceAfter: 0, description: null }],
       gear: [],
       questions: [],
     },
@@ -90,7 +90,7 @@ export const EVENT_STARTERS: Readonly<Record<EventStarterKey, EventStarter>> = {
       ],
     },
     extras: {
-      tickets: [{ name: "Per person", price: 0, description: null }],
+      tickets: [{ name: "Per person", price: 0, priceAfter: 0, description: null }],
       gear: [
         {
           name: "Eye and ear protection",
@@ -132,7 +132,7 @@ export const EVENT_STARTERS: Readonly<Record<EventStarterKey, EventStarter>> = {
       infoBoxes: [{ heading: "League format", items: ["Same time and format every session"] }],
     },
     extras: {
-      tickets: [{ name: "Per player", price: 0, description: null }],
+      tickets: [{ name: "Per player", price: 0, priceAfter: 0, description: null }],
       gear: [],
       questions: [],
     },
