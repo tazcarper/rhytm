@@ -5,6 +5,8 @@ import { Divider, Eyebrow, Heading, PageShell } from "@/lib/ui";
 import { CyclingProperty } from "./cycling-property";
 import { LoginAlert } from "./login-alert";
 import { LoginForm } from "./login-form";
+import { PreviewSignIn } from "./preview-sign-in";
+import { previewLoginEmail } from "@/src/services/auth/preview-sign-in";
 import styles from "./login.module.css";
 
 export const dynamic = "force-dynamic";
@@ -79,6 +81,7 @@ export default async function LoginPage({
           Identify yourself
         </Eyebrow>
 
+        {previewLoginEmail() && <PreviewSignIn next={next} />}
         <LoginForm next={next} />
 
         <div className={styles.loginFoot}>
