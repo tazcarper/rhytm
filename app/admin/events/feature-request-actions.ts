@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createGitHubIssuesClient } from "@/lib/github/issues-client";
+import { createServiceRoleClient } from "@/lib/supabase/service";
+import { copyEventsToPreview, createPreviewDatabaseClient } from "@/src/services/admin/copy-events-to-preview";
 import { approveFeatureBuild, buildIssueFor, requestFeatureBuild, sendFeatureBuildFeedback } from "@/src/services/ai/feature-builds";
 import {
   CAPABILITY_REQUEST_STATUSES,
@@ -58,6 +60,19 @@ export async function markFeatureRequestDuplicateAction(input: unknown): Promise
   return result;
 }
 
+// The drafts a request came from, copied to the test site's database so
+// they're there to try the build on. Only on the live site, and only when
+// the preview database's keys are set. A failed copy doesn't stop the
+// build; it's logged.
+async function copyDraftsToTestSite(eventIds: string[]): Promise<void> {
+  const target = createPreviewDatabaseClient();
+  if (!target || eventIds.length === 0) return;
+  const copied = await copyEventsToPreview(eventIds, { source: createServiceRoleClient(), target }).catch(
+    (error: unknown) => ({ ok: false as const, error: String(error) }),
+  );
+  if (!copied.ok) console.error("[feature-builds] copying drafts to the test site failed:", copied.error);
+}
+
 // "Build it": opens a GitHub issue that the Claude GitHub Action builds.
 // Not again while a build is running or its pull request is open.
 const BuildSchema = z.object({ id: z.string().uuid() });
@@ -76,7 +91,10 @@ export async function buildFeatureRequestAction(input: unknown): Promise<{ ok: t
   if (row.build && row.build.pullRequest?.state !== "closed") return { ok: false, error: "It's already being built." };
 
   const result = await requestFeatureBuild(supabase, github, row, buildIssueFor(row, rows));
-  if (result.ok) revalidatePath("/admin/events/feature-requests");
+  if (result.ok) {
+    revalidatePath("/admin/events/feature-requests");
+    await copyDraftsToTestSite(row.events.map((event) => event.id));
+  }
   return result;
 }
 
