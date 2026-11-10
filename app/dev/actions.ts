@@ -10,6 +10,8 @@ import {
   requireDevAuth,
   setDevAuthCookie,
 } from "@/lib/dev/auth";
+import { createPreviewDatabaseClient } from "@/src/services/admin/copy-events-to-preview";
+import { syncTestSite } from "@/src/services/admin/test-site-sync";
 
 // FormData.get returns string | File | null. Casting to `string` lies
 // to the type system and would crash at `.trim()` if a File were ever
@@ -581,4 +583,29 @@ export async function createTestAdventure(formData: FormData) {
   redirect(
     `/dev?ok=test+adventure+created+(cap+${maxCapacity}%2C+max+party+${maxGuests})`,
   );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Test site data: run the nightly live → test copy now
+// ─────────────────────────────────────────────────────────────
+
+export async function copyToTestSiteNow() {
+  await requireDevAuth();
+
+  const target = createPreviewDatabaseClient();
+  if (!target) {
+    redirect(
+      `/dev?error=${encodeURIComponent("Only runs on the live site, with PREVIEW_SUPABASE_URL and PREVIEW_SUPABASE_SECRET_KEY set (Production).")}`,
+    );
+  }
+
+  const tables = await syncTestSite({ source: createServiceRoleClient(), target });
+  const total = (pick: "updated" | "added" | "skipped") => tables.reduce((sum, table) => sum + table[pick], 0);
+  const summary = `Test site updated: ${total("updated")} rows updated, ${total("added")} added, ${total("skipped")} skipped.`;
+  const failed = tables.filter((table) => table.error);
+  if (failed.length) {
+    const details = failed.map((table) => `${table.table}: ${table.error}`).join(" | ");
+    redirect(`/dev?ok=${encodeURIComponent(summary)}&error=${encodeURIComponent(`Some tables failed. ${details}`)}`);
+  }
+  redirect(`/dev?ok=${encodeURIComponent(summary)}`);
 }

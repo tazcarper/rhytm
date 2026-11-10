@@ -6,6 +6,8 @@ import { SECTIONS, DEV_NAV, DEFAULT_SECTION } from "./_sections/registry";
 import s from "./dev.module.css";
 
 export const dynamic = "force-dynamic";
+// "Copy to test site now" can take a while.
+export const maxDuration = 300;
 
 // Thin orchestrator: auth-gate, surface action-result banners, then compose
 // the sidebar + section panels from the registry. All section UI + data
