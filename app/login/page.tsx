@@ -5,6 +5,11 @@ import { Divider, Eyebrow, Heading, PageShell } from "@/lib/ui";
 import { CyclingProperty } from "./cycling-property";
 import { LoginAlert } from "./login-alert";
 import { LoginForm } from "./login-form";
+import { PreviewSignIn } from "./preview-sign-in";
+import {
+  isPreviewSite,
+  previewLoginEmail,
+} from "@/src/services/auth/preview-sign-in";
 import styles from "./login.module.css";
 
 export const dynamic = "force-dynamic";
@@ -79,12 +84,14 @@ export default async function LoginPage({
           Identify yourself
         </Eyebrow>
 
+        {isPreviewSite() && (
+          <PreviewSignIn next={next} ready={previewLoginEmail() !== null} />
+        )}
         <LoginForm next={next} />
 
         <div className={styles.loginFoot}>
           Trouble signing in? Contact your property&rsquo;s membership
-          coordinator to confirm your invitation, or have a fresh link
-          sent.
+          coordinator to confirm your invitation, or have a fresh link sent.
         </div>
       </div>
     </PageShell>

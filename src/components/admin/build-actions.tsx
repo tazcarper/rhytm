@@ -2,8 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import { Eye, Hammer, Rocket } from "lucide-react";
 
 // The three steps of a Claude build, named and drawn the same on every
-// feature request card. Build it is the solid (primary) one; Preview and
-// Publish are the lighter (secondary) ones (Taz, 2026-11-06).
+// feature request card. All solid green with white text (Taz, 2026-11-09).
 
 export type BuildAction = "build" | "preview" | "publish";
 
@@ -19,12 +18,12 @@ export const BUILD_ACTIONS: Record<
   preview: {
     label: "Preview it here",
     icon: Eye,
-    variant: "secondary",
+    variant: "primary",
   },
   publish: {
     label: "Publish to production",
     icon: Rocket,
-    variant: "secondary",
+    variant: "primary",
   },
 };
 

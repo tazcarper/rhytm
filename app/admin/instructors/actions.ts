@@ -31,6 +31,7 @@ import {
   type ScheduleMutationResult,
 } from "@/src/services/admin/instructor-schedule";
 import { recordDevAuthEmail } from "@/src/services/notifications/send-email";
+import { callbackSignInLink } from "@/src/services/auth/sign-in-link";
 
 // Onboarding for the instructor portal — mirrors app/admin/team/actions.ts.
 // The difference from staff: alongside stamping app_metadata.role, we link the
@@ -278,7 +279,8 @@ export async function resendInstructorInvite(input: {
     email: guard.instructor.email,
     options: { redirectTo: `${origin}/auth/callback` },
   });
-  const link = data?.properties?.action_link;
+  const tokenHash = data?.properties?.hashed_token;
+  const link = tokenHash ? callbackSignInLink(origin, tokenHash) : null;
   if (error || !link) {
     return { ok: false, error: error?.message ?? "Couldn't generate a sign-in link." };
   }
