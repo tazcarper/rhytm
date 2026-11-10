@@ -8,6 +8,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { canManageTeam, STAFF_ROLES, type StaffRole } from "@/lib/auth/portal";
 import { recordDevAuthEmail } from "@/src/services/notifications/send-email";
+import { callbackSignInLink } from "@/src/services/auth/sign-in-link";
 
 // Confirms the caller may manage the team; returns their own user id (so
 // actions can refuse to let someone change/disable/remove themselves).
@@ -292,7 +293,8 @@ export async function resendTeamInvite(input: {
     email: profile.email,
     options: { redirectTo: `${origin}/auth/callback` },
   });
-  const link = data?.properties?.action_link;
+  const tokenHash = data?.properties?.hashed_token;
+  const link = tokenHash ? callbackSignInLink(origin, tokenHash) : null;
   if (error || !link) {
     return { ok: false, error: error?.message ?? "Couldn't generate a sign-in link." };
   }
