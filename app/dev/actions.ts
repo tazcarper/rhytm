@@ -12,6 +12,7 @@ import {
 } from "@/lib/dev/auth";
 import { createPreviewDatabaseClient } from "@/src/services/admin/copy-events-to-preview";
 import { syncTestSite, type TableSyncReport } from "@/src/services/admin/test-site-sync";
+import { findSchemaDrift, type SchemaDrift } from "@/src/services/admin/schema-drift";
 
 // FormData.get returns string | File | null. Casting to `string` lies
 // to the type system and would crash at `.trim()` if a File were ever
@@ -609,6 +610,33 @@ export async function copyToTestSiteNow(): Promise<CopyToTestSiteState> {
   try {
     const tables = await syncTestSite({ source: createServiceRoleClient(), target });
     return { status: "done", tables };
+  } catch (error) {
+    return { status: "error", error: (error as Error).message };
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Test site data: columns the test database is missing
+// ─────────────────────────────────────────────────────────────
+
+export type SchemaCheckState =
+  | { status: "idle" }
+  | { status: "done"; drift: SchemaDrift }
+  | { status: "error"; error: string };
+
+export async function checkTestDatabase(): Promise<SchemaCheckState> {
+  await requireDevAuth();
+  const live = { url: process.env.NEXT_PUBLIC_SUPABASE_URL, key: process.env.SUPABASE_SECRET_KEY };
+  const test = { url: process.env.PREVIEW_SUPABASE_URL, key: process.env.PREVIEW_SUPABASE_SECRET_KEY };
+  if (process.env.VERCEL_ENV !== "production" || !live.url || !live.key || !test.url || !test.key) {
+    return {
+      status: "error",
+      error: "Only runs on the live site, with PREVIEW_SUPABASE_URL and PREVIEW_SUPABASE_SECRET_KEY set (Production).",
+    };
+  }
+  try {
+    const drift = await findSchemaDrift({ url: live.url, key: live.key }, { url: test.url, key: test.key });
+    return { status: "done", drift };
   } catch (error) {
     return { status: "error", error: (error as Error).message };
   }
