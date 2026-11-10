@@ -248,3 +248,27 @@
     font-size: 26px;
   }
 }
+
+/* Preview sites only: the one-click test sign-in above the form. */
+.previewSignIn {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+.previewNote {
+  margin: 0 0 0.75rem;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tan);
+}
+
+.previewHelp {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--gray);
+}
