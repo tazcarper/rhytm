@@ -7,12 +7,19 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 // named in PREVIEW_LOGIN_EMAIL (set in Vercel for Preview only). Previews
 // use their own database, separate from the live site's.
 
+// True on Vercel preview deployments only.
+export function isPreviewSite(
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  return env.VERCEL_ENV === "preview";
+}
+
 // The account to sign in as, or null when this isn't a preview site or
 // no account is set. Never true on production or local dev.
 export function previewLoginEmail(
   env: Record<string, string | undefined> = process.env,
 ): string | null {
-  if (env.VERCEL_ENV !== "preview") return null;
+  if (!isPreviewSite(env)) return null;
   const email = env.PREVIEW_LOGIN_EMAIL?.trim().toLowerCase();
   return email ? email : null;
 }

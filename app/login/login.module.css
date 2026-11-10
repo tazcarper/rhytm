@@ -265,3 +265,10 @@
   text-transform: uppercase;
   color: var(--tan);
 }
+
+.previewHelp {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--gray);
+}
