@@ -8,12 +8,21 @@ import { createGitHubIssuesClient } from "@/lib/github/issues-client";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { copyEventsToPreview, createPreviewDatabaseClient } from "@/src/services/admin/copy-events-to-preview";
 import { getBuildRisk, isBuildOwner } from "@/src/services/ai/build-risk";
+import { createDraftSessionStore } from "@/src/services/ai/draft-session-store";
+import { HELPER_LIMITS, helperTranscript, type HelperTranscriptLine } from "@/src/services/ai/event-helper";
 import { notifyOwnersOfPublish } from "@/src/services/ai/build-risk-notice";
-import { approveFeatureBuild, buildIssueFor, requestFeatureBuild, sendFeatureBuildFeedback } from "@/src/services/ai/feature-builds";
+import {
+  approveFeatureBuild,
+  buildIssueFor,
+  featureUndoIssue,
+  requestFeatureBuild,
+  sendFeatureBuildFeedback,
+} from "@/src/services/ai/feature-builds";
 import {
   CAPABILITY_REQUEST_STATUSES,
   createProblemReport,
   getCapabilityRequests,
+  isReopened,
   liveFeatures,
   markCapabilityRequestDuplicate,
   updateCapabilityRequestStatus,
@@ -77,7 +86,8 @@ async function copyDraftsToTestSite(eventIds: string[]): Promise<void> {
 }
 
 // "Build it": opens a GitHub issue that the Claude GitHub Action builds.
-// Not again while a build is running or its pull request is open.
+// Not again while a build is running or its pull request is open. For a
+// live feature staff asked to add more to, it builds the addition.
 const BuildSchema = z.object({ id: z.string().uuid() });
 
 export async function buildFeatureRequestAction(input: unknown): Promise<{ ok: true; issueUrl: string } | { ok: false; error: string }> {
@@ -91,7 +101,9 @@ export async function buildFeatureRequestAction(input: unknown): Promise<{ ok: t
   const rows = await getCapabilityRequests(supabase);
   const row = rows.find((request) => request.id === parsed.data.id);
   if (!row) return { ok: false, error: "That request is gone." };
-  if (row.build && row.build.pullRequest?.state !== "closed") return { ok: false, error: "It's already being built." };
+  const state = row.build?.pullRequest?.state;
+  const addingToLiveFeature = row.addingMore && isReopened(row) && (row.build?.kind === "build" || state === "merged");
+  if (row.build && state !== "closed" && !addingToLiveFeature) return { ok: false, error: "It's already being built." };
 
   const result = await requestFeatureBuild(supabase, github, row, buildIssueFor(row, rows));
   if (result.ok) {
@@ -147,6 +159,45 @@ export async function approveBuildAction(input: unknown): Promise<{ ok: true } |
   }
   if (result.ok) revalidatePath("/admin/events", "layout");
   return result;
+}
+
+// "Add more": the helper conversation the feature was asked in, to carry
+// on from. Only the person who had it can load it (RLS); everyone else, or
+// a conversation that's nearly full, starts a fresh one.
+export async function loadFeatureChatAction(
+  input: unknown,
+): Promise<{ ok: true; sessionId: string | null; transcript: HelperTranscriptLine[] } | { ok: false; error: string }> {
+  const parsed = BuildSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Invalid request." };
+  const supabase = await createServerSupabaseClient();
+  if (!(await isAdmin(supabase))) return { ok: false, error: "Only admins can do this." };
+  const row = (await getCapabilityRequests(supabase)).find((request) => request.id === parsed.data.id);
+  if (!row) return { ok: false, error: "That request is gone." };
+  const session = row.sessionId ? await createDraftSessionStore(supabase).load(row.sessionId).catch(() => null) : null;
+  if (!session || session.turnCount > HELPER_LIMITS.maxTurnsPerSession - 4) return { ok: true, sessionId: null, transcript: [] };
+  return { ok: true, sessionId: session.id, transcript: helperTranscript(session.messages) };
+}
+
+// "Undo this feature": Claude prepares taking a live feature off the site
+// (everything that went live for it), on a test site first. It goes live
+// when someone publishes it, like any build.
+export async function undoFeatureAction(input: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
+  const parsed = BuildSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Invalid request." };
+  const supabase = await createServerSupabaseClient();
+  if (!(await isAdmin(supabase))) return { ok: false, error: "Only admins can do this." };
+  const github = createGitHubIssuesClient();
+  if (!github) return { ok: false, error: "Automatic building isn't switched on yet. Ask your developer." };
+
+  const rows = await getCapabilityRequests(supabase);
+  const row = rows.find((request) => request.id === parsed.data.id);
+  if (!row) return { ok: false, error: "That request is gone." };
+  if (row.status !== "built" || row.removedAt || row.fix) return { ok: false, error: "Only a live feature can be undone." };
+  if (isReopened(row)) return { ok: false, error: "Something is already being built for this feature. Finish or set that aside first." };
+
+  const result = await requestFeatureBuild(supabase, github, row, featureUndoIssue(row, rows), "undo");
+  if (result.ok) revalidatePath("/admin/events/feature-requests");
+  return result.ok ? { ok: true } : result;
 }
 
 // "Report a problem": staff describe what's broken in a live feature. It's

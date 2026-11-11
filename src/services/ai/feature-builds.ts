@@ -1,6 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { GitHubIssuesClient, NewIssue } from "@/lib/github/issues-client";
-import type { CapabilityRequestRow } from "@/src/services/ai/capability-requests";
+import {
+  featurePublishedBuilds,
+  type CapabilityRequestRow,
+  type FeatureBuildKind,
+  type PublishedBuild,
+} from "@/src/services/ai/capability-requests";
 
 // "Build it": a feature request becomes a GitHub issue that the Claude
 // GitHub Action picks up (the label below triggers it). Claude builds on a
@@ -120,12 +125,115 @@ export function featureFixIssue(report: CapabilityRequestRow, feature: Capabilit
   };
 }
 
+const pullRequestList = (builds: ReadonlyArray<PublishedBuild>) =>
+  builds.map((build) => `- #${build.prNumber} (${build.kind === "add_more" ? "added more" : build.kind === "undo" ? "an earlier undo" : "first build"}) ${build.prUrl}`);
+
+// Everything that went live for a feature, including the fixes made to it
+// through Report a problem, oldest first.
+export function featureHistory(
+  feature: CapabilityRequestRow,
+  all: ReadonlyArray<CapabilityRequestRow>,
+): PublishedBuild[] {
+  const fixes = all.filter((row) => row.fix?.feature?.id === feature.id).flatMap(featurePublishedBuilds);
+  return [...featurePublishedBuilds(feature), ...fixes].sort((a, b) => a.mergedAt.localeCompare(b.mergedAt));
+}
+
+// "Add more": staff want a live feature to do more. Claude extends that
+// feature, keeping the work inside it so it can be undone as one.
+export function featureAddMoreIssue(feature: CapabilityRequestRow, all: ReadonlyArray<CapabilityRequestRow>): NewIssue {
+  const lastLive = featurePublishedBuilds(feature).at(-1)?.mergedAt ?? "";
+  // Asks filed after it last went live are the new ones.
+  const newAsks = feature.alsoAsked.filter((ask) => ask.createdAt > lastLive).map((ask) => ask.ownerWords);
+  const earlierAsks = [feature.ownerWords, ...feature.alsoAsked.filter((ask) => ask.createdAt <= lastLive).map((ask) => ask.ownerWords)];
+  const quote = (words: string) => `> ${words.replace(/\n/g, "\n> ")}\n`;
+
+  const body = [
+    `<!-- rhythm-feature-request: ${feature.id} -->`,
+    "## Add more to a live feature",
+    "",
+    `This feature is already on the live site: **${feature.summary}**`,
+    "",
+    "Staff now want it to do more. Extend this feature; don't build a separate one.",
+    "",
+    "## What staff want added",
+    "",
+    ...(newAsks.length > 0 ? newAsks.map(quote) : ["> (See the latest notes in the feature request.)\n"]),
+    "## What was asked for originally",
+    "",
+    ...earlierAsks.map(quote),
+    "## What's already built",
+    "",
+    ...pullRequestList(featureHistory(feature, all)),
+    "",
+    "Read those pull requests (`git log --merges --grep \"#N\"`, then `git diff <merge>^1 <merge>`) to see how the feature works today, then build on the same code.",
+    "",
+    "## How to build it",
+    "",
+    "- Keep every change inside this feature's own code and data, so the whole feature (original plus additions) can be undone later in one go. Don't change other features.",
+    "- If what staff want is really a different feature, say so in a comment and stop instead of building it.",
+    ...BUILD_RULES,
+  ].join("\n");
+
+  return {
+    title: `Add more: ${feature.summary.slice(0, 200)}`,
+    body,
+    labels: [FEATURE_BUILD_LABEL],
+  };
+}
+
+// "Undo this feature": take everything that went live for it off the site
+// (its first build, every add-more and fix), leaving other features alone.
+// Database updates stay: the columns they added are harmless once nothing
+// uses them, and deleting migration files breaks the migration workflow.
+export function featureUndoIssue(feature: CapabilityRequestRow, all: ReadonlyArray<CapabilityRequestRow>): NewIssue {
+  const history = featureHistory(feature, all).filter((build) => build.kind !== "undo");
+  const drafts = feature.events.map((event) => `- ${event.title} (${event.status}) — /admin/events/${event.id}`);
+
+  const body = [
+    `<!-- rhythm-feature-request: ${feature.id} -->`,
+    "## Undo a live feature",
+    "",
+    `Staff want this feature taken off the live site: **${feature.summary}**`,
+    "",
+    "## Everything that went live for it",
+    "",
+    ...pullRequestList(history),
+    "",
+    "## How to undo it",
+    "",
+    "- Revert each of those pull requests' merge commits, newest first: find each with `git log --merges --grep \"#N\"` and run `git revert -m 1 --no-commit <merge>`.",
+    "- Keep every file under supabase/migrations exactly as it is: after each revert, run `git checkout HEAD -- supabase/migrations` before you commit, so no migration is deleted or changed. Don't add a migration that drops anything: the columns and tables stay in the database, unused.",
+    "- Other features must keep working. If a later change depends on this feature (a revert conflicts, or other code uses what it added), resolve it so the other feature still works without this one. If that isn't possible without breaking something, don't open a pull request: comment on this issue explaining in plain words what depends on it.",
+    "- Events that use this feature will lose it; that's expected. Make sure their pages still load.",
+    "",
+    "## Drafts and events linked to it",
+    "",
+    ...(drafts.length > 0 ? drafts : ["- None."]),
+    "",
+    "## Rules",
+    "",
+    ...BUILD_RULES.filter((rule) => !rule.includes("supabase/migrations")),
+  ].join("\n");
+
+  return {
+    title: `Undo: ${feature.summary.slice(0, 200)}`,
+    body,
+    labels: [FEATURE_BUILD_LABEL],
+  };
+}
+
 // The issue Claude works from for this request: a fix for a live feature,
-// or a new feature.
+// more for a live feature, or a new feature.
 export function buildIssueFor(row: CapabilityRequestRow, all: ReadonlyArray<CapabilityRequestRow>): NewIssue {
+  if (row.addingMore) return featureAddMoreIssue(row, all);
   if (!row.fix) return featureBuildIssue(row);
   const feature = row.fix.feature ? (all.find((other) => other.id === row.fix?.feature?.id) ?? null) : null;
   return featureFixIssue(row, feature);
+}
+
+// What a new build for this request does.
+export function buildKindFor(row: CapabilityRequestRow): FeatureBuildKind {
+  return row.addingMore ? "add_more" : "build";
 }
 
 export async function requestFeatureBuild(
@@ -133,13 +241,19 @@ export async function requestFeatureBuild(
   github: GitHubIssuesClient,
   row: CapabilityRequestRow,
   issue: NewIssue = featureBuildIssue(row),
+  kind: FeatureBuildKind = buildKindFor(row),
 ): Promise<{ ok: true; issueUrl: string } | { ok: false; error: string }> {
   const created = await github.createIssue(issue);
   if (!created.ok) return created;
 
+  // The build columns are about to describe the new build, so a live one
+  // they still describe (from before migration 20261111030000) moves into
+  // the history first.
+  const history = featurePublishedBuilds(row);
   const { error } = await supabase
     .from("capability_requests")
     .update({
+      ...(row.status === "built" || kind !== "build" ? { build_kind: kind, published_builds: history } : {}),
       build_issue_number: created.issue.number,
       build_issue_url: created.issue.url,
       build_requested_at: new Date().toISOString(),
@@ -207,29 +321,65 @@ export interface FeatureBuildPreviewEvent {
 }
 
 // PR opened → Planned, with the link. Merged → Built, which unlocks the
-// drafts. Closed without merging → the link stays and Build it can be
-// pressed again. Returns false when no request has that issue (a PR that
-// isn't a feature build).
+// drafts, and the pull request joins the feature's history. Closed without
+// merging → the link stays and Build it can be pressed again. Returns false
+// when no request has that issue (a PR that isn't a feature build).
+//
+// An add-more or undo build is for a feature that's already live, so its
+// status stays Built throughout (events using it aren't held up). When an
+// add-more merges, the feature leaves Active; when an undo merges, it's
+// marked removed.
 export async function recordFeatureBuildPullRequest(
   supabase: SupabaseClient,
   event: FeatureBuildPullRequestEvent,
 ): Promise<{ ok: true; matched: boolean } | { ok: false; error: string }> {
-  const statusByState = { open: "planned", merged: "built" } as const;
-  const status = event.state === "closed" ? undefined : statusByState[event.state];
-
-  const { data, error } = await supabase
+  const found = await supabase
     .from("capability_requests")
-    .update({
-      build_pr_number: event.prNumber,
-      build_pr_url: event.prUrl,
-      build_pr_state: event.state,
-      ...(event.testSteps.length > 0 ? { build_test_steps: event.testSteps.join("\n") } : {}),
-      ...(status ? { status } : {}),
-    })
-    .eq("build_issue_number", event.issueNumber)
-    .select("id");
-  if (error) return { ok: false, error: error.message };
-  return { ok: true, matched: (data ?? []).length > 0 };
+    .select("id, published_builds, build_kind")
+    .eq("build_issue_number", event.issueNumber);
+  // Before migration 20261111030000 there's no history to keep.
+  const rows = found.error ? null : ((found.data ?? []) as Array<{ id: string; published_builds: PublishedBuild[] | null; build_kind: FeatureBuildKind | null }>);
+  if (found.error && !/published_builds|build_kind/.test(found.error.message)) return { ok: false, error: found.error.message };
+
+  const base = {
+    build_pr_number: event.prNumber,
+    build_pr_url: event.prUrl,
+    build_pr_state: event.state,
+    ...(event.testSteps.length > 0 ? { build_test_steps: event.testSteps.join("\n") } : {}),
+  };
+
+  if (!rows) {
+    const status = event.state === "open" ? "planned" : event.state === "merged" ? "built" : undefined;
+    const { data, error } = await supabase
+      .from("capability_requests")
+      .update({ ...base, ...(status ? { status } : {}) })
+      .eq("build_issue_number", event.issueNumber)
+      .select("id");
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, matched: (data ?? []).length > 0 };
+  }
+
+  for (const row of rows) {
+    const kind = row.build_kind ?? "build";
+    const history = Array.isArray(row.published_builds) ? row.published_builds : [];
+    const now = new Date().toISOString();
+    const changes: Record<string, unknown> = { ...base };
+    if (event.state === "open" && kind === "build") changes.status = "planned";
+    if (event.state === "merged") {
+      changes.status = "built";
+      changes.more_requested_at = null;
+      if (!history.some((build) => build.prNumber === event.prNumber)) {
+        changes.published_builds = [
+          ...history,
+          { prNumber: event.prNumber, prUrl: event.prUrl, issueNumber: event.issueNumber, mergedAt: now, kind },
+        ];
+      }
+      if (kind === "undo") changes.removed_at = now;
+    }
+    const { error } = await supabase.from("capability_requests").update(changes).eq("id", row.id);
+    if (error) return { ok: false, error: error.message };
+  }
+  return { ok: true, matched: rows.length > 0 };
 }
 
 // Saves the preview link for the request whose build this branch is.

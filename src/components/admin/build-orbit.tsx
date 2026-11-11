@@ -1,5 +1,6 @@
 "use client";
 
+import type { FeatureBuildKind } from "@/src/services/ai/capability-requests";
 import { useEffect, useState } from "react";
 import { Eye, Hammer, Rocket, Sparkles } from "lucide-react";
 import {
@@ -152,8 +153,26 @@ export function buildStepText(
     isFix,
     setAside = false,
     fixingFeedback = false,
-  }: { isFix: boolean; setAside?: boolean; fixingFeedback?: boolean },
+    kind = "build",
+  }: { isFix: boolean; setAside?: boolean; fixingFeedback?: boolean; kind?: FeatureBuildKind },
 ): string {
+  if (kind === "undo" && !fixingFeedback) {
+    switch (step) {
+      case "requested":
+        return setAside ? "The undo was set aside; the feature is still on the real site." : "Nothing is being built yet.";
+      case "building":
+        return "Claude is preparing to take this feature off the site. This usually takes 10 to 30 minutes and updates by itself.";
+      case "preview":
+        return "Claude has finished. A test copy of the site without the feature is being set up, which takes a few minutes.";
+      case "ready":
+        return "The test copy has the feature taken off. Check the rest of the site still works. The real site still has the feature.";
+      case "live":
+        return "Done. The feature is off the real site.";
+    }
+  }
+  if (kind === "add_more" && step === "requested" && !setAside) {
+    return "More was asked for. Press Build it and Claude adds it to the feature. The current version stays live meanwhile.";
+  }
   switch (step) {
     case "requested":
       if (setAside)

@@ -168,10 +168,12 @@ function ApproveOrFix({
   requestId,
   risk,
   isOwner,
+  isUndo,
 }: {
   requestId: string;
   risk: BuildRisk | null;
   isOwner: boolean;
+  isUndo: boolean;
 }) {
   const canPublish = risk?.level !== "owner" || isOwner;
   const [mode, setMode] = useState<
@@ -252,8 +254,9 @@ function ApproveOrFix({
       {mode === "confirm" && (
         <>
           <span className="font-semibold text-olive-darker">
-            This puts the new feature on the real site, where guests can see it.
-            Go ahead?
+            {isUndo
+              ? "This takes the feature off the real site. Go ahead?"
+              : "This puts the new feature on the real site, where guests can see it. Go ahead?"}
           </span>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -398,7 +401,7 @@ function TryItSteps({
         )}
       </StepBox>
       <StepBox number={3} title="Publish it, or tell Claude what to fix">
-        <ApproveOrFix requestId={requestId} risk={risk} isOwner={isOwner} />
+        <ApproveOrFix requestId={requestId} risk={risk} isOwner={isOwner} isUndo={build.kind === "undo"} />
       </StepBox>
     </ol>
   );
@@ -413,6 +416,8 @@ export function FeatureBuildControl({
   progress = null,
   risk = null,
   isOwner = false,
+  reopened = false,
+  addingMore = false,
 }: {
   requestId: string;
   status: string;
@@ -424,6 +429,10 @@ export function FeatureBuildControl({
   risk?: BuildRisk | null;
   // The signed-in admin may publish high-risk builds.
   isOwner?: boolean;
+  // A live feature being added to or undone (see isReopened).
+  reopened?: boolean;
+  // Staff asked to add more to the live feature.
+  addingMore?: boolean;
 }) {
   const [error, setError] = useState<string | null>(null);
   const [started, setStarted] = useState(false);
@@ -431,7 +440,12 @@ export function FeatureBuildControl({
 
   // Just pressed: show it building until the page catches up.
   const step: BuildStep =
-    started && !build ? "building" : buildStepOf({ status, build, progress });
+    started && (!build || (reopened && build.kind === "build"))
+      ? "building"
+      : buildStepOf({ status, build, progress, reopened });
+  // What the current step is about: the first build, more for a live
+  // feature, or taking it off the site.
+  const kind = addingMore && (!build || build.kind === "build" || build.pullRequest?.state === "merged") ? "add_more" : (build?.kind ?? "build");
   const setAside = build?.pullRequest?.state === "closed";
   // Claude is fixing staff's notes on a build that's already on the test site.
   const fixingFeedback =
@@ -497,7 +511,7 @@ export function FeatureBuildControl({
         }
       >
         <p className="m-0 max-w-[70ch] text-olive">
-          {buildStepText(step, { isFix, setAside, fixingFeedback })}
+          {buildStepText(step, { isFix, setAside, fixingFeedback, kind })}
         </p>
       </BuildOrbit>
     </div>

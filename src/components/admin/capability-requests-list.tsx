@@ -4,7 +4,8 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { Card } from "@/lib/ui";
 import { markFeatureRequestDuplicateAction, setFeatureRequestStatusAction } from "@/app/admin/events/feature-request-actions";
-import type { CapabilityRequestRow, CapabilityRequestStatus } from "@/src/services/ai/capability-requests";
+import { isReopened, type CapabilityRequestRow, type CapabilityRequestStatus } from "@/src/services/ai/capability-requests";
+import { FeatureFollowUps } from "./feature-follow-ups";
 import { EventStatusBadge } from "./event-status-badge";
 import { FeatureBuildControl } from "./feature-build-control";
 import type { BuildRisk } from "@/src/services/ai/build-risk";
@@ -75,6 +76,7 @@ function RequestCard({
   };
 
   const timesAsked = 1 + row.alsoAsked.length;
+  const reopened = isReopened(row);
 
   return (
     // The AI helper's chat links here by id.
@@ -133,17 +135,29 @@ function RequestCard({
           </ul>
         </div>
       )}
-      {status !== "declined" && (status !== "built" || row.build) && (
-        <FeatureBuildControl
-          requestId={row.id}
-          status={row.status}
-          build={row.build}
-          canBuild={canBuild}
-          isFix={row.fix !== null}
-          progress={progress}
-          risk={risk}
-          isOwner={isOwner}
-        />
+      {row.removedAt ? (
+        <p className="mt-6 text-body font-semibold text-olive-darker">
+          Removed from the real site on {shortDate(row.removedAt)}.
+        </p>
+      ) : (
+        status !== "declined" &&
+        (status !== "built" || row.build || reopened) && (
+          <FeatureBuildControl
+            requestId={row.id}
+            status={row.status}
+            build={row.build}
+            canBuild={canBuild}
+            isFix={row.fix !== null}
+            progress={progress}
+            risk={risk}
+            isOwner={isOwner}
+            reopened={reopened}
+            addingMore={row.addingMore}
+          />
+        )
+      )}
+      {status === "built" && !row.fix && !row.removedAt && !reopened && (
+        <FeatureFollowUps requestId={row.id} canBuild={canBuild} />
       )}
       {others.length > 0 && (
         <label className="mt-6 flex flex-wrap items-center gap-3 text-body text-olive">

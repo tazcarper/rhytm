@@ -17,14 +17,21 @@ export const BUILD_STEPS: ReadonlyArray<{ key: BuildStep; label: string }> = [
 ];
 
 export interface BuildStepInput {
-  // The request's status: "built" counts as live, whatever GitHub says.
+  // The request's status: "built" counts as live, whatever GitHub says,
+  // unless it's reopened (see isReopened in capability-requests.ts).
   status: string;
+  reopened?: boolean;
   build: FeatureBuild | null;
   progress: BuildProgress | null;
 }
 
-export function buildStepOf({ status, build, progress }: BuildStepInput): BuildStep {
-  if (status === "built") return "live";
+export function buildStepOf({ status, build, progress, reopened = false }: BuildStepInput): BuildStep {
+  if (status === "built") {
+    if (!reopened) return "live";
+    // More was asked for and Build it hasn't been pressed for it yet: the
+    // build on file is the one that's already live.
+    if (!build || build.kind === "build" || build.pullRequest?.state === "merged") return "requested";
+  }
   if (!build) return "requested";
   const pullRequest = build.pullRequest;
   if (pullRequest?.state === "merged") return "live";
