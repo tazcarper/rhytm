@@ -11,6 +11,7 @@ import {
   isFeatureRequestView,
 } from "@/src/components/admin/feature-request-tabs";
 import { getCapabilityRequests, isOpenRequest } from "@/src/services/ai/capability-requests";
+import { getBuildRiskFor, isBuildOwner } from "@/src/services/ai/build-risk";
 import { getBuildProgressFor } from "@/src/services/ai/feature-build-progress";
 import { syncFeatureBuilds } from "@/src/services/ai/feature-build-sync";
 
@@ -39,7 +40,11 @@ export default async function EventFeatureRequestsPage({
   const openInList = list.filter(isOpenRequest);
   const doneInList = list.filter((row) => !isOpenRequest(row));
   const shown = activeView === "done" ? doneInList : openInList;
-  const progress = github ? await getBuildProgressFor(github, shown) : {};
+  const [progress, risks, { data: auth }] = await Promise.all([
+    github ? getBuildProgressFor(github, shown) : {},
+    github ? getBuildRiskFor(github, shown) : {},
+    supabase.auth.getUser(),
+  ]);
 
   return (
     <PageShell width="xxl">
@@ -82,6 +87,8 @@ export default async function EventFeatureRequestsPage({
         rows={shown}
         canBuild={canBuild}
         progress={progress}
+        risks={risks}
+        isOwner={isBuildOwner(auth.user?.email)}
         emptyText={
           activeView === "done"
             ? activeTab === "fixes"

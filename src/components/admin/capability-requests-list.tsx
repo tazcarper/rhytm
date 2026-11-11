@@ -7,6 +7,7 @@ import { markFeatureRequestDuplicateAction, setFeatureRequestStatusAction } from
 import type { CapabilityRequestRow, CapabilityRequestStatus } from "@/src/services/ai/capability-requests";
 import { EventStatusBadge } from "./event-status-badge";
 import { FeatureBuildControl } from "./feature-build-control";
+import type { BuildRisk } from "@/src/services/ai/build-risk";
 import type { BuildProgress } from "@/src/services/ai/feature-build-progress";
 import type { EventStatus } from "@/src/services/admin/events";
 
@@ -37,11 +38,15 @@ function RequestCard({
   others,
   canBuild,
   progress,
+  risk,
+  isOwner,
 }: {
   row: CapabilityRequestRow;
   others: ReadonlyArray<CapabilityRequestRow>;
   canBuild: boolean;
   progress: BuildProgress | null;
+  risk: BuildRisk | null;
+  isOwner: boolean;
 }) {
   const [status, setStatus] = useState<CapabilityRequestStatus>(row.status);
   const [error, setError] = useState<string | null>(null);
@@ -136,6 +141,8 @@ function RequestCard({
           canBuild={canBuild}
           isFix={row.fix !== null}
           progress={progress}
+          risk={risk}
+          isOwner={isOwner}
         />
       )}
       {others.length > 0 && (
@@ -169,12 +176,16 @@ export function CapabilityRequestsList({
   rows,
   canBuild,
   progress = {},
+  risks = {},
+  isOwner = false,
   emptyText = "No feature requests yet. When the helper can't do something staff ask for, it shows up here.",
 }: {
   rows: ReadonlyArray<CapabilityRequestRow>;
   canBuild: boolean;
   // Claude's checklist for requests being built, keyed by request id.
   progress?: Readonly<Record<string, BuildProgress>>;
+  risks?: Readonly<Record<string, BuildRisk>>;
+  isOwner?: boolean;
   emptyText?: string;
 }) {
   if (rows.length === 0) {
@@ -196,6 +207,8 @@ export function CapabilityRequestsList({
           others={rows.filter((other) => other.id !== row.id && other.status !== "declined" && !other.fix && !row.fix)}
           canBuild={canBuild}
           progress={progress[row.id] ?? null}
+          risk={risks[row.id] ?? null}
+          isOwner={isOwner}
         />
       ))}
     </div>

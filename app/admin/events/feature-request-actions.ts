@@ -1,11 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { z } from "zod";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createGitHubIssuesClient } from "@/lib/github/issues-client";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { copyEventsToPreview, createPreviewDatabaseClient } from "@/src/services/admin/copy-events-to-preview";
+import { getBuildRisk, isBuildOwner } from "@/src/services/ai/build-risk";
+import { notifyOwnersOfPublish } from "@/src/services/ai/build-risk-notice";
 import { approveFeatureBuild, buildIssueFor, requestFeatureBuild, sendFeatureBuildFeedback } from "@/src/services/ai/feature-builds";
 import {
   CAPABILITY_REQUEST_STATUSES,
@@ -116,7 +119,10 @@ export async function sendBuildFeedbackAction(input: unknown): Promise<{ ok: tru
 }
 
 // "Approve and go live" (Taz, 2026-11-05: any admin may). Merges the build;
-// the webhook marks the request Built.
+// the webhook marks the request Built. An owner-level build (see
+// build-risk.ts) only the owner may publish (Taz, 2026-11-10); the check is
+// here, on the server, so hiding the button isn't the only guard. When a
+// "careful" one goes live, the owner gets an email.
 export async function approveBuildAction(input: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
   const parsed = BuildSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "Invalid request." };
@@ -127,7 +133,18 @@ export async function approveBuildAction(input: unknown): Promise<{ ok: true } |
 
   const row = (await getCapabilityRequests(supabase)).find((request) => request.id === parsed.data.id);
   if (!row) return { ok: false, error: "That request is gone." };
+  const risk = await getBuildRisk(github, row.build);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (risk?.level === "owner" && !isBuildOwner(user?.email)) {
+    return { ok: false, error: "This build changes something that can't easily be undone, so only the site owner can publish it." };
+  }
   const result = await approveFeatureBuild(github, row.build);
+  if (result.ok && risk && risk.level !== "normal") {
+    const notice = { summary: row.summary, risk, publishedBy: user?.email ?? "An admin", pullRequestUrl: row.build?.pullRequest?.url ?? null };
+    after(() => notifyOwnersOfPublish(notice));
+  }
   if (result.ok) revalidatePath("/admin/events", "layout");
   return result;
 }

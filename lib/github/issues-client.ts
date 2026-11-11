@@ -28,6 +28,13 @@ export interface PullRequestSummary {
   headRef: string;
 }
 
+export interface PullRequestFile {
+  filename: string;
+  status: string;
+  // Left out by GitHub for very large diffs.
+  patch?: string;
+}
+
 export interface GitHubIssuesClient {
   createIssue(issue: NewIssue): Promise<{ ok: true; issue: CreatedIssue } | { ok: false; error: string }>;
   // Comments on an issue or pull request (they share numbers).
@@ -36,6 +43,10 @@ export interface GitHubIssuesClient {
   listComments(number: number): Promise<{ ok: true; comments: IssueComment[] } | { ok: false; error: string }>;
   // The most recently updated pull request whose head branch matches.
   findPullRequest(branch: RegExp): Promise<{ ok: true; pullRequest: PullRequestSummary | null } | { ok: false; error: string }>;
+  // The files a pull request changes, with their diffs (up to 300).
+  listPullRequestFiles(
+    number: number,
+  ): Promise<{ ok: true; files: PullRequestFile[] } | { ok: false; error: string }>;
   // Merges a pull request only if its head branch is still `expectedBranch`
   // (so an id mix-up can't merge the wrong one).
   mergePullRequest(number: number, expectedBranch: RegExp): Promise<{ ok: true } | { ok: false; error: string }>;
@@ -126,6 +137,17 @@ export function createGitHubIssuesClient(): GitHubIssuesClient | null {
             }
           : null,
       };
+    },
+    async listPullRequestFiles(number) {
+      const files: PullRequestFile[] = [];
+      for (let page = 1; page <= 3; page += 1) {
+        const result = await send("GET", `/pulls/${number}/files?per_page=100&page=${page}`);
+        if (!result.ok) return result;
+        const data = result.data as Array<{ filename: string; status: string; patch?: string }>;
+        files.push(...data.map(({ filename, status, patch }) => ({ filename, status, patch })));
+        if (data.length < 100) break;
+      }
+      return { ok: true, files };
     },
     async mergePullRequest(number, expectedBranch) {
       const pr = await send("GET", `/pulls/${number}`);
