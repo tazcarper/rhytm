@@ -12,6 +12,7 @@ import { ResetUserSection } from "./reset-user";
 import { TestAdventureSection } from "./test-adventure";
 import { JunctionRowsSection } from "./junction-rows";
 import { CopyToTestSiteSection } from "./copy-to-test-site";
+import { CheckTestDatabaseSection } from "./check-test-database";
 
 // Single source of truth for the dev dashboard. Every section is one entry
 // here; the page renders the panels from `SECTIONS` and the sidebar nav from
@@ -33,6 +34,7 @@ export const SECTIONS: DevSectionEntry[] = [
   { id: "stamp-role", label: "Stamp role", group: "Invites & auth", node: <StampRoleSection /> },
   { id: "test-adventure", label: "Create test adventure", group: "Adventures", node: <TestAdventureSection /> },
   { id: "copy-to-test-site", label: "Copy live content to test site", group: "Test site", node: <CopyToTestSiteSection /> },
+  { id: "check-test-database", label: "Check test database", group: "Test site", node: <CheckTestDatabaseSection /> },
   { id: "reset-user", label: "Reset test user", group: "Danger zone", node: <ResetUserSection /> },
   { id: "junction-rows", label: "Recent junction rows", group: "Inspect", node: <JunctionRowsSection /> },
 ];

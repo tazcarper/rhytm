@@ -78,12 +78,17 @@ export interface EventHelperTurnInput {
   propertyHint: HelperPropertyOption | null;
   // Set when the helper runs beside an existing event's builder.
   editing?: { eventId: string; snapshot: EventDraft } | null;
+  // Set when staff pressed "Add more" on a live feature: this conversation
+  // is about extending it, not about an event.
+  extending?: { id: string; summary: string } | null;
 }
 
 interface FeatureRequestNote {
   featureRequest?: string;
   featureRequestId?: string;
   alreadyRequested?: boolean;
+  // The words were added to a live feature from "Add more".
+  addedMore?: boolean;
 }
 
 export type EventHelperResult =
@@ -93,7 +98,8 @@ export type EventHelperResult =
   // was a repeat ask), so the chat can show its build and a Build it button.
   | ({ kind: "question"; sessionId: string; text: string } & FeatureRequestNote)
   | ({ kind: "draft"; sessionId: string; eventId: string; eventCount: number; updated: boolean } & FeatureRequestNote)
-  | { kind: "capability"; sessionId: string; text: string; featureRequestId: string; alreadyRequested?: boolean }
+  // addedMore: the words were added to a live feature (see extending).
+  | ({ kind: "capability"; sessionId: string; text: string; featureRequestId: string; alreadyRequested?: boolean } & Pick<FeatureRequestNote, "addedMore">)
   | ({ kind: "message"; sessionId: string; text: string } & FeatureRequestNote)
   | { kind: "error"; sessionId: string | null; text: string };
 
@@ -137,13 +143,18 @@ function openRequestsNote(requests: ReadonlyArray<{ id: string; summary: string 
   return `<context>Open feature requests already on the developer's list (if one covers what's asked, pass its id as sameAsRequestId):\n${list}</context>\n\n`;
 }
 
+function extendingNote(extending: EventHelperTurnInput["extending"]): string {
+  if (!extending) return "";
+  return `<context>Staff pressed "Add more" on a feature that's already live: "${extending.summary}" (feature request ${extending.id}). This message is about what that feature should also do; they aren't drafting or changing an event, so don't call propose_event_draft. If it's unclear what should change, where, or with what numbers, ask one clarifying question. When it's clear, call request_new_capability with sameAsRequestId "${extending.id}", a summary of the addition and their words. If what they describe is really a separate feature, say so in one sentence and ask whether to add it to this one or file it on its own.</context>\n\n`;
+}
+
 function buildUserMessage(
   session: DraftSession,
   input: EventHelperTurnInput,
   today: string,
   openRequests: ReadonlyArray<{ id: string; summary: string }>,
 ): HelperMessage {
-  const editing = editingNote(input.editing) + openRequestsNote(openRequests);
+  const editing = editingNote(input.editing) + extendingNote(input.extending) + openRequestsNote(openRequests);
   const waitingOn = pendingQuestionId(session.messages);
   if (waitingOn) {
     return {
@@ -301,6 +312,7 @@ export async function runEventHelperTurn(
   let featureRequestId: string | null = null;
   // True when the request was already on the developer's list.
   let alreadyRequested = false;
+  let addedMoreToFeature = false;
 
   for (let call = 0; call < HELPER_LIMITS.maxModelCallsPerTurn && !result; call += 1) {
     const reply = await deps.model.send({
@@ -356,12 +368,15 @@ export async function runEventHelperTurn(
         ownerWords: parsed.success ? parsed.data.ownerWords : message,
         duplicateOf: existing?.id ?? null,
       });
+      const addedMore = recorded.ok && Boolean(input.extending) && existing?.id === input.extending?.id;
       session.messages.push({
         role: "user",
         content: [
           toolResult(
             toolUse.id,
-            recorded.ok
+            addedMore
+              ? `Added to the live feature. [feature request ${existing?.id}] The chat shows staff a card with it and a Build it button, so don't mention the request, its id or the card. Reply in one short sentence; don't draft or change an event.`
+              : recorded.ok
               ? `Recorded. [feature request ${existing?.id ?? recorded.id}] The chat already shows staff a card with this request and how to build it, so don't mention the request, its id or the card in your reply. Now carry on without it: ask about anything else that's missing, or propose the draft.`
               : `Couldn't record it: ${recorded.error}. Carry on with the rest of the event anyway.`,
             !recorded.ok,
@@ -373,6 +388,7 @@ export async function runEventHelperTurn(
         featureRequest = summary;
         featureRequestId = existing?.id ?? recorded.id;
         alreadyRequested = Boolean(existing);
+        addedMoreToFeature = addedMore;
         // Asked for after the draft was already saved: link it now.
         if (session.eventId) await deps.linkCapabilityRequests(session.id, [session.eventId]);
       }
@@ -424,9 +440,10 @@ export async function runEventHelperTurn(
 
   await deps.sessions.save(session);
   if (featureRequest && featureRequestId) {
-    if (!result) return { kind: "capability", sessionId: session.id, text: featureRequest, featureRequestId, alreadyRequested };
+    const addedMore = addedMoreToFeature || undefined;
+    if (!result) return { kind: "capability", sessionId: session.id, text: featureRequest, featureRequestId, alreadyRequested, addedMore };
     if (result.kind === "question" || result.kind === "draft" || result.kind === "message") {
-      return { ...result, featureRequest, featureRequestId, alreadyRequested };
+      return { ...result, featureRequest, featureRequestId, alreadyRequested, addedMore };
     }
   }
   return (

@@ -1,4 +1,4 @@
-import type { CapabilityRequestRow } from "@/src/services/ai/capability-requests";
+import { isReopened, type CapabilityRequestRow } from "@/src/services/ai/capability-requests";
 import type { BuildProgress } from "@/src/services/ai/feature-build-progress";
 import { buildStepOf, type BuildStep } from "@/src/services/ai/build-steps";
 
@@ -24,7 +24,7 @@ export interface FeatureRequestStatus {
 // Builds whose GitHub progress is worth reading: started and not finished.
 export function needsBuildProgress(row: CapabilityRequestRow): boolean {
   const state = row.build?.pullRequest?.state;
-  return row.build !== null && row.status !== "built" && state !== "merged" && state !== "closed";
+  return row.build !== null && (row.status !== "built" || isReopened(row)) && state !== "merged" && state !== "closed";
 }
 
 export function featureRequestStatus(
@@ -36,7 +36,7 @@ export function featureRequestStatus(
     id: row.id,
     summary: row.summary,
     isFix: row.fix !== null,
-    step: buildStepOf({ status: row.status, build: row.build, progress }),
+    step: buildStepOf({ status: row.status, build: row.build, progress, reopened: isReopened(row) }),
     declined: row.status === "declined",
     setAside: row.build?.pullRequest?.state === "closed",
     previewUrl: row.build?.previewUrl ?? null,

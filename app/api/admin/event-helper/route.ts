@@ -10,8 +10,10 @@ import { eventToDraftSnapshot, mergeDraftIntoEvent } from "@/src/services/ai/eve
 import { createDraftSessionStore } from "@/src/services/ai/draft-session-store";
 import {
   createCapabilityRequest,
+  getLiveFeature,
   getOpenCapabilityRequests,
   linkCapabilityRequestsToEvents,
+  markMoreRequested,
 } from "@/src/services/ai/capability-requests";
 import { HELPER_LIMITS, runEventHelperTurn } from "@/src/services/ai/event-helper";
 import { EVENT_HELPER_ROLES } from "@/src/constants/admin/event-helper";
@@ -36,6 +38,8 @@ const BodySchema = z.object({
   propertyId: z.string().max(100).nullable(),
   // Set when the helper runs beside a saved event's builder.
   eventId: z.string().uuid().nullable().optional(),
+  // Set from "Add more" on a live feature's card.
+  extendsRequestId: z.string().uuid().nullable().optional(),
 });
 
 function todayIn(timezone: string): string {
@@ -84,6 +88,11 @@ export async function POST(request: Request) {
         snapshot: eventToDraftSnapshot(editingEvent, await getEventExtras(supabase, editingEvent.id), TIMEZONE),
       }
     : null;
+  // "Add more": the live feature the conversation extends.
+  const extending = body.data.extendsRequestId ? await getLiveFeature(supabase, body.data.extendsRequestId) : null;
+  if (body.data.extendsRequestId && !extending) {
+    return NextResponse.json({ kind: "error", text: "That feature isn't live, so nothing can be added to it." }, { status: 404 });
+  }
   const propertyHint =
     properties.find((property) => property.id === (editingEvent?.propertyId ?? body.data.propertyId)) ?? null;
 
@@ -117,8 +126,18 @@ export async function POST(request: Request) {
           }
           return { ok: true, id: saved.ids[0], count: saved.ids.length, ids: saved.ids };
         },
-        recordCapabilityRequest: (input) => createCapabilityRequest(supabase, input),
-        openCapabilityRequests: () => getOpenCapabilityRequests(supabase),
+        recordCapabilityRequest: async (input) => {
+          const recorded = await createCapabilityRequest(supabase, input);
+          if (recorded.ok && extending && input.duplicateOf === extending.id) {
+            const marked = await markMoreRequested(supabase, extending.id);
+            if (!marked.ok) return { ok: false, error: marked.error };
+          }
+          return recorded;
+        },
+        openCapabilityRequests: async () => {
+          const open = await getOpenCapabilityRequests(supabase);
+          return extending ? [extending, ...open.filter((request) => request.id !== extending.id)] : open;
+        },
         linkCapabilityRequests: async (sessionId, eventIds) => {
           const linked = await linkCapabilityRequestsToEvents(supabase, sessionId, eventIds);
           if (!linked.ok) console.error("[event-helper] couldn't link feature requests", linked.error);
@@ -126,7 +145,7 @@ export async function POST(request: Request) {
         profile: { businessName: BUSINESS_NAME, timezone: TIMEZONE, properties },
         today: todayIn(TIMEZONE),
       },
-      { sessionId: body.data.sessionId, message: body.data.message, propertyHint, editing },
+      { sessionId: body.data.sessionId, message: body.data.message, propertyHint, editing, extending },
     );
     return NextResponse.json(result);
   } catch (error) {

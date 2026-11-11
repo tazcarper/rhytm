@@ -14,11 +14,11 @@ import s from "./event-flow.module.css";
 //     carries on there, and each message can change that event
 // Talks to /api/admin/event-helper.
 
-type FeatureRequestNote = { featureRequest?: string; featureRequestId?: string; alreadyRequested?: boolean };
+type FeatureRequestNote = { featureRequest?: string; featureRequestId?: string; alreadyRequested?: boolean; addedMore?: boolean };
 
 type HelperResponse =
   | ({ kind: "question" | "message"; sessionId: string; text: string } & FeatureRequestNote)
-  | { kind: "capability"; sessionId: string; text: string; featureRequestId: string; alreadyRequested?: boolean }
+  | { kind: "capability"; sessionId: string; text: string; featureRequestId: string; alreadyRequested?: boolean; addedMore?: boolean }
   | ({
       kind: "draft";
       sessionId: string;
@@ -46,12 +46,17 @@ export function featureRequestText(alreadyRequested: boolean): string {
     : "The builder can't do that yet, so I've made a request for it, shown below. You can start the build, tell me more to add to the request, or carry on with something else.";
 }
 
+// What the helper says after "Add more" words were added to a live feature.
+export const ADDED_MORE_TEXT =
+  "I've added that to the feature, shown below. It's back under Active until the addition is live. Start the build when you're ready, or tell me more to add.";
+
 const featureRequestLine = (
   featureRequestId: string | undefined,
   alreadyRequested = false,
+  addedMore = false,
 ): TranscriptLine => ({
   who: "helper",
-  text: `${featureRequestText(alreadyRequested)} I've drafted the rest of the event without it.`,
+  text: addedMore ? ADDED_MORE_TEXT : `${featureRequestText(alreadyRequested)} I've drafted the rest of the event without it.`,
   featureRequestId,
 });
 
@@ -66,6 +71,7 @@ export function EventHelperPanel({
   initialSessionId = null,
   initialTranscript = [],
   onEventUpdated,
+  extendsRequestId = null,
 }: {
   propertyId: string | null;
   // Set beside a saved event: messages change that event.
@@ -76,7 +82,11 @@ export function EventHelperPanel({
   // Called after the helper saved changes to the event, so the builder and
   // preview can reload.
   onEventUpdated?: () => void;
+  // Set on a live feature's card ("Add more"): messages are about what the
+  // feature should also do.
+  extendsRequestId?: string | null;
 }) {
+  const addingMore = Boolean(extendsRequestId);
   const router = useRouter();
   const editing = Boolean(eventId);
   const [sessionId, setSessionId] = useState<string | null>(initialSessionId);
@@ -105,7 +115,7 @@ export function EventHelperPanel({
       const response = await fetch("/api/admin/event-helper", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, message: text, propertyId, eventId }),
+        body: JSON.stringify({ sessionId, message: text, propertyId, eventId, extendsRequestId }),
       });
       const result = (await response.json().catch(() => null)) as HelperResponse | null;
       if (!result) {
@@ -122,7 +132,7 @@ export function EventHelperPanel({
       if (result.sessionId) setSessionId(result.sessionId);
       const note =
         "featureRequest" in result && result.featureRequest
-          ? [featureRequestLine(result.featureRequestId, Boolean(result.alreadyRequested))]
+          ? [featureRequestLine(result.featureRequestId, Boolean(result.alreadyRequested), Boolean(result.addedMore))]
           : [];
 
       switch (result.kind) {
@@ -153,14 +163,17 @@ export function EventHelperPanel({
             ...lines,
             {
               who: "helper",
-              text: featureRequestText(Boolean(result.alreadyRequested)),
+              text: result.addedMore ? ADDED_MORE_TEXT : featureRequestText(Boolean(result.alreadyRequested)),
               featureRequestId: result.featureRequestId,
             },
           ]);
           break;
         case "question":
         case "message":
-          setTranscript((lines) => [...lines, ...note, { who: "helper", text: result.text }]);
+          // After "Add more" the note already says what happened.
+          setTranscript((lines) =>
+            result.kind === "message" && result.addedMore ? [...lines, ...note] : [...lines, ...note, { who: "helper", text: result.text }],
+          );
           break;
         case "error":
           setError({ text: result.text, detail: result.detail });
@@ -186,7 +199,7 @@ export function EventHelperPanel({
   return (
     <div className={`${s.panel} ${s.flow} flex flex-col`}>
       <div className="flex items-center justify-between gap-4">
-        <h2 className={s.subhead}>{editing ? "Ask the helper" : "Or just describe it"}</h2>
+        <h2 className={s.subhead}>{addingMore ? "Add more to this feature" : editing ? "Ask the helper" : "Or just describe it"}</h2>
         {transcript.length > 0 && (
           <button type="button" onClick={startOver} className="text-[15px] text-gray underline">
             Start over
@@ -194,7 +207,9 @@ export function EventHelperPanel({
         )}
       </div>
       <p className="mt-1 text-[17px] leading-[1.5] text-gray">
-        {editing
+        {addingMore
+          ? "Tell the helper what this feature should also do, the way you'd tell a coworker. It asks about anything unclear, then adds it to this feature for Claude to build."
+          : editing
           ? "Ask for changes in your own words and the helper updates this event. Nothing goes live until you publish."
           : "Tell the helper about the event the way you'd tell a coworker. It fills in a draft for you and asks about anything missing. Nothing goes live until you publish."}
       </p>
@@ -254,7 +269,7 @@ export function EventHelperPanel({
           className={s.input}
           rows={editing ? 3 : transcript.length > 0 ? 2 : 5}
           maxLength={4000}
-          placeholder={editing ? EDIT_PLACEHOLDER : transcript.length > 0 ? "Your answer" : PLACEHOLDER}
+          placeholder={addingMore ? 'e.g. "Also let each ticket option have its own early-bird price"' : editing ? EDIT_PLACEHOLDER : transcript.length > 0 ? "Your answer" : PLACEHOLDER}
           disabled={pending}
           onKeyDown={(evt) => {
             // Enter sends; Shift+Enter adds a new line.

@@ -35,6 +35,27 @@ export interface CapabilityRequestRow {
   // live (migration 20261105200000). The feature is null when staff
   // weren't sure which one it was.
   fix: { feature: { id: string; summary: string } | null } | null;
+  // The helper conversation it was asked in (migration 20261104193000).
+  sessionId: string | null;
+  // Everything that went live for it, oldest first (migration
+  // 20261111030000; see featurePublishedBuilds for older rows).
+  publishedBuilds: ReadonlyArray<PublishedBuild>;
+  // Staff asked to add more to the live feature and it isn't live yet.
+  addingMore: boolean;
+  // An undo went live: the feature is off the site.
+  removedAt: string | null;
+}
+
+// What a build does: the first build of a request, more added to a live
+// feature, or the live feature taken off the site.
+export type FeatureBuildKind = "build" | "add_more" | "undo";
+
+export interface PublishedBuild {
+  prNumber: number;
+  prUrl: string;
+  issueNumber: number | null;
+  mergedAt: string;
+  kind: FeatureBuildKind;
 }
 
 export interface ProblemReportInput {
@@ -66,19 +87,51 @@ export async function createProblemReport(
   return { ok: true, id: (data as { id: string }).id };
 }
 
-// Not done yet: still new, being reviewed or being built. Built and
-// declined requests are done.
-export function isOpenRequest(row: CapabilityRequestRow): boolean {
-  return row.status !== "built" && row.status !== "declined";
+// A live feature with follow-up work under way: more is being added, or
+// it's being taken off the site. It stays Built (events using it aren't
+// held up) but shows under Active.
+export function isReopened(row: Pick<CapabilityRequestRow, "status" | "build" | "addingMore" | "removedAt">): boolean {
+  if (row.status !== "built" || row.removedAt) return false;
+  if (row.addingMore) return true;
+  const state = row.build?.pullRequest?.state;
+  return row.build !== null && row.build.kind !== "build" && state !== "merged" && state !== "closed";
 }
 
-// Features that went live through Build it, newest first, for "which
-// feature is broken?". Fixes are left out.
+// Not done yet: still new, being reviewed or being built, or a live
+// feature being added to or undone. Built and declined requests are done.
+export function isOpenRequest(row: CapabilityRequestRow): boolean {
+  return (row.status !== "built" && row.status !== "declined") || isReopened(row);
+}
+
+// Features that went live through Build it and are still on the site,
+// newest first, for "which feature is broken?". Fixes are left out.
 export function liveFeatures(rows: ReadonlyArray<CapabilityRequestRow>): CapabilityRequestRow[] {
-  return rows.filter((row) => row.status === "built" && !row.fix);
+  return rows.filter((row) => row.status === "built" && !row.fix && !row.removedAt);
+}
+
+// Everything that went live for a request. Requests built before
+// migration 20261111030000 only have their latest build, so it counts too
+// when it merged.
+export function featurePublishedBuilds(
+  row: Pick<CapabilityRequestRow, "build" | "publishedBuilds">,
+): PublishedBuild[] {
+  const builds = [...row.publishedBuilds];
+  const latest = row.build?.pullRequest;
+  if (row.build && latest?.state === "merged" && latest.number !== null && !builds.some((build) => build.prNumber === latest.number)) {
+    builds.push({
+      prNumber: latest.number,
+      prUrl: latest.url,
+      issueNumber: Number(row.build.issueUrl.match(/\/issues\/(\d+)$/)?.[1] ?? NaN) || null,
+      mergedAt: row.build.requestedAt ?? "",
+      kind: row.build.kind,
+    });
+  }
+  return builds;
 }
 
 export interface FeatureBuild {
+  // What this build does (migration 20261111030000; "build" before it).
+  kind: FeatureBuildKind;
   issueUrl: string;
   requestedAt: string | null;
   // The pull request Claude opened, once there is one.
@@ -188,6 +241,8 @@ const BUILD_COLUMNS = "build_issue_url, build_requested_at, build_pr_number, bui
 const BUILD_PREVIEW_COLUMNS = "build_preview_url, build_test_steps";
 // Report a problem (migration 20261105200000).
 const FIX_COLUMNS = "is_fix, fixes_request_id";
+// Add more and Undo (migration 20261111030000).
+const HISTORY_COLUMNS = "session_id, published_builds, build_kind, more_requested_at, removed_at";
 
 type RequestRow = {
   id: string;
@@ -205,6 +260,11 @@ type RequestRow = {
   build_test_steps?: string | null;
   is_fix?: boolean | null;
   fixes_request_id?: string | null;
+  session_id?: string | null;
+  published_builds?: PublishedBuild[] | null;
+  build_kind?: FeatureBuildKind | null;
+  more_requested_at?: string | null;
+  removed_at?: string | null;
   properties: { name: string } | { name: string }[] | null;
   capability_request_events?: Array<{ events: LinkedEventRow | LinkedEventRow[] | null }>;
 };
@@ -212,10 +272,11 @@ type LinkedEventRow = { id: string; title: string; status: string };
 
 export async function getCapabilityRequests(supabase: SupabaseClient): Promise<CapabilityRequestRow[]> {
   // Newest schema first, then older ones, so the page still loads before
-  // a migration is applied: fixes (20261105200000), preview and test steps (20261105190000), the
+  // a migration is applied: history (20261111030000), fixes (20261105200000), preview and test steps (20261105190000), the
   // build columns (20261105170000),
   // duplicate_of (20261105150000), then the linking table (20261104193000).
   const selections = [
+    `${REQUEST_COLUMNS}, duplicate_of, ${BUILD_COLUMNS}, ${BUILD_PREVIEW_COLUMNS}, ${FIX_COLUMNS}, ${HISTORY_COLUMNS}, ${LINKED_EVENTS}`,
     `${REQUEST_COLUMNS}, duplicate_of, ${BUILD_COLUMNS}, ${BUILD_PREVIEW_COLUMNS}, ${FIX_COLUMNS}, ${LINKED_EVENTS}`,
     `${REQUEST_COLUMNS}, duplicate_of, ${BUILD_COLUMNS}, ${BUILD_PREVIEW_COLUMNS}, ${LINKED_EVENTS}`,
     `${REQUEST_COLUMNS}, duplicate_of, ${BUILD_COLUMNS}, ${LINKED_EVENTS}`,
@@ -261,6 +322,7 @@ export async function getCapabilityRequests(supabase: SupabaseClient): Promise<C
         alsoAsked: duplicates.map((other) => ({ id: other.id, ownerWords: other.owner_words, createdAt: other.created_at })),
         build: row.build_issue_url
           ? {
+              kind: row.build_kind ?? "build",
               issueUrl: row.build_issue_url,
               requestedAt: row.build_requested_at ?? null,
               pullRequest:
@@ -277,8 +339,42 @@ export async function getCapabilityRequests(supabase: SupabaseClient): Promise<C
               })(),
             }
           : null,
+        sessionId: row.session_id ?? null,
+        publishedBuilds: Array.isArray(row.published_builds) ? row.published_builds : [],
+        addingMore: Boolean(row.more_requested_at),
+        removedAt: row.removed_at ?? null,
       };
     });
+}
+
+// A feature that's live (built, not removed, not a fix), for "Add more".
+// Null when it isn't, or the caller can't see it (RLS).
+export async function getLiveFeature(
+  supabase: SupabaseClient,
+  id: string,
+): Promise<{ id: string; summary: string } | null> {
+  const { data, error } = await supabase
+    .from("capability_requests")
+    .select("id, summary, status, is_fix, removed_at")
+    .eq("id", id)
+    .maybeSingle();
+  if (error || !data) return null;
+  const row = data as { id: string; summary: string; status: string; is_fix: boolean; removed_at: string | null };
+  return row.status === "built" && !row.is_fix && !row.removed_at ? { id: row.id, summary: row.summary } : null;
+}
+
+// Staff asked to add more to a live feature (through the helper): it shows
+// under Active again until the addition is live.
+export async function markMoreRequested(
+  supabase: SupabaseClient,
+  id: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const { error } = await supabase
+    .from("capability_requests")
+    .update({ more_requested_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("status", "built");
+  return error ? { ok: false, error: error.message } : { ok: true };
 }
 
 export const CAPABILITY_REQUEST_STATUSES: ReadonlyArray<CapabilityRequestStatus> = [
